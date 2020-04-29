@@ -109,11 +109,11 @@ namespace Common.ServiceCommon
 
         protected virtual Tuple<IEnumerable<TResponse>, int> SearchDatas(Expression<Func<TResponse, bool>> linq, string sql, int startIndex = 0, int count = int.MaxValue)
         {
-            if (m_linq != null)
-                return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(m_linq, startIndex: startIndex, count: count), m_searchQuery.FilterIsDeleted().Count(m_linq));
+            if (linq != null)
+                return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(linq, startIndex: startIndex, count: count), m_searchQuery.FilterIsDeleted().Count(linq));
 
-            else if (!string.IsNullOrEmpty(m_sql))
-                return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(m_sql, startIndex: startIndex, count: count), m_searchQuery.FilterIsDeleted().Count(m_sql));
+            else if (!string.IsNullOrEmpty(sql))
+                return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(sql, startIndex: startIndex, count: count), m_searchQuery.FilterIsDeleted().Count(sql));
 
             throw new NotSupportedException();
         }
