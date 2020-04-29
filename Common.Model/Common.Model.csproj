@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.1.29</Version>
+    <AssemblyVersion>1.1.29.0</AssemblyVersion>
+    <FileVersion>1.1.29.0</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DocumentationFile></DocumentationFile>
+    <NoWarn>1701;1702;1570;1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType></DebugType>
+    <NoWarn>1701;1702;1570;1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Commodity\**" />
+    <Compile Remove="Company\**" />
+    <Compile Remove="Customer\**" />
+    <Compile Remove="Member\**" />
+    <Compile Remove="Order\**" />
+    <Compile Remove="SystemSetting\**" />
+    <Compile Remove="WareHouse\**" />
+    <EmbeddedResource Remove="Commodity\**" />
+    <EmbeddedResource Remove="Company\**" />
+    <EmbeddedResource Remove="Customer\**" />
+    <EmbeddedResource Remove="Member\**" />
+    <EmbeddedResource Remove="Order\**" />
+    <EmbeddedResource Remove="SystemSetting\**" />
+    <EmbeddedResource Remove="WareHouse\**" />
+    <None Remove="Commodity\**" />
+    <None Remove="Company\**" />
+    <None Remove="Customer\**" />
+    <None Remove="Member\**" />
+    <None Remove="Order\**" />
+    <None Remove="SystemSetting\**" />
+    <None Remove="WareHouse\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="sqlSugarCore" Version="5.0.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common.DAL\Common.DAL.csproj" />
+    <ProjectReference Include="..\Common.Validation\Common.Validation.csproj" />
+    <ProjectReference Include="..\Common\Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove=".DS_Store" />
+  </ItemGroup>
+</Project>
