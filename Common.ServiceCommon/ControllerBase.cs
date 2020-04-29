@@ -81,22 +81,28 @@ namespace Common.ServiceCommon
         private static string m_sql;
         private static Expression<Func<TResponse, bool>> m_linq;
         private static ISearchQuery<TResponse> m_searchQuery;
+        private PageQuery<TRequest> m_pageQuery;
 
         [HttpGet]
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
         {
-            PageQuery<TRequest> pageQuery = pageQueryParameterService.GetQueryParameter<TRequest>();
+            m_pageQuery = pageQueryParameterService.GetQueryParameter<TRequest>();
 
-            m_linq = SetLinq(pageQuery.Condition);
-            m_sql = SetSql(pageQuery.Condition);
+            m_linq = SetLinq(m_pageQuery.Condition);
+            m_sql = SetSql(m_pageQuery.Condition);
 
-            Tuple<IEnumerable<TResponse>, int> tupleDatas = SearchDatas(m_linq, m_sql, pageQuery.StartIndex, pageQuery.PageCount);
+            Tuple<IEnumerable<TResponse>, int> tupleDatas = SearchDatas(m_linq, m_sql, m_pageQuery.StartIndex, m_pageQuery.PageCount);
 
             return new PageQueryResult<TResponse>()
             {
                 Datas = PreperDatas(tupleDatas.Item1),
                 TotalCount = tupleDatas.Item2
             };
+        }
+
+        protected TRequest GetQueryCondition()
+        {
+            return m_pageQuery.Condition;
         }
 
         protected virtual IEnumerable<TResponse> PreperDatas(IEnumerable<TResponse> datas) => datas;
