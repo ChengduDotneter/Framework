@@ -454,7 +454,12 @@ namespace Common.ServiceCommon
         public IActionResult Post(TRequest1 request1)
         {
             DoPost(request1);
-            return new OkResult();
+            return new OkObjectResult(GetReturnValue());
+        }
+
+        public virtual object GetReturnValue()
+        {
+            return null;
         }
 
         protected abstract void DoPost(TRequest1 request1);
