@@ -39,10 +39,6 @@ namespace Common.ServiceCommon
 
         public SSOUserInfo GetUser()
         {
-#if DEBUG
-            return new SSOUserInfo(0, "admin");
-#endif
-
             IHeaderDictionary headers = m_httpContextAccessor.HttpContext.Request.Headers;
 
             if (headers["id"].Count == 0 || headers["userName"].Count == 0)
