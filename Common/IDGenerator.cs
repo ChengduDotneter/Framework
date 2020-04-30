@@ -8,17 +8,17 @@ namespace Common
         /// <summary>
         /// 节点类型
         /// </summary>
-        private static readonly uint nodeType;
+        private static readonly uint m_nodeType;
 
         /// <summary>
         /// 节点编号
         /// </summary>
-        private static readonly uint node;
+        private static readonly uint m_node;
 
         /// <summary>
         /// 线程锁
         /// </summary>
-        private static readonly object lockThis = new object();
+        private static readonly object m_lockThis = new object();
 
         /// <summary>
         /// 进程同步锁名称格式化字符串
@@ -36,9 +36,9 @@ namespace Common
         private const long TWEPOCH = 1546300800000L;
 
         /// <summary>
-        /// 机器id所占的位数，节点ID范围在0-255之间
+        /// 机器id所占的位数，节点ID范围在0-127
         /// </summary>
-        private const int NODE_BITS = 8;
+        private const int NODE_BITS = 7;
 
         /// <summary>
         /// 机器id最小值
@@ -53,17 +53,12 @@ namespace Common
         /// <summary>
         /// 序列在id中占的位数
         /// </summary>
-        private const int SEQUENCE_BITS = 12;
+        private const int SEQUENCE_BITS = 9;
 
         /// <summary>
-        /// 毫秒级别时间截占的位数
+        /// 节点类型所占位数，节点类型范围在0-63
         /// </summary>
-        private const int TIME_STAMP_BITS = 41;
-
-        /// <summary>
-        /// 节点类型所占位数
-        /// </summary>
-        private const int NODE_TYPE_BITS = 2;
+        private const int NODE_TYPE_BITS = 6;
 
         /// <summary>
         /// 节点类型的最小值
@@ -91,19 +86,19 @@ namespace Common
         private const int TIME_STAMP_SHIFT = SEQUENCE_BITS + SEQUENCE_SHIFT;
 
         /// <summary>
-        /// 生成序列的掩码，这里为4095 (0b111111111111=0xfff=4095)
+        /// 生成序列的掩码，这里为4095 (0b111111111=0x200=512)
         /// </summary>
         private const int SEQUENCE_MASK = -1 ^ (-1 << SEQUENCE_BITS);
 
         /// <summary>
         /// 上一次生成ID的总时间毫秒数
         /// </summary>
-        private static long lastTimestamp;
+        private static long m_lastTimestamp;
 
         /// <summary>
         /// 毫秒内序列
         /// </summary>
-        private static long sequence;
+        private static long m_sequence;
 
         /// <summary>
         /// 根据节点类型和节点编号生成新ID
@@ -111,19 +106,7 @@ namespace Common
         /// <returns>新生成的ID</returns>
         public static long NextID()
         {
-            using (Mutex mutex = new Mutex(false, string.Format(MUTEX_NAME_STRING_FORMAT, nodeType, node)))
-            {
-                mutex.WaitOne();
-
-                try
-                {
-                    return CreateNewID(nodeType, node);
-                }
-                finally
-                {
-                    mutex.ReleaseMutex();
-                }
-            }
+            return CreateNewID(m_nodeType, m_node);
         }
 
         /// <summary>
@@ -142,7 +125,7 @@ namespace Common
         {
             long timestamp = GetTicks();
 
-            while (timestamp <= lastTimestamp)
+            while (timestamp <= m_lastTimestamp)
                 timestamp = GetTicks();
 
             return timestamp;
@@ -158,30 +141,30 @@ namespace Common
 
             long timestamp;
 
-            lock (lockThis)
+            lock (m_lockThis)
             {
                 timestamp = GetTicks();
 
-                if (timestamp < lastTimestamp) //当前时间小于上一次ID生成的时间戳
+                if (timestamp < m_lastTimestamp) //当前时间小于上一次ID生成的时间戳
                     throw new Exception("系统时间异常。");
 
-                if (timestamp == lastTimestamp) //如果是同一时间生成的，则进行毫秒内序列
+                if (timestamp == m_lastTimestamp) //如果是同一时间生成的，则进行毫秒内序列
                 {
-                    sequence = (sequence + 1) & SEQUENCE_MASK;
+                    m_sequence = (m_sequence + 1) & SEQUENCE_MASK;
 
-                    if (sequence == 0) //毫秒内序列溢出
+                    if (m_sequence == 0) //毫秒内序列溢出
                         timestamp = BlockUntilNextMillis(); //阻塞到下一个毫秒,获得新的时间戳
                 }
                 else //时间戳改变，毫秒内序列重置
                 {
-                    sequence = 0L;
+                    m_sequence = 0L;
                 }
 
-                lastTimestamp = timestamp; //上次生成ID的时间截
+                m_lastTimestamp = timestamp; //上次生成ID的时间截
             }
 
             return ((timestamp - TWEPOCH) << TIME_STAMP_SHIFT) | // 时间差占用41位，最多69年，左移22位
-                   (sequence << SEQUENCE_SHIFT) | // 毫秒内序列，取值范围0-4095，左移10位，ANDROID下为0，左移22位
+                   (m_sequence << SEQUENCE_SHIFT) | // 毫秒内序列，取值范围0-4095，左移10位，ANDROID下为0，左移22位
                    (node << NODE_SHIFT) | // 工作机器，取值范围0-255，左移2位，ANDROID下为0-1048575
                    nodeType; // 生成方式占用2位
         }
@@ -218,8 +201,8 @@ namespace Common
 
         static IDGenerator()
         {
-            nodeType = Convert.ToUInt32(ConfigManager.Configuration.GetSection("NodeType").Value);
-            node = Convert.ToUInt32(ConfigManager.Configuration.GetSection("Node").Value);
+            m_nodeType = Convert.ToUInt32(ConfigManager.Configuration.GetSection("NodeType").Value);
+            m_node = Convert.ToUInt32(ConfigManager.Configuration.GetSection("Node").Value);
         }
     }
 }
