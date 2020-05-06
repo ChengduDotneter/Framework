@@ -88,8 +88,11 @@ namespace Common.ServiceCommon
         {
             m_pageQuery = pageQueryParameterService.GetQueryParameter<TRequest>();
 
-            m_linq = SetLinq(m_pageQuery.Condition);
-            m_sql = SetSql(m_pageQuery.Condition);
+            if (m_pageQuery.Condition != null)
+            {
+                m_linq = SetLinq(m_pageQuery.Condition);
+                m_sql = SetSql(m_pageQuery.Condition);
+            }
 
             Tuple<IEnumerable<TResponse>, int> tupleDatas = SearchDatas(m_linq, m_sql, m_pageQuery.StartIndex, m_pageQuery.PageCount);
 
@@ -114,6 +117,9 @@ namespace Common.ServiceCommon
 
             else if (!string.IsNullOrEmpty(sql))
                 return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(sql, startIndex: startIndex, count: count), m_searchQuery.FilterIsDeleted().Count(sql));
+
+            else if (linq == null && string.IsNullOrEmpty(sql))
+                return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(startIndex: startIndex, count: count), m_searchQuery.FilterIsDeleted().Count());
 
             throw new NotSupportedException();
         }
