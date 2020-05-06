@@ -21,11 +21,6 @@ namespace Common
         private static readonly object m_lockThis = new object();
 
         /// <summary>
-        /// 进程同步锁名称格式化字符串
-        /// </summary>
-        private const string MUTEX_NAME_STRING_FORMAT = "{0}_{1}";
-
-        /// <summary>
         /// 最小时间
         /// </summary>
         private static readonly DateTime MIN_DATE_TIME = new DateTime(1970, 1, 1);
@@ -71,22 +66,22 @@ namespace Common
         private const int MAX_NODE_TYPE = (-1 ^ (-1 << NODE_TYPE_BITS));
 
         /// <summary>
-        /// 机器id向左移2位
+        /// 机器id向左移6位
         /// </summary>
         private const int NODE_SHIFT = NODE_TYPE_BITS;
 
         /// <summary>
-        /// 生成序列向左移10位(8+2)
+        /// 生成序列向左移13位(7+6)
         /// </summary>
         private const int SEQUENCE_SHIFT = NODE_BITS + NODE_SHIFT;
 
         /// <summary>
-        /// 时间截向左移22位(12+8+2)
+        /// 时间截向左移22位(9+7+6)
         /// </summary>
         private const int TIME_STAMP_SHIFT = SEQUENCE_BITS + SEQUENCE_SHIFT;
 
         /// <summary>
-        /// 生成序列的掩码，这里为4095 (0b111111111=0x200=512)
+        /// 生成序列的掩码，这里为512 (0b111111111=0x200=512)
         /// </summary>
         private const int SEQUENCE_MASK = -1 ^ (-1 << SEQUENCE_BITS);
 
@@ -164,9 +159,9 @@ namespace Common
             }
 
             return ((timestamp - TWEPOCH) << TIME_STAMP_SHIFT) | // 时间差占用41位，最多69年，左移22位
-                   (m_sequence << SEQUENCE_SHIFT) | // 毫秒内序列，取值范围0-4095，左移10位，ANDROID下为0，左移22位
-                   (node << NODE_SHIFT) | // 工作机器，取值范围0-255，左移2位，ANDROID下为0-1048575
-                   nodeType; // 生成方式占用2位
+                   (m_sequence << SEQUENCE_SHIFT) | // 毫秒内序列，取值范围0-511，左移13位
+                   (node << NODE_SHIFT) | // 工作机器，取值范围0-127
+                   nodeType; // 生成方式占用6位
         }
 
         /// <summary>
