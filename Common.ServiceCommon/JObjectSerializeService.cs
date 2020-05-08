@@ -1,6 +1,7 @@
 ﻿using Common.Model;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
+using System;
 using System.IO;
 using System.Text.Json;
 
@@ -21,7 +22,7 @@ namespace Common.ServiceCommon
 
         public JObjectSerializeService(IHttpContextAccessor httpContextAccessor, IJObjectConverter jObjectConverter)
         {
-            m_httpContextAccessor = httpContextAccessor; 
+            m_httpContextAccessor = httpContextAccessor;
             m_jObjectConverter = jObjectConverter;
         }
 
@@ -33,11 +34,9 @@ namespace Common.ServiceCommon
 
         private byte[] StreamToBytes(Stream stream)
         {
-            byte[] bytes = new byte[stream.Length];
+            byte[] bytes = new byte[Convert.ToInt32(m_httpContextAccessor.HttpContext.Request.ContentLength)];
 
-            stream.Read(bytes, 0, bytes.Length);
-
-            stream.Seek(0, SeekOrigin.Begin);
+            stream.ReadAsync(bytes, 0, bytes.Length).Wait();
 
             return bytes;
         }
