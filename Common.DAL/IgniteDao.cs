@@ -242,10 +242,7 @@ namespace Common.DAL
             public void Merge(params T[] datas)
             {
                 for (int i = 0; i < datas.Length; i++)
-                {
-                    if (!m_cache.PutIfAbsent(datas[i].ID, datas[i]))
-                        m_cache.Replace(datas[i].ID, datas[i]);
-                }
+                    m_cache.Put(datas[i].ID, datas[i]);
             }
 
             public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
@@ -317,7 +314,7 @@ namespace Common.DAL
 
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
             {
-                Func<T, bool> updateHandler = ((Expression<Func<T, bool>>)EquelToAssignVisitor.ReplaceBinary(updateExpression)).Compile();
+                Func<T, bool> updateHandler = updateExpression.ReplaceAssign().Compile();
 
                 foreach (ICacheEntry<long, T> entity in m_cache.AsCacheQueryable().Where(ConvertExpression(predicate)))
                 {
@@ -471,7 +468,7 @@ namespace Common.DAL
 
             public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
             {
-                IFieldsQueryCursor fieldsQueryCursor = m_cache.Query(new SqlFieldsQuery(PreperSql(sql, parameters), parameters.Values));
+                IFieldsQueryCursor fieldsQueryCursor = m_cache.Query(new SqlFieldsQuery(PreperSql(sql, parameters), parameters?.Values));
 
                 foreach (IList<object> row in fieldsQueryCursor)
                 {

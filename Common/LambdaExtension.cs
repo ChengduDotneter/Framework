@@ -178,10 +178,21 @@ namespace Common
             return (Expression<Func<TAParameter, TBParameter, TResult>>)new ParameterRenamer<TAParameter, TBParameter, TResult>().RenameParameter(
                 expression, expression.Parameters[0].Name, expression.Parameters[1].Name, aParameterName, bParameterName);
         }
+
+        /// <summary>
+        /// 赋值转换扩展
+        /// </summary>
+        /// <typeparam name="T">需要转换的表达式参数类型</typeparam>
+        /// <param name="expression">需要转换的表达式</param>
+        /// <returns>转换后的表达式</returns>
+        public static Expression<Func<T, bool>> ReplaceAssign<T>(this Expression<Func<T, bool>> expression)
+        {
+            return (Expression<Func<T, bool>>)EquelToAssignVisitor.ReplaceBinary(expression);
+        }
     }
 
     /// <summary>
-    /// 参数访问器
+    /// 赋值转换器
     /// </summary>
     public class EquelToAssignVisitor : ExpressionVisitor
     {
