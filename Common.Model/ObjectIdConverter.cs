@@ -48,6 +48,28 @@ namespace Common.Model
     }
 
     /// <summary>
+    /// Int转换类
+    /// </summary>
+    public class IntConverter : JsonConverter<int>
+    {
+        public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
+
+            if (string.IsNullOrWhiteSpace(stringValue))
+                return 0;
+
+            else
+                return Convert.ToInt32(stringValue);
+        }
+
+        public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
+
+    /// <summary>
     /// 可为空的Int转换类
     /// </summary>
     public class IntNullableConverter : JsonConverter<int?>
@@ -70,6 +92,30 @@ namespace Common.Model
             else writer.WriteNullValue();
         }
     }
+
+
+    /// <summary>
+    /// Decimal转换类
+    /// </summary>
+    public class DecimalConverter : JsonConverter<decimal>
+    {
+        public override decimal Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
+
+            if (string.IsNullOrWhiteSpace(stringValue))
+                return 0;
+
+            else
+                return Convert.ToDecimal(stringValue);
+        }
+
+        public override void Write(Utf8JsonWriter writer, decimal value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
+
 
     /// <summary>
     /// 可为空的Decimal转换类
@@ -97,6 +143,78 @@ namespace Common.Model
     }
 
     /// <summary>
+    /// float转换类
+    /// </summary>
+    public class FloatConverter : JsonConverter<float>
+    {
+        public override float Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
+
+            if (string.IsNullOrWhiteSpace(stringValue))
+                return 0;
+
+            else
+                return Convert.ToSingle(stringValue);
+        }
+
+        public override void Write(Utf8JsonWriter writer, float value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
+
+
+    /// <summary>
+    /// 可为空的Decimal转换类
+    /// </summary>
+    public class FloatNallableConverter : JsonConverter<float?>
+    {
+        public override float? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+
+            var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
+
+            if (string.IsNullOrWhiteSpace(stringValue))
+                return null;
+
+            return Convert.ToSingle(stringValue);
+        }
+
+        public override void Write(Utf8JsonWriter writer, float? value, JsonSerializerOptions options)
+        {
+            if (value.HasValue)
+                writer.WriteNumberValue(value.Value);
+
+            else writer.WriteNullValue();
+        }
+    }
+
+
+    /// <summary>
+    /// Bool转换类
+    /// </summary>
+    public class BoolConverter : JsonConverter<bool>
+    {
+        public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
+
+            if (string.IsNullOrWhiteSpace(stringValue))
+                return false;
+
+            else
+                return Convert.ToBoolean(stringValue);
+        }
+
+        public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
+
+
+    /// <summary>
     /// 可为空的Bool转换类
     /// </summary>
     public class BoolNullableConverter : JsonConverter<bool?>
@@ -119,7 +237,6 @@ namespace Common.Model
             else writer.WriteNullValue();
         }
     }
-
 
     /// <summary>
     /// 只保留字符串中的字母、数字和汉字
