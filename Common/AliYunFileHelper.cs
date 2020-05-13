@@ -27,6 +27,13 @@ namespace Common
             }
         }
 
+        /// <summary>
+        /// 上传本地文件
+        /// </summary>
+        /// <param name="fileName">文件名</param>
+        /// <param name="filePath">本地文件地址</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <returns></returns>
         public static PutObjectResult UploadLocalFile(string fileName, string filePath,string currentFilePath)
         {
             try
@@ -39,11 +46,13 @@ namespace Common
             }
         }
 
+
         /// <summary>
         /// 上传文件
         /// </summary>
         /// <param name="binaryData">上传文件流</param>
         /// <param name="objectName">上传文件名</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
         /// <returns></returns>
         public static PutObjectResult UploadFile(byte[] binaryData, string objectName, string currentFilePath)
         {
@@ -59,6 +68,12 @@ namespace Common
             }
         }
 
+        /// <summary>
+        /// 下载文件
+        /// </summary>
+        /// <param name="objectName">文件名</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <returns></returns>
         public static Stream DownLoadFile(string objectName, string currentFilePath)
         {
             try
@@ -73,6 +88,12 @@ namespace Common
             }
         }
 
+        /// <summary>
+        /// 判断文件是否存在
+        /// </summary>
+        /// <param name="objectName">文件名</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <returns></returns>
         public static bool FileExist(string objectName, string currentFilePath)
         {
             return client.DoesObjectExist(m_bucketName, $"{currentFilePath}/{objectName}");
