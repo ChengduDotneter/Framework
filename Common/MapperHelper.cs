@@ -65,6 +65,8 @@ namespace Common
 
             bool isEnum = isNullable ? type.GenericTypeArguments[0].IsEnum : type.IsEnum;
 
+            Expression dicKeyName = Expression.Constant(memberExpression.Member.Name, typeof(string));
+
             switch (isNullable ? (isEnum ? typeof(Enum).FullName : type.GenericTypeArguments[0].FullName) : (isEnum ? typeof(Enum).FullName : type.FullName))
             {
                 case "System.Byte": methodInfo = typeof(Convert).GetMethod(nameof(Convert.ToByte), new Type[] { typeof(object) }); break;
@@ -82,13 +84,14 @@ namespace Common
                 default: return Expression.Constant(true);
             }
 
-            Expression getDic = Expression.Call(reader, dicGetMethod, Expression.Constant(memberExpression.Member.Name, typeof(string)));
+            Expression getDic = Expression.Call(reader, dicGetMethod, dicKeyName);
 
             Expression value = isEnum ? Expression.Call(methodInfo, Expression.Call(typeof(Convert).GetMethod(nameof(Convert.ToString), new Type[] { typeof(object) }), getDic)) : Expression.Call(methodInfo, getDic);
 
-            Expression ifCheck = Expression.Call(reader, contaisKeyMethod, Expression.Constant(memberExpression.Member.Name, typeof(string)));
+            Expression ifCheck = Expression.Call(reader, contaisKeyMethod, dicKeyName);
 
-            return Expression.IfThen(ifCheck, Expression.Assign(memberExpression, SetParameter(isNullable, isNullable ? type.GenericTypeArguments[0] : type, value)));
+            return Expression.IfThen(ifCheck, Expression.IfThen(Expression.NotEqual(getDic, Expression.Default(typeof(object))),
+                Expression.Assign(memberExpression, SetParameter(isNullable, isNullable ? type.GenericTypeArguments[0] : type, value))));
         }
 
 
