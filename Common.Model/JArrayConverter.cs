@@ -16,6 +16,10 @@ namespace Common.Model
     {
         public override JArray Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
+            return Read(ref reader, typeToConvert, options);
+        }
+        public JArray Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, bool inArray = false)
+        {
             JArray jArray = new JArray();
 
             while (reader.Read())
@@ -29,20 +33,12 @@ namespace Common.Model
                     case JsonTokenType.None: jArray.Add(string.Empty); break;
                     case JsonTokenType.Number: jArray.Add(JObjectConverter.GetNumber(reader)); break;
                     case JsonTokenType.StartObject: jArray.Add(new JObjectConverter().Read(ref reader, typeof(JArray), options)); break;
-                    case JsonTokenType.StartArray:
-                        if (jArray.HasValues)
-                            jArray.Add(Read(ref reader, typeof(JArray), options));
-                        else
-                            jArray = Read(ref reader, typeof(JArray), options);
-                        break;
+                    case JsonTokenType.StartArray: if (inArray) jArray.Add(Read(ref reader, typeof(JArray), options)); inArray = true; break;
                     case JsonTokenType.EndArray: return jArray;
                     case JsonTokenType.Comment: break;
                     case JsonTokenType.PropertyName: throw new NotSupportedException();
                 }
             }
-
-            if (jArray.HasValues)
-                return jArray;
 
             throw new NotSupportedException();
         }

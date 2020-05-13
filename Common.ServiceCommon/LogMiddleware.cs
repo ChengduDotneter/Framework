@@ -170,8 +170,8 @@ namespace Common.ServiceCommon
         {
             httpContext.Request.EnableBuffering();
 
-            byte[] jsonBuffer = new byte[httpContext.Request.ContentLength ?? 0];
-            await httpContext.Request.Body.ReadAsync(jsonBuffer, 0, jsonBuffer.Length);
+            byte[] jsonBuffer = await SteamHelper.ReadSteamToBufferAsync(httpContext.Request.Body, httpContext.Request.ContentLength ?? 0);
+
             httpContext.Request.Body.Seek(0, SeekOrigin.Begin);
 
             return Encoding.UTF8.GetString(jsonBuffer);

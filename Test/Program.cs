@@ -5,6 +5,10 @@ using Common;
 using Common.DAL;
 using Common.Model;
 using System.Linq;
+using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.IO;
+using System.Text;
 
 namespace Test
 {
@@ -48,11 +52,90 @@ namespace Test
             //    command = Console.ReadLine();
             //}
 
-           ISearchQuery<TestData> searchQuery = DaoFactory.GetSearchSqlSugarQuery<TestData>(false);
+            //ISearchQuery<TestData> searchQuery = DaoFactory.GetSearchSqlSugarQuery<TestData>(false);
 
-            var data = searchQuery.Query("SELECT * FROM TestData");
+            // var data = searchQuery.Query("SELECT * FROM TestData");
 
-            var data_2 = MapperModelHelper<TestData>.ReadModel(data);
+            // var data_2 = MapperModelHelper<TestData>.ReadModel(data);
+
+
+
+            JObject a = new JObject();
+            a["a"] = "123";
+            JArray jArray = new JArray();
+            jArray.Add(1);
+            jArray.Add(2);
+            jArray.Add(3);
+            jArray.Add(4);
+            a["b"] = jArray;
+
+
+            JArray jArray1 = new JArray();
+            JArray jArray2 = new JArray();
+            jArray2.Add(1);
+            jArray2.Add(2);
+            jArray2.Add(3);
+            jArray2.Add(4);
+            JArray jArray3 = new JArray();
+            jArray3.Add(1);
+            jArray3.Add(2);
+            jArray3.Add(3);
+            jArray3.Add(4);
+            JArray jArray4 = new JArray();
+            jArray4.Add(1);
+            jArray4.Add(2);
+            jArray4.Add(3);
+            jArray4.Add(4);
+
+            jArray1.Add(jArray2);
+            jArray1.Add(jArray3);
+            jArray1.Add(jArray4);
+
+            a["c"] = jArray1;
+
+
+            var options = new JsonWriterOptions
+            {
+                Indented = true
+            };
+
+            //using (var stream = new MemoryStream())
+            //{
+            //    using (var writer = new Utf8JsonWriter(stream, options))
+            //    {
+            //        writer.WriteStartObject();
+            //        writer.WriteString("date", DateTimeOffset.UtcNow);
+            //        writer.WriteNumber("temp", 42);
+            //        writer.WriteEndObject();
+            //    }
+            //    string json = Encoding.UTF8.GetString(stream.ToArray());
+            //    Console.WriteLine(json);
+            //}
+
+            var stream = new MemoryStream();
+            var writer = new Utf8JsonWriter(stream, options);
+            JObjectConverter jObjectConverter = new JObjectConverter();
+            JArrayConverter jArrayConverter = new JArrayConverter();
+            jObjectConverter.Write(writer, a, null);
+            //jArrayConverter.Write(writer, jArray1, null);
+
+            writer.Flush();
+
+            string json = Encoding.UTF8.GetString(stream.ToArray());
+            Console.WriteLine(json);
+
+            var options1 = new JsonReaderOptions
+            {
+                AllowTrailingCommas = true,
+                CommentHandling = JsonCommentHandling.Skip
+            };
+
+            Utf8JsonReader reader = new Utf8JsonReader(stream.ToArray(), options1);
+
+            var data = jObjectConverter.Read(ref reader, typeof(int), null);
+
+            //var data = jArrayConverter.Read(ref reader, typeof(int), null);
+
         }
     }
 }

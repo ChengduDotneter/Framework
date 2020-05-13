@@ -30,7 +30,7 @@ namespace Common.Model
                     case JsonTokenType.Null: jObject[currentPropertyName] = null; break;
                     case JsonTokenType.None: jObject[currentPropertyName] = string.Empty; break;
                     case JsonTokenType.Number: jObject[currentPropertyName] = GetNumber(reader); break;
-                    case JsonTokenType.StartArray: jObject[currentPropertyName] = new JArrayConverter().Read(ref reader, typeof(JArray), options); break;
+                    case JsonTokenType.StartArray: jObject[currentPropertyName] = new JArrayConverter().Read(ref reader, typeof(JArray), options, true); break;
                     case JsonTokenType.StartObject: if (!string.IsNullOrWhiteSpace(currentPropertyName)) jObject[currentPropertyName] = Read(ref reader, typeof(JObject), options); break;
                     case JsonTokenType.EndObject: return jObject;
                     case JsonTokenType.Comment: break;

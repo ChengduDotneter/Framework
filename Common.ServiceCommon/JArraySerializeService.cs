@@ -27,19 +27,8 @@ namespace Common.ServiceCommon
 
         public JArray GetJArray()
         {
-            Utf8JsonReader jsonReader = new Utf8JsonReader(StreamToBytes(m_httpContextAccessor.HttpContext.Request.Body));
+            Utf8JsonReader jsonReader = new Utf8JsonReader(SteamHelper.ReadSteamToBuffer(m_httpContextAccessor.HttpContext.Request.Body, m_httpContextAccessor.HttpContext.Request.ContentLength ?? 0));
             return m_jArrayConverter.Read(ref jsonReader, typeof(JObject), null);
-        }
-
-        private byte[] StreamToBytes(Stream stream)
-        {
-            byte[] bytes = new byte[stream.Length];
-
-            stream.Read(bytes, 0, bytes.Length);
-
-            stream.Seek(0, SeekOrigin.Begin);
-
-            return bytes;
         }
     }
 }
