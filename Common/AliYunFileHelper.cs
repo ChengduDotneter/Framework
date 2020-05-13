@@ -4,17 +4,16 @@ using System.IO;
 
 namespace Common
 {
-    public static class ExcelFileHelper
+    public static class AliYunFileHelper
     {
         private static string m_accessKeyId = Convert.ToString(ConfigManager.Configuration["AccessKeyId"]);
         private static string m_endpoint = Convert.ToString(ConfigManager.Configuration["Endpoint"]) ;
         private static string m_accessKeySecret = Convert.ToString(ConfigManager.Configuration["AccessKeySecret"]) ;
         private static string m_bucketName = Convert.ToString(ConfigManager.Configuration["BucketName"]);//Bucket路径
-        private static string m_excelFilePath = Convert.ToString(ConfigManager.Configuration["FilePath"]);//文件目录
 
         private static OssClient client;
 
-        static ExcelFileHelper()
+        static AliYunFileHelper()
         {
             if (client == null)
             {
@@ -28,11 +27,40 @@ namespace Common
             }
         }
 
-        public static PutObjectResult UploadLocalFile(string fileName, string filePath)
+        /// <summary>
+        /// 上传本地文件
+        /// </summary>
+        /// <param name="fileName">文件名</param>
+        /// <param name="filePath">本地文件地址</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <returns></returns>
+        public static PutObjectResult UploadLocalFile(string fileName, string filePath,string currentFilePath)
         {
             try
             {
-                return client.PutObject(m_bucketName,$"{ m_excelFilePath}/{fileName} " , filePath);
+                return client.PutObject(m_bucketName,$"{currentFilePath}/{fileName}" , filePath);
+            }
+            catch
+            {
+                throw new DealException("上传文件失败");
+            }
+        }
+
+
+        /// <summary>
+        /// 上传文件
+        /// </summary>
+        /// <param name="binaryData">上传文件流</param>
+        /// <param name="objectName">上传文件名</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <returns></returns>
+        public static PutObjectResult UploadFile(byte[] binaryData, string objectName, string currentFilePath)
+        {
+            try
+            {
+                MemoryStream requestContent = new MemoryStream(binaryData);
+                // 上传文件。
+                return client.PutObject(m_bucketName, $"{currentFilePath}/{objectName}", requestContent);
             }
             catch
             {
@@ -41,30 +69,16 @@ namespace Common
         }
 
         /// <summary>
-        /// 上传文件
+        /// 下载文件
         /// </summary>
-        /// <param name="binaryData">上传文件流</param>
-        /// <param name="objectName">上传文件名</param>
+        /// <param name="objectName">文件名</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
         /// <returns></returns>
-        public static PutObjectResult UploadFile(byte[] binaryData, string objectName)
+        public static Stream DownLoadFile(string objectName, string currentFilePath)
         {
             try
             {
-                MemoryStream requestContent = new MemoryStream(binaryData);
-                // 上传文件。
-                return client.PutObject(m_bucketName, $"{m_excelFilePath}/{objectName}", requestContent);
-            }
-            catch
-            {
-                throw new DealException("上传文件失败");
-            }
-        }
-
-        public static Stream DownLoadFile(string objectName)
-        {
-            try
-            {
-                var obj = client.GetObject(m_bucketName, $"{m_excelFilePath}/{objectName}");
+                var obj = client.GetObject(m_bucketName, $"{currentFilePath}/{objectName}");
 
                 return obj.Content;
             }
@@ -74,9 +88,15 @@ namespace Common
             }
         }
 
-        public static bool FileExist(string objectName)
+        /// <summary>
+        /// 判断文件是否存在
+        /// </summary>
+        /// <param name="objectName">文件名</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <returns></returns>
+        public static bool FileExist(string objectName, string currentFilePath)
         {
-            return client.DoesObjectExist(m_bucketName, $"{m_excelFilePath}/{objectName}");
+            return client.DoesObjectExist(m_bucketName, $"{currentFilePath}/{objectName}");
         }
 
     }
