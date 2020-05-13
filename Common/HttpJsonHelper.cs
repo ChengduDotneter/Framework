@@ -13,7 +13,7 @@ namespace Common
     {
         public static Task<HttpResponseMessage> HttpPostAsync(string url, string action, HttpContent content, string bearerToken = "")
         {
-            return GetHttpClient(url).AddJsonContentType().AddAuthorizationHeader(bearerToken).PostAsync(action, content);
+            return GetHttpClient(url).AddAuthorizationHeader(bearerToken).PostAsync(action, content.AddJsonContentType());
         }
 
         public static HttpResponseMessage HttpPost(string url, string action, HttpContent content, string bearerToken = "")
@@ -23,7 +23,7 @@ namespace Common
 
         public static Task<HttpResponseMessage> HttpGetAsync(string url, string action, string bearerToken = "")
         {
-            return GetHttpClient(url).AddJsonContentType().AddAuthorizationHeader(bearerToken).GetAsync(action);
+            return GetHttpClient(url).AddAuthorizationHeader(bearerToken).GetAsync(action);
         }
 
         public static HttpResponseMessage HttpGet(string url, string action, string bearerToken = "")
@@ -33,7 +33,7 @@ namespace Common
 
         public static Task<HttpResponseMessage> HttpPutAsync(string url, string action, HttpContent content, string bearerToken = "")
         {
-            return GetHttpClient(url).AddJsonContentType().AddAuthorizationHeader(bearerToken).PutAsync(action, content);
+            return GetHttpClient(url).AddAuthorizationHeader(bearerToken).PutAsync(action, content.AddJsonContentType());
         }
 
         public static HttpResponseMessage HttpPut(string url, string action, HttpContent content, string bearerToken = "")
@@ -43,7 +43,7 @@ namespace Common
 
         public static Task<HttpResponseMessage> HttpDeleteAsync(string url, string action, string bearerToken = "")
         {
-            return GetHttpClient(url).AddJsonContentType().AddAuthorizationHeader(bearerToken).DeleteAsync(action);
+            return GetHttpClient(url).AddAuthorizationHeader(bearerToken).DeleteAsync(action);
         }
 
         public static HttpResponseMessage HttpDelete(string url, string action, string bearerToken = "")

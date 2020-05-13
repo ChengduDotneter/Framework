@@ -48,10 +48,12 @@ namespace Common.ServiceCommon
 
                     PropertyInfo propertyInfo = typeof(T).GetProperty(propertyName);
 
+                    if (propertyInfo == null)
+                        continue;
+
                     Type underlyingType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
 
-                    if (propertyInfo == null ||
-                        (!underlyingType.IsValueType && underlyingType != typeof(string)) ||
+                    if ((!underlyingType.IsValueType && underlyingType != typeof(string)) ||
                         underlyingType.GetInterface(typeof(IConvertible).FullName) == null)
                         continue;
 
