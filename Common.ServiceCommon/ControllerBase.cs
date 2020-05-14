@@ -460,7 +460,13 @@ namespace Common.ServiceCommon
         public IActionResult Post(TRequest1 request1)
         {
             DoPost(request1);
-            return new OkObjectResult(GetReturnValue());
+
+            object result = GetReturnValue();
+
+            if (result == null)
+                return new OkResult();
+            else
+                return new OkObjectResult(result);
         }
 
         public virtual object GetReturnValue()
@@ -483,7 +489,13 @@ namespace Common.ServiceCommon
         public IActionResult Post(TRequest1 request1, TRequest2 request2)
         {
             DoPost(request1, request2);
-            return new OkObjectResult(GetReturnValue());
+
+            object result = GetReturnValue();
+
+            if (result == null)
+                return new OkResult();
+            else
+                return new OkObjectResult(result);
         }
 
         public virtual object GetReturnValue()
@@ -506,7 +518,13 @@ namespace Common.ServiceCommon
         public IActionResult Post(TRequest1 request1, TRequest2 request2, TRequest3 request3)
         {
             DoPost(request1, request2, request3);
-            return new OkObjectResult(GetReturnValue());
+
+            object result = GetReturnValue();
+
+            if (result == null)
+                return new OkResult();
+            else
+                return new OkObjectResult(result);
         }
         public virtual object GetReturnValue()
         {
