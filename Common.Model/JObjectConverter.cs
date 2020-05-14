@@ -60,10 +60,13 @@ namespace Common.Model
 
         internal static JToken GetString(string @string)
         {
-            if (DateTime.TryParse(@string, out DateTime dateTime))
-                return dateTime;
-            else
-                return @string;
+            //TODO: 存在时间格式问题
+
+            //if (DateTime.TryParse(@string, out DateTime dateTime))
+            //    return dateTime;
+            //else
+
+            return @string;
         }
 
         public override void Write(Utf8JsonWriter writer, JObject value, JsonSerializerOptions options)
