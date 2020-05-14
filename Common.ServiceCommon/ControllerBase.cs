@@ -45,6 +45,22 @@ namespace Common.ServiceCommon
         protected abstract TResponse DoPost(JArray request);
     }
 
+    public abstract class BatchGenericGetController<TResponse> : ControllerBase
+    {
+        [HttpGet("{id}")]
+        public IActionResult Get(long id)
+        {
+            TResponse data = DoGet(id);
+
+            if (data == null)
+                return NotFound(id);
+
+            return Ok(data);
+        }
+
+        protected abstract TResponse DoGet(long id);
+    }
+
     [ApiController]
     public abstract class GenericGetController<TResponse> : ControllerBase
         where TResponse : ViewModelBase, new()
