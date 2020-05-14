@@ -7,7 +7,7 @@
         <RootNamespace>Apache.Ignite.Linq</RootNamespace>
         <NoWarn>NU1701</NoWarn>
         <SignAssembly>true</SignAssembly>
-        <Version>1.2.10</Version>
+        <Version>1.2.11</Version>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Remotion.Linq" Version="2.1.2" />
