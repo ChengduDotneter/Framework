@@ -12,6 +12,8 @@ namespace Common.DAL
         void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression);
         void Delete(params long[] ids);
 
+        //TODO: 读写分离查询问题
+        //TODO: 多客户端并发问题
         ITransaction BeginTransaction();
     }
 
