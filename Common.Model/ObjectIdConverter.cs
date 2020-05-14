@@ -262,7 +262,7 @@ namespace Common.Model
     /// <summary>
     /// 可为空的DateTime转换类
     /// </summary>
-    public class DateTineNullableConverter : JsonConverter<DateTime?>
+    public class DateTimeNullableConverter : JsonConverter<DateTime?>
     {
         public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

@@ -109,19 +109,19 @@ namespace Common
                 returnString = reader.ReadToEnd();
             }
 
-            return new HttpWebResponseResult(httpWebResponse.StatusCode, JsonConvert.DeserializeObject<JObject>(returnString));
+            return new HttpWebResponseResult(httpWebResponse.StatusCode, returnString);
         }
     }
 
     public class HttpWebResponseResult
     {
         public HttpStatusCode HttpStatus { get; set; }
-        public JObject Data { get; set; }
+        public string DataString { get; set; }
 
-        public HttpWebResponseResult(HttpStatusCode httpStatus, JObject data = null)
+        public HttpWebResponseResult(HttpStatusCode httpStatus, string dataString = null)
         {
             HttpStatus = httpStatus;
-            Data = data;
+            DataString = dataString;
         }
     }
 }
