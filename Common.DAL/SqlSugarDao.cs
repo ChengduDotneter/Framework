@@ -157,7 +157,7 @@ namespace Common.DAL
                 if (ids.Length == 0)
                     return;
 
-                CreateConnection(m_masterConnectionString, true).Deleteable<T>(ids).ExecuteCommand();
+                CreateConnection(m_masterConnectionString, true).Deleteable<T>().In(ids).ExecuteCommand();
             }
 
             public void Insert(params T[] datas)
