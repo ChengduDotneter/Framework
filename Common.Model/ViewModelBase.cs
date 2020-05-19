@@ -51,7 +51,7 @@ namespace Common.Model
         /// <summary>
         /// 是否删除
         /// </summary>
-        [SugarColumn(IsNullable = false, ColumnDescription = "是否删除")]
+        [SugarColumn(IsNullable = false, ColumnDescription = "是否删除",IndexGroupNameList = new string[] { "INDEX_ISDELETED" })]
         [QuerySqlField]
         public bool IsDeleted { set; get; }
 
