@@ -3,7 +3,7 @@ using System;
 
 namespace Common
 {
-    class JTokenHelper
+   public class JTokenHelper
     {
         public static int GetIntValue(JToken jToken)
         {
