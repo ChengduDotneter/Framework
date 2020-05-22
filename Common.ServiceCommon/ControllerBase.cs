@@ -345,6 +345,33 @@ namespace Common.ServiceCommon
         }
     }
 
+    public abstract class UnverifiedPostController<TRequest> : ControllerBase where TRequest : ViewModelBase, new()
+    {
+        private IEditQuery<TRequest> m_editQuery;
+
+        [HttpPost]
+        public IActionResult Post([FromBody]TRequest request)
+        {
+            request.ID = IDGenerator.NextID();
+            request.CreateTime = DateTime.Now;
+            request.IsDeleted = false;
+
+            DoPost(request.ID, request);
+
+            return Ok(request);
+        }
+
+        protected virtual void DoPost(long id, TRequest request)
+        {
+            m_editQuery.FilterIsDeleted().Insert(request);
+        }
+
+        public UnverifiedPostController(IEditQuery<TRequest> editQuery)
+        {
+            m_editQuery = editQuery;
+        }
+    }
+
     [ApiController]
     public abstract class GenericPutController<TRequest> : ControllerBase
         where TRequest : ViewModelBase, new()
