@@ -27,7 +27,7 @@ namespace Common.Validation
                 parameters.Add($"@{validationContext.MemberName}", value);
                 parameters.Add($"@{nameof(IEntity.ID)}", typeof(IEntity).GetProperty(nameof(IEntity.ID)).GetValue(entity));
 
-                return (int)queryType.GetMethod("Count", new Type[] { typeof(string) }).
+                return (int)queryType.GetMethod("Count", new Type[] { typeof(string), typeof(Dictionary<string, object>) }).
                         Invoke(searchQuery, new object[] { sql, parameters }) == 0;
             }
 

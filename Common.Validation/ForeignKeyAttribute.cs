@@ -1,5 +1,6 @@
 ﻿using Common.DAL;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
@@ -30,12 +31,14 @@ namespace Common.Validation
 
                 Type queryType = typeof(ISearchQuery<>).MakeGenericType(m_foreignTableType);
                 object searchQuery = validationContext.GetService(queryType);
-                string sql = string.Format("{0} = '{1}' {2}", m_foreignColumn,
-                                                              value,
+                string sql = string.Format("{0} = @{0} {1}", m_foreignColumn,
                                                               m_filterIsDeleted ? " AND IsDeleted = 0 " : string.Empty);
 
-                return (int)queryType.GetMethod("Count", new Type[] { typeof(string) }).
-                    Invoke(searchQuery, new object[] { sql}) > 0;
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+                parameters.Add($"@{m_foreignColumn}", value);
+
+                return (int)queryType.GetMethod("Count", new Type[] { typeof(string),typeof(Dictionary<string, object>) }).
+                    Invoke(searchQuery, new object[] { sql, parameters }) > 0;
             }
 
             throw new NotImplementedException();
