@@ -2,6 +2,7 @@
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -57,8 +58,8 @@ namespace Common.ServiceCommon
                 sql += isSelf ? $" AND {lazyLoadedTree.ForeignKeyPropertyName} IS NULL " : "";
 
             //反射执行查询方法
-            var objects = queryType.GetMethod("Search", new Type[] { typeof(string), typeof(string), typeof(int), typeof(int) }).
-                   Invoke(searchQuery, new object[] { sql, null, 0, int.MaxValue });
+            var objects = queryType.GetMethod("Search", new Type[] { typeof(string), typeof(Dictionary<string, object>), typeof(string), typeof(int), typeof(int) }).
+                   Invoke(searchQuery, new object[] { sql, null, null, 0, int.MaxValue });
 
             //如果该实体Label与Value字段，并且该实体的LazyLoadedTree特性定义Label与Value字段名，则向Label与Value中赋值
             if (objectType.GetProperty("Label") != null &&
