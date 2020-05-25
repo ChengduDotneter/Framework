@@ -1,5 +1,6 @@
 ﻿using Common.DAL;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
@@ -18,14 +19,16 @@ namespace Common.Validation
             {
                 Type queryType = typeof(ISearchQuery<>).MakeGenericType(validationContext.ObjectType);
                 object searchQuery = validationContext.GetService(queryType);
-                string sql = string.Format("{0} = '{1}' AND {2} <> '{3}' {4}", validationContext.MemberName,
-                                                                               value,
+                string sql = string.Format("{0} = @{0} AND {1} <> @{1} {2}", validationContext.MemberName,
                                                                                nameof(IEntity.ID),
-                                                                               typeof(IEntity).GetProperty(nameof(IEntity.ID)).GetValue(entity),
                                                                                m_filterIsDeleted ? " AND IsDeleted = 0 " : string.Empty);
 
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+                parameters.Add(validationContext.MemberName, value);
+                parameters.Add(nameof(IEntity.ID), typeof(IEntity).GetProperty(nameof(IEntity.ID)).GetValue(entity));
+
                 return (int)queryType.GetMethod("Count", new Type[] { typeof(string) }).
-                        Invoke(searchQuery, new object[] { sql }) == 0;
+                        Invoke(searchQuery, new object[] { sql, parameters }) == 0;
             }
 
             throw new NotSupportedException();

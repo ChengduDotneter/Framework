@@ -211,14 +211,16 @@ namespace Common.DAL
                     return m_cache.AsCacheQueryable().Count();
             }
 
-            public int Count(string queryWhere)
+            public int Count(string queryWhere, Dictionary<string, object> parameters = null)
             {
-                SqlFieldsQuery sqlFieldsQuery = new SqlFieldsQuery($"SELECT COUNT(*) FROM {typeof(T).Name} WHERE {queryWhere}");
+                throw new NotImplementedException();
 
-                OutpuSql(sqlFieldsQuery);
+                //SqlFieldsQuery sqlFieldsQuery = new SqlFieldsQuery($"SELECT COUNT(*) FROM {typeof(T).Name} WHERE {queryWhere}");
 
-                IList<object> data = m_cache.Query(sqlFieldsQuery).FirstOrDefault();
-                return Convert.ToInt32(data?[0]);
+                //OutpuSql(sqlFieldsQuery);
+
+                //IList<object> data = m_cache.Query(sqlFieldsQuery).FirstOrDefault();
+                //return Convert.ToInt32(data?[0]);
             }
 
             public void Delete(params long[] ids)

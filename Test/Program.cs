@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Text.Json;
 using System.IO;
 using System.Text;
+using SqlSugar;
 
 namespace Test
 {
@@ -22,10 +23,20 @@ namespace Test
 
     class Program
     {
+        public class Data : ViewModelBase
+        {
+            [SugarColumn(IsNullable = false, ColumnDescription = "测试")]
+            public string Name { get; set; }
+        }
 
         static void Main(string[] args)
         {
             ConfigManager.Init("Development");
+
+            //var count = DaoFactory.GetSearchSqlSugarQuery<Data>(false).Count("Name = @Name", new Dictionary<string, object>
+            //{
+            //    ["@Name"] = "zxy'"
+            //});
 
             //Random random = new Random();
 

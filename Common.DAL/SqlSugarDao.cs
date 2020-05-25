@@ -194,7 +194,7 @@ namespace Common.DAL
                                                                 .ExecuteCommand();
             }
 
-            public int Count(string queryWhere)
+            public int Count(string queryWhere, Dictionary<string, object> parameters = null)
             {
                 if (m_currentThread == Thread.CurrentThread.ManagedThreadId.ToString())
                 {
@@ -203,7 +203,7 @@ namespace Common.DAL
                         var query = sqlSugarClient.Queryable<T>();
 
                         if (!string.IsNullOrWhiteSpace(queryWhere))
-                            query.Where(queryWhere);
+                            query.Where(queryWhere, parameters);
 
                         return query.Count();
                     }
@@ -215,7 +215,7 @@ namespace Common.DAL
                         var query = sqlSugarClient.Queryable<T>();
 
                         if (!string.IsNullOrWhiteSpace(queryWhere))
-                            query.Where(queryWhere);
+                            query.Where(queryWhere, parameters);
 
                         return query.Count();
                     }

@@ -20,9 +20,8 @@ namespace Common.DAL
     public interface ISearchQuery<T> where T : class, IEntity, new()
     {
         T Get(long id);
-
         int Count(Expression<Func<T, bool>> predicate = null);
-        int Count(string queryWhere);
+        int Count(string queryWhere, Dictionary<string, object> parameters = null);
         IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null);
 
         IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
