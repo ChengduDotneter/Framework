@@ -202,8 +202,10 @@ namespace Common.DAL
                     {
                         var query = sqlSugarClient.Queryable<T>();
 
-                        if (!string.IsNullOrWhiteSpace(queryWhere))
+                        if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
                             query.Where(queryWhere, parameters);
+                        else if (!string.IsNullOrWhiteSpace(queryWhere))
+                            query.Where(queryWhere);
 
                         return query.Count();
                     }
@@ -214,8 +216,10 @@ namespace Common.DAL
                     {
                         var query = sqlSugarClient.Queryable<T>();
 
-                        if (!string.IsNullOrWhiteSpace(queryWhere))
+                        if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
                             query.Where(queryWhere, parameters);
+                        else if (!string.IsNullOrWhiteSpace(queryWhere))
+                            query.Where(queryWhere);
 
                         return query.Count();
                     }
@@ -382,13 +386,18 @@ namespace Common.DAL
                 }
             }
 
-            public IEnumerable<T> Search(string queryWhere, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
+            public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
             {
                 if (m_currentThread == Thread.CurrentThread.ManagedThreadId.ToString())
                 {
                     using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
                     {
-                        var query = sqlSugarClient.Queryable<T>().Where(queryWhere);
+                        var query = sqlSugarClient.Queryable<T>();
+
+                        if (parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else
+                            query.Where(queryWhere);
 
                         if (!string.IsNullOrWhiteSpace(orderByFields))
                             query.OrderBy(orderByFields);
@@ -400,7 +409,12 @@ namespace Common.DAL
                 {
                     using (SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString))
                     {
-                        var query = sqlSugarClient.Queryable<T>().Where(queryWhere);
+                        var query = sqlSugarClient.Queryable<T>();
+
+                        if (parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else
+                            query.Where(queryWhere);
 
                         if (!string.IsNullOrWhiteSpace(orderByFields))
                             query.OrderBy(orderByFields);

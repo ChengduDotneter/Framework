@@ -29,7 +29,9 @@ namespace Common.DAL
                               int startIndex = 0,
                               int count = int.MaxValue);
 
-        IEnumerable<T> Search(string queryWhere,
+        //TODO: SQL注入
+        IEnumerable<T> Search(string queryWhere, 
+                              Dictionary<string, object> parameters = null,
                               string orderByFields = null,
                               int startIndex = 0,
                               int count = int.MaxValue);

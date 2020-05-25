@@ -168,6 +168,7 @@ namespace Common.DAL
         private class IgniteDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>
             where T : class, IEntity, new()
         {
+            private const string SQL_PARAMETER_KEYWORD = "?";
             private readonly static IReadOnlyDictionary<string, Action<T, object>> m_propertyDic;
             private ICache<long, T> m_cache;
 
@@ -213,14 +214,29 @@ namespace Common.DAL
 
             public int Count(string queryWhere, Dictionary<string, object> parameters = null)
             {
-                throw new NotImplementedException();
+                object[] args = new object[parameters?.Count ?? 0];
+                int index = 0;
 
-                //SqlFieldsQuery sqlFieldsQuery = new SqlFieldsQuery($"SELECT COUNT(*) FROM {typeof(T).Name} WHERE {queryWhere}");
+                if (parameters != null)
+                {
+                    foreach (KeyValuePair<string, object> item in parameters)
+                    {
+                        queryWhere = queryWhere.Replace(item.Key, SQL_PARAMETER_KEYWORD);
+                        args[index++] = item.Value;
+                    }
+                }
 
-                //OutpuSql(sqlFieldsQuery);
+                SqlFieldsQuery sqlFieldsQuery = null;
 
-                //IList<object> data = m_cache.Query(sqlFieldsQuery).FirstOrDefault();
-                //return Convert.ToInt32(data?[0]);
+                if (args.Length > 0)
+                    sqlFieldsQuery = new SqlFieldsQuery($"SELECT COUNT(*) FROM {typeof(T).Name} WHERE {queryWhere}", args);
+                else
+                    sqlFieldsQuery = new SqlFieldsQuery($"SELECT COUNT(*) FROM {typeof(T).Name} WHERE {queryWhere}");
+
+                OutpuSql(sqlFieldsQuery);
+
+                IList<object> data = m_cache.Query(sqlFieldsQuery).FirstOrDefault();
+                return Convert.ToInt32(data?[0]);
             }
 
             public void Delete(params long[] ids)
@@ -274,8 +290,20 @@ namespace Common.DAL
                     yield return item.Value;
             }
 
-            public IEnumerable<T> Search(string queryWhere, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
+            public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
             {
+                object[] args = new object[parameters?.Count ?? 0];
+                int index = 0;
+
+                if (parameters != null)
+                {
+                    foreach (KeyValuePair<string, object> item in parameters)
+                    {
+                        queryWhere = queryWhere.Replace(item.Key, SQL_PARAMETER_KEYWORD);
+                        args[index++] = item.Value;
+                    }
+                }
+
                 string sql = string.Format("SELECT * FROM {0} {1} {2} LIMIT {4} OFFSET {3}",
                                            typeof(T).Name,
                                            string.IsNullOrWhiteSpace(queryWhere) ? string.Empty : string.Format("WHERE {0}", queryWhere),
@@ -283,7 +311,12 @@ namespace Common.DAL
                                            startIndex,
                                            count);
 
-                SqlFieldsQuery sqlFieldsQuery = new SqlFieldsQuery(sql);
+                SqlFieldsQuery sqlFieldsQuery = null;
+
+                if (args.Length > 0)
+                     sqlFieldsQuery = new SqlFieldsQuery(sql, args);
+                else
+                    sqlFieldsQuery = new SqlFieldsQuery(sql);
 
                 OutpuSql(sqlFieldsQuery);
 

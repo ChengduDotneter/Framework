@@ -24,8 +24,8 @@ namespace Common.Validation
                                                                                m_filterIsDeleted ? " AND IsDeleted = 0 " : string.Empty);
 
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
-                parameters.Add(validationContext.MemberName, value);
-                parameters.Add(nameof(IEntity.ID), typeof(IEntity).GetProperty(nameof(IEntity.ID)).GetValue(entity));
+                parameters.Add($"@{validationContext.MemberName}", value);
+                parameters.Add($"@{nameof(IEntity.ID)}", typeof(IEntity).GetProperty(nameof(IEntity.ID)).GetValue(entity));
 
                 return (int)queryType.GetMethod("Count", new Type[] { typeof(string) }).
                         Invoke(searchQuery, new object[] { sql, parameters }) == 0;

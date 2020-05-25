@@ -91,9 +91,9 @@ namespace TestWebAPI
                 endpoints.MapControllers();
             });
 
-            //注册服务发现
-            if (!env.IsDevelopment())
-                app.RegisterConsul(lifetime, m_configuration);
+            ////注册服务发现
+            //if (!env.IsDevelopment())
+            //    app.RegisterConsul(lifetime, m_configuration);
         }
     }
 }

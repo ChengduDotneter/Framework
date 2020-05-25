@@ -103,9 +103,9 @@ namespace Common.ServiceCommon
             return m_searchQuery.Count(predicate);
         }
 
-        public int Count(string queryWhere)
+        public int Count(string queryWhere, Dictionary<string, object> parameters = null)
         {
-            return m_searchQuery.Count(queryWhere);
+            return m_searchQuery.Count(queryWhere, parameters);
         }
 
         public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
@@ -123,9 +123,9 @@ namespace Common.ServiceCommon
             return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count);
         }
 
-        public IEnumerable<T> Search(string queryWhere, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
+        public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
         {
-            return m_searchQuery.Search(queryWhere,
+            return m_searchQuery.Search(queryWhere, parameters,
                                         string.IsNullOrEmpty(orderByFields) ? ORDER_BY_ID_DESC : $"{orderByFields},{ORDER_BY_ID_DESC}",
                                         startIndex,
                                         count);
@@ -183,9 +183,9 @@ namespace Common.ServiceCommon
             return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(predicate));
         }
 
-        public int Count(string queryWhere)
+        public int Count(string queryWhere, Dictionary<string, object> parameters = null)
         {
-            return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(queryWhere));
+            return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters);
         }
 
         public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
@@ -196,9 +196,9 @@ namespace Common.ServiceCommon
             return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count);
         }
 
-        public IEnumerable<T> Search(string queryWhere, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
+        public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
         {
-            return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(queryWhere), orderByFields, startIndex, count);
+            return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters, orderByFields, startIndex, count);
         }
 
         public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)

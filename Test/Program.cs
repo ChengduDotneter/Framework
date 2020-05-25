@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.IO;
 using System.Text;
 using SqlSugar;
+using Common.Validation;
 
 namespace Test
 {
@@ -23,20 +24,16 @@ namespace Test
 
     class Program
     {
-        public class Data : ViewModelBase
-        {
-            [SugarColumn(IsNullable = false, ColumnDescription = "测试")]
-            public string Name { get; set; }
-        }
+       
 
         static void Main(string[] args)
         {
             ConfigManager.Init("Development");
 
-            //var count = DaoFactory.GetSearchSqlSugarQuery<Data>(false).Count("Name = @Name", new Dictionary<string, object>
-            //{
-            //    ["@Name"] = "zxy'"
-            //});
+            var count = DaoFactory.GetSearchIgniteQuery<TestData>().Count("Name = @Name", new Dictionary<string, object>
+            {
+                ["@Name"] = "zxy"
+            });
 
             //Random random = new Random();
 
@@ -69,6 +66,7 @@ namespace Test
 
             // var data_2 = MapperModelHelper<TestData>.ReadModel(data);
 
+            Console.WriteLine($"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa      {count}");
 
 
             JObject a = new JObject();
@@ -147,6 +145,7 @@ namespace Test
 
             //var data = jArrayConverter.Read(ref reader, typeof(int), null);
 
+            Console.ReadLine();
         }
     }
 }
