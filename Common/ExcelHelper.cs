@@ -24,14 +24,7 @@ namespace Common
             }
             catch
             {
-                try
-                {
-                    return new HSSFWorkbook(stream); //03
-                }
-                catch
-                {
-                    throw new DealException("导入不为excel或excel文件出错");
-                }
+                return new HSSFWorkbook(stream); //03
             }
         }
 
