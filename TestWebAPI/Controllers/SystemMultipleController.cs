@@ -7,16 +7,16 @@ using TestModel;
 namespace TestWebAPI.Controllers
 {
     /// <summary>
-    /// 禁用/启用系统
+    /// 测试接口
     /// </summary>
-    [DynamicRoute("systemforbidenmultipleput")]
-    public class SystemForbidenController : MultipleGenericPutController<SystemInfo, bool>
+    [DynamicRoute("testpost")]
+    public class TestController : MultipleGenericPostController<SystemInfo, bool>
     {
         private ISSOUserService m_ssoUserService;
         private IEditQuery<SystemInfo> m_systemInfoEditQuery;
         private ISearchQuery<SystemInfo> m_systemInfoSearchQuery;
 
-        public SystemForbidenController(
+        public TestController(
             IEditQuery<SystemInfo> systemInfoEditQuery,
             ISSOUserService ssoUserService,
             ISearchQuery<SystemInfo> systemInfoSearchQuery) : base(ssoUserService)
@@ -26,7 +26,7 @@ namespace TestWebAPI.Controllers
             m_systemInfoSearchQuery = systemInfoSearchQuery;
         }
 
-        protected override void DoPut(SystemInfo systemInfo, bool isActive)
+        protected override void DoPost(SystemInfo systemInfo, bool isActive)
         {
             using (ITransaction trans = m_systemInfoEditQuery.FilterIsDeleted().BeginTransaction())
             {
