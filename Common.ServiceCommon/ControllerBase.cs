@@ -37,7 +37,7 @@ namespace Common.ServiceCommon
     public abstract class JArrayGenericPostController<TResponse> : ControllerBase
     {
         [HttpPost]
-        public TResponse Get([FromServices]IJArraySerializeService jArraySerializeService)
+        public TResponse Post([FromServices]IJArraySerializeService jArraySerializeService)
         {
             return DoPost(jArraySerializeService.GetJArray());
         }
@@ -89,76 +89,75 @@ namespace Common.ServiceCommon
         }
     }
 
+
     [ApiController]
-    public abstract class SearchController<TRequest, TResponse> : ControllerBase
+    //
+    // 摘要:
+    //     基础Search接口基类
+    //
+    // 返回结果:
+    public abstract class GenericSearchController<TRequest, TResponse> : ControllerBase
         where TRequest : ViewModelBase, new()
         where TResponse : ViewModelBase, new()
     {
         private static string m_sql;
         private static Expression<Func<TResponse, bool>> m_linq;
         private static ISearchQuery<TResponse> m_searchQuery;
-        private PageQuery<TRequest> m_pageQuery;
+
+
+        public GenericSearchController(ISearchQuery<TResponse> searchQuery) => m_searchQuery = searchQuery;
 
         [HttpGet]
+        //
+        // 摘要:
+        //     对外访问接口
+        //
+        // 参数:
+        //
+        // 返回结果:
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
         {
-            m_pageQuery = pageQueryParameterService.GetQueryParameter<TRequest>();
-
-            if (m_pageQuery.Condition != null)
-            {
-                m_linq = SetLinq(m_pageQuery.Condition);
-                m_sql = SetSql(m_pageQuery.Condition);
-            }
-
-            Tuple<IEnumerable<TResponse>, int> tupleDatas = SearchDatas(m_linq, m_sql, m_pageQuery.StartIndex, m_pageQuery.PageCount);
+            Tuple<IEnumerable<TResponse>, int> tupleDatas = SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
 
             return new PageQueryResult<TResponse>()
             {
-                Datas = PreperDatas(tupleDatas.Item1),
-                TotalCount = tupleDatas.Item2
+                Datas = PreperDatas(tupleDatas?.Item1),
+                TotalCount = tupleDatas?.Item2 ?? 0
             };
         }
 
-        protected TRequest GetQueryCondition()
+        //
+        // 摘要:
+        //     查询实现,默认支持linq查询，可重写
+        //
+        // 参数:
+        //
+        // 返回结果:
+        protected virtual Tuple<IEnumerable<TResponse>, int> SearchDatas(PageQuery<TRequest> pageQuery)
         {
-            return m_pageQuery.Condition;
+            Expression<Func<TResponse, bool>> linq = pageQuery.Condition == null ? null : GetBaseLinq(pageQuery.Condition);
+
+            return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), m_searchQuery.FilterIsDeleted().Count(linq));
         }
 
+        //
+        // 摘要:
+        //     查询返回结果处理，可重写
+        //
+        // 参数:
+        //
+        // 返回结果:
         protected virtual IEnumerable<TResponse> PreperDatas(IEnumerable<TResponse> datas) => datas;
 
-        protected virtual Tuple<IEnumerable<TResponse>, int> SearchDatas(Expression<Func<TResponse, bool>> linq, string sql, int startIndex = 0, int count = int.MaxValue)
-        {
-            if (linq != null)
-                return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(linq, startIndex: startIndex, count: count), m_searchQuery.FilterIsDeleted().Count(linq));
 
-            else if (!string.IsNullOrEmpty(sql))
-                return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(sql, startIndex: startIndex, count: count), m_searchQuery.FilterIsDeleted().Count(sql));
-
-            else if (linq == null && string.IsNullOrEmpty(sql))
-                return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(startIndex: startIndex, count: count), m_searchQuery.FilterIsDeleted().Count());
-
-            throw new NotSupportedException();
-        }
-
-        protected abstract Expression<Func<TResponse, bool>> SetLinq(TRequest queryCondition);
-
-        protected abstract string SetSql(TRequest queryCondition);
-
-        public SearchController(ISearchQuery<TResponse> searchQuery) => m_searchQuery = searchQuery;
-
-    }
-
-    [ApiController]
-    public abstract class GenericSearchController<TRequest, TResponse> : SearchController<TRequest, TResponse>
-        where TRequest : ViewModelBase, new()
-        where TResponse : ViewModelBase, new()
-    {
-
-        public GenericSearchController(ISearchQuery<TResponse> searchQuery) : base(searchQuery)
-        {
-        }
-
-        protected override Expression<Func<TResponse, bool>> SetLinq(TRequest queryCondition)
+        //
+        // 摘要:
+        //     根据泛型获取Model内部LinqSearch特性生成的基础Linq
+        //
+        // 参数:
+        //
+        // 返回结果:
+        protected Expression<Func<TResponse, bool>> GetBaseLinq(TRequest queryCondition)
         {
             LinqSearchAttribute linqSearchAttribute = typeof(TResponse).GetCustomAttribute<LinqSearchAttribute>();
 
@@ -178,25 +177,6 @@ namespace Common.ServiceCommon
             return null;
         }
 
-        protected override string SetSql(TRequest queryCondition)
-        {
-            SqlSearchAttribute sqlSearchAttribute = typeof(TResponse).GetCustomAttribute<SqlSearchAttribute>();
-
-            if (sqlSearchAttribute != null && !string.IsNullOrWhiteSpace(sqlSearchAttribute.GetSqlFunctionName))
-            {
-                MethodInfo method = typeof(TResponse).GetMethod(sqlSearchAttribute.GetSqlFunctionName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-
-                if (method != null)
-                {
-                    Func<TRequest, string> predicateSql = method.Invoke(null, null) as Func<TRequest, string> ?? null;
-
-                    if (predicateSql != null)
-                        return predicateSql(queryCondition);
-                }
-            }
-
-            return null;
-        }
     }
 
     [ApiController]
