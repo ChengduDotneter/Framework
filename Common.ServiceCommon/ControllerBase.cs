@@ -91,30 +91,15 @@ namespace Common.ServiceCommon
 
 
     [ApiController]
-    //
-    // 摘要:
-    //     基础Search接口基类
-    //
-    // 返回结果:
     public abstract class GenericSearchController<TRequest, TResponse> : ControllerBase
         where TRequest : ViewModelBase, new()
         where TResponse : ViewModelBase, new()
     {
-        private static string m_sql;
-        private static Expression<Func<TResponse, bool>> m_linq;
         private static ISearchQuery<TResponse> m_searchQuery;
-
 
         public GenericSearchController(ISearchQuery<TResponse> searchQuery) => m_searchQuery = searchQuery;
 
         [HttpGet]
-        //
-        // 摘要:
-        //     对外访问接口
-        //
-        // 参数:
-        //
-        // 返回结果:
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
         {
             Tuple<IEnumerable<TResponse>, int> tupleDatas = SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
@@ -126,38 +111,17 @@ namespace Common.ServiceCommon
             };
         }
 
-        //
-        // 摘要:
-        //     查询实现,默认支持linq查询，可重写
-        //
-        // 参数:
-        //
-        // 返回结果:
         protected virtual Tuple<IEnumerable<TResponse>, int> SearchDatas(PageQuery<TRequest> pageQuery)
         {
-            Expression<Func<TResponse, bool>> linq = pageQuery.Condition == null ? null : GetBaseLinq(pageQuery.Condition);
+            Expression<Func<TResponse, bool>> linq = pageQuery.Condition == null ? item => true : GetBaseLinq(pageQuery.Condition);
 
             return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), m_searchQuery.FilterIsDeleted().Count(linq));
         }
 
-        //
-        // 摘要:
-        //     查询返回结果处理，可重写
-        //
-        // 参数:
-        //
-        // 返回结果:
         protected virtual IEnumerable<TResponse> PreperDatas(IEnumerable<TResponse> datas) => datas;
 
 
-        //
-        // 摘要:
-        //     根据泛型获取Model内部LinqSearch特性生成的基础Linq
-        //
-        // 参数:
-        //
-        // 返回结果:
-        protected Expression<Func<TResponse, bool>> GetBaseLinq(TRequest queryCondition)
+        protected virtual Expression<Func<TResponse, bool>> GetBaseLinq(TRequest queryCondition)
         {
             LinqSearchAttribute linqSearchAttribute = typeof(TResponse).GetCustomAttribute<LinqSearchAttribute>();
 
@@ -174,7 +138,7 @@ namespace Common.ServiceCommon
                 }
             }
 
-            return null;
+            return item => true;
         }
 
     }
