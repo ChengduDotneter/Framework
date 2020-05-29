@@ -134,12 +134,9 @@ namespace Common.ServiceCommon
                 {
                     string requestTypeFullName = modelTypes[i].FullName;
 
-                    SqlSearchAttribute sqlSearchAttribute = modelTypes[i].GetCustomAttribute<SqlSearchAttribute>();
                     LinqSearchAttribute linqSearchAttribute = modelTypes[i].GetCustomAttribute<LinqSearchAttribute>();
 
-                    if (sqlSearchAttribute != null)
-                        requestTypeFullName = sqlSearchAttribute.SearchType.FullName;
-                    else if (linqSearchAttribute != null)
+                    if (linqSearchAttribute != null)
                         requestTypeFullName = linqSearchAttribute.SearchType.FullName;
 
                     stringBuilder.AppendLine(string.Format(CONTROLLER_SEARCH_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName, requestTypeFullName, AppDomain.CurrentDomain.FriendlyName));

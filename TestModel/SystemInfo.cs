@@ -1,16 +1,17 @@
-﻿using Common.Model;
+﻿using Common;
+using Common.Model;
 using Common.Validation;
 using SqlSugar;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
+using System.Linq.Expressions;
 
 namespace TestModel
 {
     /// <summary>
     /// AppSecret
     /// </summary>
-    [SqlSearch(typeof(SystemInfo), nameof(GetSearchSql))]
+    [LinqSearch(typeof(SystemInfo), nameof(GetSearchLinq))]
     public class SystemInfo : ViewModelBase
     {
         /// <summary>
@@ -48,18 +49,16 @@ namespace TestModel
         [Display(Name = "用户状态")]
         public bool? UserStatus { get; set; }
 
-        private static Func<SystemInfo, string> GetSearchSql()
+
+        private static Func<SystemInfo, Expression<Func<SystemInfo, bool>>> GetSearchLinq()
         {
             return parameter =>
             {
-                StringBuilder queryString = new StringBuilder();
-
-                queryString.Append(" 1 = 1 ");
+                Expression<Func<SystemInfo, bool>> linq = item => true;
 
                 if (!string.IsNullOrWhiteSpace(parameter?.SystemName))
-                    queryString.Append($" AND {nameof(SystemName)} LIKE '%{parameter.SystemName.Trim()}%' ");
-
-                return queryString.ToString();
+                    linq = linq.And(item => item.SystemName.Contains(parameter.SystemName));
+                return linq;
             };
         }
     }

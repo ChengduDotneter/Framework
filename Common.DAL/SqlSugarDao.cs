@@ -84,44 +84,10 @@ namespace Common.DAL
                 masterSqlSugarClient.CodeFirst.InitTables(modelTypes);
                 slaveSqlSugarClient.CodeFirst.InitTables(modelTypes);
 
-                foreach (Type item in modelTypes)
-                {
-                    foreach (PropertyInfo property in item.GetProperties())
-                    {
-                        ForeignAttribute foreignAttribute = property.GetCustomAttribute<ForeignAttribute>();
-
-                        if (foreignAttribute != null)
-                        {
-                            int masterCount = Convert.ToInt32(masterSqlSugarClient.Ado.GetScalar(GetCheckForeginSqlExistsSql(item, property)));
-
-                            if (masterCount == 0)
-                                masterSqlSugarClient.Ado.ExecuteCommand(GetForeginSql(item, property, foreignAttribute));
-
-                            int slaveCount = Convert.ToInt32(slaveSqlSugarClient.Ado.GetScalar(GetCheckForeginSqlExistsSql(item, property)));
-
-                            if (slaveCount == 0)
-                                slaveSqlSugarClient.Ado.ExecuteCommand(GetForeginSql(item, property, foreignAttribute));
-                        }
-                    }
-                }
             }
         }
 
-        private static string GetForeginSql(Type type, PropertyInfo property, ForeignAttribute foreignAttribute)
-        {
-            if (m_dbType == DbType.MySql)
-                return $"ALTER TABLE {type.Name} ADD FOREIGN KEY FK_{type.Name}_{property.Name} ({property.Name}) REFERENCES {foreignAttribute.ForeignTable}({foreignAttribute.ForeignColumn});";
-
-            return $"ALTER TABLE {type.Name} WITH NOCHECK ADD CONSTRAINT FK_{type.Name}_{property.Name} FOREIGN KEY ({property.Name}) REFERENCES {foreignAttribute.ForeignTable}({foreignAttribute.ForeignColumn}) ON DELETE NO ACTION ON UPDATE NO ACTION;";
-        }
-
-        private static string GetCheckForeginSqlExistsSql(Type type, PropertyInfo property)
-        {
-            if (m_dbType == DbType.MySql)
-                return $"SELECT COUNT(*) FROM `information_schema`.`KEY_COLUMN_USAGE` WHERE TABLE_NAME = '{type.Name}' and COLUMN_NAME = '{property.Name}' ";
-
-            return $"SELECT COUNT(*) FROM SYS.ALL_OBJECTS WHERE NAME = 'FK_{type.Name}_{property.Name}' AND PARENT_OBJECT_ID = OBJECT_ID( N'[{type.Name}]' )";
-        }
+     
 
         private static class SqlSugarJoinQuery<TLeft, TRight>
             where TLeft : class, IEntity, new()
