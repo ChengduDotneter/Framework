@@ -87,8 +87,6 @@ namespace Common.DAL
             }
         }
 
-     
-
         private static class SqlSugarJoinQuery<TLeft, TRight>
             where TLeft : class, IEntity, new()
             where TRight : class, IEntity, new()
