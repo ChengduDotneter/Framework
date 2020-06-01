@@ -84,7 +84,7 @@ namespace Common
         {
             try
             {
-                return jToken.ToObject<string>();
+                return jToken.ToObject<string>().Trim();
             }
             catch
             {
