@@ -113,7 +113,7 @@ namespace Common.ServiceCommon
 
         protected virtual Tuple<IEnumerable<TResponse>, int> SearchDatas(PageQuery<TRequest> pageQuery)
         {
-            Expression<Func<TResponse, bool>> linq = pageQuery.Condition == null ? item => true : GetBaseLinq(pageQuery.Condition);
+            Expression<Func<TResponse, bool>> linq = GetBaseLinq(pageQuery.Condition);
 
             return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), m_searchQuery.FilterIsDeleted().Count(linq));
         }
@@ -123,6 +123,9 @@ namespace Common.ServiceCommon
 
         protected virtual Expression<Func<TResponse, bool>> GetBaseLinq(TRequest queryCondition)
         {
+            if (queryCondition == null)
+                return item => true;
+
             LinqSearchAttribute linqSearchAttribute = typeof(TResponse).GetCustomAttribute<LinqSearchAttribute>();
 
             if (linqSearchAttribute != null && !string.IsNullOrWhiteSpace(linqSearchAttribute.GetLinqFunctionName))

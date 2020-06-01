@@ -1,5 +1,4 @@
-﻿using Common.DAL;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Common.Model
@@ -28,19 +27,6 @@ namespace Common.Model
         {
             SearchType = searchType;
             GetLinqFunctionName = getLinqFunctionName;
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class SqlSearchAttribute : Attribute
-    {
-        public Type SearchType { get; }
-        public string GetSqlFunctionName { get; }
-
-        public SqlSearchAttribute(Type searchType, string getSqlFunctionName)
-        {
-            SearchType = searchType;
-            GetSqlFunctionName = getSqlFunctionName;
         }
     }
 
