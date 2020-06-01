@@ -32,19 +32,12 @@ namespace TestWebAPI.Controllers
             {
                 try
                 {
-                    //if (m_systemInfoSearchQuery.FilterIsDeleted().Count(item => item.ID == systemInfo.ID) < 1)
-                    //    throw new DealException("指定数据未找到");
-
                     systemInfo.UpdateUserID = m_ssoUserService.GetUser().ID;
                     systemInfo.UpdateTime = DateTime.Now;
                     systemInfo.IsActive = isActive;
 
-
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        systemInfo.ID = IDGenerator.NextID();
-                        m_systemInfoEditQuery.FilterIsDeleted().Insert(systemInfo);
-                    }
+                    systemInfo.ID = IDGenerator.NextID();
+                    m_systemInfoEditQuery.FilterIsDeleted().Insert(systemInfo);
 
                     trans.Submit();
 
@@ -56,6 +49,32 @@ namespace TestWebAPI.Controllers
                     throw;
                 }
             }
+
+            m_systemInfoSearchQuery.Search();
+
+
+            using ITransaction trans2 = m_systemInfoEditQuery.FilterIsDeleted().BeginTransaction();
+            try
+            {
+                systemInfo.UpdateUserID = m_ssoUserService.GetUser().ID;
+                systemInfo.UpdateTime = DateTime.Now;
+                systemInfo.IsActive = isActive;
+
+                systemInfo.ID = IDGenerator.NextID();
+                m_systemInfoEditQuery.FilterIsDeleted().Insert(systemInfo);
+
+                trans2.Submit();
+
+                var s = m_systemInfoSearchQuery.FilterIsDeleted().Count(item => !string.IsNullOrEmpty(item.SystemName));
+            }
+            catch
+            {
+                trans2.Rollback();
+                throw;
+            }
+
+            m_systemInfoSearchQuery.Search();
+
         }
     }
 }

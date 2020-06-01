@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>TestModel</name>
+    </assembly>
+    <members>
+        <member name="T:TestModel.SystemInfo">
+            <summary>
+            AppSecret
+            </summary>
+        </member>
+        <member name="P:TestModel.SystemInfo.SystemName">
+            <summary>
+            系统名称
+            </summary>
+        </member>
+        <member name="P:TestModel.SystemInfo.AppSecret">
+            <summary>
+            AppSecret
+            </summary>
+        </member>
+        <member name="P:TestModel.SystemInfo.IsActive">
+            <summary>
+            是否启用
+            </summary>
+        </member>
+        <member name="P:TestModel.SystemInfo.UserStatus">
+            <summary>
+            用户状态
+            </summary>
+        </member>
+    </members>
+</doc>
