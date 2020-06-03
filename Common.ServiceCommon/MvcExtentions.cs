@@ -1,11 +1,11 @@
-﻿using System;
-using System.Text;
-using Common.DAL;
+﻿using Common.DAL;
 using Common.MessageQueueClient;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
+using System.Text;
 
 namespace Common.ServiceCommon
 {
@@ -24,7 +24,12 @@ namespace Common.ServiceCommon
 
         public static IMvcBuilder AddControllers(this IServiceCollection serviceCollection, Type[] modelTypes, Type[] dynamicControllerTypes)
         {
-            IMvcBuilder mvcBuilder = serviceCollection.AddControllers();
+            IMvcBuilder mvcBuilder = serviceCollection.AddControllers(options =>
+            {
+                options.OutputFormatters.Insert(0, new JArrayOutputFormatter());
+                options.OutputFormatters.Insert(1, new JObjectOutputFormatter());
+            });
+
             serviceCollection.AddHttpContextAccessor();
             serviceCollection.AddSingleton<IPageQueryParameterService, HttpContextQueryStringPageQueryParameterService>();
             mvcBuilder.AddApplicationPart(ModelTypeControllerManager.GenerateModelTypeControllerToAssembly(modelTypes));

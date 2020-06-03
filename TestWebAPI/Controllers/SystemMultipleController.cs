@@ -1,6 +1,8 @@
 ﻿using Common;
 using Common.DAL;
 using Common.ServiceCommon;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using System;
 using TestModel;
 
@@ -75,6 +77,52 @@ namespace TestWebAPI.Controllers
 
             m_systemInfoSearchQuery.Search();
 
+        }
+    }
+
+    public class YJ
+    {
+        public string Name { get; set; }
+        public int Count { get; set; }
+    }
+
+    [ApiController]
+    [Route("testdd")]
+    public class DDController : ControllerBase
+    {
+        [HttpGet]
+        public IActionResult Get()
+        {
+            var array = new JArray();
+            array.Add(1);
+
+            return Ok(array);
+        }
+
+        [HttpGet("/a")]
+        public IActionResult Get1()
+        {
+            return Ok(new YJ()
+            {
+                Name = Guid.NewGuid().ToString(),
+                Count = Environment.TickCount
+            });
+        }
+
+        [HttpGet("/c")]
+        public IActionResult Get2()
+        {
+            return Ok(new JObject()
+            {
+                ["Name"] = "中文",
+                ["Count"] = Environment.TickCount
+            });
+        }
+
+        [HttpGet("/d")]
+        public IActionResult Get3()
+        {
+            return Ok("123");
         }
     }
 }
