@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using SqlSugar;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -20,7 +19,7 @@ namespace Common.DAL
         private static readonly ILog m_log;
         private static bool m_initTables;
         private static DbType m_dbType;
-        private static Hashtable m_htThread;
+        private static Dictionary<int, int> m_dicThread;
         private static ReaderWriterLockSlim m_readWriteLock;
 
         static SqlSugarDao()
@@ -30,7 +29,7 @@ namespace Common.DAL
             m_log = LogHelper.CreateLog("sql", "error");
             m_masterConnectionString = ConfigManager.Configuration.GetConnectionString("MasterConnection");
             m_slaveConnectionString = ConfigManager.Configuration.GetConnectionString("SalveConnection");
-            m_htThread = new Hashtable();
+            m_dicThread = new Dictionary<int, int>();
             m_readWriteLock = new ReaderWriterLockSlim();
         }
 
@@ -168,7 +167,7 @@ namespace Common.DAL
                 {
                     m_readWriteLock.EnterReadLock();
 
-                    if (m_htThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
                     {
                         using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
                         {
@@ -209,7 +208,7 @@ namespace Common.DAL
                 {
                     m_readWriteLock.EnterReadLock();
 
-                    if (m_htThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
                     {
                         using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
                         {
@@ -246,7 +245,7 @@ namespace Common.DAL
                 {
                     m_readWriteLock.EnterReadLock();
 
-                    if (m_htThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
                     {
                         using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
                         {
@@ -276,7 +275,7 @@ namespace Common.DAL
                 {
                     m_readWriteLock.EnterReadLock();
 
-                    if (m_htThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
                     {
                         using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
                         {
@@ -326,7 +325,7 @@ namespace Common.DAL
                 {
                     m_readWriteLock.EnterReadLock();
 
-                    if (m_htThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
                     {
                         using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
                         {
@@ -377,7 +376,7 @@ namespace Common.DAL
                 {
                     m_readWriteLock.EnterReadLock();
 
-                    if (m_htThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
                     {
                         using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
                         {
@@ -414,7 +413,7 @@ namespace Common.DAL
                 {
                     m_readWriteLock.EnterReadLock();
 
-                    if (m_htThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
                     {
                         using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
                         {
@@ -473,8 +472,7 @@ namespace Common.DAL
                 try
                 {
                     m_readWriteLock.EnterWriteLock();
-
-                    m_htThread.Add(Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.ManagedThreadId); //获取当前开启事物的线程ID
+                    m_dicThread.Add(Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.ManagedThreadId); //获取当前开启事物的线程ID
                 }
                 finally
                 {
@@ -490,7 +488,7 @@ namespace Common.DAL
                 {
                     m_readWriteLock.EnterReadLock();
 
-                    if (m_htThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
                     {
                         using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
                         {
@@ -531,7 +529,7 @@ namespace Common.DAL
 
             public void Dispose()
             {
-                m_htThread.Remove(Thread.CurrentThread.ManagedThreadId);
+                m_dicThread.Remove(Thread.CurrentThread.ManagedThreadId);
 
                 m_sqlSugarClient.Dispose();
             }
