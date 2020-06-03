@@ -88,7 +88,6 @@ namespace Common
             }
             catch
             {
-
                 return null;
             }
         }
@@ -97,27 +96,27 @@ namespace Common
             try
             {
                 string jTokenValue = GetStringValue(jToken);
-                if (jTokenValue != null)
-                {
-                    if (jTokenValue.Contains("."))
-                    {
-                        jTokenValue = jTokenValue.TrimEnd('0');
 
-                        jTokenValue = jTokenValue == "0." ? "0" : jTokenValue;
-                        jTokenValue = jTokenValue.TrimEnd('.');
-                    }
+                if (!string.IsNullOrWhiteSpace(jTokenValue))
                     return decimal.Parse(jTokenValue);
-                }
                 else
-                {
                     return 0;
-                }
             }
-            catch
-            {
+            catch{ return 0;}
+        }
 
-                return 0;
+        public static decimal? GetDecimalNullabelValue(JToken jToken)
+        {
+            try
+            {
+                string jTokenValue = GetStringValue(jToken);
+
+                if (!string.IsNullOrWhiteSpace(jTokenValue))
+                    return decimal.Parse(jTokenValue);
+                else
+                    return null;
             }
+            catch { return null; }
         }
 
         public static bool GetBoolValue(JToken jToken)
