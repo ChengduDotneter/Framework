@@ -40,14 +40,14 @@ namespace TestModel
         [SugarColumn(IsNullable = false, ColumnDescription = "是否启用")]
         [NotNull]
         [Display(Name = "是否启用")]
-        public bool? IsActive { get; set; }
+        public int? IsActive { get; set; }
 
         /// <summary>
         /// 用户状态
         /// </summary>
         [SugarColumn(IsIgnore = true)]
         [Display(Name = "用户状态")]
-        public bool? UserStatus { get; set; }
+        public int? UserStatus { get; set; }
 
 
         private static Func<SystemInfo, Expression<Func<SystemInfo, bool>>> GetSearchLinq()

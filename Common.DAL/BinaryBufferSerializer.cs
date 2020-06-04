@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Apache.Ignite.Core.Binary;
+using Apache.Ignite.Core.Cache.Configuration;
 
 namespace Common.DAL
 {
@@ -68,6 +69,14 @@ namespace Common.DAL
         {
             if (memberInfo.MemberType != MemberTypes.Property ||
               !((PropertyInfo)memberInfo).CanWrite)
+            {
+                valueType = null;
+                return false;
+            }
+
+            QuerySqlFieldAttribute querySqlFieldAttribute = memberInfo.GetCustomAttribute<QuerySqlFieldAttribute>();
+            
+            if(querySqlFieldAttribute == null)
             {
                 valueType = null;
                 return false;

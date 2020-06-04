@@ -36,7 +36,7 @@ namespace TestWebAPI.Controllers
                 {
                     systemInfo.UpdateUserID = m_ssoUserService.GetUser().ID;
                     systemInfo.UpdateTime = DateTime.Now;
-                    systemInfo.IsActive = isActive;
+                    systemInfo.IsActive = 1;
 
                     systemInfo.ID = IDGenerator.NextID();
                     m_systemInfoEditQuery.FilterIsDeleted().Insert(systemInfo);
@@ -60,7 +60,7 @@ namespace TestWebAPI.Controllers
             {
                 systemInfo.UpdateUserID = m_ssoUserService.GetUser().ID;
                 systemInfo.UpdateTime = DateTime.Now;
-                systemInfo.IsActive = isActive;
+                systemInfo.IsActive = 1;
 
                 systemInfo.ID = IDGenerator.NextID();
                 m_systemInfoEditQuery.FilterIsDeleted().Insert(systemInfo);
