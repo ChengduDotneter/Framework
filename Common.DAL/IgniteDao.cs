@@ -314,7 +314,7 @@ namespace Common.DAL
                 SqlFieldsQuery sqlFieldsQuery = null;
 
                 if (args.Length > 0)
-                     sqlFieldsQuery = new SqlFieldsQuery(sql, args);
+                    sqlFieldsQuery = new SqlFieldsQuery(sql, args);
                 else
                     sqlFieldsQuery = new SqlFieldsQuery(sql);
 
@@ -503,14 +503,19 @@ namespace Common.DAL
 
             public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
             {
-                IFieldsQueryCursor fieldsQueryCursor = m_cache.Query(new SqlFieldsQuery(PreperSql(sql, parameters), parameters?.Values));
+                IFieldsQueryCursor fieldsQueryCursor;
+
+                if (parameters == null || parameters.Count == 0)
+                    fieldsQueryCursor = m_cache.Query(new SqlFieldsQuery(sql));
+                else
+                    fieldsQueryCursor = m_cache.Query(new SqlFieldsQuery(PreperSql(sql, parameters),  parameters.Values));
 
                 foreach (IList<object> row in fieldsQueryCursor)
                 {
                     IDictionary<string, object> data = new Dictionary<string, object>();
 
                     for (int i = 0; i < fieldsQueryCursor.FieldNames.Count; i++)
-                        data.Add(fieldsQueryCursor.FieldNames[i], row[i]);
+                        data.Add(fieldsQueryCursor.FieldNames[i].ToUpper(), row[i]);
 
                     yield return data;
                 }
@@ -526,7 +531,7 @@ namespace Common.DAL
         {
             if (parameters != null)
                 foreach (KeyValuePair<string, object> parameter in parameters)
-                    sql.Replace($"@{parameter.Key}", "?");
+                    sql = sql.Replace(parameter.Key, "?");
 
             return sql;
         }

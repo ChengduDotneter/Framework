@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Common.DAL.ETL
@@ -9,33 +10,28 @@ namespace Common.DAL.ETL
     {
         public static ETLTask Transform(IEnumerable<Type> modelTypes, Func<Type, object> sourceSearchQueryFactory, Func<Type, object> destEditQueryFactory, int pageSize = 1024)
         {
-            IList<Type> sourceTables = new List<Type>();
             IList<ETLTable> complatedTables = new List<ETLTable>();
 
-            ETLTask etlTask = new ETLTask(sourceTables, complatedTables);
-            etlTask.Task = Task.CompletedTask;
+            ETLTask etlTask = new ETLTask(modelTypes, complatedTables);
 
-            foreach (Type modelType in modelTypes)
+            etlTask.Task = Task.Factory.StartNew(() =>
             {
-                ETLTable etlTable = new ETLTable(modelType);
-                sourceTables.Add(modelType);
-
-                etlTask.Task = etlTask.Task.ContinueWith((task) =>
+                foreach (Type modelType in modelTypes)
                 {
+                    ETLTable etlTable = new ETLTable(modelType);
                     etlTask.RunningTable = etlTable;
                     Transform(etlTable, pageSize, sourceSearchQueryFactory, destEditQueryFactory);
                     complatedTables.Add(etlTable);
-                });
-            }
+                }
+            });
 
-            etlTask.Task.Start();
             return etlTask;
         }
 
         private static void Transform(ETLTable etlTable, int pageSize, Func<Type, object> sourceSearchQueryFactory, Func<Type, object> destEditQueryFactory)
         {
-            dynamic searchQuery = sourceSearchQueryFactory.Invoke(etlTable.TableType);
-            dynamic editQuery = destEditQueryFactory.Invoke(etlTable.TableType);
+            object searchQuery = sourceSearchQueryFactory.Invoke(etlTable.TableType);
+            object editQuery = destEditQueryFactory.Invoke(etlTable.TableType);
 
             Type searchQueryType = typeof(ISearchQuery<>).MakeGenericType(etlTable.TableType);
             Type editQueryType = typeof(IEditQuery<>).MakeGenericType(etlTable.TableType);
@@ -44,21 +40,24 @@ namespace Common.DAL.ETL
                 editQuery.GetType().GetInterface(editQueryType.Name) == null)
                 throw new NotSupportedException();
 
-            etlTable.DataCount = searchQuery.Count();
+            Type predicateType = typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(etlTable.TableType, typeof(bool)));
+            Type queryOrderBiesType = typeof(IEnumerable<>).MakeGenericType(typeof(QueryOrderBy<>).MakeGenericType(etlTable.TableType));
+            etlTable.DataCount = (int)searchQueryType.GetMethod("Count", new Type[] { predicateType }).Invoke(searchQuery, new object[] { null });
             IList<object> preperInsertDatas = new List<object>();
 
             while (etlTable.ComplatedCount < etlTable.DataCount)
             {
-                long residueCount = etlTable.DataCount - etlTable.ComplatedCount;
-                long size = residueCount < pageSize ? residueCount : pageSize;
+                int residueCount = etlTable.DataCount - etlTable.ComplatedCount;
+                int size = residueCount < pageSize ? residueCount : pageSize;
                 preperInsertDatas.Clear();
 
-                foreach (object data in searchQuery.Search(startIndex: etlTable.ComplatedCount, count: size))
+                IEnumerable<object> query = (IEnumerable<object>)searchQueryType.GetMethod("Search", new Type[] { predicateType, queryOrderBiesType, typeof(int), typeof(int) }).Invoke(searchQuery, new object[] { null, null, etlTable.ComplatedCount, size });
+
+                foreach (object data in query)
                     preperInsertDatas.Add(data);
 
-                dynamic datas = typeof(Enumerable).GetMethod(nameof(Enumerable.Cast)).MakeGenericMethod(etlTable.TableType).Invoke(null, new object[] { preperInsertDatas });
-                editQuery.Merge(datas);
-
+                object datas = typeof(Enumerable).GetMethod(nameof(Enumerable.ToArray)).MakeGenericMethod(etlTable.TableType).Invoke(null, new object[] { typeof(Enumerable).GetMethod(nameof               (Enumerable.Cast)).MakeGenericMethod(etlTable.TableType).Invoke(null, new object[] { preperInsertDatas }) });
+                editQueryType.GetMethod("Merge").Invoke(editQuery, new object[] { datas });
                 etlTable.ComplatedCount += preperInsertDatas.Count;
             }
         }

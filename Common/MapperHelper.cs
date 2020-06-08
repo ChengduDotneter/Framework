@@ -65,7 +65,7 @@ namespace Common
 
             bool isEnum = isNullable ? type.GenericTypeArguments[0].IsEnum : type.IsEnum;
 
-            Expression dicKeyName = Expression.Constant(memberExpression.Member.Name, typeof(string));
+            Expression dicKeyName = Expression.Constant(memberExpression.Member.Name.ToUpper(), typeof(string));
 
             switch (isNullable ? (isEnum ? typeof(Enum).FullName : type.GenericTypeArguments[0].FullName) : (isEnum ? typeof(Enum).FullName : type.FullName))
             {

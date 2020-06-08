@@ -484,28 +484,36 @@ namespace Common.DAL
 
             public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
             {
+
+                m_readWriteLock.EnterReadLock();
+
+                SqlSugarClient sqlSugarClient = null;
+
                 try
                 {
-                    m_readWriteLock.EnterReadLock();
-
                     if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
-                        {
-                            return sqlSugarClient.Ado.SqlQuery<ExpandoObject>(sql, parameters);
-                        }
-                    }
+                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
+                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    IEnumerable<IDictionary<string, object>> datas = sqlSugarClient.Ado.SqlQuery<ExpandoObject>(sql, parameters);
+
+                    foreach (IDictionary<string, object> data in datas)
                     {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString))
-                        {
-                            return sqlSugarClient.Ado.SqlQuery<ExpandoObject>(sql, parameters);
-                        }
+                        IDictionary<string, object> result = new Dictionary<string, object>();
+
+                        foreach (KeyValuePair<string, object> item in data)
+                            result.Add(item.Key.ToUpper(), item.Value);
+
+                        yield return result;
                     }
                 }
                 finally
                 {
                     m_readWriteLock.ExitReadLock();
+
+                    if (sqlSugarClient != null)
+                        sqlSugarClient.Dispose();
                 }
             }
         }

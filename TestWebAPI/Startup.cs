@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
+using System.Threading;
 
 namespace TestWebAPI
 {
@@ -82,29 +83,32 @@ namespace TestWebAPI
 
 
 
-            System.Threading.Tasks.Task.Factory.StartNew(() =>
-            {
-                var task = ETLHelper.Transform(
-                   modelTypes,
-                   (type) =>
-                   {
-                       return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchSqlSugarQuery)).MakeGenericMethod(type).Invoke(null, new object[] { false });
-                   },
-                   (type) =>
-                   {
-                       return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
-                   },
-                   2048);
+            //System.Threading.Tasks.Task.Factory.StartNew(() =>
+            //{
+            //    var task = ETLHelper.Transform(
+            //       modelTypes,
+            //       (type) =>
+            //       {
+            //           return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchSqlSugarQuery)).MakeGenericMethod(type).Invoke(null, new object[] { false });
+            //       },
+            //       (type) =>
+            //       {
+            //           return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+            //       },
+            //       2048);
 
-                int time = Environment.TickCount;
+            //    int time = Environment.TickCount;
 
-                while (Environment.TickCount - time > 1000 && task.Task.IsCompleted)
-                {
-                    Console.WriteLine($"Current Table: {task.RunningTable.TableType.Name}, Data Count: {task.RunningTable.DataCount}, Complated Count: {task.RunningTable.ComplatedCount}");
-                }
+            //    while (!task.Task.IsCompleted)
+            //    {
+            //        if (task.RunningTable != null)
+            //            Console.WriteLine($"Current Table: {task.RunningTable.TableType.Name}, Data Count: {task.RunningTable.DataCount}, Complated Count: {task.RunningTable.ComplatedCount}");
 
-                Console.WriteLine("Transform Done.");
-            });
+            //        Thread.Sleep(5000);
+            //    }
+
+            //    Console.WriteLine("Transform Done.");
+            //});
         }
 
 #pragma warning disable CS0618 // ���ͻ��Ա�ѹ�ʱ

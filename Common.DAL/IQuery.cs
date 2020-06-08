@@ -17,7 +17,6 @@ namespace Common.DAL
         ITransaction BeginTransaction();
     }
 
-    //TODO: 用int表示分页和数据总条数会导致数据溢出
     public interface ISearchQuery<T> where T : class, IEntity, new()
     {
         T Get(long id);

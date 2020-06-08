@@ -7,8 +7,8 @@ namespace Common.DAL.ETL
     public class ETLTable
     {
         public Type TableType { get; }
-        public long DataCount { get; internal set; }
-        public long ComplatedCount { get; internal set; }
+        public int DataCount { get; internal set; }
+        public int ComplatedCount { get; internal set; }
 
         public ETLTable(Type tableType)
         {
