@@ -24,7 +24,7 @@ namespace TestWebAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            //�����������
+            //跨域问题
             services.AddCors(options =>
             {
                 options.AddPolicy("any", builder =>
@@ -111,9 +111,7 @@ namespace TestWebAPI
             //});
         }
 
-#pragma warning disable CS0618 // ���ͻ��Ա�ѹ�ʱ
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Microsoft.AspNetCore.Hosting.IApplicationLifetime lifetime)
-#pragma warning restore CS0618 // ���ͻ��Ա�ѹ�ʱ
         {
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
@@ -135,7 +133,7 @@ namespace TestWebAPI
                 endpoints.MapControllers();
             });
 
-            ////ע�������
+            ////服务发现
             //if (!env.IsDevelopment())
             //    app.RegisterConsul(lifetime, m_configuration);
         }

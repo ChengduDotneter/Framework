@@ -1,16 +1,16 @@
-﻿using Common;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Common.ServiceCommon
 {
     //TODO:暂时跳过验证器方法
-    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = false,Inherited = false)]
-    public class SkipValidationAttribute : System.Attribute
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false,Inherited = false)]
+    public class SkipValidationAttribute : Attribute
     {
 
     }
