@@ -8,6 +8,9 @@
     <ProjectReference Include="..\Common.Model\Common.Model.csproj" />
     <ProjectReference Include="..\Common.ServiceCommon\Common.ServiceCommon.csproj" />
     <ProjectReference Include="..\TestModel\TestModel.csproj" />
+    <ProjectReference Include="..\Common.DAL.ETL\Common.DAL.ETL.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>

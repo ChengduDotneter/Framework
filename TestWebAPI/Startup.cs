@@ -1,5 +1,6 @@
 using Common;
 using Common.DAL;
+using Common.DAL.ETL;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,7 +23,7 @@ namespace TestWebAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            //½â¾ö¿çÓòÎÊÌâ
+            //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             services.AddCors(options =>
             {
                 options.AddPolicy("any", builder =>
@@ -74,11 +75,41 @@ namespace TestWebAPI
             services.AddTransfers();
 
             services.AddSwagger();
+
+
+
+
+
+
+
+            System.Threading.Tasks.Task.Factory.StartNew(() =>
+            {
+                var task = ETLHelper.Transform(
+                   modelTypes,
+                   (type) =>
+                   {
+                       return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchSqlSugarQuery)).MakeGenericMethod(type).Invoke(null, new object[] { false });
+                   },
+                   (type) =>
+                   {
+                       return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+                   },
+                   2048);
+
+                int time = Environment.TickCount;
+
+                while (Environment.TickCount - time > 1000 && task.Task.IsCompleted)
+                {
+                    Console.WriteLine($"Current Table: {task.RunningTable.TableType.Name}, Data Count: {task.RunningTable.DataCount}, Complated Count: {task.RunningTable.ComplatedCount}");
+                }
+
+                Console.WriteLine("Transform Done.");
+            });
         }
 
-#pragma warning disable CS0618 // ÀàÐÍ»ò³ÉÔ±ÒÑ¹ýÊ±
+#pragma warning disable CS0618 // ï¿½ï¿½ï¿½Í»ï¿½ï¿½Ô±ï¿½Ñ¹ï¿½Ê±
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Microsoft.AspNetCore.Hosting.IApplicationLifetime lifetime)
-#pragma warning restore CS0618 // ÀàÐÍ»ò³ÉÔ±ÒÑ¹ýÊ±
+#pragma warning restore CS0618 // ï¿½ï¿½ï¿½Í»ï¿½ï¿½Ô±ï¿½Ñ¹ï¿½Ê±
         {
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
@@ -100,7 +131,7 @@ namespace TestWebAPI
                 endpoints.MapControllers();
             });
 
-            ////×¢²á·þÎñ·¢ÏÖ
+            ////×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             //if (!env.IsDevelopment())
             //    app.RegisterConsul(lifetime, m_configuration);
         }
