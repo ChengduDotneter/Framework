@@ -521,6 +521,5 @@ namespace Common.DAL
 
             return new SqlSugarDaoInstance<T>();
         }
-
     }
 }
