@@ -286,8 +286,12 @@ namespace Common.DAL
 
                 OutpuSql(((ICacheQueryable)query).GetFieldsQuery());
 
+                List<T> datas = new List<T>();
+
                 foreach (ICacheEntry<long, T> item in query.Skip(startIndex).Take(count))
-                    yield return item.Value;
+                    datas.Add(item.Value);
+
+                return datas;
             }
 
             public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
@@ -514,6 +518,8 @@ namespace Common.DAL
 
                 IFieldsQueryCursor fieldsQueryCursor = m_cache.Query(sqlFieldsQuery);
 
+                List<IDictionary<string, object>> datas = new List<IDictionary<string, object>>();
+
                 foreach (IList<object> row in fieldsQueryCursor)
                 {
                     IDictionary<string, object> data = new Dictionary<string, object>();
@@ -521,8 +527,9 @@ namespace Common.DAL
                     for (int i = 0; i < fieldsQueryCursor.FieldNames.Count; i++)
                         data.Add(fieldsQueryCursor.FieldNames[i].ToUpper(), row[i]);
 
-                    yield return data;
+                    datas.Add(data);
                 }
+                return datas;
             }
 
             public IgniteDaoInstance(IIgnite ignite)
