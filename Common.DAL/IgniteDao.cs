@@ -503,12 +503,16 @@ namespace Common.DAL
 
             public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
             {
-                IFieldsQueryCursor fieldsQueryCursor;
+                SqlFieldsQuery sqlFieldsQuery;
 
                 if (parameters == null || parameters.Count == 0)
-                    fieldsQueryCursor = m_cache.Query(new SqlFieldsQuery(sql));
+                    sqlFieldsQuery = new SqlFieldsQuery(sql);
                 else
-                    fieldsQueryCursor = m_cache.Query(new SqlFieldsQuery(PreperSql(sql, parameters),  parameters.Values));
+                    sqlFieldsQuery = new SqlFieldsQuery(PreperSql(sql, parameters), parameters.Values.ToArray());
+
+                OutpuSql(sqlFieldsQuery);
+
+                IFieldsQueryCursor fieldsQueryCursor = m_cache.Query(sqlFieldsQuery);
 
                 foreach (IList<object> row in fieldsQueryCursor)
                 {
@@ -530,8 +534,15 @@ namespace Common.DAL
         private static string PreperSql(string sql, Dictionary<string, object> parameters)
         {
             if (parameters != null)
-                foreach (KeyValuePair<string, object> parameter in parameters)
-                    sql = sql.Replace(parameter.Key, "?");
+            {
+                foreach (string key in parameters.Keys.ToArray())
+                {
+                    sql = sql.Replace(key, "?");
+
+                    if (parameters[key].GetType().IsEnum)
+                        parameters[key] = (int)parameters[key];
+                }
+            }
 
             return sql;
         }

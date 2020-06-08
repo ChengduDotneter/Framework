@@ -1,7 +1,9 @@
 ﻿using Apache.Ignite.Core.Cache.Configuration;
+using Common;
 using Common.DAL;
 using Common.Model;
-using Common.Validation;
+using Common.ServiceCommon;
+using Microsoft.AspNetCore.Mvc;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -9,10 +11,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using Common;
-using Microsoft.AspNetCore.Mvc;
-using Common.ServiceCommon;
 
 namespace TestWebAPI.Controllers
 {
@@ -82,6 +80,7 @@ namespace TestWebAPI.Controllers
         Examining = 3
     }
 
+    [IgnoreTable]
     [IgnoreBuildController(ignoreGet: true, ignoreDelete: true, ignorePost: true, ignorePut: true, ignoreSearch: true)]
     public class SupplierCommoditySearch : ViewModelBase
     {
@@ -451,6 +450,7 @@ namespace TestWebAPI.Controllers
         public string WarehouseDllName { get; set; }
     }
 
+    [IgnoreTable]
     public class StockInfoSearch : ViewModelBase
     {
         /// <summary>
@@ -569,7 +569,6 @@ namespace TestWebAPI.Controllers
                 if (!string.IsNullOrWhiteSpace(stockInfoSearch?.SupplierCommodityKey))
                 {
                     whereCondition += $" AND {nameof(SupplierCommodity)}.{nameof(SupplierCommodity.SupplierCommodityKey)} LIKE CONCAT('%',@{nameof(SupplierCommodity.SupplierCommodityKey)},'%')";
-                    countSql += $" AND {nameof(SupplierCommodity)}.{nameof(SupplierCommodity.SupplierCommodityKey)} LIKE CONCAT('%',@{nameof(SupplierCommodity.SupplierCommodityKey)},'%')";
 
                     parameters.Add($"@{nameof(SupplierCommodity.SupplierCommodityKey)}", stockInfoSearch.SupplierCommodityKey);
                 }
@@ -577,7 +576,6 @@ namespace TestWebAPI.Controllers
                 if (stockInfoSearch?.WarehouseID.HasValue ?? false)
                 {
                     whereCondition += $" AND {nameof(StockInfo)}.{nameof(StockInfo.WarehouseID)} = @{nameof(StockInfo.WarehouseID)}";
-                    countSql += $" AND {nameof(StockInfo)}.{nameof(StockInfo.WarehouseID)} = @{nameof(StockInfo.WarehouseID)}";
 
                     parameters.Add($"@{nameof(StockInfo.WarehouseID)}", stockInfoSearch.WarehouseID);
                 }
@@ -585,7 +583,6 @@ namespace TestWebAPI.Controllers
                 if (!string.IsNullOrWhiteSpace(stockInfoSearch?.BatchNo))
                 {
                     whereCondition += $" AND {nameof(StockInfo)}.{nameof(StockInfo.BatchNo)} LIKE CONCAT('%',@{nameof(StockInfo.BatchNo)},'%')";
-                    countSql += $" AND {nameof(StockInfo)}.{nameof(StockInfo.BatchNo)} LIKE CONCAT('%',@{nameof(StockInfo.BatchNo)},'%')";
 
                     parameters.Add($"@{nameof(StockInfo.BatchNo)}", stockInfoSearch.BatchNo);
                 }
@@ -593,7 +590,6 @@ namespace TestWebAPI.Controllers
                 if (stockInfoSearch?.SupplierID.HasValue ?? false)
                 {
                     whereCondition += $" AND {nameof(SupplierCommodity)}.{nameof(SupplierCommodity.SupplierID)} = @{nameof(SupplierCommodity.SupplierID)}";
-                    countSql += $" AND {nameof(SupplierCommodity)}.{nameof(SupplierCommodity.SupplierID)} = @{nameof(SupplierCommodity.SupplierID)}";
 
                     parameters.Add($"@{nameof(SupplierCommodity.SupplierID)}", stockInfoSearch.SupplierID);
                 }
@@ -636,10 +632,10 @@ namespace TestWebAPI.Controllers
             {
                 IEnumerable<long> supplierCommodityIDs = stockInfos.Select(sku => sku.SupplierCommodityID.GetValueOrDefault()).Distinct();
 
-                IEnumerable<SupplierCommodity> supplierCommoditys = m_supplierCommoditySearchQuery.FilterIsDeleted().Search(item => supplierCommodityIDs.Contains(item.ID));
+                IEnumerable<SupplierCommodity> supplierCommoditys = m_supplierCommoditySearchQuery.FilterIsDeleted().Search(item => supplierCommodityIDs.Contains(item.ID)).ToList();
 
                 IEnumerable<long> warehouseIDs = stockInfos.Select(sku => sku.WarehouseID.GetValueOrDefault()).Distinct();
-                IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search(item => warehouseIDs.Contains(item.ID));
+                IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search(item => warehouseIDs.Contains(item.ID)).ToList();
 
                 foreach (StockInfo stockInfo in stockInfos)
                 {
