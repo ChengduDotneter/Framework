@@ -19,8 +19,8 @@ namespace Common.DAL
         private static readonly ILog m_log;
         private static bool m_initTables;
         private static DbType m_dbType;
-        private static Dictionary<int, int> m_dicThread;
-        private static ReaderWriterLockSlim m_readWriteLock;
+        private static readonly Dictionary<int, int> m_dicThread;
+        private static readonly ReaderWriterLockSlim m_readWriteLock;
 
         static SqlSugarDao()
         {
@@ -163,106 +163,85 @@ namespace Common.DAL
 
             public int Count(string queryWhere, Dictionary<string, object> parameters = null)
             {
+                m_readWriteLock.EnterReadLock();
+
+                SqlSugarClient sqlSugarClient = null;
+
                 try
                 {
-                    m_readWriteLock.EnterReadLock();
-
                     if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
-                        {
-                            var query = sqlSugarClient.Queryable<T>();
-
-                            if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
-                                query.Where(queryWhere, parameters);
-                            else if (!string.IsNullOrWhiteSpace(queryWhere))
-                                query.Where(queryWhere);
-
-                            return query.Count();
-                        }
-                    }
+                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString))
-                        {
-                            var query = sqlSugarClient.Queryable<T>();
+                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                            if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
-                                query.Where(queryWhere, parameters);
-                            else if (!string.IsNullOrWhiteSpace(queryWhere))
-                                query.Where(queryWhere);
+                    ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
 
-                            return query.Count();
-                        }
-                    }
+                    if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
+                        query.Where(queryWhere, parameters);
+                    else if (!string.IsNullOrWhiteSpace(queryWhere))
+                        query.Where(queryWhere);
+
+                    return query.Count();
                 }
                 finally
                 {
                     m_readWriteLock.ExitReadLock();
+
+                    if (sqlSugarClient != null)
+                        sqlSugarClient.Dispose();
                 }
             }
 
             public int Count(Expression<Func<T, bool>> predicate = null)
             {
+                m_readWriteLock.EnterReadLock();
+
+                SqlSugarClient sqlSugarClient = null;
+
                 try
                 {
-                    m_readWriteLock.EnterReadLock();
-
                     if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
-                        {
-                            ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
-
-                            if (predicate != null)
-                                query = query.Where(predicate);
-
-                            return query.Count();
-                        }
-                    }
+                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString))
-                        {
-                            ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                            if (predicate != null)
-                                query = query.Where(predicate);
+                    ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
 
-                            return query.Count();
-                        }
-                    }
+                    if (predicate != null)
+                        query = query.Where(predicate);
+
+                    return query.Count();
                 }
                 finally
                 {
                     m_readWriteLock.ExitReadLock();
+
+                    if (sqlSugarClient != null)
+                        sqlSugarClient.Dispose();
                 }
             }
 
             public T Get(long id)
             {
+                m_readWriteLock.EnterReadLock();
+
+                SqlSugarClient sqlSugarClient = null;
+
                 try
                 {
-                    m_readWriteLock.EnterReadLock();
-
                     if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
-                        {
-                            return sqlSugarClient.Queryable<T>().InSingle(id);
-                        }
-                    }
+                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString))
-                        {
-                            return sqlSugarClient.Queryable<T>().InSingle(id);
-                        }
-                    }
+                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    return sqlSugarClient.Queryable<T>().InSingle(id);
                 }
                 finally
                 {
                     m_readWriteLock.ExitReadLock();
+
+                    if (sqlSugarClient != null)
+                        sqlSugarClient.Dispose();
                 }
             }
 
@@ -271,46 +250,34 @@ namespace Common.DAL
                                          int startIndex = 0,
                                          int count = int.MaxValue)
             {
+                m_readWriteLock.EnterReadLock();
+
+                SqlSugarClient sqlSugarClient = null;
+
                 try
                 {
-                    m_readWriteLock.EnterReadLock();
-
                     if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
-                        {
-                            ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
-
-                            if (predicate != null)
-                                query = query.Where(predicate);
-
-                            if (queryOrderBies != null)
-                                foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                                    query = query.OrderBy(queryOrderBy.Expression, GetOrderByType(queryOrderBy.OrderByType));
-
-                            return query.Skip(startIndex).Take(count).ToArray();
-                        }
-                    }
+                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString))
-                        {
-                            ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                            if (predicate != null)
-                                query = query.Where(predicate);
+                    ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
 
-                            if (queryOrderBies != null)
-                                foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                                    query = query.OrderBy(queryOrderBy.Expression, GetOrderByType(queryOrderBy.OrderByType));
+                    if (predicate != null)
+                        query = query.Where(predicate);
 
-                            return query.Skip(startIndex).Take(count).ToArray();
-                        }
-                    }
+                    if (queryOrderBies != null)
+                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                            query = query.OrderBy(queryOrderBy.Expression, GetOrderByType(queryOrderBy.OrderByType));
+
+                    return query.Skip(startIndex).Take(count).ToArray();
                 }
                 finally
                 {
                     m_readWriteLock.ExitReadLock();
+
+                    if (sqlSugarClient != null)
+                        sqlSugarClient.Dispose();
                 }
             }
 
@@ -321,50 +288,36 @@ namespace Common.DAL
                                                                              int count = int.MaxValue)
                 where TJoinTable : class, IEntity, new()
             {
+                m_readWriteLock.EnterReadLock();
+
+                SqlSugarClient sqlSugarClient = null;
+
                 try
                 {
-                    m_readWriteLock.EnterReadLock();
-
                     if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
-                        {
-                            ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(
-                                SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
-
-                            if (predicate != null)
-                                query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
-
-                            if (queryOrderBies != null)
-                                foreach (QueryOrderBy<T, TJoinTable> queryOrderBy in queryOrderBies)
-                                    query = query.OrderBy(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(queryOrderBy.Expression), GetOrderByType(queryOrderBy.OrderByType));
-
-                            foreach (var data in query.Select((tleft, tright) => new { tleft, tright }).Skip(startIndex).Take(count).ToArray())
-                                yield return new JoinResult<T, TJoinTable>(data.tleft, data.tright);
-                        }
-                    }
+                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString))
-                        {
-                            ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(
+                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(
                                 SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
 
-                            if (predicate != null)
-                                query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+                    if (predicate != null)
+                        query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
 
-                            if (queryOrderBies != null)
-                                foreach (QueryOrderBy<T, TJoinTable> queryOrderBy in queryOrderBies)
-                                    query = query.OrderBy(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(queryOrderBy.Expression), GetOrderByType(queryOrderBy.OrderByType));
+                    if (queryOrderBies != null)
+                        foreach (QueryOrderBy<T, TJoinTable> queryOrderBy in queryOrderBies)
+                            query = query.OrderBy(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(queryOrderBy.Expression), GetOrderByType(queryOrderBy.OrderByType));
 
-                            foreach (var data in query.Select((tleft, tright) => new { tleft, tright }).Skip(startIndex).Take(count).ToArray())
-                                yield return new JoinResult<T, TJoinTable>(data.tleft, data.tright);
-                        }
-                    }
+                    foreach (var data in query.Select((tleft, tright) => new { tleft, tright }).Skip(startIndex).Take(count).ToArray())
+                        yield return new JoinResult<T, TJoinTable>(data.tleft, data.tright);
                 }
                 finally
                 {
                     m_readWriteLock.ExitReadLock();
+
+                    if (sqlSugarClient != null)
+                        sqlSugarClient.Dispose();
                 }
             }
 
@@ -372,85 +325,64 @@ namespace Common.DAL
                                          Expression<Func<T, TJoinTable, bool>> predicate = null)
                 where TJoinTable : class, IEntity, new()
             {
+                m_readWriteLock.EnterReadLock();
+
+                SqlSugarClient sqlSugarClient = null;
+
                 try
                 {
-                    m_readWriteLock.EnterReadLock();
-
                     if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
-                        {
-                            ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
-
-                            if (predicate != null)
-                                query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
-
-                            return query.Count();
-                        }
-                    }
+                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString))
-                        {
-                            ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
+                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                            if (predicate != null)
-                                query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+                    ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
 
-                            return query.Count();
-                        }
-                    }
+                    if (predicate != null)
+                        query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+
+                    return query.Count();
                 }
                 finally
                 {
                     m_readWriteLock.ExitReadLock();
+
+                    if (sqlSugarClient != null)
+                        sqlSugarClient.Dispose();
                 }
             }
 
             public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
             {
+                m_readWriteLock.EnterReadLock();
+
+                SqlSugarClient sqlSugarClient = null;
+
                 try
                 {
-                    m_readWriteLock.EnterReadLock();
-
                     if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString, true))
-                        {
-                            var query = sqlSugarClient.Queryable<T>();
-
-                            if (parameters != null)
-                                query.Where(queryWhere, parameters);
-                            else
-                                query.Where(queryWhere);
-
-                            if (!string.IsNullOrWhiteSpace(orderByFields))
-                                query.OrderBy(orderByFields);
-
-                            return query.Skip(startIndex).Take(count).ToArray();
-                        }
-                    }
+                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
-                    {
-                        using (SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString))
-                        {
-                            var query = sqlSugarClient.Queryable<T>();
+                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                            if (parameters != null)
-                                query.Where(queryWhere, parameters);
-                            else
-                                query.Where(queryWhere);
+                    ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
 
-                            if (!string.IsNullOrWhiteSpace(orderByFields))
-                                query.OrderBy(orderByFields);
+                    if (parameters != null)
+                        query.Where(queryWhere, parameters);
+                    else
+                        query.Where(queryWhere);
 
-                            return query.Skip(startIndex).Take(count).ToArray();
-                        }
-                    }
+                    if (!string.IsNullOrWhiteSpace(orderByFields))
+                        query.OrderBy(orderByFields);
+
+                    return query.Skip(startIndex).Take(count).ToArray();
                 }
                 finally
                 {
                     m_readWriteLock.ExitReadLock();
+
+                    if (sqlSugarClient != null)
+                        sqlSugarClient.Dispose();
                 }
             }
 
@@ -484,7 +416,6 @@ namespace Common.DAL
 
             public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
             {
-
                 m_readWriteLock.EnterReadLock();
 
                 SqlSugarClient sqlSugarClient = null;
