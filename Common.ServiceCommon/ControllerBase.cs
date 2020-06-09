@@ -254,42 +254,23 @@ namespace Common.ServiceCommon
     /// <typeparam name="TSearhEntity">查询实体参数，继承于ViewModelBase</typeparam>
     /// <typeparam name="TResponse">返回实体参数</typeparam>
     [ApiController]
-    public abstract class GenericCustomSearchController<TRequest, TSearhEntity, TResponse> : ControllerBase
+    public abstract class GenericCustomSearchController<TRequest> : ControllerBase
        where TRequest : ViewModelBase, new()
-       where TSearhEntity : ViewModelBase, new()
-       where TResponse : new()
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="searchQuery"></param>
-        public GenericCustomSearchController(ISearchQuery<TSearhEntity> searchQuery)
-        {
-        }
-
         /// <summary>
         /// Get
         /// </summary>
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        public JObject Get([FromServices]IPageQueryParameterService pageQueryParameterService)
         {
-            Tuple<IEnumerable<TSearhEntity>, int> tupleDatas = Tuple.Create(SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>()), SearchDatasCount(pageQueryParameterService.GetQueryParameter<TRequest>()));
-
-            return new PageQueryResult<TResponse>()
+            return new JObject()
             {
-                Datas = PreperDatas(tupleDatas?.Item1),
-                TotalCount = tupleDatas?.Item2 ?? 0
+                ["Datas"] = SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>()),
+                ["TotalCount"] = SearchDatasCount(pageQueryParameterService.GetQueryParameter<TRequest>())
             };
         }
-
-        /// <summary>
-        /// 返回查询结果值
-        /// </summary>
-        /// <param name="pageQuery"></param>
-        /// <returns></returns>
-        protected abstract IEnumerable<TSearhEntity> SearchDatas(PageQuery<TRequest> pageQuery);
 
         /// <summary>
         /// 返回查询条件总条数
@@ -299,11 +280,11 @@ namespace Common.ServiceCommon
         protected abstract int SearchDatasCount(PageQuery<TRequest> pageQuery);
 
         /// <summary>
-        /// 对查询结果进行更改
+        /// 查询结果
         /// </summary>
         /// <param name="datas"></param>
         /// <returns></returns>
-        protected abstract IEnumerable<TResponse> PreperDatas(IEnumerable<TSearhEntity> datas);
+        protected abstract JArray SearchDatas(PageQuery<TRequest> datas);
     }
 
     /// <summary>
