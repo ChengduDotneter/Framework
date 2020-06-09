@@ -31,6 +31,20 @@
             </summary>
             <param name="actionExecutingContext"></param>
         </member>
+        <member name="T:Common.ServiceCommon.ConsulRegister">
+            <summary>
+            服务发现辅助类
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.ConsulRegister.RegisterConsul(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IApplicationLifetime,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            初始化服务发现
+            </summary>
+            <param name="app"></param>
+            <param name="lifetime"></param>
+            <param name="configuration"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.ServiceCommon.BatchGenericSearchController`2">
             <summary>
             ServiceToService 批量查询接口基类
@@ -38,11 +52,32 @@
             <typeparam name="TRequest">请求实体泛型</typeparam>
             <typeparam name="TResponse">返回实体泛型</typeparam>
         </member>
+        <member name="M:Common.ServiceCommon.BatchGenericSearchController`2.Get(`0)">
+            <summary>
+            Get
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.BatchGenericSearchController`2.SearchDatas(`0)">
+            <summary>
+            获取结果
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.ServiceCommon.JObjectGenericPostController`1">
             <summary>
             Service中无相应的实体接受请求参数时使用且请求参数为JObject的接口基类
             </summary>
             <typeparam name="TResponse"></typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.JObjectGenericPostController`1.Post(Common.ServiceCommon.IJObjectSerializeService)">
+            <summary>
+            Post
+            </summary>
+            <param name="jObjectSerializeService"></param>
+            <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.JArrayGenericPostController`1">
             <summary>
@@ -55,6 +90,20 @@
             根据ID查询自定义结果的接口基类
             </summary>
             <typeparam name="TResponse">返回实体泛型</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.BatchGenericGetController`1.Get(System.Int64)">
+            <summary>
+            Get
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.BatchGenericGetController`1.DoGet(System.Int64)">
+            <summary>
+            
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.GenericGetController`1">
             <summary>
@@ -138,6 +187,18 @@
             无查询条件的Get请求接口街垒
             </summary>
             <typeparam name="TResponse">返回实体参数</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.BatchGenericSearchController`1.Get">
+            <summary>
+            Get
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.BatchGenericSearchController`1.SearchDatas">
+            <summary>
+            获取结果
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.GenericSearchController`4">
             <summary>
@@ -246,6 +307,23 @@
             <typeparam name="TRequest2">请求实体泛型</typeparam>
             <typeparam name="TRequest3">请求实体泛型</typeparam>
         </member>
+        <member name="T:Common.ServiceCommon.DynamicControllerManager">
+            <summary>
+            动态控制器配置
+            </summary>
+        </member>
+        <member name="F:Common.ServiceCommon.DynamicControllerManager.SKIP_VALIDATION">
+            <summary>
+            验证
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.DynamicControllerManager.GenerateDynamicControllerToAssembly(System.Type[])">
+            <summary>
+            通用动态类转程序集，Type[]ToAssembly
+            </summary>
+            <param name="dynamicControllerTypes"></param>
+            <returns></returns>
+        </member>
         <member name="M:Common.ServiceCommon.DynamicControllerManager.GetDynamicDataTypeProperty(System.Type,System.Boolean,System.Boolean)">
             <summary>
             生成动态dto的属性
@@ -306,6 +384,32 @@
             <param name="type"></param>
             <returns></returns>
         </member>
+        <member name="T:Common.ServiceCommon.DynamicRouteAttribute">
+            <summary>
+            动态路由
+            </summary>
+        </member>
+        <member name="P:Common.ServiceCommon.DynamicRouteAttribute.Route">
+            <summary>
+            动态路由参数
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.DynamicRouteAttribute.#ctor(System.String)">
+            <summary>
+            动态路由
+            </summary>
+            <param name="route"></param>
+        </member>
+        <member name="T:Common.ServiceCommon.EnumTypeController">
+            <summary>
+            枚举获取控制器
+            </summary>
+        </member>
+        <member name="T:Common.ServiceCommon.EnumTypeController.EnumValues">
+            <summary>
+            枚举返回类
+            </summary>
+        </member>
         <member name="P:Common.ServiceCommon.EnumTypeController.EnumValues.DisplayString">
             <summary>
             获取枚举显示的中文注释
@@ -321,6 +425,19 @@
             获取枚举对应的代码
             </summary>
         </member>
+        <member name="M:Common.ServiceCommon.EnumTypeController.#ctor">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.EnumTypeController.GetEnumItem(System.String,System.String)">
+            <summary>
+            通过实体类名和属性名获取枚举集合
+            </summary>
+            <param name="objectName">实体类名</param>
+            <param name="properyName">属性名</param>
+            <returns></returns>
+        </member>
         <member name="M:Common.ServiceCommon.EnumTypeController.GetEnumItemValuesByEnumType(System.Type)">
             <summary>  
              获取枚举值+描述  
@@ -332,6 +449,140 @@
             <summary>
             此方法为心跳监测接口类，用于服务发现
             </summary>
+        </member>
+        <member name="T:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1">
+            <summary>
+            逻辑删除装饰者，继承ISearchQuery
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.Get(System.Int64)">
+            <summary>
+            Get
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.Count(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            通过Lambda表达式获取Count
+            </summary>
+            <param name="predicate">Lambda表达式</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.Count(System.String,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            通过Sql语句获取Count
+            </summary>
+            <param name="queryWhere">sql语句</param>
+            <param name="parameters">查询条件值</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.Search(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Collections.Generic.IEnumerable{Common.DAL.QueryOrderBy{`0}},System.Int32,System.Int32)">
+            <summary>
+            Lambda表达式分页查询
+            </summary>
+            <param name="predicate">Lambda表达式</param>
+            <param name="queryOrderBies">排序方式</param>
+            <param name="startIndex">开始位置</param>
+            <param name="count">结果总数</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.Search(System.String,System.Collections.Generic.Dictionary{System.String,System.Object},System.String,System.Int32,System.Int32)">
+            <summary>
+            Sql语句分页查询
+            </summary>
+            <param name="queryWhere">Sql语句</param>
+            <param name="parameters">查询条件值</param>
+            <param name="orderByFields">排序方式</param>
+            <param name="startIndex">开始位置</param>
+            <param name="count">结果总数</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.Query(System.String,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            自定义Sql查询
+            </summary>
+            <param name="sql">sql语句</param>
+            <param name="parameters">查询条件值</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.Count``1(Common.DAL.JoinCondition{`0,``0},System.Linq.Expressions.Expression{System.Func{`0,``0,System.Boolean}})">
+            <summary>
+            关联表Count
+            </summary>
+            <typeparam name="TJoinTable">关联表实体</typeparam>
+            <param name="joinCondition">关联查询条件</param>
+            <param name="predicate">Lambda表达式</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.Search``1(Common.DAL.JoinCondition{`0,``0},System.Linq.Expressions.Expression{System.Func{`0,``0,System.Boolean}},System.Collections.Generic.IEnumerable{Common.DAL.QueryOrderBy{`0,``0}},System.Int32,System.Int32)">
+            <summary>
+            关联表分页查询
+            </summary>
+            <typeparam name="TJoinTable">关联表实体</typeparam>
+            <param name="joinCondition">关联查询条件</param>
+            <param name="predicate">Lambda表达式</param>
+            <param name="queryOrderBies">拍讯方式</param>
+            <param name="startIndex">开始位置</param>
+            <param name="count">结果总数</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.#ctor(Common.DAL.ISearchQuery{`0})">
+            <summary>
+            
+            </summary>
+            <param name="searchQuery"></param>
+        </member>
+        <member name="T:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1">
+            <summary>
+            逻辑删除装饰者，继承IEditQuery
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.BeginTransaction">
+            <summary>
+            开始事务
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.Delete(System.Int64[])">
+            <summary>
+            逻辑删除
+            </summary>
+            <param name="ids"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.Insert(`0[])">
+            <summary>
+            新增
+            </summary>
+            <param name="datas"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.Merge(`0[])">
+            <summary>
+            新增或更新
+            </summary>
+            <param name="datas"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.Update(`0,System.String[])">
+            <summary>
+            通过实体类更新
+            </summary>
+            <param name="data">实体类</param>
+            <param name="ignoreColumns">忽略行</param>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.Update(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            通过Lambda表达式更新
+            </summary>
+            <param name="predicate">匹配体Lambda表达式</param>
+            <param name="updateExpression">更新体Lambda表达式</param>
+        </member>
+        <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.#ctor(Common.DAL.IEditQuery{`0})">
+            <summary>
+            
+            </summary>
+            <param name="editQuery"></param>
         </member>
         <member name="T:Common.ServiceCommon.SwaggerConfigure">
             <summary>

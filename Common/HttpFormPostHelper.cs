@@ -6,25 +6,59 @@ using System.Text;
 
 namespace Common
 {
-
+    /// <summary>
+    /// 请求错误类型枚举
+    /// </summary>
     public enum NetErrorTypeEnum
     {
+        /// <summary>
+        /// 获取数据失败
+        /// </summary>
         [Display(Name = "获取数据失败")]
         DataError,
+        /// <summary>
+        /// 请检查网络连接
+        /// </summary>
         [Display(Name = "请检查网络连接")]
         NetworkError,
+        /// <summary>
+        /// 接口错误
+        /// </summary>
         [Display(Name = "接口错误")]
         ErrorInterface,
+        /// <summary>
+        /// 操作成功
+        /// </summary>
         [Display(Name = "操作成功")]
         Success = 200,
     }
 
+    /// <summary>
+    /// HTTP请求结果
+    /// </summary>
     public class HttpResult
     {
+        /// <summary>
+        /// 请求结果字符串
+        /// </summary>
         public string Data { get; set; }
+
+        /// <summary>
+        /// 请求状态
+        /// </summary>
         public NetErrorTypeEnum Status { get; set; }
+
+        /// <summary>
+        /// 异常
+        /// </summary>
         public Exception Exception { get; set; }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="status"></param>
+        /// <param name="data"></param>
+        /// <param name="exception"></param>
         public HttpResult(NetErrorTypeEnum status, string data = null, Exception exception = null)
         {
             Status = status;
@@ -33,6 +67,9 @@ namespace Common
         }
     }
 
+    /// <summary>
+    /// 表单请求帮助类
+    /// </summary>
     public class HttpFormPostHelper
     {
         /// <summary>

@@ -9,6 +9,33 @@
             参数之间比较：GreaterThanProperty(nameof(parameter))
             </summary>
         </member>
+        <member name="T:Common.Validation.NotEqualThanPropertyAttribute">
+            <summary>
+            不等于验证器特性类
+            </summary>
+        </member>
+        <member name="M:Common.Validation.NotEqualThanPropertyAttribute.#ctor(System.String)">
+            <summary>
+            验证器特性构造函数
+            </summary>
+            <param name="notEqualThanValue">不等于的值</param>
+        </member>
+        <member name="M:Common.Validation.NotEqualThanPropertyAttribute.GetNotEqualThanValue(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
+            <summary>
+            获取验证失败的错误信息
+            </summary>
+            <param name="validationContext"></param>
+            <param name="notEqualThanValuePropertyName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.NotEqualThanPropertyAttribute.GetNotEqualThanText(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
+            <summary>
+            验证属性值
+            </summary>
+            <param name="validationContext"></param>
+            <param name="notEqualThanValuePropertyName"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.Validation.NotNullAttribute">
             <summary>
             不为空验证器特性类

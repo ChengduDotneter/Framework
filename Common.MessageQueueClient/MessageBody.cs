@@ -27,6 +27,9 @@ namespace Common.MessageQueueClient
         /// </summary>
         public DateTime CreateTime { get; }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         public MessageBody()
         {
             CreateTime = DateTime.Now;
