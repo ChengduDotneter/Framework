@@ -4,5 +4,80 @@
         <name>Common.DAL.ETL</name>
     </assembly>
     <members>
+        <member name="T:Common.DAL.ETL.ETLHelper">
+            <summary>
+            关系型数据库对Nosql的转换帮助类
+            </summary>
+        </member>
+        <member name="M:Common.DAL.ETL.ETLHelper.Transform(System.Collections.Generic.IEnumerable{System.Type},System.Func{System.Type,System.Object},System.Func{System.Type,System.Object},System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="modelTypes"></param>
+            <param name="sourceSearchQueryFactory"></param>
+            <param name="destEditQueryFactory"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.ETL.ETLHelper.Transform(Common.DAL.ETL.ETLTable,System.Int32,System.Func{System.Type,System.Object},System.Func{System.Type,System.Object})">
+            <summary>
+            
+            </summary>
+            <param name="etlTable"></param>
+            <param name="pageSize"></param>
+            <param name="sourceSearchQueryFactory"></param>
+            <param name="destEditQueryFactory"></param>
+        </member>
+        <member name="T:Common.DAL.ETL.ETLTable">
+            <summary>
+            转换表实体
+            </summary>
+        </member>
+        <member name="P:Common.DAL.ETL.ETLTable.TableType">
+            <summary>
+            表类型
+            </summary>
+        </member>
+        <member name="P:Common.DAL.ETL.ETLTable.DataCount">
+            <summary>
+            数据条数
+            </summary>
+        </member>
+        <member name="P:Common.DAL.ETL.ETLTable.ComplatedCount">
+            <summary>
+            满足条数
+            </summary>
+        </member>
+        <member name="M:Common.DAL.ETL.ETLTable.#ctor(System.Type)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="tableType"></param>
+        </member>
+        <member name="T:Common.DAL.ETL.ETLTask">
+            <summary>
+            转换任务类
+            </summary>
+        </member>
+        <member name="P:Common.DAL.ETL.ETLTask.SourceTables">
+            <summary>
+            源数据表集合
+            </summary>
+        </member>
+        <member name="P:Common.DAL.ETL.ETLTask.ComplatedTables">
+            <summary>
+            满足表集合
+            </summary>
+        </member>
+        <member name="P:Common.DAL.ETL.ETLTask.RunningTable">
+            <summary>
+            正在转换的表
+            </summary>
+        </member>
+        <member name="P:Common.DAL.ETL.ETLTask.Task">
+            <summary>
+            转换的任务
+            </summary>
+        </member>
     </members>
 </doc>

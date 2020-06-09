@@ -6,9 +6,18 @@ using System.IO;
 
 namespace Common
 {
+    /// <summary>
+    /// Excel帮助类
+    /// </summary>
     public class ExcelHelper
     {
         private static readonly int EXCEL03_MaxRow = 65535;
+
+        /// <summary>
+        /// 根据数据流读物Excel表格数据
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
         public static DataTable GetExcel(Stream stream)
         {
             IWorkbook hs = CreateWorkbook(stream);

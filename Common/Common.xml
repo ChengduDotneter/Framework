@@ -43,6 +43,57 @@
             <param name="currentFilePath">阿里云服务器文件夹</param>
             <returns></returns>
         </member>
+        <member name="T:Common.ConfigManager">
+            <summary>
+            配置文件操作类
+            </summary>
+        </member>
+        <member name="P:Common.ConfigManager.Configuration">
+            <summary>
+            配置文件操作对象
+            </summary>
+        </member>
+        <member name="M:Common.ConfigManager.Init(System.String)">
+            <summary>
+            配置文件初始化
+            </summary>
+            <param name="enviroment"></param>
+        </member>
+        <member name="T:Common.ConvertExtend">
+            <summary>
+            转换扩展类
+            </summary>
+        </member>
+        <member name="M:Common.ConvertExtend.ObjectToByteArray(System.Object)">
+            <summary>
+            object转换为字节数组
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.DealException">
+            <summary>
+            业务错误类
+            </summary>
+        </member>
+        <member name="M:Common.DealException.#ctor(System.String)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="message"></param>
+        </member>
+        <member name="T:Common.ExcelHelper">
+            <summary>
+            Excel帮助类
+            </summary>
+        </member>
+        <member name="M:Common.ExcelHelper.GetExcel(System.IO.Stream)">
+            <summary>
+            根据数据流读物Excel表格数据
+            </summary>
+            <param name="stream"></param>
+            <returns></returns>
+        </member>
         <member name="M:Common.ExcelHelper.ExportToDataTable(NPOI.SS.UserModel.ISheet)">
             <summary>
             把Sheet中的数据转换为DataTable
@@ -57,6 +108,64 @@
             <param name="dt"></param>
             <param name="sheetName"></param>
             <returns></returns>
+        </member>
+        <member name="T:Common.NetErrorTypeEnum">
+            <summary>
+            请求错误类型枚举
+            </summary>
+        </member>
+        <member name="F:Common.NetErrorTypeEnum.DataError">
+            <summary>
+            获取数据失败
+            </summary>
+        </member>
+        <member name="F:Common.NetErrorTypeEnum.NetworkError">
+            <summary>
+            请检查网络连接
+            </summary>
+        </member>
+        <member name="F:Common.NetErrorTypeEnum.ErrorInterface">
+            <summary>
+            接口错误
+            </summary>
+        </member>
+        <member name="F:Common.NetErrorTypeEnum.Success">
+            <summary>
+            操作成功
+            </summary>
+        </member>
+        <member name="T:Common.HttpResult">
+            <summary>
+            HTTP请求结果
+            </summary>
+        </member>
+        <member name="P:Common.HttpResult.Data">
+            <summary>
+            请求结果字符串
+            </summary>
+        </member>
+        <member name="P:Common.HttpResult.Status">
+            <summary>
+            请求状态
+            </summary>
+        </member>
+        <member name="P:Common.HttpResult.Exception">
+            <summary>
+            异常
+            </summary>
+        </member>
+        <member name="M:Common.HttpResult.#ctor(Common.NetErrorTypeEnum,System.String,System.Exception)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="status"></param>
+            <param name="data"></param>
+            <param name="exception"></param>
+        </member>
+        <member name="T:Common.HttpFormPostHelper">
+            <summary>
+            表单请求帮助类
+            </summary>
         </member>
         <member name="M:Common.HttpFormPostHelper.Post(System.String,System.Collections.Generic.Dictionary{System.String,System.Object},System.Int32,System.String,System.String)">
             <summary>
@@ -325,6 +434,21 @@
             赋值转换器
             </summary>
         </member>
+        <member name="M:Common.EquelToAssignVisitor.ReplaceBinary``1(System.Linq.Expressions.Expression{``0})">
+            <summary>
+            替换表达式树
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="node"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.EquelToAssignVisitor.VisitBinary(System.Linq.Expressions.BinaryExpression)">
+            <summary>
+            访问表达式树
+            </summary>
+            <param name="node"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.ParameterRebinder">
             <summary>
             重新绑定参数访问器
@@ -515,6 +639,44 @@
             <param name="bOrignParameterName"></param>
             <param name="aParameterName"></param>
             <param name="bParameterName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.LogHelper">
+            <summary>
+            日志帮助类
+            </summary>
+        </member>
+        <member name="M:Common.LogHelper.CreateLog(System.String,System.String[])">
+            <summary>
+            创建日志
+            </summary>
+            <param name="repositoryName"></param>
+            <param name="names"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.MapperModelHelper`1">
+            <summary>
+            实体映射帮组类
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.MapperModelHelper`1.ReadModel(System.Collections.Generic.IEnumerable{System.Collections.Generic.IDictionary{System.String,System.Object}})">
+            <summary>
+            根据字典获取实体列表
+            </summary>
+            <param name="dataDictionary"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.MD5Encryption">
+            <summary>
+            MD5编码扩展类
+            </summary>
+        </member>
+        <member name="M:Common.MD5Encryption.GetMd5Password(System.String)">
+            <summary>
+            获取MD5加密字符串
+            </summary>
+            <param name="password"></param>
             <returns></returns>
         </member>
         <member name="T:Common.SteamHelper">

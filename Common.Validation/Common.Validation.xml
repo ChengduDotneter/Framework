@@ -4,36 +4,253 @@
         <name>Common.Validation</name>
     </assembly>
     <members>
+        <member name="T:Common.Validation.CompareHelper">
+            <summary>
+            比较帮助类
+            </summary>
+        </member>
+        <member name="M:Common.Validation.CompareHelper.MakeType``1(System.Object)">
+            <summary>
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.CompareHelper.Compare``1(``0,System.Object)">
+            <summary>
+            比较ab参数是否相等
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="a"></param>
+            <param name="b"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.Validation.EnumValueExistAttribute">
+            <summary>
+            枚举值存在验证器特性类
+            </summary>
+        </member>
+        <member name="M:Common.Validation.EnumValueExistAttribute.#ctor">
+            <summary>
+            构造函数
+            </summary>
+        </member>
+        <member name="M:Common.Validation.EnumValueExistAttribute.GetErrorMessage(System.ComponentModel.DataAnnotations.ValidationContext,System.String)">
+            <summary>
+            获取验证失败的错误信息
+            </summary>
+            <param name="validationContext"></param>
+            <param name="propertyName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.EnumValueExistAttribute.ValidateValue(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <summary>
+            验证属性值
+            </summary>
+            <param name="value"></param>
+            <param name="validationContext"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.Validation.ForeignKeyAttribute">
+            <summary>
+            外键验证器特性类
+            </summary>
+        </member>
+        <member name="M:Common.Validation.ForeignKeyAttribute.#ctor(System.Type,System.String,System.Boolean)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="foreignTableType"></param>
+            <param name="foreignColumn"></param>
+            <param name="filterIsDeleted"></param>
+        </member>
+        <member name="M:Common.Validation.ForeignKeyAttribute.GetErrorMessage(System.ComponentModel.DataAnnotations.ValidationContext,System.String)">
+            <summary>
+            获取验证失败的错误信息
+            </summary>
+            <param name="validationContext"></param>
+            <param name="propertyName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.ForeignKeyAttribute.ValidateValue(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <summary>
+            验证属性值
+            </summary>
+            <param name="value"></param>
+            <param name="validationContext"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.Validation.GreaterThanPropertyAttribute">
             <summary>
             参数之间比较：GreaterThanProperty(nameof(parameter))
             </summary>
         </member>
-        <member name="T:Common.Validation.NotEqualThanPropertyAttribute">
+        <member name="T:Common.Validation.LessThanAttribute">
+            <summary>
+            小于指定值验证器特性类
+            </summary>
+        </member>
+        <member name="M:Common.Validation.LessThanAttribute.#ctor(System.Object)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="lessThanValue">小于的指定值</param>
+        </member>
+        <member name="M:Common.Validation.LessThanAttribute.GetErrorMessage(System.ComponentModel.DataAnnotations.ValidationContext,System.String)">
+            <summary>
+            获取验证失败的错误信息
+            </summary>
+            <param name="validationContext">验证器上下文</param>
+            <param name="propertyName">属性名</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.LessThanAttribute.ValidateValue(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <summary>
+            验证属性值
+            </summary>
+            <param name="value">属性值</param>
+            <param name="validationContext">顺序名</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.LessThanAttribute.GetLessThanText(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
+            <summary>
+            获取小于指定值的文本格式
+            </summary>
+            <param name="validationContext"></param>
+            <param name="lessThanValue"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.LessThanAttribute.GetLessThanValue(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
+            <summary>
+            获取小于的值
+            </summary>
+            <param name="validationContext"></param>
+            <param name="lessThanValue"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.Validation.LessThanPropertyAttribute">
+            <summary>
+            小于指定属性值验证器特性类
+            </summary>
+        </member>
+        <member name="M:Common.Validation.LessThanPropertyAttribute.#ctor(System.String)">
+            <summary>
+            验证器特性构造函数
+            </summary>
+            <param name="lessThanValuePropertyName">小于的属性名</param>
+        </member>
+        <member name="M:Common.Validation.LessThanPropertyAttribute.GetLessThanValue(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
+            <summary>
+            获取小于的属性值
+            </summary>
+            <param name="validationContext"></param>
+            <param name="lessThanValuePropertyName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.LessThanPropertyAttribute.GetLessThanText(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
+            <summary>
+            获取小于的属性名
+            </summary>
+            <param name="validationContext"></param>
+            <param name="lessThanValuePropertyName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.Validation.NotEqualAttribute">
             <summary>
             不等于验证器特性类
+            </summary>
+        </member>
+        <member name="M:Common.Validation.NotEqualAttribute.#ctor(System.Object)">
+            <summary>
+            验证器特性构造函数
+            </summary>
+            <param name="notEqualValue">不等于的值</param>
+        </member>
+        <member name="M:Common.Validation.NotEqualAttribute.GetErrorMessage(System.ComponentModel.DataAnnotations.ValidationContext,System.String)">
+            <summary>
+            获取验证失败的错误信息
+            </summary>
+            <param name="validationContext">验证器上下文</param>
+            <param name="propertyName">属性名</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.NotEqualAttribute.ValidateValue(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <summary>
+            验证属性值
+            </summary>
+            <param name="value"></param>
+            <param name="validationContext"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.Validation.NotEqualThanAttribute">
+            <summary>
+            不等于值验证器特性类
+            </summary>
+        </member>
+        <member name="M:Common.Validation.NotEqualThanAttribute.#ctor(System.Object)">
+            <summary>
+            验证器特性构造函数
+            </summary>
+            <param name="notEqualThanValue">不等于的值</param>
+        </member>
+        <member name="M:Common.Validation.NotEqualThanAttribute.GetErrorMessage(System.ComponentModel.DataAnnotations.ValidationContext,System.String)">
+            <summary>
+            获取验证失败的错误信息
+            </summary>
+            <param name="validationContext">验证器上下文</param>
+            <param name="propertyName">属性值</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.NotEqualThanAttribute.ValidateValue(System.Object,System.ComponentModel.DataAnnotations.ValidationContext)">
+            <summary>
+            验证属性值
+            </summary>
+            <param name="value"></param>
+            <param name="validationContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.NotEqualThanAttribute.GetNotEqualThanText(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
+            <summary>
+            获取不等于的属性名
+            </summary>
+            <param name="validationContext">验证器上下文</param>
+            <param name="m_notEqualThanValue">当前属性名</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Validation.NotEqualThanAttribute.GetNotEqualThanValue(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
+            <summary>
+            获取不等于的属性值
+            </summary>
+            <param name="validationContext">验证器上下文</param>
+            <param name="m_notEqualThanValue">不等于的值</param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.Validation.NotEqualThanPropertyAttribute">
+            <summary>
+            不等于指定属性的值验证器特性类
             </summary>
         </member>
         <member name="M:Common.Validation.NotEqualThanPropertyAttribute.#ctor(System.String)">
             <summary>
             验证器特性构造函数
             </summary>
-            <param name="notEqualThanValue">不等于的值</param>
+            <param name="notEqualThanValue">不等于属性名</param>
         </member>
         <member name="M:Common.Validation.NotEqualThanPropertyAttribute.GetNotEqualThanValue(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
             <summary>
             获取验证失败的错误信息
             </summary>
-            <param name="validationContext"></param>
-            <param name="notEqualThanValuePropertyName"></param>
+            <param name="validationContext">验证器上下文</param>
+            <param name="notEqualThanValuePropertyName">不等于的属性的属性名</param>
             <returns></returns>
         </member>
         <member name="M:Common.Validation.NotEqualThanPropertyAttribute.GetNotEqualThanText(System.ComponentModel.DataAnnotations.ValidationContext,System.Object)">
             <summary>
             验证属性值
             </summary>
-            <param name="validationContext"></param>
-            <param name="notEqualThanValuePropertyName"></param>
+            <param name="validationContext">验证器上下文</param>
+            <param name="notEqualThanValuePropertyName">不等于的属性的属性名</param>
             <returns></returns>
         </member>
         <member name="T:Common.Validation.NotNullAttribute">

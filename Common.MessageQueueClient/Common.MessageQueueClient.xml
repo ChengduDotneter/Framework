@@ -4,6 +4,11 @@
         <name>Common.MessageQueueClient</name>
     </assembly>
     <members>
+        <member name="T:Common.MessageQueueClient.ExChangeTypeEnum">
+            <summary>
+            转换类型枚举
+            </summary>
+        </member>
         <member name="F:Common.MessageQueueClient.ExChangeTypeEnum.direct">
             <summary>
             关键字匹配
@@ -48,6 +53,30 @@
             <summary>
             当前消息创建的时间
             </summary>
+        </member>
+        <member name="M:Common.MessageQueueClient.MessageBody.#ctor">
+            <summary>
+            构造函数
+            </summary>
+        </member>
+        <member name="T:Common.MessageQueueClient.MessageQueueFactory">
+            <summary>
+            信息管道工厂类
+            </summary>
+        </member>
+        <member name="M:Common.MessageQueueClient.MessageQueueFactory.GetPublisherContext``1">
+            <summary>
+            获取推送上下文
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Common.MessageQueueClient.MessageQueueFactory.GetSubscriberContext``1">
+            <summary>
+            获取用户上下文
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
         </member>
         <member name="M:Common.MessageQueueClient.MqConfigFactory.CreateConfigDomInstance">
             <summary>

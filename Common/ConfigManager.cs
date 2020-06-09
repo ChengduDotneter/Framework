@@ -4,11 +4,17 @@ using System;
 
 namespace Common
 {
+    /// <summary>
+    /// 配置文件操作类
+    /// </summary>
     public static class ConfigManager
     {
         private static bool m_isInit;
         private static IConfiguration m_configuration;
 
+        /// <summary>
+        /// 配置文件操作对象
+        /// </summary>
         public static IConfiguration Configuration
         {
             get
@@ -20,6 +26,10 @@ namespace Common
             }
         }
 
+        /// <summary>
+        /// 配置文件初始化
+        /// </summary>
+        /// <param name="enviroment"></param>
         public static void Init(string enviroment)
         {
             m_configuration = new ConfigurationBuilder()

@@ -1,5 +1,9 @@
 ﻿namespace Common.MessageQueueClient
 {
+
+    /// <summary>
+    /// 转换类型枚举
+    /// </summary>
     public enum ExChangeTypeEnum
     {
         /// <summary>
