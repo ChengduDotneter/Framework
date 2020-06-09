@@ -158,9 +158,8 @@ namespace Common.ServiceCommon
        where TSearhEntity : ViewModelBase, new()
        where TResponse : new()
     {
-        private static ISearchQuery<TSearhEntity> m_searchQuery;
 
-        public GenericCustomSearchController(ISearchQuery<TSearhEntity> searchQuery) => m_searchQuery = searchQuery;
+        public GenericCustomSearchController(ISearchQuery<TSearhEntity> searchQuery){}
 
         [HttpGet]
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
