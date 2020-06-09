@@ -4,6 +4,11 @@
         <name>Common</name>
     </assembly>
     <members>
+        <member name="T:Common.AliYunFileHelper">
+            <summary>
+            阿里云文件服务器帮助实体
+            </summary>
+        </member>
         <member name="M:Common.AliYunFileHelper.UploadLocalFile(System.String,System.String,System.String)">
             <summary>
             上传本地文件
@@ -50,6 +55,7 @@
             将DataTable转换为excel2003格式。
             </summary>
             <param name="dt"></param>
+            <param name="sheetName"></param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpFormPostHelper.Post(System.String,System.Collections.Generic.Dictionary{System.String,System.Object},System.Int32,System.String,System.String)">
@@ -59,7 +65,8 @@
             <param name="url">请求url</param>
             <param name="keyValues">请求参数</param>
             <param name="timeOut">超时时间（单位秒）</param>
-            <param name="token">token</param>
+            <param name="tokenName">tokenName</param>
+            <param name="tokenValue">token</param>
             <returns></returns>
         </member>
         <member name="T:Common.HttpJsonHelper">
@@ -341,7 +348,7 @@
             <summary>
             
             </summary>
-            <param name="p"></param>
+            <param name="parameterExpression"></param>
             <returns></returns>
         </member>
         <member name="T:Common.ParameterChanger`3">
@@ -403,8 +410,10 @@
             
             </summary>
             <param name="body"></param>
-            <param name="changeParameter"></param>
-            <param name="changeParameterExpression"></param>
+            <param name="aChangeParameter"></param>
+            <param name="bChangeParameter"></param>
+            <param name="aChangeParameterExpression"></param>
+            <param name="bChangeParameterExpression"></param>
             <returns></returns>
         </member>
         <member name="T:Common.ParameterChanger`4">
@@ -438,7 +447,10 @@
             </summary>
             <param name="body"></param>
             <param name="changeParameter"></param>
-            <param name="changeParameterExpression"></param>
+            <param name="aChangeParameterExpression"></param>
+            <param name="bChangeParameterExpression"></param>
+            <param name="aParameterName"></param>
+            <param name="bParameterName"></param>
             <returns></returns>
         </member>
         <member name="T:Common.ParameterRenamer`2">
@@ -502,7 +514,52 @@
             <param name="aOrignParameterName"></param>
             <param name="bOrignParameterName"></param>
             <param name="aParameterName"></param>
-            <param name="aParameterName"></param>
+            <param name="bParameterName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.SteamHelper">
+            <summary>
+            流数据处理帮助类
+            </summary>
+        </member>
+        <member name="M:Common.SteamHelper.ReadSteamToBufferAsync(System.IO.Stream,System.Int64)">
+            <summary>
+            异步读取流数据
+            </summary>
+            <param name="stream"></param>
+            <param name="contentLength">数据流长度</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.SteamHelper.ReadSteamToBuffer(System.IO.Stream,System.Int64)">
+            <summary>
+            同步读取流数据
+            </summary>
+            <param name="stream"></param>
+            <param name="contentLength">数据流长度</param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.TypeReflector">
+            <summary>
+            类型反射器
+            </summary>
+        </member>
+        <member name="M:Common.TypeReflector.ReflectType(System.Func{System.Type,System.Boolean})">
+            <summary>
+            获取当前程序集中所有满足筛选条件的Type
+            </summary>
+            <param name="predicate">筛选条件</param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.TypeUtils">
+            <summary>
+            Type类型扩展类
+            </summary>
+        </member>
+        <member name="M:Common.TypeUtils.GetBaseTypes(System.Type)">
+            <summary>
+            获取该类型的基类型
+            </summary>
+            <param name="type"></param>
             <returns></returns>
         </member>
     </members>

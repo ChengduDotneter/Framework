@@ -4,5 +4,258 @@
         <name>Common.DAL</name>
     </assembly>
     <members>
+        <member name="T:Common.DAL.IEditQuery`1">
+            <summary>
+            数据修改接口
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.DAL.IEditQuery`1.Insert(`0[])">
+            <summary>
+            增
+            </summary>
+            <param name="datas"></param>
+        </member>
+        <member name="M:Common.DAL.IEditQuery`1.Merge(`0[])">
+            <summary>
+            合并
+            </summary>
+            <param name="datas"></param>
+        </member>
+        <member name="M:Common.DAL.IEditQuery`1.Update(`0,System.String[])">
+            <summary>
+            修改
+            </summary>
+            <param name="data"></param>
+            <param name="ignoreColumns"></param>
+        </member>
+        <member name="M:Common.DAL.IEditQuery`1.Update(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            修改
+            </summary>
+            <param name="predicate"></param>
+            <param name="updateExpression"></param>
+        </member>
+        <member name="M:Common.DAL.IEditQuery`1.Delete(System.Int64[])">
+            <summary>
+            删除
+            </summary>
+            <param name="ids"></param>
+        </member>
+        <member name="M:Common.DAL.IEditQuery`1.BeginTransaction">
+            <summary>
+            开启事务
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Common.DAL.ISearchQuery`1">
+            <summary>
+            数据查询接口
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.DAL.ISearchQuery`1.Get(System.Int64)">
+            <summary>
+            根据ID查询
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.ISearchQuery`1.Count(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            根据Linq筛选条件查询条数
+            </summary>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.ISearchQuery`1.Count(System.String,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            根据Sql筛选条件查询条数
+            </summary>
+            <param name="queryWhere"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.ISearchQuery`1.Query(System.String,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            根据SQL查询，用于复合查询
+            </summary>
+            <param name="sql"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.ISearchQuery`1.Search(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Collections.Generic.IEnumerable{Common.DAL.QueryOrderBy{`0}},System.Int32,System.Int32)">
+            <summary>
+            根据Linq筛选条件查询
+            </summary>
+            <param name="predicate"></param>
+            <param name="queryOrderBies"></param>
+            <param name="startIndex"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.ISearchQuery`1.Search(System.String,System.Collections.Generic.Dictionary{System.String,System.Object},System.String,System.Int32,System.Int32)">
+            <summary>
+            根据SQL筛选条件查询
+            </summary>
+            <param name="queryWhere"></param>
+            <param name="parameters"></param>
+            <param name="orderByFields"></param>
+            <param name="startIndex"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.ISearchQuery`1.Count``1(Common.DAL.JoinCondition{`0,``0},System.Linq.Expressions.Expression{System.Func{`0,``0,System.Boolean}})">
+            <summary>
+            根据Linq筛选条件两表联查条数
+            </summary>
+            <typeparam name="TJoinTable"></typeparam>
+            <param name="joinCondition"></param>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.ISearchQuery`1.Search``1(Common.DAL.JoinCondition{`0,``0},System.Linq.Expressions.Expression{System.Func{`0,``0,System.Boolean}},System.Collections.Generic.IEnumerable{Common.DAL.QueryOrderBy{`0,``0}},System.Int32,System.Int32)">
+            <summary>
+            根据Linq筛选条件两表联查数据
+            </summary>
+            <typeparam name="TJoinTable"></typeparam>
+            <param name="joinCondition"></param>
+            <param name="predicate"></param>
+            <param name="queryOrderBies"></param>
+            <param name="startIndex"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.DAL.ITransaction">
+            <summary>
+            事务接口
+            </summary>
+        </member>
+        <member name="M:Common.DAL.ITransaction.Context">
+            <summary>
+            上下文
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.ITransaction.Submit">
+            <summary>
+            提交
+            </summary>
+        </member>
+        <member name="M:Common.DAL.ITransaction.Rollback">
+            <summary>
+            回滚
+            </summary>
+        </member>
+        <member name="T:Common.DAL.QueryOrderBy`1">
+            <summary>
+            查询排序类
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:Common.DAL.QueryOrderBy`1.Expression">
+            <summary>
+            排序Linq
+            </summary>
+        </member>
+        <member name="P:Common.DAL.QueryOrderBy`1.OrderByType">
+            <summary>
+            排序方式
+            </summary>
+        </member>
+        <member name="M:Common.DAL.QueryOrderBy`1.#ctor(System.Linq.Expressions.Expression{System.Func{`0,System.Object}},Common.DAL.OrderByType)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="expression"></param>
+            <param name="orderByType"></param>
+        </member>
+        <member name="T:Common.DAL.QueryOrderBy`2">
+            <summary>
+            两表查询排序类
+            </summary>
+            <typeparam name="TLeft"></typeparam>
+            <typeparam name="TRight"></typeparam>
+        </member>
+        <member name="P:Common.DAL.QueryOrderBy`2.Expression">
+            <summary>
+            排序Linq
+            </summary>
+        </member>
+        <member name="P:Common.DAL.QueryOrderBy`2.OrderByType">
+            <summary>
+            排序方式
+            </summary>
+        </member>
+        <member name="M:Common.DAL.QueryOrderBy`2.#ctor(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Object}},Common.DAL.OrderByType)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="expression"></param>
+            <param name="orderByType"></param>
+        </member>
+        <member name="T:Common.DAL.JoinCondition`2">
+            <summary>
+            两表联查条件类
+            </summary>
+            <typeparam name="TLeft"></typeparam>
+            <typeparam name="TRight"></typeparam>
+        </member>
+        <member name="P:Common.DAL.JoinCondition`2.LeftJoinExpression">
+            <summary>
+            左表查询条件Linq
+            </summary>
+        </member>
+        <member name="P:Common.DAL.JoinCondition`2.RightJoinExression">
+            <summary>
+            右表查询条件Linq
+            </summary>
+        </member>
+        <member name="M:Common.DAL.JoinCondition`2.#ctor(System.Linq.Expressions.Expression{System.Func{`0,System.Int64}},System.Linq.Expressions.Expression{System.Func{`1,System.Int64}})">
+            <summary>
+            构造函数
+            </summary>
+            <param name="leftJoinExpression"></param>
+            <param name="rightJoinExression"></param>
+        </member>
+        <member name="T:Common.DAL.JoinResult`2">
+            <summary>
+            两表联查结果类
+            </summary>
+            <typeparam name="TLeft"></typeparam>
+            <typeparam name="TRight"></typeparam>
+        </member>
+        <member name="P:Common.DAL.JoinResult`2.Left">
+            <summary>
+            左表查询结果
+            </summary>
+        </member>
+        <member name="P:Common.DAL.JoinResult`2.Right">
+            <summary>
+            右表查询结果
+            </summary>
+        </member>
+        <member name="M:Common.DAL.JoinResult`2.#ctor(`0,`1)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="left"></param>
+            <param name="right"></param>
+        </member>
+        <member name="T:Common.DAL.OrderByType">
+            <summary>
+            排序类型
+            </summary>
+        </member>
+        <member name="F:Common.DAL.OrderByType.Asc">
+            <summary>
+            正序
+            </summary>
+        </member>
+        <member name="F:Common.DAL.OrderByType.Desc">
+            <summary>
+            逆序
+            </summary>
+        </member>
     </members>
 </doc>

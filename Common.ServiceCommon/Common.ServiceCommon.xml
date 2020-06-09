@@ -4,6 +4,33 @@
         <name>Common.ServiceCommon</name>
     </assembly>
     <members>
+        <member name="T:Common.ServiceCommon.SkipValidationAttribute">
+            <summary>
+            跳过验证器的特性
+            </summary>
+        </member>
+        <member name="T:Common.ServiceCommon.ApiValidationFilter">
+            <summary>
+            Api验证管道
+            </summary>
+        </member>
+        <member name="P:Common.ServiceCommon.ApiValidationFilter.AllowMultiple">
+            <summary>
+            允许复合验证
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.ApiValidationFilter.OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext)">
+            <summary>
+            验证完成后执行
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.ApiValidationFilter.OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext)">
+            <summary>
+            验证时执行
+            </summary>
+            <param name="actionExecutingContext"></param>
+        </member>
         <member name="T:Common.ServiceCommon.BatchGenericSearchController`2">
             <summary>
             ServiceToService 批量查询接口基类
@@ -11,7 +38,12 @@
             <typeparam name="TRequest">请求实体泛型</typeparam>
             <typeparam name="TResponse">返回实体泛型</typeparam>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:Common.ServiceCommon.JObjectGenericPostController`1" -->
+        <member name="T:Common.ServiceCommon.JObjectGenericPostController`1">
+            <summary>
+            Service中无相应的实体接受请求参数时使用且请求参数为JObject的接口基类
+            </summary>
+            <typeparam name="TResponse"></typeparam>
+        </member>
         <member name="T:Common.ServiceCommon.JArrayGenericPostController`1">
             <summary>
             Service中无相应的实体接受请求参数时使用且请求参数为JArray的接口基类
@@ -65,6 +97,41 @@
             <typeparam name="TRequest">请求实体参数，继承于ViewModelBase</typeparam>
             <typeparam name="TSearhEntity">查询实体参数，继承于ViewModelBase</typeparam>
             <typeparam name="TResponse">返回实体参数</typeparam>
+        </member>
+        <member name="T:Common.ServiceCommon.GenericSearchWithQueryController`2">
+            <summary>
+            该接口基类即将过时
+            </summary>
+            <typeparam name="TRequest"></typeparam>
+            <typeparam name="TResponse"></typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchWithQueryController`2.Get(Common.ServiceCommon.IPageQueryParameterService)">
+            <summary>
+            Get请求入口
+            </summary>
+            <param name="pageQueryParameterService"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchWithQueryController`2.PreperDatas(System.Collections.Generic.IEnumerable{`1})">
+            <summary>
+            结果数据处理
+            </summary>
+            <param name="datas"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchWithQueryController`2.DoSearch(Common.Model.PageQuery{`0})">
+            <summary>
+            数据查询
+            </summary>
+            <param name="pageQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchWithQueryController`2.GetCount(Common.Model.PageQuery{`0})">
+            <summary>
+            获取数量
+            </summary>
+            <param name="pageQuery"></param>
+            <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.BatchGenericSearchController`1">
             <summary>
@@ -183,7 +250,9 @@
             <summary>
             生成动态dto的属性
             </summary>
-            <param name="methodParameters"></param>
+            <param name="dynamicControllerType"></param>
+            <param name="isPost"></param>
+            <param name="isPut"></param>
             <returns></returns>
         </member>
         <member name="M:Common.ServiceCommon.DynamicControllerManager.GetDynamicPrivateProperty(System.Type)">
@@ -212,6 +281,8 @@
             获取接口对象方法调用参数
             </summary>
             <param name="dynamicControllerType"></param>
+            <param name="isPost"></param>
+            <param name="isPut"></param>
             <returns></returns>
         </member>
         <member name="M:Common.ServiceCommon.DynamicControllerManager.GetFullTypeNameByType(System.Type)">
@@ -261,6 +332,23 @@
             <summary>
             此方法为心跳监测接口类，用于服务发现
             </summary>
+        </member>
+        <member name="T:Common.ServiceCommon.SwaggerConfigure">
+            <summary>
+            Swagger配置类
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.SwaggerConfigure.AddSwagger(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            向服务集合中添加Swagger服务
+            </summary>
+            <param name="services"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.SwaggerConfigure.UseSwaggerPage(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            使用Swagger页面
+            </summary>
+            <param name="applicationBuilder"></param>
         </member>
     </members>
 </doc>
