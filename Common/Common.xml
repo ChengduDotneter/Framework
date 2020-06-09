@@ -109,6 +109,31 @@
             <param name="sheetName"></param>
             <returns></returns>
         </member>
+        <member name="T:Common.HttpClientExtend">
+             <summary>
+            Httpclient的扩展类
+             </summary>
+        </member>
+        <member name="M:Common.HttpClientExtend.AddAuthorizationHeader(System.Net.Http.HttpClient,System.String)">
+            <summary>
+            添加AuthorizationHeader
+            </summary>
+            <param name="httpClient"></param>
+            <param name="authorization"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.HttpContentExtend">
+            <summary>
+            HttpContent扩展类
+            </summary>
+        </member>
+        <member name="M:Common.HttpContentExtend.AddJsonContentType(System.Net.Http.HttpContent)">
+            <summary>
+            添加JsonContenttype的请求头
+            </summary>
+            <param name="httpContent"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.NetErrorTypeEnum">
             <summary>
             请求错误类型枚举
@@ -181,6 +206,243 @@
         <member name="T:Common.HttpJsonHelper">
             <summary>
             HTTPJsonHelper请求帮助类
+            </summary>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpPostAsync(System.String,System.String,System.Net.Http.HttpContent,System.String)">
+            <summary>
+            post异步请求
+            </summary>
+            <param name="url"></param>
+            <param name="action"></param>
+            <param name="content"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpPost(System.String,System.String,System.Net.Http.HttpContent,System.String)">
+            <summary>
+            Post同步请求
+            </summary>
+            <param name="url"></param>
+            <param name="action"></param>
+            <param name="content"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpGetAsync(System.String,System.String,System.String)">
+            <summary>
+            get异步请求
+            </summary>
+            <param name="url"></param>
+            <param name="action"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpGet(System.String,System.String,System.String)">
+            <summary>
+            get同步请求
+            </summary>
+            <param name="url"></param>
+            <param name="action"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpPutAsync(System.String,System.String,System.Net.Http.HttpContent,System.String)">
+            <summary>
+            put异步请求
+            </summary>
+            <param name="url"></param>
+            <param name="action"></param>
+            <param name="content"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpPut(System.String,System.String,System.Net.Http.HttpContent,System.String)">
+            <summary>
+            put同步请求
+            </summary>
+            <param name="url"></param>
+            <param name="action"></param>
+            <param name="content"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpDeleteAsync(System.String,System.String,System.String)">
+            <summary>
+            delete异步请求
+            </summary>
+            <param name="url"></param>
+            <param name="action"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpDelete(System.String,System.String,System.String)">
+            <summary>
+            delete同步请求
+            </summary>
+            <param name="url"></param>
+            <param name="action"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.GetResponseAsync``1(System.Net.Http.HttpResponseMessage)">
+            <summary>
+            异步获取请求结果
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.GetResponse``1(System.Net.Http.HttpResponseMessage)">
+            <summary>
+            同步获取请求结果
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.HttpWebRequestExtend">
+            <summary>
+            httpwebrequest的扩展类
+            </summary>
+        </member>
+        <member name="M:Common.HttpWebRequestExtend.AddJsonContentType(System.Net.HttpWebRequest)">
+            <summary>
+            添加JsonContenttype
+            </summary>
+            <param name="httpWebRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestExtend.AddFormContentType(System.Net.HttpWebRequest)">
+            <summary>
+            添加FormContenttype
+            </summary>
+            <param name="httpWebRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestExtend.AddPostMethod(System.Net.HttpWebRequest)">
+            <summary>
+            设置post的请求方法
+            </summary>
+            <param name="httpWebRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestExtend.AddGetMethod(System.Net.HttpWebRequest)">
+            <summary>
+            设置get的请求方法
+            </summary>
+            <param name="httpWebRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestExtend.AddDeleteMethod(System.Net.HttpWebRequest)">
+            <summary>
+            设置delete的请求方法
+            </summary>
+            <param name="httpWebRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestExtend.AddPutMethod(System.Net.HttpWebRequest)">
+            <summary>
+            设置put的请求方法
+            </summary>
+            <param name="httpWebRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestExtend.AddAuthorizationHeader(System.Net.HttpWebRequest,System.String)">
+            <summary>
+            添加Authorization的请求头
+            </summary>
+            <param name="httpWebRequest"></param>
+            <param name="authorization"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestExtend.AddContent(System.Net.HttpWebRequest,System.Byte[])">
+            <summary>
+            添加请求body
+            </summary>
+            <param name="httpWebRequest"></param>
+            <param name="postData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestExtend.GetResponseData(System.Net.HttpWebRequest)">
+            <summary>
+            获取请求结果数据
+            </summary>
+            <param name="httpWebRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.HttpWebResponseResult">
+            <summary>
+            HttpWebResponse结果类
+            </summary>
+        </member>
+        <member name="P:Common.HttpWebResponseResult.HttpStatus">
+            <summary>
+            请求状态码
+            </summary>
+        </member>
+        <member name="P:Common.HttpWebResponseResult.DataString">
+            <summary>
+            请求结果数据字符串
+            </summary>
+        </member>
+        <member name="M:Common.HttpWebResponseResult.#ctor(System.Net.HttpStatusCode,System.String)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="httpStatus"></param>
+            <param name="dataString"></param>
+        </member>
+        <member name="T:Common.HttpWebRequestHelper">
+            <summary>
+            HttpWebRequest请求帮助类
+            </summary>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.JsonPost(System.String,System.Byte[],System.String)">
+            <summary>
+            Json的Post请求
+            </summary>
+            <param name="url"></param>
+            <param name="postData"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.JsonGet(System.String,System.String)">
+            <summary>
+            json的get请求
+            </summary>
+            <param name="url"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.JsonPut(System.String,System.Byte[],System.String)">
+            <summary>
+            json的put请求
+            </summary>
+            <param name="url"></param>
+            <param name="postData"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.JsonDelete(System.String,System.String)">
+            <summary>
+            json的delete请求
+            </summary>
+            <param name="url"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.FormPost(System.String,System.Collections.Generic.IDictionary{System.String,System.Object},System.String)">
+            <summary>
+            form表单的post请求
+            </summary>
+            <param name="url"></param>
+            <param name="keyValues"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.IDGenerator">
+            <summary>
+            id生成器类
             </summary>
         </member>
         <member name="F:Common.IDGenerator.m_nodeType">
@@ -672,11 +934,12 @@
             MD5编码扩展类
             </summary>
         </member>
-        <member name="M:Common.MD5Encryption.GetMd5Password(System.String)">
+        <member name="M:Common.MD5Encryption.GetMd5Password(System.String,System.String)">
             <summary>
             获取MD5加密字符串
             </summary>
             <param name="password"></param>
+            <param name="charset"></param>
             <returns></returns>
         </member>
         <member name="T:Common.SteamHelper">

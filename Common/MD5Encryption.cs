@@ -15,18 +15,19 @@ namespace Common
         /// 获取MD5加密字符串
         /// </summary>
         /// <param name="password"></param>
+        /// <param name="charset"></param>
         /// <returns></returns>
-        public static string GetMd5Password(string password)
+        public static string GetMd5Password(string password, string charset)
         {
             if (!string.IsNullOrWhiteSpace(password))
                 throw new NullReferenceException();
 
-            return BitConverter.ToString(m_md5.ComputeHash(Encoding.Default.GetBytes(password))).Replace("-", "").ToLower();
+            return Convert.ToBase64String(m_md5.ComputeHash(Encoding.GetEncoding(charset).GetBytes(password)));
         }
 
         static MD5Encryption()
         {
-            m_md5 = new MD5CryptoServiceProvider();
+            m_md5 = MD5.Create();
         }
     }
 }
