@@ -9,19 +9,35 @@ using System.Linq;
 namespace Common.ServiceCommon
 {
     //TODO:暂时跳过验证器方法
+    /// <summary>
+    /// 跳过验证器方法
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false,Inherited = false)]
     public class SkipValidationAttribute : Attribute
     {
 
     }
 
+    /// <summary>
+    /// API验证器
+    /// </summary>
     public class ApiValidationFilter : IActionFilter
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public bool AllowMultiple => false;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
         public void OnActionExecuted(ActionExecutedContext context){ }
 
-
+        /// <summary>
+        /// 实现
+        /// </summary>
+        /// <param name="actionExecutingContext"></param>
         public void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
             if (!actionExecutingContext.ModelState.IsValid &&

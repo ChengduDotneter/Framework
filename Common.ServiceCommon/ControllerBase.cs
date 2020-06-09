@@ -17,12 +17,22 @@ namespace Common.ServiceCommon
     [ApiController]
     public abstract class BatchGenericSearchController<TRequest, TResponse> : ControllerBase
     {
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost]
         public TResponse Get(TRequest request)
         {
             return SearchDatas(request);
         }
 
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         protected abstract TResponse SearchDatas(TRequest request);
     }
 
@@ -33,6 +43,11 @@ namespace Common.ServiceCommon
     [ApiController]
     public abstract class JObjectGenericPostController<TResponse> : ControllerBase
     {
+        /// <summary>
+        /// Post
+        /// </summary>
+        /// <param name="jObjectSerializeService"></param>
+        /// <returns></returns>
         [HttpPost]
         public TResponse Post([FromServices]IJObjectSerializeService jObjectSerializeService)
         {
@@ -64,6 +79,11 @@ namespace Common.ServiceCommon
     /// <typeparam name="TResponse">返回实体泛型</typeparam>
     public abstract class BatchGenericGetController<TResponse> : ControllerBase
     {
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public IActionResult Get(long id)
         {
@@ -75,6 +95,11 @@ namespace Common.ServiceCommon
             return Ok(data);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         protected abstract TResponse DoGet(long id);
     }
 
@@ -285,12 +310,20 @@ namespace Common.ServiceCommon
     [ApiController]
     public abstract class BatchGenericSearchController<TResponse> : ControllerBase
     {
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public TResponse Get()
         {
             return SearchDatas();
         }
 
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <returns></returns>
         protected abstract TResponse SearchDatas();
     }
 

@@ -9,8 +9,14 @@ using System.Text;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// 动态控制器配置
+    /// </summary>
     public static class DynamicControllerManager
     {
+        /// <summary>
+        /// 验证
+        /// </summary>
         public const string SKIP_VALIDATION = "[Common.ServiceCommon.SkipValidation]";
 
         private const string DYNAMIC_DATA_TYPE_TEMPLATE = @"
@@ -66,6 +72,11 @@ namespace Common.ServiceCommon
                 }}
              }}";
 
+        /// <summary>
+        /// 通用动态类转程序集，Type[]ToAssembly
+        /// </summary>
+        /// <param name="dynamicControllerTypes"></param>
+        /// <returns></returns>
         public static Assembly GenerateDynamicControllerToAssembly(Type[] dynamicControllerTypes)
         {
             StringBuilder stringBuilder = new StringBuilder();
