@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Common.ServiceCommon
 {
-    class MicroServiceHelper
+   public class MicroServiceHelper
     {
         private static T ReturnEntity<T>(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
