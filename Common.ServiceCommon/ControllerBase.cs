@@ -185,6 +185,40 @@ namespace Common.ServiceCommon
 
     }
 
+    /// <summary>
+    /// 自定义返回值，根据查询出的实体对返回值进行拼装
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TSearhEntity"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
+    [ApiController]
+    public abstract class GenericCustomSearchController<TRequest,TSearhEntity, TResponse> : ControllerBase
+       where TRequest : ViewModelBase, new()
+       where TSearhEntity : ViewModelBase, new()
+       where TResponse : new()
+    {
+
+        public GenericCustomSearchController(ISearchQuery<TSearhEntity> searchQuery){}
+
+        [HttpGet]
+        public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        {
+            Tuple<IEnumerable<TSearhEntity>, int> tupleDatas = Tuple.Create(SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>()), SearchDatasCount(pageQueryParameterService.GetQueryParameter<TRequest>()));
+
+            return new PageQueryResult<TResponse>()
+            {
+                Datas = PreperDatas(tupleDatas?.Item1),
+                TotalCount = tupleDatas?.Item2 ?? 0
+            };
+        }
+
+        protected abstract IEnumerable<TSearhEntity> SearchDatas(PageQuery<TRequest> pageQuery);
+
+        protected abstract int SearchDatasCount(PageQuery<TRequest> pageQuery);
+
+        protected abstract IEnumerable<TResponse> PreperDatas(IEnumerable<TSearhEntity> datas);
+    }
+
     [Obsolete("该接口基类即将过期")]
     [ApiController]
     public abstract class GenericSearchWithQueryController<TRequest, TResponse> : ControllerBase
