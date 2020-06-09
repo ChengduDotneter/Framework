@@ -8,13 +8,27 @@ using System.Reflection;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// 懒加载树控制器
+    /// </summary>
     [Route("lazyloadedtree")]
     [ApiController]
     public class LazyLoadedTreeController : ControllerBase
     {
         private IServiceProvider m_serviceProvider;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="serviceProvider">IServiceProvider</param>
         public LazyLoadedTreeController(IServiceProvider serviceProvider) => m_serviceProvider = serviceProvider;
 
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="objectName"></param>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
         [HttpGet]
         public object Get(string objectName, string parentID)
         {

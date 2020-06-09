@@ -12,6 +12,9 @@ using Microsoft.Extensions.Primitives;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// 日志中间件
+    /// </summary>
     public class LogMiddleware
     {
         private class ControllerLogKey
@@ -61,12 +64,22 @@ namespace Common.ServiceCommon
             m_controllerLogs = new Dictionary<ControllerLogKey, ILog>();
         }
 
+        /// <summary>
+        /// 日志中间件
+        /// </summary>
+        /// <param name="logSearchAction"></param>
+        /// <param name="next"></param>
         public LogMiddleware(bool logSearchAction, RequestDelegate next)
         {
             m_next = next;
             m_logSearchAction = logSearchAction;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="httpContext">HttpContext</param>
+        /// <returns></returns>
         public async Task Invoke(HttpContext httpContext)
         {
             Endpoint endpoint = httpContext.Features.Get<Microsoft.AspNetCore.Http.Features.IEndpointFeature>()?.Endpoint;
