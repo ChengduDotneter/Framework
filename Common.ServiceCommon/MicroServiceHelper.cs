@@ -51,7 +51,7 @@ namespace Common.ServiceCommon
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpGet(
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}/{parameter}",
-                                httpContextAccessor.HttpContext?.Request.Headers["Authorization"]);
+                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
 
             return ReturnEntity<JObject>(microServiceName, httpResponseMessage);
         }
@@ -61,7 +61,7 @@ namespace Common.ServiceCommon
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpGet(
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}?{parameter}",
-                                httpContextAccessor.HttpContext?.Request.Headers["Authorization"]);
+                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
 
             return ReturnEntity<JObject>(microServiceName, httpResponseMessage);
         }
