@@ -248,6 +248,46 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
+    /// 自定义返回值，根据查询出的实体对返回值进行拼装
+    /// </summary>
+    /// <typeparam name="TRequest">请求实体参数，继承于ViewModelBase</typeparam>
+    /// <typeparam name="TSearhEntity">查询实体参数，继承于ViewModelBase</typeparam>
+    /// <typeparam name="TResponse">返回实体参数</typeparam>
+    [ApiController]
+    public abstract class GenericCustomSearchController<TRequest> : ControllerBase
+       where TRequest : ViewModelBase, new()
+    {
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="pageQueryParameterService"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public JObject Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        {
+            return new JObject()
+            {
+                ["Datas"] = SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>()),
+                ["TotalCount"] = SearchDatasCount(pageQueryParameterService.GetQueryParameter<TRequest>())
+            };
+        }
+
+        /// <summary>
+        /// 返回查询条件总条数
+        /// </summary>
+        /// <param name="pageQuery"></param>
+        /// <returns></returns>
+        protected abstract int SearchDatasCount(PageQuery<TRequest> pageQuery);
+
+        /// <summary>
+        /// 查询结果
+        /// </summary>
+        /// <param name="datas"></param>
+        /// <returns></returns>
+        protected abstract JArray SearchDatas(PageQuery<TRequest> datas);
+    }
+
+    /// <summary>
     /// 该接口基类即将过时
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
