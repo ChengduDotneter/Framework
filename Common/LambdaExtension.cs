@@ -198,6 +198,12 @@ namespace Common
     {
         private static BinaryExpression m_binaryExpression;
 
+        /// <summary>
+        /// 替换表达式树
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="node"></param>
+        /// <returns></returns>
         public static Expression ReplaceBinary<T>(Expression<T> node)
         {
             new EquelToAssignVisitor().Visit(node);
@@ -214,6 +220,11 @@ namespace Common
             return Expression.Lambda<T>(Expression.Block(expressions), node.Parameters[0]);
         }
 
+        /// <summary>
+        /// 访问表达式树
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         protected override Expression VisitBinary(BinaryExpression node)
         {
             m_binaryExpression = Expression.Assign(node.Left, node.Right);

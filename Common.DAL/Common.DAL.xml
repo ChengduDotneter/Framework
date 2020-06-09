@@ -4,6 +4,41 @@
         <name>Common.DAL</name>
     </assembly>
     <members>
+        <member name="T:Common.DAL.DaoFactory">
+            <summary>
+            Dao工厂类
+            </summary>
+        </member>
+        <member name="M:Common.DAL.DaoFactory.GetSearchSqlSugarQuery``1(System.Boolean)">
+            <summary>
+            获取SlaveDatabase的sqlsugar操作实体
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="codeFirst"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.DaoFactory.GetEditSqlSugarQuery``1(System.Boolean)">
+            <summary>
+            获取MasterDatabase的sqlsugar操作实体
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="codeFirst"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.DaoFactory.GetSearchIgniteQuery``1">
+            <summary>
+            获取查询的Ignite操作实体
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.DaoFactory.GetEditIgniteQuery``1">
+            <summary>
+            获取修改的Ignite操作实体
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
         <member name="T:Common.DAL.IEditQuery`1">
             <summary>
             数据修改接口

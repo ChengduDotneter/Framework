@@ -6,8 +6,19 @@ using System.Threading.Tasks;
 
 namespace Common.DAL.ETL
 {
+    /// <summary>
+    /// 关系型数据库对Nosql的转换帮助类
+    /// </summary>
     public class ETLHelper
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="modelTypes"></param>
+        /// <param name="sourceSearchQueryFactory"></param>
+        /// <param name="destEditQueryFactory"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
         public static ETLTask Transform(IEnumerable<Type> modelTypes, Func<Type, object> sourceSearchQueryFactory, Func<Type, object> destEditQueryFactory, int pageSize = 1024)
         {
             IList<ETLTable> complatedTables = new List<ETLTable>();
@@ -28,6 +39,13 @@ namespace Common.DAL.ETL
             return etlTask;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="etlTable"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="sourceSearchQueryFactory"></param>
+        /// <param name="destEditQueryFactory"></param>
         private static void Transform(ETLTable etlTable, int pageSize, Func<Type, object> sourceSearchQueryFactory, Func<Type, object> destEditQueryFactory)
         {
             object searchQuery = sourceSearchQueryFactory.Invoke(etlTable.TableType);
