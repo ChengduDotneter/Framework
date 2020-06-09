@@ -7,17 +7,37 @@ using System.Reflection;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// 分页接口
+    /// </summary>
     public interface IPageQueryParameterService
     {
+        /// <summary>
+        /// 泛型返回分页参数
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         PageQuery<T> GetQueryParameter<T>() where T : new();
     }
 
+    /// <summary>
+    /// 分页实现
+    /// </summary>
     public class HttpContextQueryStringPageQueryParameterService : IPageQueryParameterService
     {
         private IHttpContextAccessor m_httpContextAccessor;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="httpContextAccessor"></param>
         public HttpContextQueryStringPageQueryParameterService(IHttpContextAccessor httpContextAccessor) => m_httpContextAccessor = httpContextAccessor;
 
+        /// <summary>
+        /// 泛型返回分页参数
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public PageQuery<T> GetQueryParameter<T>() where T : new()
         {
             IQueryCollection query = m_httpContextAccessor.HttpContext.Request.Query;
