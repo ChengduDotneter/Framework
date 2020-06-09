@@ -5,14 +5,33 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
 {
+    /// <summary>
+    /// 唯一键验证器特性
+    /// </summary>
     public class UniqueAttribute : ValidationBaseAttribute
     {
         private readonly bool m_filterIsDeleted;
 
+        /// <summary>
+        /// 特性构造方法
+        /// </summary>
+        /// <param name="filterIsDeleted"></param>
         public UniqueAttribute(bool filterIsDeleted = true) => m_filterIsDeleted = filterIsDeleted;
 
+        /// <summary>
+        /// 获取验证失败的信息
+        /// </summary>
+        /// <param name="validationContext">验证器上下文</param>
+        /// <param name="propertyName">属性名</param>
+        /// <returns></returns>
         protected override string GetErrorMessage(ValidationContext validationContext, string propertyName) => $"{propertyName}不能重复。";
 
+        /// <summary>
+        /// 属性值的验证
+        /// </summary>
+        /// <param name="value">属性值</param>
+        /// <param name="validationContext">验证器上下文</param>
+        /// <returns></returns>
         protected override bool ValidateValue(object value, ValidationContext validationContext)
         {
             if (validationContext.ObjectInstance is IEntity entity)

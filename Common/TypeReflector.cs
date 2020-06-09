@@ -5,8 +5,16 @@ using System.Reflection;
 
 namespace Common
 {
+    /// <summary>
+    /// 类型反射器
+    /// </summary>
     public static class TypeReflector
     {
+        /// <summary>
+        /// 获取当前程序集中所有满足筛选条件的Type
+        /// </summary>
+        /// <param name="predicate">筛选条件</param>
+        /// <returns></returns>
         public static Type[] ReflectType(Func<Type, bool> predicate)
         {
             IList<string> loadedAssemblyName = new List<string>();

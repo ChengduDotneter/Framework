@@ -6,8 +6,15 @@ using System.IO;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// Swagger配置类
+    /// </summary>
     public static class SwaggerConfigure
     {
+        /// <summary>
+        /// 向服务集合中添加Swagger服务
+        /// </summary>
+        /// <param name="services"></param>
         public static void AddSwagger(this IServiceCollection services)
         {
             if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{AppDomain.CurrentDomain.FriendlyName}.Model.xml")))
@@ -18,6 +25,10 @@ namespace Common.ServiceCommon
                 });
         }
 
+        /// <summary>
+        /// 使用Swagger页面
+        /// </summary>
+        /// <param name="applicationBuilder"></param>
         public static void UseSwaggerPage(this IApplicationBuilder applicationBuilder)
         {
             if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{AppDomain.CurrentDomain.FriendlyName}.Model.xml")))
