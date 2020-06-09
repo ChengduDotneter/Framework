@@ -167,27 +167,55 @@ namespace Common.ServiceCommon
         public OrderByIDDescSearchQueryProxy(ISearchQuery<T> searchQuery) => m_searchQuery = searchQuery;
     }
 
+    /// <summary>
+    /// 逻辑删除装饰者，继承ISearchQuery
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class FilterIsDeletedSearchQueryProxy<T> : ISearchQuery<T>
         where T : ViewModelBase, new()
     {
         private ISearchQuery<T> m_searchQuery;
 
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public T Get(long id)
         {
             T data = m_searchQuery.Get(id);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
+        /// <summary>
+        /// 通过Lambda表达式获取Count
+        /// </summary>
+        /// <param name="predicate">Lambda表达式</param>
+        /// <returns></returns>
         public int Count(Expression<Func<T, bool>> predicate = null)
         {
             return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(predicate));
         }
 
+        /// <summary>
+        /// 通过Sql语句获取Count
+        /// </summary>
+        /// <param name="queryWhere">sql语句</param>
+        /// <param name="parameters">查询条件值</param>
+        /// <returns></returns>
         public int Count(string queryWhere, Dictionary<string, object> parameters = null)
         {
             return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters);
         }
 
+        /// <summary>
+        /// Lambda表达式分页查询
+        /// </summary>
+        /// <param name="predicate">Lambda表达式</param>
+        /// <param name="queryOrderBies">排序方式</param>
+        /// <param name="startIndex">开始位置</param>
+        /// <param name="count">结果总数</param>
+        /// <returns></returns>
         public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
                                      IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                      int startIndex = 0,
@@ -196,16 +224,38 @@ namespace Common.ServiceCommon
             return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count);
         }
 
+        /// <summary>
+        /// Sql语句分页查询
+        /// </summary>
+        /// <param name="queryWhere">Sql语句</param>
+        /// <param name="parameters">查询条件值</param>
+        /// <param name="orderByFields">排序方式</param>
+        /// <param name="startIndex">开始位置</param>
+        /// <param name="count">结果总数</param>
+        /// <returns></returns>
         public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
         {
             return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters, orderByFields, startIndex, count);
         }
 
+        /// <summary>
+        /// 自定义Sql查询
+        /// </summary>
+        /// <param name="sql">sql语句</param>
+        /// <param name="parameters">查询条件值</param>
+        /// <returns></returns>
         public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
         {
             return m_searchQuery.Query(sql, parameters);
         }
 
+        /// <summary>
+        /// 关联表Count
+        /// </summary>
+        /// <typeparam name="TJoinTable">关联表实体</typeparam>
+        /// <param name="joinCondition">关联查询条件</param>
+        /// <param name="predicate">Lambda表达式</param>
+        /// <returns></returns>
         public int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                      Expression<Func<T, TJoinTable, bool>> predicate = null)
                 where TJoinTable : class, IEntity, new()
@@ -213,6 +263,16 @@ namespace Common.ServiceCommon
             return m_searchQuery.Count(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate));
         }
 
+        /// <summary>
+        /// 关联表分页查询
+        /// </summary>
+        /// <typeparam name="TJoinTable">关联表实体</typeparam>
+        /// <param name="joinCondition">关联查询条件</param>
+        /// <param name="predicate">Lambda表达式</param>
+        /// <param name="queryOrderBies">拍讯方式</param>
+        /// <param name="startIndex">开始位置</param>
+        /// <param name="count">结果总数</param>
+        /// <returns></returns>
         public IEnumerable<JoinResult<T, TJoinTable>> Search<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                                                                   Expression<Func<T, TJoinTable, bool>> predicate = null,
                                                                                   IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
@@ -223,44 +283,82 @@ namespace Common.ServiceCommon
             return m_searchQuery.Search(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate), queryOrderBies, startIndex, count);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="searchQuery"></param>
         public FilterIsDeletedSearchQueryProxy(ISearchQuery<T> searchQuery) => m_searchQuery = searchQuery;
     }
 
+    /// <summary>
+    /// 逻辑删除装饰者，继承IEditQuery
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class FilterIsDeletedEditQueryProxy<T> : IEditQuery<T>
         where T : ViewModelBase, new()
     {
         private IEditQuery<T> m_editQuery;
 
+        /// <summary>
+        /// 开始事务
+        /// </summary>
+        /// <returns></returns>
         public ITransaction BeginTransaction()
         {
             return m_editQuery.BeginTransaction();
         }
 
+        /// <summary>
+        /// 逻辑删除
+        /// </summary>
+        /// <param name="ids"></param>
         public void Delete(params long[] ids)
         {
             m_editQuery.Update(item => ids.Contains(item.ID), item => item.IsDeleted == true);
         }
 
+        /// <summary>
+        /// 新增
+        /// </summary>
+        /// <param name="datas"></param>
         public void Insert(params T[] datas)
         {
             m_editQuery.Insert(datas);
         }
 
+        /// <summary>
+        /// 新增或更新
+        /// </summary>
+        /// <param name="datas"></param>
         public void Merge(params T[] datas)
         {
             m_editQuery.Merge(datas);
         }
 
+        /// <summary>
+        /// 通过实体类更新
+        /// </summary>
+        /// <param name="data">实体类</param>
+        /// <param name="ignoreColumns">忽略行</param>
         public void Update(T data, params string[] ignoreColumns)
         {
             m_editQuery.Update(data, ignoreColumns);
         }
 
+        /// <summary>
+        /// 通过Lambda表达式更新
+        /// </summary>
+        /// <param name="predicate">匹配体Lambda表达式</param>
+        /// <param name="updateExpression">更新体Lambda表达式</param>
         public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
         {
             m_editQuery.Update(predicate, updateExpression);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="editQuery"></param>
         public FilterIsDeletedEditQueryProxy(IEditQuery<T> editQuery) => m_editQuery = editQuery;
     }
 

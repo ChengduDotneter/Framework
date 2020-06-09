@@ -7,11 +7,19 @@ using System;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// 服务发现辅助类
+    /// </summary>
     public static class ConsulRegister
     {
-#pragma warning disable CS0618 // 类型或成员已过时
+        /// <summary>
+        /// 初始化服务发现
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="lifetime"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
         public static IApplicationBuilder RegisterConsul(this IApplicationBuilder app, IApplicationLifetime lifetime, IConfiguration configuration)
-#pragma warning restore CS0618 // 类型或成员已过时
         {
             ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
 

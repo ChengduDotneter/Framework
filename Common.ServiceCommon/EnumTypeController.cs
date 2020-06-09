@@ -7,12 +7,18 @@ using System.Reflection;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// 枚举获取控制器
+    /// </summary>
     [Route("enum")]
     [ApiController]
     public class EnumTypeController : ControllerBase
     {
         private const string UNKNOWN = "UNKNOWN";
 
+        /// <summary>
+        /// 枚举返回类
+        /// </summary>
         public class EnumValues
         {
             /// <summary>
@@ -31,10 +37,19 @@ namespace Common.ServiceCommon
             public int Key { get; set; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public EnumTypeController()
         {
         }
 
+        /// <summary>
+        /// 通过实体类名和属性名获取枚举集合
+        /// </summary>
+        /// <param name="objectName">实体类名</param>
+        /// <param name="properyName">属性名</param>
+        /// <returns></returns>
         [HttpGet("{objectName}/{properyName}")]
         public IEnumerable<EnumValues> GetEnumItem(string objectName, string properyName)
         {
