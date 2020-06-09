@@ -54,6 +54,11 @@ namespace Common.ServiceCommon
             return DoPost(jObjectSerializeService.GetJObject());
         }
 
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         protected abstract TResponse DoPost(JObject request);
     }
 
@@ -64,12 +69,22 @@ namespace Common.ServiceCommon
     [ApiController]
     public abstract class JArrayGenericPostController<TResponse> : ControllerBase
     {
+        /// <summary>
+        /// Post
+        /// </summary>
+        /// <param name="jArraySerializeService"></param>
+        /// <returns></returns>
         [HttpPost]
         public TResponse Post([FromServices]IJArraySerializeService jArraySerializeService)
         {
             return DoPost(jArraySerializeService.GetJArray());
         }
 
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         protected abstract TResponse DoPost(JArray request);
     }
 
@@ -113,6 +128,11 @@ namespace Common.ServiceCommon
     {
         private ISearchQuery<TResponse> m_searchQuery;
 
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public IActionResult Get(long id)
         {
@@ -124,11 +144,20 @@ namespace Common.ServiceCommon
             return Ok(data);
         }
 
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         protected virtual TResponse DoGet(long id)
         {
             return m_searchQuery.FilterIsDeleted().Get(id);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="searchQuery"></param>
         public GenericGetController(ISearchQuery<TResponse> searchQuery)
         {
             m_searchQuery = searchQuery;
@@ -147,8 +176,17 @@ namespace Common.ServiceCommon
     {
         private static ISearchQuery<TResponse> m_searchQuery;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="searchQuery"></param>
         public GenericSearchController(ISearchQuery<TResponse> searchQuery) => m_searchQuery = searchQuery;
 
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="pageQueryParameterService"></param>
+        /// <returns></returns>
         [HttpGet]
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
         {
@@ -221,10 +259,19 @@ namespace Common.ServiceCommon
        where TSearhEntity : ViewModelBase, new()
        where TResponse : new()
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="searchQuery"></param>
         public GenericCustomSearchController(ISearchQuery<TSearhEntity> searchQuery)
         {
         }
 
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="pageQueryParameterService"></param>
+        /// <returns></returns>
         [HttpGet]
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
         {
@@ -237,10 +284,25 @@ namespace Common.ServiceCommon
             };
         }
 
+        /// <summary>
+        /// 返回查询结果值
+        /// </summary>
+        /// <param name="pageQuery"></param>
+        /// <returns></returns>
         protected abstract IEnumerable<TSearhEntity> SearchDatas(PageQuery<TRequest> pageQuery);
 
+        /// <summary>
+        /// 返回查询条件总条数
+        /// </summary>
+        /// <param name="pageQuery"></param>
+        /// <returns></returns>
         protected abstract int SearchDatasCount(PageQuery<TRequest> pageQuery);
 
+        /// <summary>
+        /// 对查询结果进行更改
+        /// </summary>
+        /// <param name="datas"></param>
+        /// <returns></returns>
         protected abstract IEnumerable<TResponse> PreperDatas(IEnumerable<TSearhEntity> datas);
     }
 
@@ -344,6 +406,11 @@ namespace Common.ServiceCommon
         private static Func<TRequest, Expression<Func<TResponse, TJoinTable, bool>>> m_predicateJoinTableLinq;
         private ISearchQuery<TResponse> m_searchQuery;
 
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="pageQueryParameterService"></param>
+        /// <returns></returns>
         [HttpGet]
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
         {
@@ -369,20 +436,45 @@ namespace Common.ServiceCommon
             }
         }
 
+        /// <summary>
+        /// 更改结果的重写方法
+        /// </summary>
+        /// <param name="datas"></param>
+        /// <returns></returns>
         protected virtual IEnumerable<TResponse> PreperDatas(IEnumerable<TResponse> datas)
         {
             return datas;
         }
 
+        /// <summary>
+        /// 联表通过的Lambda表达式获取总条数
+        /// </summary>
+        /// <param name="linq"></param>
+        /// <returns></returns>
         protected abstract int GetCount(Expression<Func<TResponse, TJoinTable, bool>> linq);
 
+        /// <summary>
+        /// 通过关联表的Lambda表达式获取结果
+        /// </summary>
+        /// <param name="linq"></param>
+        /// <param name="pageQuery"></param>
+        /// <returns></returns>
         protected abstract IEnumerable<TResponse> SearchDatas(Expression<Func<TResponse, TJoinTable, bool>> linq, PageQuery<TRequest> pageQuery);
 
+        /// <summary>
+        /// 默认通过查询条件获取结果
+        /// </summary>
+        /// <param name="pageQuery"></param>
+        /// <returns></returns>
         protected virtual IEnumerable<TResponse> SearchDatas(PageQuery<TRequest> pageQuery)
         {
             return m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(startIndex: pageQuery.StartIndex, count: pageQuery.PageCount);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="searchQuery"></param>
         public GenericSearchController(ISearchQuery<TResponse> searchQuery)
         {
             m_searchQuery = searchQuery;
@@ -412,6 +504,11 @@ namespace Common.ServiceCommon
         private IEditQuery<TRequest> m_editQuery;
         private ISSOUserService m_ssoUserService;
 
+        /// <summary>
+        /// Post
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost]
         public IActionResult Post([FromBody]TRequest request)
         {
@@ -425,11 +522,21 @@ namespace Common.ServiceCommon
             return Ok(request);
         }
 
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="request"></param>
         protected virtual void DoPost(long id, TRequest request)
         {
             m_editQuery.FilterIsDeleted().Insert(request);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="editQuery"></param>
+        /// <param name="ssoUserService"></param>
         public GenericPostController(IEditQuery<TRequest> editQuery, ISSOUserService ssoUserService)
         {
             m_editQuery = editQuery;
@@ -449,6 +556,11 @@ namespace Common.ServiceCommon
         private ISearchQuery<TRequest> m_searchQuery;
         private ISSOUserService m_ssoUserService;
 
+        /// <summary>
+        /// Put
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPut]
         public virtual IActionResult Put([FromBody]TRequest request)
         {
@@ -464,12 +576,22 @@ namespace Common.ServiceCommon
                 return NotFound();
         }
 
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <param name="request"></param>
         protected virtual void DoPut(TRequest request)
         {
             IgnoreColumnAttribute ignoreColumnAttribute = typeof(TRequest).GetCustomAttribute<IgnoreColumnAttribute>();
             m_editQuery.FilterIsDeleted().Update(request, ignoreColumnAttribute?.IgnoreColumns);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="editQuery"></param>
+        /// <param name="searchQuery"></param>
+        /// <param name="ssoUserService"></param>
         public GenericPutController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, ISSOUserService ssoUserService)
         {
             m_editQuery = editQuery;
@@ -489,6 +611,11 @@ namespace Common.ServiceCommon
         private IEditQuery<TRequest> m_editQuery;
         private ISearchQuery<TRequest> m_searchQuery;
 
+        /// <summary>
+        /// Delete
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         public virtual IActionResult Delete(long id)
         {
@@ -501,11 +628,20 @@ namespace Common.ServiceCommon
                 return NotFound();
         }
 
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <param name="id"></param>
         protected virtual void DoDelete(long id)
         {
             m_editQuery.FilterIsDeleted().Delete(id);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="editQuery"></param>
+        /// <param name="searchQuery"></param>
         public GenericDeleteController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery)
         {
             m_editQuery = editQuery;

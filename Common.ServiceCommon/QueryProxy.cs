@@ -7,14 +7,29 @@ using Common.Model;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// ISearchQuery扩展
+    /// </summary>
     public static class ISearchQueryExtention
     {
+        /// <summary>
+        /// 逻辑删除扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="searchQuery"></param>
+        /// <returns></returns>
         public static ISearchQuery<T> FilterIsDeleted<T>(this ISearchQuery<T> searchQuery)
             where T : ViewModelBase, new()
         {
             return new FilterIsDeletedSearchQueryProxy<T>(searchQuery);
         }
 
+        /// <summary>
+        /// 根据ID排序扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="searchQuery"></param>
+        /// <returns></returns>
         public static ISearchQuery<T> OrderByIDDesc<T>(this ISearchQuery<T> searchQuery)
             where T : ViewModelBase, new()
         {
@@ -22,8 +37,17 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// IEditQuery扩展
+    /// </summary>
     public static class IEditQueryExtention
     {
+        /// <summary>
+        /// 逻辑删除扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="editQuery"></param>
+        /// <returns></returns>
         public static IEditQuery<T> FilterIsDeleted<T>(this IEditQuery<T> editQuery)
             where T : ViewModelBase, new()
         {

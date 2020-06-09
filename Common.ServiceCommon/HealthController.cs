@@ -10,6 +10,10 @@ namespace Common.ServiceCommon
     [Route("health")]
     public class HealthController : ControllerBase
     {
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public IActionResult Get() => Ok("ok");
     }

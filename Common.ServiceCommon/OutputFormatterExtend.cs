@@ -209,8 +209,14 @@ namespace Common.ServiceCommon
             = MediaTypeHeaderValue.Parse("application/*+json").CopyAsReadOnly();
     }
 
+    /// <summary>
+    /// JArray输出序列化
+    /// </summary>
     public class JArrayOutputFormatter : TextOutputFormatter
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public JArrayOutputFormatter()
         {
             SupportedEncodings.Add(Encoding.UTF8);
@@ -220,16 +226,32 @@ namespace Common.ServiceCommon
             SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationAnyJsonSyntax);
         }
 
+        /// <summary>
+        /// 判断是否是JArray参数
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         protected override bool CanWriteType(Type type)
         {
             return type == typeof(JArray);
         }
 
+        /// <summary>
+        /// 判断是否是JArray结果
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override bool CanWriteResult(OutputFormatterCanWriteContext context)
         {
             return context.ObjectType == typeof(JArray);
         }
 
+        /// <summary>
+        /// 异步返回结果
+        /// </summary>
+        /// <param name="context">与调用关联的格式化程序上下文</param>
+        /// <param name="selectedEncoding">输出文本编码格式</param>
+        /// <returns></returns>
         public sealed override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
             if (context == null)
@@ -279,8 +301,14 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// JObject输出序列化
+    /// </summary>
     public class JObjectOutputFormatter : TextOutputFormatter
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public JObjectOutputFormatter()
         {
             SupportedEncodings.Add(Encoding.UTF8);
@@ -290,16 +318,32 @@ namespace Common.ServiceCommon
             SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationAnyJsonSyntax);
         }
 
+        /// <summary>
+        /// 判断是否是JObject参数
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         protected override bool CanWriteType(Type type)
         {
             return type == typeof(JObject);
         }
 
+        /// <summary>
+        /// 判断是否是JObject输出
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override bool CanWriteResult(OutputFormatterCanWriteContext context)
         {
             return context.ObjectType == typeof(JObject);
         }
 
+        /// <summary>
+        /// 异步返回结果
+        /// </summary>
+        /// <param name="context">与调用关联的格式化程序上下文</param>
+        /// <param name="selectedEncoding">输出文本编码格式</param>
+        /// <returns></returns>
         public sealed override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
             if (context == null)
