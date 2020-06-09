@@ -42,17 +42,14 @@ namespace Common.Model
 
         internal static JToken GetNumber(Utf8JsonReader reader)
         {
-            float number;
-            long longNumber;
-
-            if (reader.TryGetSingle(out number))
+            if (reader.TryGetSingle(out float number))
             {
                 if (number == (int)number)
                     return (int)number;
                 else
                     return number;
             }
-            else if (reader.TryGetInt64(out longNumber))
+            else if (reader.TryGetInt64(out long longNumber))
                 return longNumber.ToString();
 
             throw new NotSupportedException();
@@ -60,13 +57,10 @@ namespace Common.Model
 
         internal static JToken GetString(string @string)
         {
-            //TODO: 存在时间格式问题
-
-            //if (DateTime.TryParse(@string, out DateTime dateTime))
-            //    return dateTime;
-            //else
-
-            return @string;
+            if (DateTime.TryParse(@string, out DateTime dateTime))
+                return dateTime;
+            else
+                return @string;
         }
 
         public override void Write(Utf8JsonWriter writer, JObject value, JsonSerializerOptions options)
@@ -102,9 +96,7 @@ namespace Common.Model
 
         private void WriteNumber(Utf8JsonWriter writer, KeyValuePair<string, JToken> item)
         {
-            int oldNumber;
-
-            if (int.TryParse(item.Value.ToString(), out oldNumber))
+            if (int.TryParse(item.Value.ToString(), out int oldNumber))
                 writer.WriteNumber(item.Key, oldNumber);
             else
                 writer.WriteNumber(item.Key, item.Value.ToObject<long>());

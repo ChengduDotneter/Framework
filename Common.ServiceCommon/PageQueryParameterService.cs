@@ -1,9 +1,7 @@
-﻿using Common.DAL;
+﻿using System;
+using System.Reflection;
 using Common.Model;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Linq;
-using System.Reflection;
 
 namespace Common.ServiceCommon
 {
@@ -57,7 +55,6 @@ namespace Common.ServiceCommon
                 int.TryParse(query[pageCountPropertyName][0], out int pageCount))
                 pageQuery.PageCount = pageCount;
 
-            //TODO: 是否存在Sql注入
             foreach (var item in query)
             {
                 if (item.Key.IndexOf(conditionPropertyName) == 0 &&

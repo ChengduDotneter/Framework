@@ -1,17 +1,27 @@
-﻿using Common.DAL;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Text;
+using Common.DAL;
 using Common.MessageQueueClient;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Text;
 
 namespace Common.ServiceCommon
 {
     public static class MvcExtentions
     {
         private static bool m_isCodeFirst;
+        private static IDictionary<Type, Func<object>> m_defaultSearchQueryProviderDic;
+        private static IDictionary<Type, Func<object>> m_defaultEditQueryProviderDic;
+
+        static MvcExtentions()
+        {
+            m_defaultSearchQueryProviderDic = new Dictionary<Type, Func<object>>();
+            m_defaultEditQueryProviderDic = new Dictionary<Type, Func<object>>();
+        }
 
         public static HostBuilderContext ConfigInit(this HostBuilderContext hostBuilderContext)
         {
@@ -58,50 +68,44 @@ namespace Common.ServiceCommon
 
         public static void AddQuerys(this IServiceCollection serviceCollection, Type[] modelTypes, Func<Type, object> searchQueryProvider = null, Func<Type, object> editQueryProvider = null)
         {
-            if (searchQueryProvider == null)
-            {
-                //TODO: 反射性能问题
-                searchQueryProvider = (modelType) =>
-                {
-                    return typeof(DaoFactory).
-                           GetMethod(nameof(DaoFactory.GetSearchSqlSugarQuery)).
-                           MakeGenericMethod(modelType).
-                           Invoke(null, new object[] { m_isCodeFirst });
-                };
-            }
-
-            if (editQueryProvider == null)
-            {
-                //TODO: 反射性能问题
-                editQueryProvider = (modelType) =>
-                {
-                    return typeof(DaoFactory).
-                           GetMethod(nameof(DaoFactory.GetEditSqlSugarQuery)).
-                           MakeGenericMethod(modelType).
-                           Invoke(null, new object[] { m_isCodeFirst });
-                };
-            }
-
             for (int i = 0; i < modelTypes.Length; i++)
             {
                 Type modelType = modelTypes[i];
                 Type searchQueryType = typeof(ISearchQuery<>).MakeGenericType(modelType);
                 Type editQueryType = typeof(IEditQuery<>).MakeGenericType(modelType);
 
-                serviceCollection.AddScoped(searchQueryType, sp => searchQueryProvider.Invoke(modelType));
-                serviceCollection.AddScoped(editQueryType, sp => editQueryProvider.Invoke(modelType));
+                if (searchQueryProvider == null)
+                {
+                    m_defaultSearchQueryProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
+                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchSqlSugarQuery)).MakeGenericMethod(modelType),
+                                           Expression.Constant(m_isCodeFirst, typeof(bool)))).Compile());
+
+                    serviceCollection.AddScoped(searchQueryType, sp => m_defaultSearchQueryProviderDic[modelType].Invoke());
+                }
+                else
+                {
+                    serviceCollection.AddScoped(searchQueryType, sp => searchQueryProvider.Invoke(modelType));
+                }
+
+                if (editQueryProvider == null)
+                {
+                    m_defaultEditQueryProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
+                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditSqlSugarQuery)).MakeGenericMethod(modelType),
+                                           Expression.Constant(m_isCodeFirst, typeof(bool)))).Compile());
+
+                    serviceCollection.AddScoped(editQueryType, sp => m_defaultEditQueryProviderDic[modelType].Invoke());
+                }
+                else
+                {
+                    serviceCollection.AddScoped(editQueryType, sp => editQueryProvider.Invoke(modelType));
+                }
             }
         }
 
         public static void AddTransfers(this IServiceCollection serviceCollection)
         {
-            //TODO: 反射性能问题
-            serviceCollection.AddScoped(typeof(IPublisher<>).MakeGenericType(typeof(MessageBody)),
-                sp => typeof(MessageQueueFactory).GetMethod("GetPublisherContext").MakeGenericMethod(typeof(MessageBody)).Invoke(null, new object[] { }));
-
-            //TODO: 反射性能问题
-            serviceCollection.AddScoped(typeof(ISubscriber<>).MakeGenericType(typeof(MessageBody)),
-                sp => typeof(MessageQueueFactory).GetMethod("GetSubscriberContext").MakeGenericMethod(typeof(MessageBody)).Invoke(null, new object[] { }));
+            serviceCollection.AddScoped(typeof(IPublisher<MessageBody>), sp => MessageQueueFactory.GetPublisherContext<MessageBody>());
+            serviceCollection.AddScoped(typeof(ISubscriber<MessageBody>), sp => MessageQueueFactory.GetSubscriberContext<MessageBody>());
         }
 
         public static void AddJsonSerialize(this IServiceCollection serviceCollection)

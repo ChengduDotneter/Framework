@@ -8,15 +8,11 @@ using System.Linq;
 
 namespace Common.ServiceCommon
 {
-    //TODO:暂时跳过验证器方法
     /// <summary>
     /// 跳过验证器的特性
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false,Inherited = false)]
-    public class SkipValidationAttribute : Attribute
-    {
-
-    }
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    public class SkipValidationAttribute : Attribute { }
 
     /// <summary>
     /// Api验证管道
@@ -32,7 +28,7 @@ namespace Common.ServiceCommon
         /// 验证完成后执行
         /// </summary>
         /// <param name="context"></param>
-        public void OnActionExecuted(ActionExecutedContext context){ }
+        public void OnActionExecuted(ActionExecutedContext context) { }
 
         /// <summary>
         /// 验证时执行
@@ -41,17 +37,15 @@ namespace Common.ServiceCommon
         public void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
             if (!actionExecutingContext.ModelState.IsValid &&
-                 actionExecutingContext.HttpContext.Request.Method != "GET")
+                 actionExecutingContext.HttpContext.Request.Method != "GET" &&
+                 actionExecutingContext.Controller.GetType().GetCustomAttributes(typeof(SkipValidationAttribute), false).Count() == 0)
             {
-                if (actionExecutingContext.Controller.GetType().GetCustomAttributes(typeof(SkipValidationAttribute), false).Count() == 0)
-                {
-                    IDictionary<string, object> error = new Dictionary<string, object>();
-                    error["message"] = "参数验证不通过。";
-                    error["errors"] = GetValidationSummary(actionExecutingContext.ModelState);
-                    JsonResult jsonResult = new JsonResult(error);
-                    jsonResult.StatusCode = StatusCodes.Status400BadRequest;
-                    actionExecutingContext.Result = jsonResult;
-                } 
+                IDictionary<string, object> error = new Dictionary<string, object>();
+                error["message"] = "参数验证不通过。";
+                error["errors"] = GetValidationSummary(actionExecutingContext.ModelState);
+                JsonResult jsonResult = new JsonResult(error);
+                jsonResult.StatusCode = StatusCodes.Status400BadRequest;
+                actionExecutingContext.Result = jsonResult;
             }
         }
 

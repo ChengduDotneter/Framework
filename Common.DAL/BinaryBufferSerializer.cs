@@ -154,13 +154,12 @@ namespace Common.DAL
             MethodInfo methodInfo = null;
             bool isNullable = CheckIsNullable(type);
             bool isEnum = isNullable ? type.GenericTypeArguments[0].IsEnum : type.IsEnum;
-            bool isBoolean = false;
 
             switch (isNullable ? (isEnum ? typeof(Enum).FullName : type.GenericTypeArguments[0].FullName) : (isEnum ? typeof(Enum).FullName : type.FullName))
             {
                 case "System.Byte": methodInfo = typeof(IBinaryReader).GetMethod(nameof(IBinaryReader.ReadObject)).MakeGenericMethod(type); break;
                 case "System.Byte[]": methodInfo = typeof(IBinaryReader).GetMethod(nameof(IBinaryReader.ReadObject)).MakeGenericMethod(type); break;
-                case "System.Boolean": methodInfo = typeof(IBinaryReader).GetMethod(nameof(IBinaryReader.ReadObject)).MakeGenericMethod(isNullable ? typeof(int?) : typeof(int)); isBoolean = true; break;
+                case "System.Boolean": methodInfo = typeof(IBinaryReader).GetMethod(nameof(IBinaryReader.ReadObject)).MakeGenericMethod(isNullable ? typeof(int?) : typeof(int)); break;
                 case "System.Int16": methodInfo = typeof(IBinaryReader).GetMethod(nameof(IBinaryReader.ReadObject)).MakeGenericMethod(type); break;
                 case "System.Int32": methodInfo = typeof(IBinaryReader).GetMethod(nameof(IBinaryReader.ReadObject)).MakeGenericMethod(type); break;
                 case "System.Single": methodInfo = typeof(IBinaryReader).GetMethod(nameof(IBinaryReader.ReadObject)).MakeGenericMethod(type); break;
@@ -175,12 +174,6 @@ namespace Common.DAL
 
             Expression value = Expression.Call(reader, methodInfo, Expression.Constant(memberExpression.Member.Name, typeof(string)));
             Expression ifCheck = isNullable ? Expression.NotEqual(value, Expression.Default(type)) : (Expression)Expression.Constant(true);
-
-            if (isBoolean)
-            {
-                //MethodInfo method = typeof(Convert).GetMethod(nameof(Convert.ToBoolean), new[] { typeof(int) });
-                //value = Expression.Call(method, value);
-            }
 
             return Expression.IfThen(ifCheck, Expression.Assign(memberExpression, SetParameter(isNullable,
                                                                                                isNullable ? type.GenericTypeArguments[0] : type,
