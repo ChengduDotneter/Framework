@@ -116,6 +116,11 @@ namespace Common.ServiceCommon
             }
         }
 
+        /// <summary>
+        /// 通用实体类转程序集，ModelTypeToAssembly
+        /// </summary>
+        /// <param name="modelTypes"></param>
+        /// <returns></returns>
         public static Assembly GenerateModelTypeControllerToAssembly(Type[] modelTypes)
         {
             StringBuilder stringBuilder = new StringBuilder();

@@ -3,6 +3,9 @@ using System.Threading;
 
 namespace Common
 {
+    /// <summary>
+    /// id生成器类
+    /// </summary>
     public static class IDGenerator
     {
         /// <summary>

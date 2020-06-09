@@ -4,6 +4,75 @@
         <name>Common.DAL.Cache</name>
     </assembly>
     <members>
+        <member name="T:Common.DAL.Cache.ConditionCache`1">
+            <summary>
+            条件缓存类
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.DAL.Cache.ConditionCache`1.#ctor(Common.DAL.ISearchQuery{`0})">
+            <summary>
+            构造方法
+            </summary>
+            <param name="searchQuery"></param>
+        </member>
+        <member name="M:Common.DAL.Cache.ConditionCache`1.Get(System.String)">
+            <summary>
+            查询条件
+            </summary>
+            <param name="condition"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.DAL.Cache.EditQueryProxy`1">
+            <summary>
+            数据修改代理类
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.DAL.Cache.EditQueryProxy`1.#ctor(Common.DAL.IEditQuery{`0})">
+            <summary>
+            构造函数
+            </summary>
+            <param name="editQuery"></param>
+        </member>
+        <member name="M:Common.DAL.Cache.EditQueryProxy`1.BeginTransaction">
+            <summary>
+            开启事务
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.Cache.EditQueryProxy`1.Delete(System.Int64[])">
+            <summary>
+            删除
+            </summary>
+            <param name="ids"></param>
+        </member>
+        <member name="M:Common.DAL.Cache.EditQueryProxy`1.Insert(`0[])">
+            <summary>
+            插入
+            </summary>
+            <param name="datas"></param>
+        </member>
+        <member name="M:Common.DAL.Cache.EditQueryProxy`1.Merge(`0[])">
+            <summary>
+            合并
+            </summary>
+            <param name="datas"></param>
+        </member>
+        <member name="M:Common.DAL.Cache.EditQueryProxy`1.Update(`0,System.String[])">
+            <summary>
+            修改
+            </summary>
+            <param name="data"></param>
+            <param name="IgnoreColumns"></param>
+        </member>
+        <member name="M:Common.DAL.Cache.EditQueryProxy`1.Update(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            修改
+            </summary>
+            <param name="predicate"></param>
+            <param name="updateExpression"></param>
+        </member>
         <member name="T:Common.DAL.Cache.TransactionProxy">
             <summary>
             事务代理器

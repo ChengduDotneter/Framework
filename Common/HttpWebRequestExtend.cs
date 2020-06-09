@@ -7,6 +7,9 @@ using System.Text;
 
 namespace Common
 {
+    /// <summary>
+    /// httpwebrequest的扩展类
+    /// </summary>
     public static class HttpWebRequestExtend
     {
         //Authorization 请求头名称
@@ -25,6 +28,11 @@ namespace Common
         //http请求方式PUT
         private const string HTTP_METHOD_PUT = "PUT";
 
+        /// <summary>
+        /// 添加JsonContenttype
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <returns></returns>
 
         public static HttpWebRequest AddJsonContentType(this HttpWebRequest httpWebRequest)
         {
@@ -32,36 +40,67 @@ namespace Common
             return httpWebRequest;
         }
 
+        /// <summary>
+        /// 添加FormContenttype
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <returns></returns>
         public static HttpWebRequest AddFormContentType(this HttpWebRequest httpWebRequest)
         {
             httpWebRequest.ContentType = CONTENT_TYPE_FORM;
             return httpWebRequest;
         }
 
+        /// <summary>
+        /// 设置post的请求方法
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <returns></returns>
         public static HttpWebRequest AddPostMethod(this HttpWebRequest httpWebRequest)
         {
             httpWebRequest.Method = HTTP_METHOD_POST;
             return httpWebRequest;
         }
 
+        /// <summary>
+        /// 设置get的请求方法
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <returns></returns>
         public static HttpWebRequest AddGetMethod(this HttpWebRequest httpWebRequest)
         {
             httpWebRequest.Method = HTTP_METHOD_GET;
             return httpWebRequest;
         }
 
+        /// <summary>
+        /// 设置delete的请求方法
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <returns></returns>
         public static HttpWebRequest AddDeleteMethod(this HttpWebRequest httpWebRequest)
         {
             httpWebRequest.Method = HTTP_METHOD_DELETE;
             return httpWebRequest;
         }
 
+        /// <summary>
+        /// 设置put的请求方法
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <returns></returns>
         public static HttpWebRequest AddPutMethod(this HttpWebRequest httpWebRequest)
         {
             httpWebRequest.Method = HTTP_METHOD_PUT;
             return httpWebRequest;
         }
 
+        /// <summary>
+        /// 添加Authorization的请求头
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <param name="authorization"></param>
+        /// <returns></returns>
         public static HttpWebRequest AddAuthorizationHeader(this HttpWebRequest httpWebRequest, string authorization)
         {
             if (httpWebRequest.Headers.AllKeys.Contains(AUTHORIZATION_HEADER_NAME))
@@ -73,6 +112,12 @@ namespace Common
             return httpWebRequest;
         }
 
+        /// <summary>
+        /// 添加请求body
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <param name="postData"></param>
+        /// <returns></returns>
         public static HttpWebRequest AddContent(this HttpWebRequest httpWebRequest, byte[] postData)
         {
             httpWebRequest.ContentLength = postData.Length;
@@ -86,6 +131,11 @@ namespace Common
             return httpWebRequest;
         }
 
+        /// <summary>
+        /// 获取请求结果数据
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <returns></returns>
         public static HttpWebResponseResult GetResponseData(this HttpWebRequest httpWebRequest)
         {
             HttpWebResponse httpWebResponse;
@@ -113,11 +163,26 @@ namespace Common
         }
     }
 
+    /// <summary>
+    /// HttpWebResponse结果类
+    /// </summary>
     public class HttpWebResponseResult
     {
+        /// <summary>
+        /// 请求状态码
+        /// </summary>
         public HttpStatusCode HttpStatus { get; set; }
+
+        /// <summary>
+        /// 请求结果数据字符串
+        /// </summary>
         public string DataString { get; set; }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="httpStatus"></param>
+        /// <param name="dataString"></param>
         public HttpWebResponseResult(HttpStatusCode httpStatus, string dataString = null)
         {
             HttpStatus = httpStatus;

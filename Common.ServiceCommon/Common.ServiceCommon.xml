@@ -79,11 +79,32 @@
             <param name="jObjectSerializeService"></param>
             <returns></returns>
         </member>
+        <member name="M:Common.ServiceCommon.JObjectGenericPostController`1.DoPost(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            获取结果
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.ServiceCommon.JArrayGenericPostController`1">
             <summary>
             Service中无相应的实体接受请求参数时使用且请求参数为JArray的接口基类
             </summary>
             <typeparam name="TResponse">返回实体泛型</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.JArrayGenericPostController`1.Post(Common.ServiceCommon.IJArraySerializeService)">
+            <summary>
+            Post
+            </summary>
+            <param name="jArraySerializeService"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.JArrayGenericPostController`1.DoPost(Newtonsoft.Json.Linq.JArray)">
+            <summary>
+            获取结果
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.BatchGenericGetController`1">
             <summary>
@@ -111,12 +132,45 @@
             </summary>
             <typeparam name="TResponse">返回实体泛型，继承于ViewModelBase</typeparam>
         </member>
+        <member name="M:Common.ServiceCommon.GenericGetController`1.Get(System.Int64)">
+            <summary>
+            Get
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericGetController`1.DoGet(System.Int64)">
+            <summary>
+            获取结果
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericGetController`1.#ctor(Common.DAL.ISearchQuery{`0})">
+            <summary>
+            
+            </summary>
+            <param name="searchQuery"></param>
+        </member>
         <member name="T:Common.ServiceCommon.GenericSearchController`2">
             <summary>
             根据筛选条件查询列表且请求，返回实体皆继承于ViewModelBase的列表查询接口基类
             </summary>
             <typeparam name="TRequest">请求实体泛型，继承于ViewModelBase</typeparam>
             <typeparam name="TResponse">结果实体泛型，继承于ViewModelBase</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchController`2.#ctor(Common.DAL.ISearchQuery{`1})">
+            <summary>
+            
+            </summary>
+            <param name="searchQuery"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchController`2.Get(Common.ServiceCommon.IPageQueryParameterService)">
+            <summary>
+            Get
+            </summary>
+            <param name="pageQueryParameterService"></param>
+            <returns></returns>
         </member>
         <member name="M:Common.ServiceCommon.GenericSearchController`2.SearchDatas(Common.Model.PageQuery{`0})">
             <summary>
@@ -146,6 +200,40 @@
             <typeparam name="TRequest">请求实体参数，继承于ViewModelBase</typeparam>
             <typeparam name="TSearhEntity">查询实体参数，继承于ViewModelBase</typeparam>
             <typeparam name="TResponse">返回实体参数</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.#ctor(Common.DAL.ISearchQuery{`1})">
+            <summary>
+            
+            </summary>
+            <param name="searchQuery"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.Get(Common.ServiceCommon.IPageQueryParameterService)">
+            <summary>
+            Get
+            </summary>
+            <param name="pageQueryParameterService"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.SearchDatas(Common.Model.PageQuery{`0})">
+            <summary>
+            返回查询结果值
+            </summary>
+            <param name="pageQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.SearchDatasCount(Common.Model.PageQuery{`0})">
+            <summary>
+            返回查询条件总条数
+            </summary>
+            <param name="pageQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.PreperDatas(System.Collections.Generic.IEnumerable{`1})">
+            <summary>
+            对查询结果进行更改
+            </summary>
+            <param name="datas"></param>
+            <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.GenericSearchWithQueryController`2">
             <summary>
@@ -209,11 +297,74 @@
             <typeparam name="TJoinTable"></typeparam>
             <typeparam name="TResponse"></typeparam>
         </member>
+        <member name="M:Common.ServiceCommon.GenericSearchController`4.Get(Common.ServiceCommon.IPageQueryParameterService)">
+            <summary>
+            Get
+            </summary>
+            <param name="pageQueryParameterService"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchController`4.PreperDatas(System.Collections.Generic.IEnumerable{`3})">
+            <summary>
+            更改结果的重写方法
+            </summary>
+            <param name="datas"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchController`4.GetCount(System.Linq.Expressions.Expression{System.Func{`3,`2,System.Boolean}})">
+            <summary>
+            联表通过的Lambda表达式获取总条数
+            </summary>
+            <param name="linq"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchController`4.SearchDatas(System.Linq.Expressions.Expression{System.Func{`3,`2,System.Boolean}},Common.Model.PageQuery{`0})">
+            <summary>
+            通过关联表的Lambda表达式获取结果
+            </summary>
+            <param name="linq"></param>
+            <param name="pageQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchController`4.SearchDatas(Common.Model.PageQuery{`0})">
+            <summary>
+            默认通过查询条件获取结果
+            </summary>
+            <param name="pageQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericSearchController`4.#ctor(Common.DAL.ISearchQuery{`3})">
+            <summary>
+            
+            </summary>
+            <param name="searchQuery"></param>
+        </member>
         <member name="T:Common.ServiceCommon.GenericPostController`1">
             <summary>
             新增接口基类
             </summary>
             <typeparam name="TRequest">请求实体泛型，继承于ViewModelBase</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericPostController`1.Post(`0)">
+            <summary>
+            Post
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericPostController`1.DoPost(System.Int64,`0)">
+            <summary>
+            获取结果
+            </summary>
+            <param name="id"></param>
+            <param name="request"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericPostController`1.#ctor(Common.DAL.IEditQuery{`0},Common.ServiceCommon.ISSOUserService)">
+            <summary>
+            
+            </summary>
+            <param name="editQuery"></param>
+            <param name="ssoUserService"></param>
         </member>
         <member name="T:Common.ServiceCommon.GenericPutController`1">
             <summary>
@@ -221,11 +372,52 @@
             </summary>
             <typeparam name="TRequest">请求实体泛型，继承于ViewModelBase</typeparam>
         </member>
+        <member name="M:Common.ServiceCommon.GenericPutController`1.Put(`0)">
+            <summary>
+            Put
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericPutController`1.DoPut(`0)">
+            <summary>
+            获取结果
+            </summary>
+            <param name="request"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericPutController`1.#ctor(Common.DAL.IEditQuery{`0},Common.DAL.ISearchQuery{`0},Common.ServiceCommon.ISSOUserService)">
+            <summary>
+            
+            </summary>
+            <param name="editQuery"></param>
+            <param name="searchQuery"></param>
+            <param name="ssoUserService"></param>
+        </member>
         <member name="T:Common.ServiceCommon.GenericDeleteController`1">
             <summary>
             删除接口基类
             </summary>
             <typeparam name="TRequest">请求实体泛型，继承于ViewModelBase</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericDeleteController`1.Delete(System.Int64)">
+            <summary>
+            Delete
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericDeleteController`1.DoDelete(System.Int64)">
+            <summary>
+            获取结果
+            </summary>
+            <param name="id"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.GenericDeleteController`1.#ctor(Common.DAL.IEditQuery{`0},Common.DAL.ISearchQuery{`0})">
+            <summary>
+            
+            </summary>
+            <param name="editQuery"></param>
+            <param name="searchQuery"></param>
         </member>
         <member name="T:Common.ServiceCommon.MultipleGenericGetController`2">
             <summary>
@@ -450,6 +642,198 @@
             此方法为心跳监测接口类，用于服务发现
             </summary>
         </member>
+        <member name="M:Common.ServiceCommon.HealthController.Get">
+            <summary>
+            Get
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.IJArraySerializeService">
+            <summary>
+            JArrayS序列化接口
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.IJArraySerializeService.GetJArray">
+            <summary>
+            获取JArray
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.JArraySerializeService">
+            <summary>
+            JArrayS序列化
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.JArraySerializeService.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,Common.Model.IJArrayConverter)">
+            <summary>
+            初始化
+            </summary>
+            <param name="httpContextAccessor">IHttpContextAccessor</param>
+            <param name="jArrayConverter">IJArrayConverter</param>
+        </member>
+        <member name="M:Common.ServiceCommon.JArraySerializeService.GetJArray">
+            <summary>
+            获取JArray
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.IJObjectSerializeService">
+            <summary>
+            JObject序列化接口
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.IJObjectSerializeService.GetJObject">
+            <summary>
+            获取JObject
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.JObjectSerializeService">
+            <summary>
+            JObject序列化
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.JObjectSerializeService.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,Common.Model.IJObjectConverter)">
+            <summary>
+            初始化
+            </summary>
+            <param name="httpContextAccessor">IHttpContextAccessor</param>
+            <param name="jObjectConverter">IJObjectConverter</param>
+        </member>
+        <member name="M:Common.ServiceCommon.JObjectSerializeService.GetJObject">
+            <summary>
+            获取JObject
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.JArrayOutputFormatter">
+            <summary>
+            JArray输出序列化
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.JArrayOutputFormatter.#ctor">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.JArrayOutputFormatter.CanWriteType(System.Type)">
+            <summary>
+            判断是否是JArray参数
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.JArrayOutputFormatter.CanWriteResult(Microsoft.AspNetCore.Mvc.Formatters.OutputFormatterCanWriteContext)">
+            <summary>
+            判断是否是JArray结果
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.JArrayOutputFormatter.WriteResponseBodyAsync(Microsoft.AspNetCore.Mvc.Formatters.OutputFormatterWriteContext,System.Text.Encoding)">
+            <summary>
+            异步返回结果
+            </summary>
+            <param name="context">与调用关联的格式化程序上下文</param>
+            <param name="selectedEncoding">输出文本编码格式</param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.JObjectOutputFormatter">
+            <summary>
+            JObject输出序列化
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.JObjectOutputFormatter.#ctor">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.JObjectOutputFormatter.CanWriteType(System.Type)">
+            <summary>
+            判断是否是JObject参数
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.JObjectOutputFormatter.CanWriteResult(Microsoft.AspNetCore.Mvc.Formatters.OutputFormatterCanWriteContext)">
+            <summary>
+            判断是否是JObject输出
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.JObjectOutputFormatter.WriteResponseBodyAsync(Microsoft.AspNetCore.Mvc.Formatters.OutputFormatterWriteContext,System.Text.Encoding)">
+            <summary>
+            异步返回结果
+            </summary>
+            <param name="context">与调用关联的格式化程序上下文</param>
+            <param name="selectedEncoding">输出文本编码格式</param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.IPageQueryParameterService">
+            <summary>
+            分页接口
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.IPageQueryParameterService.GetQueryParameter``1">
+            <summary>
+            泛型返回分页参数
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.HttpContextQueryStringPageQueryParameterService">
+            <summary>
+            分页实现
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.HttpContextQueryStringPageQueryParameterService.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor)">
+            <summary>
+            
+            </summary>
+            <param name="httpContextAccessor"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.HttpContextQueryStringPageQueryParameterService.GetQueryParameter``1">
+            <summary>
+            泛型返回分页参数
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.ISearchQueryExtention">
+            <summary>
+            ISearchQuery扩展
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.ISearchQueryExtention.FilterIsDeleted``1(Common.DAL.ISearchQuery{``0})">
+            <summary>
+            逻辑删除扩展
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="searchQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.ISearchQueryExtention.OrderByIDDesc``1(Common.DAL.ISearchQuery{``0})">
+            <summary>
+            根据ID排序扩展
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="searchQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.IEditQueryExtention">
+            <summary>
+            IEditQuery扩展
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.IEditQueryExtention.FilterIsDeleted``1(Common.DAL.IEditQuery{``0})">
+            <summary>
+            逻辑删除扩展
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="editQuery"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1">
             <summary>
             逻辑删除装饰者，继承ISearchQuery
@@ -583,6 +967,55 @@
             
             </summary>
             <param name="editQuery"></param>
+        </member>
+        <member name="T:Common.ServiceCommon.ISSOUserService">
+            <summary>
+            用户认证接口
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.ISSOUserService.GetUser">
+            <summary>
+            获取用户信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.SSOUserInfo">
+            <summary>
+            用户认证
+            </summary>
+        </member>
+        <member name="F:Common.ServiceCommon.SSOUserInfo.Empty">
+            <summary>
+            默认空值
+            </summary>
+        </member>
+        <member name="P:Common.ServiceCommon.SSOUserInfo.ID">
+            <summary>
+            用户ID
+            </summary>
+        </member>
+        <member name="P:Common.ServiceCommon.SSOUserInfo.UserName">
+            <summary>
+            用户姓名
+            </summary>
+        </member>
+        <member name="T:Common.ServiceCommon.SSOUserService">
+            <summary>
+            用户认证
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.SSOUserService.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,Microsoft.AspNetCore.Hosting.IWebHostEnvironment)">
+            <summary>
+            初始化
+            </summary>
+            <param name="httpContextAccessor">IHttpContextAccessor</param>
+            <param name="webHostEnvironment">IWebHostEnvironment</param>
+        </member>
+        <member name="M:Common.ServiceCommon.SSOUserService.GetUser">
+            <summary>
+            获取用户信息
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.SwaggerConfigure">
             <summary>
