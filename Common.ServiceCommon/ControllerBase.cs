@@ -251,8 +251,6 @@ namespace Common.ServiceCommon
     /// 自定义返回值，根据查询出的实体对返回值进行拼装
     /// </summary>
     /// <typeparam name="TRequest">请求实体参数，继承于ViewModelBase</typeparam>
-    /// <typeparam name="TSearhEntity">查询实体参数，继承于ViewModelBase</typeparam>
-    /// <typeparam name="TResponse">返回实体参数</typeparam>
     [ApiController]
     public abstract class GenericCustomSearchController<TRequest> : ControllerBase
        where TRequest : ViewModelBase, new()

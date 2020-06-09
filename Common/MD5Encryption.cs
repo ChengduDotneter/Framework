@@ -19,7 +19,7 @@ namespace Common
         /// <returns></returns>
         public static string GetMd5Password(string password, string charset)
         {
-            if (!string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(password))
                 throw new NullReferenceException();
 
             return Convert.ToBase64String(m_md5.ComputeHash(Encoding.GetEncoding(charset).GetBytes(password)));
