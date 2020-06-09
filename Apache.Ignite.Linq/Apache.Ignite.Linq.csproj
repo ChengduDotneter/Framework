@@ -7,7 +7,10 @@
         <RootNamespace>Apache.Ignite.Linq</RootNamespace>
         <NoWarn>NU1701</NoWarn>
         <SignAssembly>true</SignAssembly>
-        <Version>1.2.25</Version>
+        <Version>1.2.26</Version>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+      <DocumentationFile>D:\Work\麦邦\Framework\Apache.Ignite.Linq\Apache.Ignite.Linq.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Remotion.Linq" Version="2.1.2" />

@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Common.MessageQueueClient</name>
+    </assembly>
+    <members>
+        <member name="F:Common.MessageQueueClient.ExChangeTypeEnum.direct">
+            <summary>
+            关键字匹配
+            </summary>
+        </member>
+        <member name="F:Common.MessageQueueClient.ExChangeTypeEnum.fanout">
+            <summary>
+            数据分发
+            </summary>
+        </member>
+        <member name="F:Common.MessageQueueClient.ExChangeTypeEnum.topic">
+            <summary>
+            关键字模糊匹配
+            </summary>
+        </member>
+        <member name="F:Common.MessageQueueClient.ExChangeTypeEnum.headers">
+            <summary>
+            键值对匹配
+            </summary>
+        </member>
+        <member name="T:Common.MessageQueueClient.MessageBody">
+            <summary>
+            对接推送/接收消息实体
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.MessageBody.MessageType">
+            <summary>
+            当前推送/接收的数据类型（表名）
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.MessageBody.Message">
+            <summary>
+            当前推送/接收的数据
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.MessageBody.Company">
+            <summary>
+            公司名称
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.MessageBody.CreateTime">
+            <summary>
+            当前消息创建的时间
+            </summary>
+        </member>
+        <member name="M:Common.MessageQueueClient.MqConfigFactory.CreateConfigDomInstance">
+            <summary>
+            创建MqConfigModel一个实例。
+            </summary>
+            <returns>MqConfigModel</returns>
+        </member>
+        <member name="M:Common.MessageQueueClient.MqConfigFactory.GetConfigFormAppStting">
+            <summary>
+            获取配置文件中的配置项目。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Common.MessageQueueClient.MqConfigModel">
+            <summary>
+            消息队列相关配置的Model。
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.MqConfigModel.MqHost">
+            <summary>
+            消息队列的地址。
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.MqConfigModel.MqUserName">
+            <summary>
+            用户名
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.MqConfigModel.MqPassword">
+            <summary>
+            密码
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.MqConfigModel.MqPort">
+            <summary>
+            端口号
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.MqConfigModel.RequestedHeartbeat">
+            <summary>
+            心跳超时时间
+            </summary>
+        </member>
+        <member name="T:Common.MessageQueueClient.RabbitMqClientContext">
+            <summary>
+            RabbitMqClient上下文。
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.RabbitMqClientContext.PublishConnection">
+            <summary>
+            用于发送消息的Connection。
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.RabbitMqClientContext.PublishChannel">
+            <summary>
+            用于发送消息的Channel。
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.RabbitMqClientContext.SubscribeConnection">
+            <summary>
+            用户侦听的Connection。
+            </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.RabbitMqClientContext.SubscribeChannel">
+            <summary>
+            用户侦听的Channel。
+            </summary>
+        </member>
+    </members>
+</doc>

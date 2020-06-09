@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Common.Validation</name>
+    </assembly>
+    <members>
+        <member name="T:Common.Validation.GreaterThanPropertyAttribute">
+            <summary>
+            参数之间比较：GreaterThanProperty(nameof(parameter))
+            </summary>
+        </member>
+    </members>
+</doc>

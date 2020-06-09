@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.2.25</Version>
-    <AssemblyVersion>1.2.25.0</AssemblyVersion>
-    <FileVersion>1.2.25.0</FileVersion>
+    <Version>1.2.26</Version>
+    <AssemblyVersion>1.2.26.0</AssemblyVersion>
+    <FileVersion>1.2.26.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -14,6 +14,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType></DebugType>
     <DefineConstants>TRACE;OUTPUT_SQL;RELEASE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+    <DocumentationFile>D:\Work\麦邦\Framework\Common.DAL\Common.DAL.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="sqlSugarCore" Version="5.0.0.14" />

@@ -4,12 +4,15 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputType>Library</OutputType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.2.25</Version>
-    <AssemblyVersion>1.2.25.0</AssemblyVersion>
-    <FileVersion>1.2.25.0</FileVersion>
+    <Version>1.2.26</Version>
+    <AssemblyVersion>1.2.26.0</AssemblyVersion>
+    <FileVersion>1.2.26.0</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>D:\Work\麦邦\Framework\Common.ServiceCommon\Common.ServiceCommon.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Consul" Version="0.7.2.6" />
