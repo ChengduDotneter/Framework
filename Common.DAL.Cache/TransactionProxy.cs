@@ -52,7 +52,7 @@ namespace Common.DAL.Cache
         }
 
         /// <summary>
-        /// 
+        /// 上下文
         /// </summary>
         /// <returns></returns>
         public object Context()

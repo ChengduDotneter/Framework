@@ -10,7 +10,7 @@ namespace Common.ServiceCommon
 {
     //TODO:暂时跳过验证器方法
     /// <summary>
-    /// 跳过验证器方法
+    /// 跳过验证器的特性
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false,Inherited = false)]
     public class SkipValidationAttribute : Attribute
@@ -19,23 +19,23 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
-    /// API验证器
+    /// Api验证管道
     /// </summary>
     public class ApiValidationFilter : IActionFilter
     {
         /// <summary>
-        /// 
+        /// 允许复合验证
         /// </summary>
         public bool AllowMultiple => false;
 
         /// <summary>
-        /// 
+        /// 验证完成后执行
         /// </summary>
         /// <param name="context"></param>
         public void OnActionExecuted(ActionExecutedContext context){ }
 
         /// <summary>
-        /// 实现
+        /// 验证时执行
         /// </summary>
         /// <param name="actionExecutingContext"></param>
         public void OnActionExecuting(ActionExecutingContext actionExecutingContext)
