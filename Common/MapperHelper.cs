@@ -8,12 +8,21 @@ namespace Common
 {
     internal delegate void ReadModelHandler<T>(T data, IDictionary<string, object> dataDictionary) where T : class, new();
 
+    /// <summary>
+    /// 实体映射帮组类
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class MapperModelHelper<T> where T : class, new()
     {
         private static ReadModelHandler<T> m_readModelHandler;
 
         static MapperModelHelper() => m_readModelHandler = CreateReadModelHandler();
 
+        /// <summary>
+        /// 根据字典获取实体列表
+        /// </summary>
+        /// <param name="dataDictionary"></param>
+        /// <returns></returns>
         public static IEnumerable<T> ReadModel(IEnumerable<IDictionary<string, object>> dataDictionary)
         {
             return dataDictionary.Select(item =>

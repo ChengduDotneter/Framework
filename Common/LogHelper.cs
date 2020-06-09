@@ -12,6 +12,9 @@ using System.Reflection;
 
 namespace Common
 {
+    /// <summary>
+    /// 日志帮助类
+    /// </summary>
     public static class LogHelper
     {
         private static IDictionary<string, ILoggerRepository> m_loggerRepositorys;
@@ -23,6 +26,12 @@ namespace Common
             m_loggerRepositorys = new Dictionary<string, ILoggerRepository>();
         }
 
+        /// <summary>
+        /// 创建日志
+        /// </summary>
+        /// <param name="repositoryName"></param>
+        /// <param name="names"></param>
+        /// <returns></returns>
         public static ILog CreateLog(string repositoryName, params string[] names)
         {
             ILoggerRepository loggerRepository;

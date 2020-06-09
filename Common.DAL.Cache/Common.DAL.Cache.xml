@@ -4,5 +4,53 @@
         <name>Common.DAL.Cache</name>
     </assembly>
     <members>
+        <member name="T:Common.DAL.Cache.TransactionProxy">
+            <summary>
+            事务代理器
+            </summary>
+        </member>
+        <member name="P:Common.DAL.Cache.TransactionProxy.Instance">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Common.DAL.Cache.TransactionProxy.InTransaction">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Common.DAL.Cache.TransactionProxy.#ctor(Common.DAL.ITransaction)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="transaction"></param>
+        </member>
+        <member name="M:Common.DAL.Cache.TransactionProxy.AddAction(System.Action)">
+            <summary>
+            
+            </summary>
+            <param name="action"></param>
+        </member>
+        <member name="M:Common.DAL.Cache.TransactionProxy.Context">
+            <summary>
+            上下文
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.Cache.TransactionProxy.Dispose">
+            <summary>
+            回收
+            </summary>
+        </member>
+        <member name="M:Common.DAL.Cache.TransactionProxy.Rollback">
+            <summary>
+            回滚
+            </summary>
+        </member>
+        <member name="M:Common.DAL.Cache.TransactionProxy.Submit">
+            <summary>
+            提交
+            </summary>
+        </member>
     </members>
 </doc>
