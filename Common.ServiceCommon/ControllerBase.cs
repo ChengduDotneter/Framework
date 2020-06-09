@@ -164,7 +164,7 @@ namespace Common.ServiceCommon
         [HttpGet]
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
         {
-            Tuple<IEnumerable<TSearhEntity>, int> tupleDatas = SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
+            Tuple<IEnumerable<TSearhEntity>, int> tupleDatas = Tuple.Create(SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>()), SearchDatasCount(pageQueryParameterService.GetQueryParameter<TRequest>()));
 
             return new PageQueryResult<TResponse>()
             {
@@ -173,8 +173,10 @@ namespace Common.ServiceCommon
             };
         }
 
-        protected abstract Tuple<IEnumerable<TSearhEntity>, int> SearchDatas(PageQuery<TRequest> pageQuery);
-     
+        protected abstract IEnumerable<TSearhEntity> SearchDatas(PageQuery<TRequest> pageQuery);
+
+        protected abstract int SearchDatasCount(PageQuery<TRequest> pageQuery);
+
         protected abstract IEnumerable<TResponse> PreperDatas(IEnumerable<TSearhEntity> datas);
     }
 
