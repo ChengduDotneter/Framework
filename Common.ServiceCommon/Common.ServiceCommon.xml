@@ -193,7 +193,7 @@
             <param name="queryCondition">查询条件实体</param>
             <returns></returns>
         </member>
-        <member name="T:Common.ServiceCommon.GenericCustomSearchController`3">
+        <member name="T:Common.ServiceCommon.GenericCustomSearchController`1">
             <summary>
             自定义返回值，根据查询出的实体对返回值进行拼装
             </summary>
@@ -201,36 +201,23 @@
             <typeparam name="TSearhEntity">查询实体参数，继承于ViewModelBase</typeparam>
             <typeparam name="TResponse">返回实体参数</typeparam>
         </member>
-        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.#ctor(Common.DAL.ISearchQuery{`1})">
-            <summary>
-            
-            </summary>
-            <param name="searchQuery"></param>
-        </member>
-        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.Get(Common.ServiceCommon.IPageQueryParameterService)">
+        <member name="M:Common.ServiceCommon.GenericCustomSearchController`1.Get(Common.ServiceCommon.IPageQueryParameterService)">
             <summary>
             Get
             </summary>
             <param name="pageQueryParameterService"></param>
             <returns></returns>
         </member>
-        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.SearchDatas(Common.Model.PageQuery{`0})">
-            <summary>
-            返回查询结果值
-            </summary>
-            <param name="pageQuery"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.SearchDatasCount(Common.Model.PageQuery{`0})">
+        <member name="M:Common.ServiceCommon.GenericCustomSearchController`1.SearchDatasCount(Common.Model.PageQuery{`0})">
             <summary>
             返回查询条件总条数
             </summary>
             <param name="pageQuery"></param>
             <returns></returns>
         </member>
-        <member name="M:Common.ServiceCommon.GenericCustomSearchController`3.PreperDatas(System.Collections.Generic.IEnumerable{`1})">
+        <member name="M:Common.ServiceCommon.GenericCustomSearchController`1.SearchDatas(Common.Model.PageQuery{`0})">
             <summary>
-            对查询结果进行更改
+            查询结果
             </summary>
             <param name="datas"></param>
             <returns></returns>
@@ -704,6 +691,87 @@
             <summary>
             获取JObject
             </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.LazyLoadedTreeController">
+            <summary>
+            懒加载树控制器
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.LazyLoadedTreeController.#ctor(System.IServiceProvider)">
+            <summary>
+            
+            </summary>
+            <param name="serviceProvider">IServiceProvider</param>
+        </member>
+        <member name="M:Common.ServiceCommon.LazyLoadedTreeController.Get(System.String,System.String)">
+            <summary>
+            Get
+            </summary>
+            <param name="objectName"></param>
+            <param name="parentID"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.LogMiddleware">
+            <summary>
+            日志中间件
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.LogMiddleware.#ctor(System.Boolean,Microsoft.AspNetCore.Http.RequestDelegate)">
+            <summary>
+            日志中间件
+            </summary>
+            <param name="logSearchAction"></param>
+            <param name="next"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.LogMiddleware.Invoke(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            
+            </summary>
+            <param name="httpContext">HttpContext</param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.MicroServiceHelper">
+            <summary>
+            微服务接口调用辅助类
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.MicroServiceHelper.SendMicroServicePost``1(Microsoft.AspNetCore.Http.IHttpContextAccessor,System.String,System.String,System.Object)">
+            <summary>
+            微服务Post
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="httpContextAccessor">IHttpContextAccessor</param>
+            <param name="microServiceName">微服务名称</param>
+            <param name="functionName">接口名</param>
+            <param name="sendText">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MicroServiceHelper.MicroServiceGetByID(Microsoft.AspNetCore.Http.IHttpContextAccessor,System.String,System.String,System.String)">
+            <summary>
+            微服务Get，通过ID
+            </summary>
+            <param name="httpContextAccessor">IHttpContextAccessor</param>
+            <param name="microServiceName">微服务名称</param>
+            <param name="functionName">接口名</param>
+            <param name="parameter">ID值</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MicroServiceHelper.MicroServiceGetByCondition(Microsoft.AspNetCore.Http.IHttpContextAccessor,System.String,System.String,System.String)">
+            <summary>
+            微服务Get，通过条件
+            </summary>
+            <param name="httpContextAccessor">IHttpContextAccessor</param>
+            <param name="microServiceName">微服务名称</param>
+            <param name="functionName">接口名</param>
+            <param name="parameter">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.ModelTypeControllerManager.GenerateModelTypeControllerToAssembly(System.Type[])">
+            <summary>
+            通用实体类转程序集，ModelTypeToAssembly
+            </summary>
+            <param name="modelTypes"></param>
             <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.JArrayOutputFormatter">
