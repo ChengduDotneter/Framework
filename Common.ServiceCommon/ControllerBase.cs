@@ -9,6 +9,11 @@ using System.Reflection;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// ServiceToService 批量查询接口基类
+    /// </summary>
+    /// <typeparam name="TRequest">请求实体泛型</typeparam>
+    /// <typeparam name="TResponse">返回实体泛型</typeparam>
     [ApiController]
     public abstract class BatchGenericSearchController<TRequest, TResponse> : ControllerBase
     {
@@ -21,6 +26,10 @@ namespace Common.ServiceCommon
         protected abstract TResponse SearchDatas(TRequest request);
     }
 
+    /// <summary>
+    /// Service中无相应的实体接受请求参数时使用且请求参数为JObject的接口基类
+    /// </summary>
+    /// <typeparam name="TResponse">返回结果泛型/typeparam>
     [ApiController]
     public abstract class JObjectGenericPostController<TResponse> : ControllerBase
     {
@@ -33,6 +42,10 @@ namespace Common.ServiceCommon
         protected abstract TResponse DoPost(JObject request);
     }
 
+    /// <summary>
+    /// Service中无相应的实体接受请求参数时使用且请求参数为JArray的接口基类
+    /// </summary>
+    /// <typeparam name="TResponse">返回实体泛型</typeparam>
     [ApiController]
     public abstract class JArrayGenericPostController<TResponse> : ControllerBase
     {
@@ -45,6 +58,10 @@ namespace Common.ServiceCommon
         protected abstract TResponse DoPost(JArray request);
     }
 
+    /// <summary>
+    /// 根据ID查询自定义结果的接口基类
+    /// </summary>
+    /// <typeparam name="TResponse">返回实体泛型</typeparam>
     public abstract class BatchGenericGetController<TResponse> : ControllerBase
     {
         [HttpGet("{id}")]
@@ -61,6 +78,10 @@ namespace Common.ServiceCommon
         protected abstract TResponse DoGet(long id);
     }
 
+    /// <summary>
+    /// 根据ID获取继承于ViewModelBase的实体的接口基类
+    /// </summary>
+    /// <typeparam name="TResponse">返回实体泛型，继承于ViewModelBase</typeparam>
     [ApiController]
     public abstract class GenericGetController<TResponse> : ControllerBase
         where TResponse : ViewModelBase, new()
@@ -89,7 +110,11 @@ namespace Common.ServiceCommon
         }
     }
 
-
+    /// <summary>
+    /// 根据筛选条件查询列表且请求，返回实体皆继承于ViewModelBase的列表查询接口基类
+    /// </summary>
+    /// <typeparam name="TRequest">请求实体泛型，继承于ViewModelBase</typeparam>
+    /// <typeparam name="TResponse">结果实体泛型，继承于ViewModelBase</typeparam>
     [ApiController]
     public abstract class GenericSearchController<TRequest, TResponse> : ControllerBase
         where TRequest : ViewModelBase, new()
@@ -111,6 +136,11 @@ namespace Common.ServiceCommon
             };
         }
 
+        /// <summary>
+        /// 查询方法
+        /// </summary>
+        /// <param name="pageQuery">请求参数</param>
+        /// <returns></returns>
         protected virtual Tuple<IEnumerable<TResponse>, int> SearchDatas(PageQuery<TRequest> pageQuery)
         {
             Expression<Func<TResponse, bool>> linq = GetBaseLinq(pageQuery.Condition);
@@ -118,9 +148,18 @@ namespace Common.ServiceCommon
             return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), m_searchQuery.FilterIsDeleted().Count(linq));
         }
 
+        /// <summary>
+        /// 查询结果处理方法
+        /// </summary>
+        /// <param name="datas"></param>
+        /// <returns></returns>
         protected virtual IEnumerable<TResponse> PreperDatas(IEnumerable<TResponse> datas) => datas;
 
-
+        /// <summary>
+        /// 获取LinqSearchAttribute特性指定的Linq
+        /// </summary>
+        /// <param name="queryCondition">查询条件实体</param>
+        /// <returns></returns>
         protected virtual Expression<Func<TResponse, bool>> GetBaseLinq(TRequest queryCondition)
         {
             if (queryCondition == null)
@@ -146,6 +185,7 @@ namespace Common.ServiceCommon
 
     }
 
+    [Obsolete("该接口基类即将过期")]
     [ApiController]
     public abstract class GenericSearchWithQueryController<TRequest, TResponse> : ControllerBase
         where TRequest : ViewModelBase, new()
@@ -181,6 +221,10 @@ namespace Common.ServiceCommon
 
     }
 
+    /// <summary>
+    /// 无查询条件的Get请求接口街垒
+    /// </summary>
+    /// <typeparam name="TResponse">返回实体参数</typeparam>
     [ApiController]
     public abstract class BatchGenericSearchController<TResponse> : ControllerBase
     {
@@ -193,6 +237,13 @@ namespace Common.ServiceCommon
         protected abstract TResponse SearchDatas();
     }
 
+    /// <summary>
+    /// 两个实体聚合查询接口基类
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TTable"></typeparam>
+    /// <typeparam name="TJoinTable"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
     [ApiController]
     public abstract class GenericSearchController<TRequest, TTable, TJoinTable, TResponse> : ControllerBase
      where TRequest : new()
@@ -261,6 +312,10 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// 新增接口基类
+    /// </summary>
+    /// <typeparam name="TRequest">请求实体泛型，继承于ViewModelBase</typeparam>
     [ApiController]
     public abstract class GenericPostController<TRequest> : ControllerBase where TRequest : ViewModelBase, new()
     {
@@ -292,6 +347,10 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// 修改接口基类
+    /// </summary>
+    /// <typeparam name="TRequest">请求实体泛型，继承于ViewModelBase</typeparam>
     [ApiController]
     public abstract class GenericPutController<TRequest> : ControllerBase
         where TRequest : ViewModelBase, new()
@@ -330,6 +389,10 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// 删除接口基类
+    /// </summary>
+    /// <typeparam name="TRequest">请求实体泛型，继承于ViewModelBase</typeparam>
     [ApiController]
     public abstract class GenericDeleteController<TRequest> : ControllerBase
         where TRequest : ViewModelBase, new()
@@ -361,6 +424,11 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// 根据ID返回两个实体且实体继承于ViewModelBase接口基类
+    /// </summary>
+    /// <typeparam name="TResponse1">请求实体泛型，继承于ViewModelBase</typeparam>
+    /// <typeparam name="TResponse2">请求实体泛型，继承于ViewModelBase</typeparam>
     [ApiController]
     public abstract class MultipleGenericGetController<TResponse1, TResponse2> : ControllerBase
             where TResponse1 : ViewModelBase, new()
@@ -384,6 +452,12 @@ namespace Common.ServiceCommon
         protected abstract Tuple<TResponse1, TResponse2> DoGet(long id);
     }
 
+    /// <summary>
+    /// 根据ID返回三个实体且实体继承于ViewModelBase接口基类
+    /// </summary>
+    /// <typeparam name="TResponse1">请求实体泛型，继承于ViewModelBase</typeparam>
+    /// <typeparam name="TResponse2">请求实体泛型，继承于ViewModelBase</typeparam>
+    /// <typeparam name="TResponse3">请求实体泛型，继承于ViewModelBase</typeparam>
     [ApiController]
     public abstract class MultipleGenericGetController<TResponse1, TResponse2, TResponse3> : ControllerBase
         where TResponse1 : ViewModelBase, new()
@@ -409,8 +483,15 @@ namespace Common.ServiceCommon
         protected abstract Tuple<TResponse1, TResponse2, TResponse3> DoGet(long id);
     }
 
+    /// <summary>
+    /// 自定义Controller接口
+    /// </summary>
     public interface IDynamicController { }
 
+    /// <summary>
+    /// 一个参数的Post请求接口基类
+    /// </summary>
+    /// <typeparam name="TRequest1">请求实体泛型</typeparam>
     public abstract class MultipleGenericPostController<TRequest1> : IDynamicController
     {
         private ISSOUserService m_ssoUserService;
@@ -432,14 +513,20 @@ namespace Common.ServiceCommon
                 return new OkObjectResult(result);
         }
 
-        public virtual object GetReturnValue()
-        {
-            return null;
-        }
+        /// <summary>
+        /// 设置接口返回值
+        /// </summary>
+        /// <returns></returns>
+        public virtual object GetReturnValue() => null;
 
         protected abstract void DoPost(TRequest1 request1);
     }
 
+    /// <summary>
+    /// 两个参数的Post请求接口基类
+    /// </summary>
+    /// <typeparam name="TRequest1">请求实体泛型</typeparam>
+    /// <typeparam name="TRequest2">请求实体泛型</typeparam>
     public abstract class MultipleGenericPostController<TRequest1, TRequest2> : IDynamicController
     {
         private ISSOUserService m_ssoUserService;
@@ -461,14 +548,21 @@ namespace Common.ServiceCommon
                 return new OkObjectResult(result);
         }
 
-        public virtual object GetReturnValue()
-        {
-            return null;
-        }
+        /// <summary>
+        /// 设置接口返回值
+        /// </summary>
+        /// <returns></returns>
+        public virtual object GetReturnValue() => null;
 
         protected abstract void DoPost(TRequest1 request1, TRequest2 request2);
     }
 
+    /// <summary>
+    /// 三个参数的Post请求接口基类
+    /// </summary>
+    /// <typeparam name="TRequest1">请求实体泛型</typeparam>
+    /// <typeparam name="TRequest2">请求实体泛型</typeparam>
+    /// <typeparam name="TRequest3">请求实体泛型</typeparam>
     public abstract class MultipleGenericPostController<TRequest1, TRequest2, TRequest3> : IDynamicController
     {
         private readonly ISSOUserService m_ssoUserService;
@@ -489,14 +583,20 @@ namespace Common.ServiceCommon
             else
                 return new OkObjectResult(result);
         }
-        public virtual object GetReturnValue()
-        {
-            return null;
-        }
+
+        /// <summary>
+        /// 设置接口返回值
+        /// </summary>
+        /// <returns></returns>
+        public virtual object GetReturnValue() => null;
 
         protected abstract void DoPost(TRequest1 request1, TRequest2 request2, TRequest3 request3);
     }
 
+    /// <summary>
+    /// 一个参数的Put请求接口基类
+    /// </summary>
+    /// <typeparam name="TRequest1">请求实体泛型</typeparam>
     public abstract class MultipleGenericPutController<TRequest1> : IDynamicController
     {
         private ISSOUserService m_ssoUserService;
@@ -515,6 +615,11 @@ namespace Common.ServiceCommon
         protected abstract void DoPut(TRequest1 request1);
     }
 
+    /// <summary>
+    /// 两个参数的Put请求接口基类
+    /// </summary>
+    /// <typeparam name="TRequest1">请求实体泛型</typeparam>
+    /// <typeparam name="TRequest2">请求实体泛型</typeparam>
     public abstract class MultipleGenericPutController<TRequest1, TRequest2> : IDynamicController
     {
         private readonly ISSOUserService m_ssoUserService;
@@ -533,6 +638,12 @@ namespace Common.ServiceCommon
         protected abstract void DoPut(TRequest1 request1, TRequest2 request2);
     }
 
+    /// <summary>
+    /// 三个参数的Put请求接口基类
+    /// </summary>
+    /// <typeparam name="TRequest1">请求实体泛型</typeparam>
+    /// <typeparam name="TRequest2">请求实体泛型</typeparam>
+    /// <typeparam name="TRequest3">请求实体泛型</typeparam>
     public abstract class MultipleGenericPutController<TRequest1, TRequest2, TRequest3> : IDynamicController
     {
         private ISSOUserService m_ssoUserService;
