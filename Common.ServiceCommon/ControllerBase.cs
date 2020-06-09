@@ -29,7 +29,7 @@ namespace Common.ServiceCommon
     /// <summary>
     /// Service中无相应的实体接受请求参数时使用且请求参数为JObject的接口基类
     /// </summary>
-    /// <typeparam name="TResponse">返回结果泛型/typeparam>
+    /// <typeparam name="TResponse"></typeparam>
     [ApiController]
     public abstract class JObjectGenericPostController<TResponse> : ControllerBase
     {
@@ -219,12 +219,22 @@ namespace Common.ServiceCommon
         protected abstract IEnumerable<TResponse> PreperDatas(IEnumerable<TSearhEntity> datas);
     }
 
+    /// <summary>
+    /// 该接口基类即将过时
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
     [Obsolete("该接口基类即将过期")]
     [ApiController]
     public abstract class GenericSearchWithQueryController<TRequest, TResponse> : ControllerBase
         where TRequest : ViewModelBase, new()
         where TResponse : ViewModelBase, new()
     {
+        /// <summary>
+        /// Get请求入口
+        /// </summary>
+        /// <param name="pageQueryParameterService"></param>
+        /// <returns></returns>
         [HttpGet]
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
         {
@@ -237,16 +247,31 @@ namespace Common.ServiceCommon
             };
         }
 
+        /// <summary>
+        /// 结果数据处理
+        /// </summary>
+        /// <param name="datas"></param>
+        /// <returns></returns>
         protected virtual IEnumerable<TResponse> PreperDatas(IEnumerable<TResponse> datas)
         {
             return datas;
         }
 
+        /// <summary>
+        /// 数据查询
+        /// </summary>
+        /// <param name="pageQuery"></param>
+        /// <returns></returns>
         protected virtual IEnumerable<TResponse> DoSearch(PageQuery<TRequest> pageQuery)
         {
             return null;
         }
 
+        /// <summary>
+        /// 获取数量
+        /// </summary>
+        /// <param name="pageQuery"></param>
+        /// <returns></returns>
         protected virtual int GetCount(PageQuery<TRequest> pageQuery)
         {
             return 0;

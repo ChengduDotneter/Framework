@@ -41,7 +41,8 @@ namespace Common
         /// <param name="url">请求url</param>
         /// <param name="keyValues">请求参数</param>
         /// <param name="timeOut">超时时间（单位秒）</param>
-        /// <param name="token">token</param>
+        /// <param name="tokenName">tokenName</param>
+        /// <param name="tokenValue">token</param>
         /// <returns></returns>
         public static HttpResult Post(string url, Dictionary<string, object> keyValues,int timeOut = 10, string tokenName = null,string tokenValue = null)
         {

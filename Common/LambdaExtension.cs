@@ -251,7 +251,7 @@ namespace Common
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="p"></param>
+        /// <param name="parameterExpression"></param>
         /// <returns></returns>
         protected override Expression VisitParameter(ParameterExpression parameterExpression)
         {
@@ -360,8 +360,10 @@ namespace Common
         /// 
         /// </summary>
         /// <param name="body"></param>
-        /// <param name="changeParameter"></param>
-        /// <param name="changeParameterExpression"></param>
+        /// <param name="aChangeParameter"></param>
+        /// <param name="bChangeParameter"></param>
+        /// <param name="aChangeParameterExpression"></param>
+        /// <param name="bChangeParameterExpression"></param>
         /// <returns></returns>
         internal Expression ChangeParameter(Expression body,
                                             ParameterExpression aChangeParameter,
@@ -418,7 +420,10 @@ namespace Common
         /// </summary>
         /// <param name="body"></param>
         /// <param name="changeParameter"></param>
-        /// <param name="changeParameterExpression"></param>
+        /// <param name="aChangeParameterExpression"></param>
+        /// <param name="bChangeParameterExpression"></param>
+        /// <param name="aParameterName"></param>
+        /// <param name="bParameterName"></param>
         /// <returns></returns>
         internal Expression ChangeParameter(Expression body,
                                             ParameterExpression changeParameter,
@@ -520,7 +525,7 @@ namespace Common
         /// <param name="aOrignParameterName"></param>
         /// <param name="bOrignParameterName"></param>
         /// <param name="aParameterName"></param>
-        /// <param name="aParameterName"></param>
+        /// <param name="bParameterName"></param>
         /// <returns></returns>
         internal Expression RenameParameter(Expression body,
                                             string aOrignParameterName,

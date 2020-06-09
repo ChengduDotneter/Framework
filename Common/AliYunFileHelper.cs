@@ -4,6 +4,9 @@ using System.IO;
 
 namespace Common
 {
+    /// <summary>
+    /// 阿里云文件服务器帮助实体
+    /// </summary>
     public static class AliYunFileHelper
     {
         private static string m_accessKeyId = Convert.ToString(ConfigManager.Configuration["AccessKeyId"]);

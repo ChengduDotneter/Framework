@@ -182,7 +182,9 @@ namespace Common.ServiceCommon
         /// <summary>
         /// 生成动态dto的属性
         /// </summary>
-        /// <param name="methodParameters"></param>
+        /// <param name="dynamicControllerType"></param>
+        /// <param name="isPost"></param>
+        /// <param name="isPut"></param>
         /// <returns></returns>
         private static string GetDynamicDataTypeProperty(Type dynamicControllerType, bool isPost, bool isPut)
         {
@@ -288,6 +290,8 @@ namespace Common.ServiceCommon
         /// 获取接口对象方法调用参数
         /// </summary>
         /// <param name="dynamicControllerType"></param>
+        /// <param name="isPost"></param>
+        /// <param name="isPut"></param>
         /// <returns></returns>
         private static string GetBasefunctionParametersString(Type dynamicControllerType, bool isPost, bool isPut)
         {
