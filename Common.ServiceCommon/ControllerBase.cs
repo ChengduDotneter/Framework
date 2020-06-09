@@ -248,65 +248,6 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
-    /// 自定义返回值，根据查询出的实体对返回值进行拼装
-    /// </summary>
-    /// <typeparam name="TRequest">请求实体参数，继承于ViewModelBase</typeparam>
-    /// <typeparam name="TSearhEntity">查询实体参数，继承于ViewModelBase</typeparam>
-    /// <typeparam name="TResponse">返回实体参数</typeparam>
-    [ApiController]
-    public abstract class GenericCustomSearchController<TRequest, TSearhEntity, TResponse> : ControllerBase
-       where TRequest : ViewModelBase, new()
-       where TSearhEntity : ViewModelBase, new()
-       where TResponse : new()
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="searchQuery"></param>
-        public GenericCustomSearchController(ISearchQuery<TSearhEntity> searchQuery)
-        {
-        }
-
-        /// <summary>
-        /// Get
-        /// </summary>
-        /// <param name="pageQueryParameterService"></param>
-        /// <returns></returns>
-        [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
-        {
-            Tuple<IEnumerable<TSearhEntity>, int> tupleDatas = Tuple.Create(SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>()), SearchDatasCount(pageQueryParameterService.GetQueryParameter<TRequest>()));
-
-            return new PageQueryResult<TResponse>()
-            {
-                Datas = PreperDatas(tupleDatas?.Item1),
-                TotalCount = tupleDatas?.Item2 ?? 0
-            };
-        }
-
-        /// <summary>
-        /// 返回查询结果值
-        /// </summary>
-        /// <param name="pageQuery"></param>
-        /// <returns></returns>
-        protected abstract IEnumerable<TSearhEntity> SearchDatas(PageQuery<TRequest> pageQuery);
-
-        /// <summary>
-        /// 返回查询条件总条数
-        /// </summary>
-        /// <param name="pageQuery"></param>
-        /// <returns></returns>
-        protected abstract int SearchDatasCount(PageQuery<TRequest> pageQuery);
-
-        /// <summary>
-        /// 对查询结果进行更改
-        /// </summary>
-        /// <param name="datas"></param>
-        /// <returns></returns>
-        protected abstract IEnumerable<TResponse> PreperDatas(IEnumerable<TSearhEntity> datas);
-    }
-
-    /// <summary>
     /// 该接口基类即将过时
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
