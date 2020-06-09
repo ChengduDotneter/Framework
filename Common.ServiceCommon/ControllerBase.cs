@@ -182,7 +182,6 @@ namespace Common.ServiceCommon
 
             return item => true;
         }
-
     }
 
     /// <summary>
@@ -192,13 +191,14 @@ namespace Common.ServiceCommon
     /// <typeparam name="TSearhEntity"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
     [ApiController]
-    public abstract class GenericCustomSearchController<TRequest,TSearhEntity, TResponse> : ControllerBase
+    public abstract class GenericCustomSearchController<TRequest, TSearhEntity, TResponse> : ControllerBase
        where TRequest : ViewModelBase, new()
        where TSearhEntity : ViewModelBase, new()
        where TResponse : new()
     {
-
-        public GenericCustomSearchController(ISearchQuery<TSearhEntity> searchQuery){}
+        public GenericCustomSearchController(ISearchQuery<TSearhEntity> searchQuery)
+        {
+        }
 
         [HttpGet]
         public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
@@ -235,7 +235,6 @@ namespace Common.ServiceCommon
                 TotalCount = GetCount(pageQuery),
                 Datas = PreperDatas(DoSearch(pageQuery))
             };
-
         }
 
         protected virtual IEnumerable<TResponse> PreperDatas(IEnumerable<TResponse> datas)
@@ -252,7 +251,6 @@ namespace Common.ServiceCommon
         {
             return 0;
         }
-
     }
 
     /// <summary>
@@ -406,7 +404,6 @@ namespace Common.ServiceCommon
             }
             else
                 return NotFound();
-
         }
 
         protected virtual void DoPut(TRequest request)
