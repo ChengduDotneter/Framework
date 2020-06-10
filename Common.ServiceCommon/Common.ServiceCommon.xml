@@ -919,12 +919,68 @@
             <param name="parameter">参数</param>
             <returns></returns>
         </member>
+        <member name="T:Common.ServiceCommon.ModelTypeControllerManager">
+            <summary>
+            根据实体动态生成Get，Post，Put，Delete，Search的Controller操作类
+            </summary>
+        </member>
         <member name="M:Common.ServiceCommon.ModelTypeControllerManager.GenerateModelTypeControllerToAssembly(System.Type[])">
             <summary>
             通用实体类转程序集，ModelTypeToAssembly
             </summary>
             <param name="modelTypes"></param>
             <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.MvcExtentions">
+            <summary>
+            MVC扩展类
+            </summary>
+        </member>
+        <member name="M:Common.ServiceCommon.MvcExtentions.ConfigInit(Microsoft.Extensions.Hosting.HostBuilderContext)">
+            <summary>
+            配置初始化
+            </summary>
+            <param name="hostBuilderContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MvcExtentions.AddControllers(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Type[],System.Type[])">
+            <summary>
+            添加Controller
+            </summary>
+            <param name="serviceCollection"></param>
+            <param name="modelTypes"></param>
+            <param name="dynamicControllerTypes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MvcExtentions.ConfigureValidation(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.DependencyInjection.IMvcBuilder,System.Int32)">
+            <summary>
+            配置验证器
+            </summary>
+            <param name="serviceCollection"></param>
+            <param name="mvcBuilder"></param>
+            <param name="maxErrorCount"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MvcExtentions.AddQuerys(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Type[],System.Func{System.Type,System.Object},System.Func{System.Type,System.Object})">
+            <summary>
+            查询操作初始化
+            </summary>
+            <param name="serviceCollection"></param>
+            <param name="modelTypes"></param>
+            <param name="searchQueryProvider"></param>
+            <param name="editQueryProvider"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.MvcExtentions.AddTransfers(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            RBMQ相关接口依赖注册
+            </summary>
+            <param name="serviceCollection"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.MvcExtentions.AddJsonSerialize(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            JSON序列化相关接口依赖注册
+            </summary>
+            <param name="serviceCollection"></param>
         </member>
         <member name="T:Common.ServiceCommon.JArrayOutputFormatter">
             <summary>
@@ -1053,6 +1109,90 @@
             <typeparam name="T"></typeparam>
             <param name="editQuery"></param>
             <returns></returns>
+        </member>
+        <member name="T:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1">
+            <summary>
+            根据ID倒序的查询代理装饰者类
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1.Get(System.Int64)">
+            <summary>
+            根据id获取实体
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1.Count(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            根据linq查询条件获取查询条数
+            </summary>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1.Count(System.String,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            根据sql查询条件获取查询条数
+            </summary>
+            <param name="queryWhere"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1.Search(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Collections.Generic.IEnumerable{Common.DAL.QueryOrderBy{`0}},System.Int32,System.Int32)">
+            <summary>
+            根据Linq查询条件获取查询结果列表
+            </summary>
+            <param name="predicate"></param>
+            <param name="queryOrderBies"></param>
+            <param name="startIndex"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1.Search(System.String,System.Collections.Generic.Dictionary{System.String,System.Object},System.String,System.Int32,System.Int32)">
+            <summary>
+            根据sql查询条件获取查询结果列表
+            </summary>
+            <param name="queryWhere"></param>
+            <param name="parameters"></param>
+            <param name="orderByFields"></param>
+            <param name="startIndex"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1.Count``1(Common.DAL.JoinCondition{`0,``0},System.Linq.Expressions.Expression{System.Func{`0,``0,System.Boolean}})">
+            <summary>
+            两表Linq联查时获取查询条数
+            </summary>
+            <typeparam name="TJoinTable"></typeparam>
+            <param name="joinCondition"></param>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1.Search``1(Common.DAL.JoinCondition{`0,``0},System.Linq.Expressions.Expression{System.Func{`0,``0,System.Boolean}},System.Collections.Generic.IEnumerable{Common.DAL.QueryOrderBy{`0,``0}},System.Int32,System.Int32)">
+            <summary>
+            两表Linq联查时获取查询结果
+            </summary>
+            <typeparam name="TJoinTable"></typeparam>
+            <param name="joinCondition"></param>
+            <param name="predicate"></param>
+            <param name="queryOrderBies"></param>
+            <param name="startIndex"></param>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1.Query(System.String,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            根据sql查询数据
+            </summary>
+            <param name="sql"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.OrderByIDDescSearchQueryProxy`1.#ctor(Common.DAL.ISearchQuery{`0})">
+            <summary>
+            构造函数
+            </summary>
+            <param name="searchQuery"></param>
         </member>
         <member name="T:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1">
             <summary>

@@ -3,8 +3,16 @@ using System;
 
 namespace Common
 {
-   public class JTokenHelper
+    /// <summary>
+    /// JToken相关Helper类
+    /// </summary>
+    public class JTokenHelper
     {
+        /// <summary>
+        /// 获取整形数据
+        /// </summary>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static int GetIntValue(JToken jToken)
         {
             try
@@ -13,11 +21,15 @@ namespace Common
             }
             catch
             {
-
                 return 0;
             }
         }
 
+        /// <summary>
+        /// 获取时间数据
+        /// </summary>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static DateTime GetDateTimeValue(JToken jToken)
         {
             try
@@ -41,6 +53,11 @@ namespace Common
             }
         }
 
+        /// <summary>
+        /// 获取可为空的时间数据
+        /// </summary>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static DateTime? GetNullAbleDateTimeValue(JToken jToken)
         {
             try
@@ -64,6 +81,11 @@ namespace Common
             }
         }
 
+        /// <summary>
+        /// 获取时间戳
+        /// </summary>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static TimeSpan GetDateTimeSpanValue(JToken jToken)
         {
             try
@@ -80,6 +102,12 @@ namespace Common
                 return new TimeSpan(0, 0, 0);
             }
         }
+
+        /// <summary>
+        /// 获取字符串
+        /// </summary>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static string GetStringValue(JToken jToken)
         {
             try
@@ -91,6 +119,12 @@ namespace Common
                 return null;
             }
         }
+
+        /// <summary>
+        /// 获取decimal
+        /// </summary>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static decimal GetDecimalValue(JToken jToken)
         {
             try
@@ -102,9 +136,14 @@ namespace Common
                 else
                     return 0;
             }
-            catch{ return 0;}
+            catch { return 0; }
         }
 
+        /// <summary>
+        /// 获取可为空的dececimal
+        /// </summary>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static decimal? GetDecimalNullabelValue(JToken jToken)
         {
             try
@@ -119,6 +158,11 @@ namespace Common
             catch { return null; }
         }
 
+        /// <summary>
+        /// 获取bool
+        /// </summary>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static bool GetBoolValue(JToken jToken)
         {
             try
@@ -127,11 +171,15 @@ namespace Common
             }
             catch
             {
-
                 return false;
             }
         }
 
+        /// <summary>
+        /// 获取长整形
+        /// </summary>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static long GetLongValue(JToken jToken)
         {
             try
@@ -140,11 +188,16 @@ namespace Common
             }
             catch
             {
-
                 return 0;
             }
         }
 
+        /// <summary>
+        /// 获取枚举值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="jToken"></param>
+        /// <returns></returns>
         public static T GetEnumValue<T>(JToken jToken) where T : Enum
         {
             try

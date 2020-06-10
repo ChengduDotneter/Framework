@@ -5,6 +5,9 @@ using System.Linq.Expressions;
 
 namespace Common
 {
+    /// <summary>
+    /// Lambda表达式相关扩展类
+    /// </summary>
     public static class LambdaExtension
     {
         /// <summary>
@@ -21,7 +24,7 @@ namespace Common
             var map = first.Parameters.Select((f, i) => new { f, s = second.Parameters[i] }).ToDictionary(p => p.s, p => p.f);
             // replace parameters in the second lambda expression with parameters from the first
             var secondBody = ParameterRebinder.ReplaceParameters(map, second.Body);
-            // apply composition of lambda expression bodies to parameters from the first expression 
+            // apply composition of lambda expression bodies to parameters from the first expression
             return Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
         }
 
@@ -239,8 +242,9 @@ namespace Common
     internal class ParameterRebinder : ExpressionVisitor
     {
         private readonly Dictionary<ParameterExpression, ParameterExpression> map;
+
         /// <summary>
-        /// 
+        /// 重新绑定参数
         /// </summary>
         /// <param name="map"></param>
         public ParameterRebinder(Dictionary<ParameterExpression, ParameterExpression> map)
@@ -249,7 +253,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 替换参数
         /// </summary>
         /// <param name="map"></param>
         /// <param name="exp"></param>
@@ -260,7 +264,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 访问参数
         /// </summary>
         /// <param name="parameterExpression"></param>
         /// <returns></returns>
@@ -284,7 +288,7 @@ namespace Common
         private ParameterExpression m_changeParameter;
 
         /// <summary>
-        /// 
+        /// 访问参数
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
@@ -294,7 +298,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 访问表达式树
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="node"></param>
@@ -305,7 +309,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 变换参数
         /// </summary>
         /// <param name="body"></param>
         /// <param name="changeParameter"></param>
@@ -347,7 +351,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 访问参数
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
@@ -357,7 +361,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 访问表达式树
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="node"></param>
@@ -368,7 +372,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 变换参数
         /// </summary>
         /// <param name="body"></param>
         /// <param name="aChangeParameter"></param>
@@ -406,7 +410,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 访问参数
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
@@ -416,7 +420,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 访问表达式树
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="node"></param>
@@ -427,7 +431,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 变换参数
         /// </summary>
         /// <param name="body"></param>
         /// <param name="changeParameter"></param>
@@ -459,7 +463,7 @@ namespace Common
         private ParameterExpression m_parameterExpression;
 
         /// <summary>
-        /// 
+        /// 访问参数
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
@@ -469,7 +473,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 访问表达式树
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="node"></param>
@@ -480,7 +484,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 重命名参数
         /// </summary>
         /// <param name="body"></param>
         /// <param name="parameterName"></param>
@@ -509,7 +513,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 访问参数
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
@@ -519,7 +523,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 访问表达式树
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="node"></param>
@@ -530,7 +534,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 
+        /// 重命名参数
         /// </summary>
         /// <param name="body"></param>
         /// <param name="aOrignParameterName"></param>
