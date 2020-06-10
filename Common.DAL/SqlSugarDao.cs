@@ -88,7 +88,7 @@ namespace Common.DAL
             }
         }
 
-        private static void Applay<TResource>() where TResource : class, IEntity
+        private static void Apply<TResource>(out bool inTransaction) where TResource : class, IEntity
         {
             int id = Thread.CurrentThread.ManagedThreadId;
             SqlSugerTranscation sqlSugerTranscation = null;
@@ -109,6 +109,8 @@ namespace Common.DAL
                         throw new DealException($"申请事务资源{table.FullName}失败。");
                 }
             }
+
+            inTransaction = sqlSugerTranscation != null;
         }
 
         private static async void Release(Type table)
@@ -157,7 +159,7 @@ namespace Common.DAL
         {
             public void Delete(params long[] ids)
             {
-                Applay<T>();
+                Apply<T>(out bool _);
 
                 if (ids.Length == 0)
                     return;
@@ -167,6 +169,8 @@ namespace Common.DAL
 
             public void Insert(params T[] datas)
             {
+                Apply<T>(out bool _);
+
                 if (datas.Length == 0)
                     return;
 
@@ -175,6 +179,8 @@ namespace Common.DAL
 
             public void Merge(params T[] datas)
             {
+                Apply<T>(out bool _);
+
                 if (datas.Length == 0)
                     return;
 
@@ -183,6 +189,8 @@ namespace Common.DAL
 
             public void Update(T data, params string[] ignoreColumns)
             {
+                Apply<T>(out bool _);
+
                 if (data == null)
                     return;
 
@@ -191,6 +199,8 @@ namespace Common.DAL
 
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
             {
+                Apply<T>(out bool _);
+
                 CreateConnection(m_masterConnectionString, true).Updateable<T>()
                                                                 .Where(predicate)
                                                                 .SetColumns(updateExpression)
@@ -199,13 +209,12 @@ namespace Common.DAL
 
             public int Count(string queryWhere, Dictionary<string, object> parameters = null)
             {
-                m_readWriteLock.EnterReadLock();
-
+                Apply<T>(out bool inTransaction);
                 SqlSugarClient sqlSugarClient = null;
 
                 try
                 {
-                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (inTransaction)
                         sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
                         sqlSugarClient = CreateConnection(m_slaveConnectionString);
@@ -221,8 +230,6 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    m_readWriteLock.ExitReadLock();
-
                     if (sqlSugarClient != null)
                         sqlSugarClient.Dispose();
                 }
@@ -230,13 +237,12 @@ namespace Common.DAL
 
             public int Count(Expression<Func<T, bool>> predicate = null)
             {
-                m_readWriteLock.EnterReadLock();
-
+                Apply<T>(out bool inTransaction);
                 SqlSugarClient sqlSugarClient = null;
 
                 try
                 {
-                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (inTransaction)
                         sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
                         sqlSugarClient = CreateConnection(m_slaveConnectionString);
@@ -250,8 +256,6 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    m_readWriteLock.ExitReadLock();
-
                     if (sqlSugarClient != null)
                         sqlSugarClient.Dispose();
                 }
@@ -259,13 +263,12 @@ namespace Common.DAL
 
             public T Get(long id)
             {
-                m_readWriteLock.EnterReadLock();
-
+                Apply<T>(out bool inTransaction);
                 SqlSugarClient sqlSugarClient = null;
 
                 try
                 {
-                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (inTransaction)
                         sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
                         sqlSugarClient = CreateConnection(m_slaveConnectionString);
@@ -274,8 +277,6 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    m_readWriteLock.ExitReadLock();
-
                     if (sqlSugarClient != null)
                         sqlSugarClient.Dispose();
                 }
@@ -286,13 +287,12 @@ namespace Common.DAL
                                          int startIndex = 0,
                                          int count = int.MaxValue)
             {
-                m_readWriteLock.EnterReadLock();
-
+                Apply<T>(out bool inTransaction);
                 SqlSugarClient sqlSugarClient = null;
 
                 try
                 {
-                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (inTransaction)
                         sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
                         sqlSugarClient = CreateConnection(m_slaveConnectionString);
@@ -310,8 +310,6 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    m_readWriteLock.ExitReadLock();
-
                     if (sqlSugarClient != null)
                         sqlSugarClient.Dispose();
                 }
@@ -324,13 +322,13 @@ namespace Common.DAL
                                                                              int count = int.MaxValue)
                 where TJoinTable : class, IEntity, new()
             {
-                m_readWriteLock.EnterReadLock();
-
+                Apply<T>(out bool inTransaction);
+                Apply<TJoinTable>(out bool _);
                 SqlSugarClient sqlSugarClient = null;
 
                 try
                 {
-                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (inTransaction)
                         sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
                         sqlSugarClient = CreateConnection(m_slaveConnectionString);
@@ -350,8 +348,6 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    m_readWriteLock.ExitReadLock();
-
                     if (sqlSugarClient != null)
                         sqlSugarClient.Dispose();
                 }
@@ -361,13 +357,13 @@ namespace Common.DAL
                                          Expression<Func<T, TJoinTable, bool>> predicate = null)
                 where TJoinTable : class, IEntity, new()
             {
-                m_readWriteLock.EnterReadLock();
-
+                Apply<T>(out bool inTransaction);
+                Apply<TJoinTable>(out bool _);
                 SqlSugarClient sqlSugarClient = null;
 
                 try
                 {
-                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (inTransaction)
                         sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
                         sqlSugarClient = CreateConnection(m_slaveConnectionString);
@@ -381,8 +377,6 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    m_readWriteLock.ExitReadLock();
-
                     if (sqlSugarClient != null)
                         sqlSugarClient.Dispose();
                 }
@@ -390,13 +384,12 @@ namespace Common.DAL
 
             public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
             {
-                m_readWriteLock.EnterReadLock();
-
+                Apply<T>(out bool inTransaction);
                 SqlSugarClient sqlSugarClient = null;
 
                 try
                 {
-                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    if (inTransaction)
                         sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                     else
                         sqlSugarClient = CreateConnection(m_slaveConnectionString);
@@ -415,8 +408,37 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    m_readWriteLock.ExitReadLock();
+                    if (sqlSugarClient != null)
+                        sqlSugarClient.Dispose();
+                }
+            }
 
+            public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
+            {
+                Apply<T>(out bool inTransaction);
+                SqlSugarClient sqlSugarClient = null;
+
+                try
+                {
+                    if (inTransaction)
+                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
+                    else
+                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    IEnumerable<IDictionary<string, object>> datas = sqlSugarClient.Ado.SqlQuery<ExpandoObject>(sql, parameters);
+
+                    foreach (IDictionary<string, object> data in datas)
+                    {
+                        IDictionary<string, object> result = new Dictionary<string, object>();
+
+                        foreach (KeyValuePair<string, object> item in data)
+                            result.Add(item.Key.ToUpper(), item.Value);
+
+                        yield return result;
+                    }
+                }
+                finally
+                {
                     if (sqlSugarClient != null)
                         sqlSugarClient.Dispose();
                 }
@@ -439,51 +461,13 @@ namespace Common.DAL
 
             public ITransaction BeginTransaction()
             {
-                try
-                {
-                    m_readWriteLock.EnterWriteLock();
-                    m_dicThread.Add(Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.ManagedThreadId); //获取当前开启事物的线程ID
-                }
-                finally
-                {
-                    m_readWriteLock.ExitWriteLock();
-                }
+                int id = Thread.CurrentThread.ManagedThreadId;
 
-                return new SqlSugerTranscation();
-            }
+                lock (m_transactions)
+                    if (!m_transactions.ContainsKey(id))
+                        m_transactions.Add(id, new SqlSugerTranscation());
 
-            public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
-            {
-                m_readWriteLock.EnterReadLock();
-
-                SqlSugarClient sqlSugarClient = null;
-
-                try
-                {
-                    if (m_dicThread.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                    else
-                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
-
-                    IEnumerable<IDictionary<string, object>> datas = sqlSugarClient.Ado.SqlQuery<ExpandoObject>(sql, parameters);
-
-                    foreach (IDictionary<string, object> data in datas)
-                    {
-                        IDictionary<string, object> result = new Dictionary<string, object>();
-
-                        foreach (KeyValuePair<string, object> item in data)
-                            result.Add(item.Key.ToUpper(), item.Value);
-
-                        yield return result;
-                    }
-                }
-                finally
-                {
-                    m_readWriteLock.ExitReadLock();
-
-                    if (sqlSugarClient != null)
-                        sqlSugarClient.Dispose();
-                }
+                return m_transactions[id];
             }
         }
 
@@ -509,8 +493,15 @@ namespace Common.DAL
 
             public void Dispose()
             {
-                m_dicThread.Remove(Thread.CurrentThread.ManagedThreadId);
                 m_sqlSugarClient.Dispose();
+
+                int id = Thread.CurrentThread.ManagedThreadId;
+
+                lock (m_transactions)
+                    m_transactions.Remove(id);
+
+                foreach (Type transactionTable in TransactionTables)
+                    Release(transactionTable);
             }
 
             public void Rollback()

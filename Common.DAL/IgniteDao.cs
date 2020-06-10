@@ -22,7 +22,7 @@ namespace Common.DAL
         private readonly static IIgnite m_ignite;
         private readonly static IDictionary<int, IgniteITransaction> m_transactions;
 
-        private static void Applay<TResource>() where TResource : class, IEntity
+        private static void Apply<TResource>() where TResource : class, IEntity
         {
             int id = Thread.CurrentThread.ManagedThreadId;
             IgniteITransaction igniteITransaction = null;
@@ -262,7 +262,7 @@ namespace Common.DAL
 
             public int Count(Expression<Func<T, bool>> predicate = null)
             {
-                Applay<T>();
+                Apply<T>();
 
                 if (predicate != null)
                     return m_cache.AsCacheQueryable().Count(ConvertExpression(predicate));
@@ -272,7 +272,7 @@ namespace Common.DAL
 
             public int Count(string queryWhere, Dictionary<string, object> parameters = null)
             {
-                Applay<T>();
+                Apply<T>();
 
                 object[] args = new object[parameters?.Count ?? 0];
                 int index = 0;
@@ -301,13 +301,13 @@ namespace Common.DAL
 
             public void Delete(params long[] ids)
             {
-                Applay<T>();
+                Apply<T>();
                 m_cache.RemoveAll(ids);
             }
 
             public T Get(long id)
             {
-                Applay<T>();
+                Apply<T>();
 
                 if (m_cache.TryGet(id, out T data))
                     return data;
@@ -317,13 +317,13 @@ namespace Common.DAL
 
             public void Insert(params T[] datas)
             {
-                Applay<T>();
+                Apply<T>();
                 m_cache.PutAll(datas.Select(data => new KeyValuePair<long, T>(data.ID, data)));
             }
 
             public void Merge(params T[] datas)
             {
-                Applay<T>();
+                Apply<T>();
 
                 for (int i = 0; i < datas.Length; i++)
                     m_cache.Put(datas[i].ID, datas[i]);
@@ -334,7 +334,7 @@ namespace Common.DAL
                                          int startIndex = 0,
                                          int count = int.MaxValue)
             {
-                Applay<T>();
+                Apply<T>();
 
                 IQueryable<ICacheEntry<long, T>> query = m_cache.AsCacheQueryable();
 
@@ -364,7 +364,7 @@ namespace Common.DAL
 
             public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
             {
-                Applay<T>();
+                Apply<T>();
 
                 object[] args = new object[parameters?.Count ?? 0];
                 int index = 0;
@@ -400,7 +400,7 @@ namespace Common.DAL
 
             public void Update(T data, params string[] ignoreColumns)
             {
-                Applay<T>();
+                Apply<T>();
 
                 T oldData = m_cache.Get(data.ID);
 
@@ -425,7 +425,7 @@ namespace Common.DAL
 
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
             {
-                Applay<T>();
+                Apply<T>();
 
                 Func<T, bool> updateHandler = updateExpression.ReplaceAssign().Compile();
 
@@ -443,8 +443,8 @@ namespace Common.DAL
                                                                              int count = int.MaxValue)
                 where TJoinTable : class, IEntity, new()
             {
-                Applay<T>();
-                Applay<TJoinTable>();
+                Apply<T>();
+                Apply<TJoinTable>();
 
                 return new IgniteJoinQuery<T, TJoinTable>().Search(m_cache.AsCacheQueryable(),
                                                                    m_cache.Ignite.GetOrCreateCache<long, TJoinTable>(IgniteDaoInstance<TJoinTable>.CacheConfiguration).AsCacheQueryable(),
@@ -460,8 +460,8 @@ namespace Common.DAL
                                          Expression<Func<T, TJoinTable, bool>> predicate = null)
                 where TJoinTable : class, IEntity, new()
             {
-                Applay<T>();
-                Applay<TJoinTable>();
+                Apply<T>();
+                Apply<TJoinTable>();
 
                 return new IgniteJoinQuery<T, TJoinTable>().Count(m_cache.AsCacheQueryable(),
                                                                   m_cache.Ignite.GetOrCreateCache<long, TJoinTable>(IgniteDaoInstance<TJoinTable>.CacheConfiguration).AsCacheQueryable(),
@@ -472,7 +472,7 @@ namespace Common.DAL
 
             public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
             {
-                Applay<T>();
+                Apply<T>();
 
                 SqlFieldsQuery sqlFieldsQuery;
 

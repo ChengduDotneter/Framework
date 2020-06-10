@@ -15,16 +15,13 @@ namespace Common.DAL.Transaction
 
         public static async Task<bool> ApplayResourceAsync(Type table, int timeOut = DEFAULT_TIME_OUT)
         {
-            return await Task.Factory.StartNew(() =>
-            {
-                string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{Thread.CurrentThread.ManagedThreadId}/{timeOut}";
-                HttpWebResponseResult httpWebResponseResult = HttpWebRequestHelper.JsonGet(url);
+            string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{Thread.CurrentThread.ManagedThreadId}/{timeOut}";
+            HttpWebResponseResult httpWebResponseResult = await HttpWebRequestHelper.JsonGetAsync(url);
 
-                if (httpWebResponseResult.HttpStatus != System.Net.HttpStatusCode.OK)
-                    throw new DealException($"申请事务资源{table.FullName}失败。");
+            if (httpWebResponseResult.HttpStatus != System.Net.HttpStatusCode.OK)
+                throw new DealException($"申请事务资源{table.FullName}失败。");
 
-                return Convert.ToBoolean(httpWebResponseResult.DataString);
-            });
+            return Convert.ToBoolean(httpWebResponseResult.DataString);
         }
 
         public static void ReleaseResource(Type table)
@@ -34,14 +31,11 @@ namespace Common.DAL.Transaction
 
         public static async Task ReleaseResourceAsync(Type table)
         {
-            await Task.Factory.StartNew(() =>
-            {
-                string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{Thread.CurrentThread.ManagedThreadId}";
-                HttpWebResponseResult httpWebResponseResult = HttpWebRequestHelper.JsonDelete(url);
+            string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{Thread.CurrentThread.ManagedThreadId}";
+            HttpWebResponseResult httpWebResponseResult = await HttpWebRequestHelper.JsonDeleteAsync(url);
 
-                if (httpWebResponseResult.HttpStatus != System.Net.HttpStatusCode.OK)
-                    throw new DealException($"释放事务资源{table.FullName}失败。");
-            });
+            if (httpWebResponseResult.HttpStatus != System.Net.HttpStatusCode.OK)
+                throw new DealException($"释放事务资源{table.FullName}失败。");
         }
     }
 }
