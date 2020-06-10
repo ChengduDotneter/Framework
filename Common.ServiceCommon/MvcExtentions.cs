@@ -1,13 +1,17 @@
-﻿using Common.DAL;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Net;
+using System.Text;
+using Common.DAL;
 using Common.MessageQueueClient;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
+using Orleans.Configuration;
+using Orleans.Hosting;
+using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 
 namespace Common.ServiceCommon
 {
@@ -152,6 +156,27 @@ namespace Common.ServiceCommon
 
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
+        }
+
+        public static void UseOrleans(this IHostBuilder hostBuilder)
+        {
+            hostBuilder.ConfigureServices(services =>
+            {
+                services.AddControllers();
+            })
+            .UseOrleans(siloBuilder =>
+            {
+                siloBuilder.UseLocalhostClustering()
+                 .Configure<ClusterOptions>(opts =>
+                 {
+                     opts.ClusterId = "ResourceManager";
+                     opts.ServiceId = "ResourceManager";
+                 })
+                 .Configure<EndpointOptions>(opts =>
+                 {
+                     opts.AdvertisedIPAddress = IPAddress.Loopback;
+                 });
+            }).RunConsoleAsync();
         }
     }
 }
