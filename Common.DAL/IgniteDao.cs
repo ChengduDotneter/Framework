@@ -1,4 +1,10 @@
-﻿using Apache.Ignite.Core;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading;
+using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Cache;
 using Apache.Ignite.Core.Cache.Configuration;
@@ -7,25 +13,61 @@ using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Apache.Ignite.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
+using Common.DAL.Transaction;
 
 namespace Common.DAL
 {
     internal static class IgniteDao
     {
         private readonly static IIgnite m_ignite;
+        private readonly static IDictionary<int, IgniteITransaction> m_transactions;
+
+        private static void Applay<TResource>() where TResource : class, IEntity
+        {
+            int id = Thread.CurrentThread.ManagedThreadId;
+            IgniteITransaction igniteITransaction = null;
+
+            lock (m_transactions)
+                if (m_transactions.ContainsKey(id))
+                    igniteITransaction = m_transactions[id];
+
+            if (igniteITransaction != null)
+            {
+                Type table = typeof(TResource);
+
+                if (!igniteITransaction.TransactionTables.Contains(table))
+                {
+                    if (TransactionResourceHelper.ApplayResource(table))
+                        igniteITransaction.TransactionTables.Add(table);
+                    else
+                        throw new DealException($"申请事务资源{table.FullName}失败。");
+                }
+            }
+        }
+
+        private static async void Release(Type table)
+        {
+            int id = Thread.CurrentThread.ManagedThreadId;
+            IgniteITransaction igniteITransaction = null;
+
+            lock (m_transactions)
+                if (m_transactions.ContainsKey(id))
+                    igniteITransaction = m_transactions[id];
+
+            if (igniteITransaction != null)
+                await TransactionResourceHelper.ReleaseResourceAsync(table);
+        }
 
         private class IgniteITransaction : ITransaction
         {
             private Apache.Ignite.Core.Transactions.ITransaction m_transaction;
 
+            public HashSet<Type> TransactionTables { get; }
+
             public IgniteITransaction(IIgnite ignite)
             {
                 m_transaction = ignite.GetTransactions().TxStart();
+                TransactionTables = new HashSet<Type>();
             }
 
             public object Context()
@@ -36,6 +78,14 @@ namespace Common.DAL
             public void Dispose()
             {
                 m_transaction.Dispose();
+
+                int id = Thread.CurrentThread.ManagedThreadId;
+
+                lock (m_transactions)
+                    m_transactions.Remove(id);
+
+                foreach (Type transactionTable in TransactionTables)
+                    Release(transactionTable);
             }
 
             public void Rollback()
@@ -159,7 +209,7 @@ namespace Common.DAL
                                         query, orderBy).Compile();
             }
 
-            private static Type GetResultType(ICacheEntry<long, TTable> left = null, ICacheEntry<long, TJoinTable> right = null)
+            static Type GetResultType(ICacheEntry<long, TTable> left = null, ICacheEntry<long, TJoinTable> right = null)
             {
                 return new { left, right }.GetType();
             }
@@ -201,11 +251,19 @@ namespace Common.DAL
 
             public ITransaction BeginTransaction()
             {
-                return new IgniteITransaction(m_cache.Ignite);
+                int id = Thread.CurrentThread.ManagedThreadId;
+
+                lock (m_transactions)
+                    if (!m_transactions.ContainsKey(id))
+                        m_transactions.Add(id, new IgniteITransaction(m_cache.Ignite));
+
+                return m_transactions[id];
             }
 
             public int Count(Expression<Func<T, bool>> predicate = null)
             {
+                Applay<T>();
+
                 if (predicate != null)
                     return m_cache.AsCacheQueryable().Count(ConvertExpression(predicate));
                 else
@@ -214,6 +272,8 @@ namespace Common.DAL
 
             public int Count(string queryWhere, Dictionary<string, object> parameters = null)
             {
+                Applay<T>();
+
                 object[] args = new object[parameters?.Count ?? 0];
                 int index = 0;
 
@@ -226,7 +286,7 @@ namespace Common.DAL
                     }
                 }
 
-                SqlFieldsQuery sqlFieldsQuery = null;
+                SqlFieldsQuery sqlFieldsQuery;
 
                 if (args.Length > 0)
                     sqlFieldsQuery = new SqlFieldsQuery($"SELECT COUNT(*) FROM {typeof(T).Name} WHERE {queryWhere}", args);
@@ -241,11 +301,14 @@ namespace Common.DAL
 
             public void Delete(params long[] ids)
             {
+                Applay<T>();
                 m_cache.RemoveAll(ids);
             }
 
             public T Get(long id)
             {
+                Applay<T>();
+
                 if (m_cache.TryGet(id, out T data))
                     return data;
                 else
@@ -254,11 +317,14 @@ namespace Common.DAL
 
             public void Insert(params T[] datas)
             {
+                Applay<T>();
                 m_cache.PutAll(datas.Select(data => new KeyValuePair<long, T>(data.ID, data)));
             }
 
             public void Merge(params T[] datas)
             {
+                Applay<T>();
+
                 for (int i = 0; i < datas.Length; i++)
                     m_cache.Put(datas[i].ID, datas[i]);
             }
@@ -268,6 +334,8 @@ namespace Common.DAL
                                          int startIndex = 0,
                                          int count = int.MaxValue)
             {
+                Applay<T>();
+
                 IQueryable<ICacheEntry<long, T>> query = m_cache.AsCacheQueryable();
 
                 if (predicate != null)
@@ -296,6 +364,8 @@ namespace Common.DAL
 
             public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
             {
+                Applay<T>();
+
                 object[] args = new object[parameters?.Count ?? 0];
                 int index = 0;
 
@@ -330,6 +400,8 @@ namespace Common.DAL
 
             public void Update(T data, params string[] ignoreColumns)
             {
+                Applay<T>();
+
                 T oldData = m_cache.Get(data.ID);
 
                 if (oldData == null)
@@ -353,6 +425,8 @@ namespace Common.DAL
 
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
             {
+                Applay<T>();
+
                 Func<T, bool> updateHandler = updateExpression.ReplaceAssign().Compile();
 
                 foreach (ICacheEntry<long, T> entity in m_cache.AsCacheQueryable().Where(ConvertExpression(predicate)))
@@ -369,6 +443,9 @@ namespace Common.DAL
                                                                              int count = int.MaxValue)
                 where TJoinTable : class, IEntity, new()
             {
+                Applay<T>();
+                Applay<TJoinTable>();
+
                 return new IgniteJoinQuery<T, TJoinTable>().Search(m_cache.AsCacheQueryable(),
                                                                    m_cache.Ignite.GetOrCreateCache<long, TJoinTable>(IgniteDaoInstance<TJoinTable>.CacheConfiguration).AsCacheQueryable(),
                                                                    ConvertExpression(joinCondition.LeftJoinExpression),
@@ -383,11 +460,44 @@ namespace Common.DAL
                                          Expression<Func<T, TJoinTable, bool>> predicate = null)
                 where TJoinTable : class, IEntity, new()
             {
+                Applay<T>();
+                Applay<TJoinTable>();
+
                 return new IgniteJoinQuery<T, TJoinTable>().Count(m_cache.AsCacheQueryable(),
                                                                   m_cache.Ignite.GetOrCreateCache<long, TJoinTable>(IgniteDaoInstance<TJoinTable>.CacheConfiguration).AsCacheQueryable(),
                                                                   ConvertExpression(joinCondition.LeftJoinExpression),
                                                                   ConvertExpression(joinCondition.RightJoinExression),
                                                                   predicate);
+            }
+
+            public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
+            {
+                Applay<T>();
+
+                SqlFieldsQuery sqlFieldsQuery;
+
+                if (parameters == null || parameters.Count == 0)
+                    sqlFieldsQuery = new SqlFieldsQuery(sql);
+                else
+                    sqlFieldsQuery = new SqlFieldsQuery(PreperSql(sql, parameters), parameters.Values.ToArray());
+
+                OutpuSql(sqlFieldsQuery);
+
+                IFieldsQueryCursor fieldsQueryCursor = m_cache.Query(sqlFieldsQuery);
+
+                List<IDictionary<string, object>> datas = new List<IDictionary<string, object>>();
+
+                foreach (IList<object> row in fieldsQueryCursor)
+                {
+                    IDictionary<string, object> data = new Dictionary<string, object>();
+
+                    for (int i = 0; i < fieldsQueryCursor.FieldNames.Count; i++)
+                        data.Add(fieldsQueryCursor.FieldNames[i].ToUpper(), row[i]);
+
+                    datas.Add(data);
+                }
+
+                return datas;
             }
 
             private static T ConvertData(IFieldsQueryCursor fieldsQueryCursor, IList<object> row)
@@ -505,33 +615,6 @@ namespace Common.DAL
                     return propertyType;
             }
 
-            public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
-            {
-                SqlFieldsQuery sqlFieldsQuery;
-
-                if (parameters == null || parameters.Count == 0)
-                    sqlFieldsQuery = new SqlFieldsQuery(sql);
-                else
-                    sqlFieldsQuery = new SqlFieldsQuery(PreperSql(sql, parameters), parameters.Values.ToArray());
-
-                OutpuSql(sqlFieldsQuery);
-
-                IFieldsQueryCursor fieldsQueryCursor = m_cache.Query(sqlFieldsQuery);
-
-                List<IDictionary<string, object>> datas = new List<IDictionary<string, object>>();
-
-                foreach (IList<object> row in fieldsQueryCursor)
-                {
-                    IDictionary<string, object> data = new Dictionary<string, object>();
-
-                    for (int i = 0; i < fieldsQueryCursor.FieldNames.Count; i++)
-                        data.Add(fieldsQueryCursor.FieldNames[i].ToUpper(), row[i]);
-
-                    datas.Add(data);
-                }
-                return datas;
-            }
-
             public IgniteDaoInstance(IIgnite ignite)
             {
                 m_cache = ignite.GetOrCreateCache<long, T>(CacheConfiguration);
@@ -571,6 +654,7 @@ namespace Common.DAL
 
         static IgniteDao()
         {
+            m_transactions = new Dictionary<int, IgniteITransaction>();
             IList<BinaryTypeConfiguration> binaryTypeConfigurations = new List<BinaryTypeConfiguration>();
 
             Type[] modelTypes = TypeReflector.ReflectType((type) =>
@@ -638,3 +722,4 @@ namespace Common.DAL
         }
     }
 }
+

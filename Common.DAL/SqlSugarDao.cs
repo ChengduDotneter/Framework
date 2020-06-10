@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using Common.DAL.Transaction;
+using log4net;
 using Microsoft.Extensions.Configuration;
 using SqlSugar;
 using System;
@@ -16,11 +17,10 @@ namespace Common.DAL
         private static readonly string m_masterConnectionString;
         private static readonly string m_slaveConnectionString;
         private static readonly object m_lockThis;
+        private static readonly IDictionary<int, SqlSugerTranscation> m_transactions;
         private static readonly ILog m_log;
         private static bool m_initTables;
         private static DbType m_dbType;
-        private static readonly Dictionary<int, int> m_dicThread;
-        private static readonly ReaderWriterLockSlim m_readWriteLock;
 
         static SqlSugarDao()
         {
@@ -29,8 +29,7 @@ namespace Common.DAL
             m_log = LogHelper.CreateLog("sql", "error");
             m_masterConnectionString = ConfigManager.Configuration.GetConnectionString("MasterConnection");
             m_slaveConnectionString = ConfigManager.Configuration.GetConnectionString("SalveConnection");
-            m_dicThread = new Dictionary<int, int>();
-            m_readWriteLock = new ReaderWriterLockSlim();
+            m_transactions = new Dictionary<int, SqlSugerTranscation>();
         }
 
         private static SqlSugarClient CreateConnection(string connectionString, bool isShadSanmeThread = false)
@@ -89,6 +88,42 @@ namespace Common.DAL
             }
         }
 
+        private static void Applay<TResource>() where TResource : class, IEntity
+        {
+            int id = Thread.CurrentThread.ManagedThreadId;
+            SqlSugerTranscation sqlSugerTranscation = null;
+
+            lock (m_transactions)
+                if (m_transactions.ContainsKey(id))
+                    sqlSugerTranscation = m_transactions[id];
+
+            if (sqlSugerTranscation != null)
+            {
+                Type table = typeof(TResource);
+
+                if (!sqlSugerTranscation.TransactionTables.Contains(table))
+                {
+                    if (TransactionResourceHelper.ApplayResource(table))
+                        sqlSugerTranscation.TransactionTables.Add(table);
+                    else
+                        throw new DealException($"申请事务资源{table.FullName}失败。");
+                }
+            }
+        }
+
+        private static async void Release(Type table)
+        {
+            int id = Thread.CurrentThread.ManagedThreadId;
+            SqlSugerTranscation sqlSugerTranscation = null;
+
+            lock (m_transactions)
+                if (m_transactions.ContainsKey(id))
+                    sqlSugerTranscation = m_transactions[id];
+
+            if (sqlSugerTranscation != null)
+                await TransactionResourceHelper.ReleaseResourceAsync(table);
+        }
+
         private static class SqlSugarJoinQuery<TLeft, TRight>
             where TLeft : class, IEntity, new()
             where TRight : class, IEntity, new()
@@ -122,6 +157,8 @@ namespace Common.DAL
         {
             public void Delete(params long[] ids)
             {
+                Applay<T>();
+
                 if (ids.Length == 0)
                     return;
 
@@ -456,8 +493,11 @@ namespace Common.DAL
         {
             private SqlSugarClient m_sqlSugarClient;
 
+            public HashSet<Type> TransactionTables { get; }
+
             public SqlSugerTranscation()
             {
+                TransactionTables = new HashSet<Type>();
                 m_sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                 m_sqlSugarClient.BeginTran();
             }
@@ -470,7 +510,6 @@ namespace Common.DAL
             public void Dispose()
             {
                 m_dicThread.Remove(Thread.CurrentThread.ManagedThreadId);
-
                 m_sqlSugarClient.Dispose();
             }
 
