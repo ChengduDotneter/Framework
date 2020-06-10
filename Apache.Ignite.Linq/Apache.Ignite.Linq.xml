@@ -6,47 +6,47 @@
     <members>
         <member name="T:Apache.Ignite.Linq.CacheClientLinqExtensions">
             <summary>
-            Extensions methods for <see cref="T:Apache.Ignite.Core.Client.Cache.ICacheClient`2" />.
+            Extensions methods for <see cref="T:Apache.Ignite.Core.Client.Cache.ICacheClient`2"/>.
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.CacheClientLinqExtensions.AsCacheQueryable``2(Apache.Ignite.Core.Client.Cache.ICacheClient{``0,``1})">
             <summary>
-            Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
+            Gets an <see cref="T:System.Linq.IQueryable`1"/> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)" />.
+            via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
-            Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" />
-            for introspection, or converted with <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.ToCacheQueryable``1(System.Linq.IQueryable{``0})" />
+            Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/>
+            for introspection, or converted with <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.ToCacheQueryable``1(System.Linq.IQueryable{``0})"/>
             extension method.
             </summary>
             <typeparam name="TKey">The type of the key.</typeparam>
             <typeparam name="TValue">The type of the value.</typeparam>
             <param name="cache">The cache.</param>
-            <returns><see cref="T:System.Linq.IQueryable`1" /> instance over this cache.</returns>
+            <returns><see cref="T:System.Linq.IQueryable`1"/> instance over this cache.</returns>
         </member>
         <member name="M:Apache.Ignite.Linq.CacheClientLinqExtensions.AsCacheQueryable``2(Apache.Ignite.Core.Client.Cache.ICacheClient{``0,``1},System.Boolean)">
             <summary>
-            Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
+            Gets an <see cref="T:System.Linq.IQueryable`1"/> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)" />.
+            via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
-            Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
+            Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/> for introspection.
             </summary>
             <typeparam name="TKey">The type of the key.</typeparam>
             <typeparam name="TValue">The type of the value.</typeparam>
             <param name="cache">The cache.</param>
             <param name="local">Local flag. When set query will be executed only on local node, so only local
             entries will be returned as query result.</param>
-            <returns><see cref="T:System.Linq.IQueryable`1" /> instance over this cache.</returns>
+            <returns><see cref="T:System.Linq.IQueryable`1"/> instance over this cache.</returns>
         </member>
         <member name="M:Apache.Ignite.Linq.CacheClientLinqExtensions.AsCacheQueryable``2(Apache.Ignite.Core.Client.Cache.ICacheClient{``0,``1},System.Boolean,System.String)">
             <summary>
             Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)" />.
+            via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
             </summary>
@@ -59,7 +59,7 @@
             Name of the table.
             <para />
             Table name is equal to short class name of a cache value.
-            When a cache has only one type of values, or only one <see cref="T:Apache.Ignite.Core.Cache.Configuration.QueryEntity" /> defined,
+            When a cache has only one type of values, or only one <see cref="T:Apache.Ignite.Core.Cache.Configuration.QueryEntity"/> defined,
             table name will be inferred and can be omitted.
             </param>
             <returns><see cref="T:System.Linq.IQueryable`1" /> instance over this cache.</returns>
@@ -69,7 +69,7 @@
             Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)" />.
+            via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
             </summary>
@@ -83,47 +83,47 @@
         </member>
         <member name="T:Apache.Ignite.Linq.CacheLinqExtensions">
             <summary>
-            Extensions methods for <see cref="T:Apache.Ignite.Core.Cache.ICache`2" />.
+            Extensions methods for <see cref="T:Apache.Ignite.Core.Cache.ICache`2"/>.
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.CacheLinqExtensions.AsCacheQueryable``2(Apache.Ignite.Core.Cache.ICache{``0,``1})">
             <summary>
-            Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
+            Gets an <see cref="T:System.Linq.IQueryable`1"/> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)" />.
+            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
-            Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" />
-            for introspection, or converted with <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.ToCacheQueryable``1(System.Linq.IQueryable{``0})" /> extension method.
+            Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/>
+            for introspection, or converted with <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.ToCacheQueryable``1(System.Linq.IQueryable{``0})"/> extension method.
             </summary>
             <typeparam name="TKey">The type of the key.</typeparam>
             <typeparam name="TValue">The type of the value.</typeparam>
             <param name="cache">The cache.</param>
-            <returns><see cref="T:System.Linq.IQueryable`1" /> instance over this cache.</returns>
+            <returns><see cref="T:System.Linq.IQueryable`1"/> instance over this cache.</returns>
         </member>
         <member name="M:Apache.Ignite.Linq.CacheLinqExtensions.AsCacheQueryable``2(Apache.Ignite.Core.Cache.ICache{``0,``1},System.Boolean)">
             <summary>
-            Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
+            Gets an <see cref="T:System.Linq.IQueryable`1"/> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)" />.
+            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             depending on requested result.
             <para />
-            Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
+            Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/> for introspection.
             </summary>
             <typeparam name="TKey">The type of the key.</typeparam>
             <typeparam name="TValue">The type of the value.</typeparam>
             <param name="cache">The cache.</param>
             <param name="local">Local flag. When set query will be executed only on local node, so only local
             entries will be returned as query result.</param>
-            <returns><see cref="T:System.Linq.IQueryable`1" /> instance over this cache.</returns>
+            <returns><see cref="T:System.Linq.IQueryable`1"/> instance over this cache.</returns>
         </member>
         <member name="M:Apache.Ignite.Linq.CacheLinqExtensions.AsCacheQueryable``2(Apache.Ignite.Core.Cache.ICache{``0,``1},System.Boolean,System.String)">
             <summary>
             Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)" />.
+            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             depending on requested result.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
@@ -137,7 +137,7 @@
             Name of the table.
             <para />
             Table name is equal to short class name of a cache value.
-            When a cache has only one type of values, or only one <see cref="T:Apache.Ignite.Core.Cache.Configuration.QueryEntity" /> defined,
+            When a cache has only one type of values, or only one <see cref="T:Apache.Ignite.Core.Cache.Configuration.QueryEntity"/> defined,
             table name will be inferred and can be omitted.
             </param>
             <returns><see cref="T:System.Linq.IQueryable`1" /> instance over this cache.</returns>
@@ -147,7 +147,7 @@
             Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)" />.
+            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             depending on requested result.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
@@ -162,7 +162,7 @@
         </member>
         <member name="M:Apache.Ignite.Linq.CacheLinqExtensions.ToCacheQueryable``1(System.Linq.IQueryable{``0})">
             <summary>
-            Casts this query to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" />.
+            Casts this query to <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/>.
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.CacheLinqExtensions.RemoveAll``2(System.Linq.IQueryable{Apache.Ignite.Core.Cache.ICacheEntry{``0,``1}})">
@@ -229,7 +229,7 @@
             <summary>
             Creates a new delegate that represents the compiled cache query with any number of arguments.
             <para />
-            This method differs from other Compile methods in that it takes in <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> directly,
+            This method differs from other Compile methods in that it takes in <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/> directly,
             and returns a delegate that takes an array of parameters.
             It is up to the user to provide query arguments in correct order.
             <para />
@@ -339,14 +339,19 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.AliasDictionary._tableAliasIndex">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.AliasDictionary._tableAliases">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.AliasDictionary._fieldAliasIndex">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.AliasDictionary._fieldAliases">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.AliasDictionary._stack">
+            
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.AliasDictionary.Push(System.Boolean)">
             <summary>
@@ -401,12 +406,12 @@
         </member>
         <member name="T:Apache.Ignite.Linq.Impl.CacheFieldsQueryable`1">
             <summary>
-            Fields <see cref="T:System.Linq.IQueryable`1" /> implementation for <see cref="T:Apache.Ignite.Core.Cache.ICache`2" />.
+            Fields <see cref="T:System.Linq.IQueryable`1"/> implementation for <see cref="T:Apache.Ignite.Core.Cache.ICache`2"/>.
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryable`1.#ctor(System.Linq.IQueryProvider,System.Linq.Expressions.Expression)">
             <summary>
-            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.Impl.CacheQueryable`2" /> class.
+            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.Impl.CacheQueryable`2"/> class.
             </summary>
             <param name="provider">The provider used to execute the query represented by this queryable
             and to construct new queries.</param>
@@ -418,10 +423,13 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor._cache">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor._options">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor.CtorCache">
+            
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor.#ctor(Apache.Ignite.Core.Impl.Cache.ICacheInternal,Apache.Ignite.Linq.QueryOptions)">
             <summary>
@@ -431,13 +439,13 @@
             <param name="options">Query options.</param>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor.ExecuteScalar``1(Remotion.Linq.QueryModel)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor.ExecuteSingle``1(Remotion.Linq.QueryModel,System.Boolean)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor.ExecuteCollection``1(Remotion.Linq.QueryModel)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor.CompileQuery``1(Remotion.Linq.QueryModel)">
             <summary>
@@ -466,7 +474,7 @@
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor.GetQueryData(Remotion.Linq.QueryModel)">
             <summary>
-            Generates <see cref="T:Apache.Ignite.Linq.Impl.QueryData" /> from specified <see cref="T:Remotion.Linq.QueryModel" />.
+            Generates <see cref="T:Apache.Ignite.Linq.Impl.QueryData"/> from specified <see cref="T:Remotion.Linq.QueryModel"/>.
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor.GetResultSelector``1(System.Linq.Expressions.Expression)">
@@ -495,20 +503,26 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider.GenericCreateQueryMethod">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider._parser">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider._executor">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider._ignite">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider._cacheConfiguration">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider._tableName">
+            
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider.#ctor(Remotion.Linq.Parsing.Structure.IQueryParser,Apache.Ignite.Linq.Impl.CacheFieldsQueryExecutor,Apache.Ignite.Core.IIgnite,Apache.Ignite.Core.Cache.Configuration.CacheConfiguration,System.String,System.Type)">
             <summary>
-            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider" /> class.
+            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider"/> class.
             </summary>
         </member>
         <member name="P:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider.Ignite">
@@ -537,16 +551,16 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider.CreateQuery(System.Linq.Expressions.Expression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider.CreateQuery``1(System.Linq.Expressions.Expression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider.System#Linq#IQueryProvider#Execute(System.Linq.Expressions.Expression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider.Execute``1(System.Linq.Expressions.Expression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheFieldsQueryProvider.Execute(System.Linq.Expressions.Expression)">
             <summary>
@@ -586,7 +600,7 @@
         </member>
         <member name="T:Apache.Ignite.Linq.Impl.CacheQueryable`2">
             <summary>
-            <see cref="T:System.Linq.IQueryable`1" /> implementation for <see cref="T:Apache.Ignite.Core.Cache.ICache`2" />.
+            <see cref="T:System.Linq.IQueryable`1"/> implementation for <see cref="T:Apache.Ignite.Core.Cache.ICache`2"/>.
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryable`2.#ctor(Apache.Ignite.Core.Impl.Cache.ICacheInternal,Apache.Ignite.Linq.QueryOptions,Apache.Ignite.Core.IIgnite)">
@@ -603,34 +617,34 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.#ctor(System.Linq.IQueryProvider)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.#ctor(System.Linq.IQueryProvider,System.Linq.Expressions.Expression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="P:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.CacheConfiguration">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="P:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.CacheName">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="P:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.Ignite">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.GetFieldsQuery">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.GetQueryModel">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="P:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.TableName">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.CompileQuery``1(System.Linq.Expressions.LambdaExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.CompileQuery``1">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="P:Apache.Ignite.Linq.Impl.CacheQueryableBase`1.CacheQueryProvider">
             <summary>
@@ -657,14 +671,19 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor._useStar">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor._modelVisitor">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.FieldNameMap">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor._includeAllFields">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor._visitEntireSubQueryModel">
+            
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.#ctor(Apache.Ignite.Linq.Impl.CacheQueryModelVisitor,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
@@ -700,7 +719,7 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitUnary(System.Linq.Expressions.UnaryExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitBinaryFunc(System.Linq.Expressions.BinaryExpression)">
             <summary>
@@ -710,16 +729,16 @@
             <returns>True if function detected, otherwise false.</returns>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitBinary(System.Linq.Expressions.BinaryExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.Visit(System.Linq.Expressions.Expression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitQuerySourceReference(Remotion.Linq.Clauses.Expressions.QuerySourceReferenceExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitMember(System.Linq.Expressions.MemberExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.GetEscapedFieldName(System.Linq.Expressions.MemberExpression,Apache.Ignite.Linq.Impl.ICacheQueryableInternal)">
             <summary>
@@ -747,7 +766,7 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitConstant(System.Linq.Expressions.ConstantExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.AppendParameter(System.Object)">
             <summary>
@@ -755,19 +774,19 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitMethodCall(System.Linq.Expressions.MethodCallExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitNew(System.Linq.Expressions.NewExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitInvocation(System.Linq.Expressions.InvocationExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitConditional(System.Linq.Expressions.ConditionalExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitSubQuery(Remotion.Linq.Clauses.Expressions.SubQueryExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitContains(Remotion.Linq.QueryModel,Remotion.Linq.Clauses.ResultOperators.ContainsResultOperator)">
             <summary>
@@ -780,7 +799,7 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.CreateUnhandledItemException``1(``0,System.String)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryExpressionVisitor.VisitArguments(System.Collections.Generic.IEnumerable{System.Linq.Expressions.Expression})">
             <summary>
@@ -794,12 +813,16 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor._builder">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor._parameters">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor._aliases">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.DefaultIfEmptyEnumeratorType">
+            
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.GenerateQuery(Remotion.Linq.QueryModel)">
             <summary>
@@ -822,7 +845,7 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitQueryModel(Remotion.Linq.QueryModel)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitQueryModel(Remotion.Linq.QueryModel,System.Boolean,System.Boolean)">
             <summary>
@@ -860,7 +883,7 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitBodyClauses(System.Collections.ObjectModel.ObservableCollection{Remotion.Linq.Clauses.IBodyClause},Remotion.Linq.QueryModel)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.ProcessGroupings(Remotion.Linq.QueryModel)">
             <summary>
@@ -868,7 +891,7 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitMainFromClause(Remotion.Linq.Clauses.MainFromClause,Remotion.Linq.QueryModel)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.ValidateFromClause(Remotion.Linq.Clauses.IFromClause)">
             <summary>
@@ -876,7 +899,7 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitWhereClause(Remotion.Linq.Clauses.WhereClause,Remotion.Linq.QueryModel,System.Int32)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitWhereClause(Remotion.Linq.Clauses.WhereClause,System.Int32,System.Boolean)">
             <summary>
@@ -884,13 +907,13 @@
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitOrderByClause(Remotion.Linq.Clauses.OrderByClause,Remotion.Linq.QueryModel,System.Int32)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitJoinClause(Remotion.Linq.Clauses.JoinClause,Remotion.Linq.QueryModel,System.Int32)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitAdditionalFromClause(Remotion.Linq.Clauses.AdditionalFromClause,Remotion.Linq.QueryModel,System.Int32)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.CacheQueryModelVisitor.VisitJoinWithLocalCollectionClause(Remotion.Linq.Clauses.JoinClause)">
             <summary>
@@ -929,6 +952,7 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.CacheQueryParser.ThreadLocalInstance">
+            
         </member>
         <member name="P:Apache.Ignite.Linq.Impl.CacheQueryParser.Instance">
             <summary>
@@ -972,12 +996,13 @@
         </member>
         <member name="T:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode">
             <summary>
-            Represents a <see cref="T:System.Linq.Expressions.MethodCallExpression" /> for
-            <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.RemoveAll``2(System.Linq.IQueryable{Apache.Ignite.Core.Cache.ICacheEntry{``0,``1}})" />.
+            Represents a <see cref="T:System.Linq.Expressions.MethodCallExpression"/> for
+            <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.RemoveAll``2(System.Linq.IQueryable{Apache.Ignite.Core.Cache.ICacheEntry{``0,``1}})"/>.
             When user calls RemoveAll, this node is generated.
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode.RemoveAllMethodInfos">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode.RemoveAllMethodInfo">
             <summary>
@@ -991,17 +1016,17 @@
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode.#ctor(Remotion.Linq.Parsing.Structure.IntermediateModel.MethodCallExpressionParseInfo,System.Linq.Expressions.LambdaExpression,System.Linq.Expressions.LambdaExpression)">
             <summary>
-            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode" /> class.
+            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode"/> class.
             </summary>
             <param name="parseInfo">The parse information.</param>
             <param name="optionalPredicate">The optional predicate.</param>
             <param name="optionalSelector">The optional selector.</param>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode.Resolve(System.Linq.Expressions.ParameterExpression,System.Linq.Expressions.Expression,Remotion.Linq.Parsing.Structure.IntermediateModel.ClauseGenerationContext)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode.CreateResultOperator(Remotion.Linq.Parsing.Structure.IntermediateModel.ClauseGenerationContext)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode.GetSupportedMethods">
             <summary>
@@ -1010,20 +1035,20 @@
         </member>
         <member name="T:Apache.Ignite.Linq.Impl.Dml.RemoveAllResultOperator">
             <summary>
-            Represents an operator for <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.RemoveAll``2(System.Linq.IQueryable{Apache.Ignite.Core.Cache.ICacheEntry{``0,``1}})" />.
+            Represents an operator for <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.RemoveAll``2(System.Linq.IQueryable{Apache.Ignite.Core.Cache.ICacheEntry{``0,``1}})"/>.
             </summary>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.RemoveAllResultOperator.GetOutputDataInfo(Remotion.Linq.Clauses.StreamedData.IStreamedDataInfo)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.RemoveAllResultOperator.Clone(Remotion.Linq.Clauses.CloneContext)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.RemoveAllResultOperator.TransformExpressions(System.Func{System.Linq.Expressions.Expression,System.Linq.Expressions.Expression})">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.RemoveAllResultOperator.ExecuteInMemory``1(Remotion.Linq.Clauses.StreamedData.StreamedSequence)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="T:Apache.Ignite.Linq.Impl.Dml.UpdateAllExpressionNode">
             <summary>
@@ -1045,10 +1070,10 @@
             <param name="updateDescription">Expression with update description info</param>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.UpdateAllExpressionNode.Resolve(System.Linq.Expressions.ParameterExpression,System.Linq.Expressions.Expression,Remotion.Linq.Parsing.Structure.IntermediateModel.ClauseGenerationContext)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.UpdateAllExpressionNode.CreateResultOperator(Remotion.Linq.Parsing.Structure.IntermediateModel.ClauseGenerationContext)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.UpdateAllExpressionNode.GetSupportedMethods">
             <summary>
@@ -1057,7 +1082,7 @@
         </member>
         <member name="T:Apache.Ignite.Linq.Impl.Dml.UpdateAllResultOperator">
             <summary>
-            Represents an operator for <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.UpdateAll``2(System.Linq.IQueryable{Apache.Ignite.Core.Cache.ICacheEntry{``0,``1}},System.Linq.Expressions.Expression{System.Func{Apache.Ignite.Linq.IUpdateDescriptor{``0,``1},Apache.Ignite.Linq.IUpdateDescriptor{``0,``1}}})" />.
+            Represents an operator for <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.UpdateAll``2(System.Linq.IQueryable{Apache.Ignite.Core.Cache.ICacheEntry{``0,``1}},System.Linq.Expressions.Expression{System.Func{Apache.Ignite.Linq.IUpdateDescriptor{``0,``1},Apache.Ignite.Linq.IUpdateDescriptor{``0,``1}}})"/>.
             </summary>
         </member>
         <member name="P:Apache.Ignite.Linq.Impl.Dml.UpdateAllResultOperator.Updates">
@@ -1072,16 +1097,16 @@
             <param name="updates">members updates</param>
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.UpdateAllResultOperator.GetOutputDataInfo(Remotion.Linq.Clauses.StreamedData.IStreamedDataInfo)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.UpdateAllResultOperator.Clone(Remotion.Linq.Clauses.CloneContext)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.UpdateAllResultOperator.TransformExpressions(System.Func{System.Linq.Expressions.Expression,System.Linq.Expressions.Expression})">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.Dml.UpdateAllResultOperator.ExecuteInMemory``1(Remotion.Linq.Clauses.StreamedData.StreamedSequence)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="T:Apache.Ignite.Linq.Impl.EnumerableHelper">
             <summary>
@@ -1099,10 +1124,10 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.ExpressionWalker.SqlQuote">
-            SQL quote
+            SQL quote 
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.ExpressionWalker.MemberReaders">
-            Compiled member readers.
+            Compiled member readers. 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.ExpressionWalker.GetCacheQueryable(Remotion.Linq.Clauses.IFromClause,System.Boolean)">
             <summary>
@@ -1196,16 +1221,19 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.JoinInnerSequenceParameterNotNullExpressionVisitor.JoinMethods">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.JoinInnerSequenceParameterNotNullExpressionVisitor.EnumerableType">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.JoinInnerSequenceParameterNotNullExpressionVisitor._inJoin">
+            
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.JoinInnerSequenceParameterNotNullExpressionVisitor.VisitMethodCall(System.Linq.Expressions.MethodCallExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.JoinInnerSequenceParameterNotNullExpressionVisitor.VisitParameter(System.Linq.Expressions.ParameterExpression)">
-            <inheritdoc />
+            <inheritdoc /> 
         </member>
         <member name="T:Apache.Ignite.Linq.Impl.MethodVisitor">
             <summary>
@@ -1307,12 +1335,14 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.QueryData._parameters">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.QueryData._queryText">
+            
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.QueryData.#ctor(System.String,System.Collections.Generic.ICollection{System.Object})">
             <summary>
-            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.Impl.QueryData" /> class.
+            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.Impl.QueryData"/> class.
             </summary>
             <param name="queryText">The query text.</param>
             <param name="parameters">The parameters.</param>
@@ -1341,8 +1371,10 @@
             </summary>
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.SqlTypes.NetToSql">
+            
         </member>
         <member name="F:Apache.Ignite.Linq.Impl.SqlTypes.NotSupportedTypes">
+            
         </member>
         <member name="M:Apache.Ignite.Linq.Impl.SqlTypes.GetSqlTypeName(System.Type)">
             <summary>
@@ -1386,7 +1418,7 @@
         </member>
         <member name="M:Apache.Ignite.Linq.QueryOptions.#ctor">
             <summary>
-            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.QueryOptions" /> class.
+            Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.QueryOptions"/> class.
             </summary>
         </member>
         <member name="P:Apache.Ignite.Linq.QueryOptions.Local">
@@ -1399,7 +1431,7 @@
         </member>
         <member name="P:Apache.Ignite.Linq.QueryOptions.PageSize">
             <summary>
-            Page size, defaults to <see cref="F:Apache.Ignite.Linq.QueryOptions.DefaultPageSize" />.
+            Page size, defaults to <see cref="F:Apache.Ignite.Linq.QueryOptions.DefaultPageSize"/>.
             </summary>
         </member>
         <member name="P:Apache.Ignite.Linq.QueryOptions.TableName">
@@ -1442,7 +1474,7 @@
         <member name="P:Apache.Ignite.Linq.QueryOptions.Timeout">
             <summary>
             Gets or sets the query timeout. Query will be automatically cancelled if the execution timeout is exceeded.
-            Default is <see cref="F:System.TimeSpan.Zero" />, which means no timeout.
+            Default is <see cref="F:System.TimeSpan.Zero"/>, which means no timeout.
             </summary>
         </member>
         <member name="P:Apache.Ignite.Linq.QueryOptions.ReplicatedOnly">

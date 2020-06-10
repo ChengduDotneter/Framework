@@ -121,6 +121,7 @@
         </member>
         <member name="M:Common.ServiceCommon.BatchGenericGetController`1.DoGet(System.Int64)">
              <summary>
+            
              </summary>
              <param name="id"></param>
              <returns></returns>
@@ -147,6 +148,7 @@
         </member>
         <member name="M:Common.ServiceCommon.GenericGetController`1.#ctor(Common.DAL.ISearchQuery{`0})">
              <summary>
+            
              </summary>
              <param name="searchQuery"></param>
         </member>
@@ -159,6 +161,7 @@
         </member>
         <member name="M:Common.ServiceCommon.GenericSearchController`2.#ctor(Common.DAL.ISearchQuery{`1})">
              <summary>
+            
              </summary>
              <param name="searchQuery"></param>
         </member>
@@ -317,6 +320,7 @@
         </member>
         <member name="M:Common.ServiceCommon.GenericSearchController`4.#ctor(Common.DAL.ISearchQuery{`3})">
              <summary>
+            
              </summary>
              <param name="searchQuery"></param>
         </member>
@@ -342,6 +346,7 @@
         </member>
         <member name="M:Common.ServiceCommon.GenericPostController`1.#ctor(Common.DAL.IEditQuery{`0},Common.ServiceCommon.ISSOUserService)">
              <summary>
+            
              </summary>
              <param name="editQuery"></param>
              <param name="ssoUserService"></param>
@@ -367,6 +372,7 @@
         </member>
         <member name="M:Common.ServiceCommon.GenericPutController`1.#ctor(Common.DAL.IEditQuery{`0},Common.DAL.ISearchQuery{`0},Common.ServiceCommon.ISSOUserService)">
              <summary>
+            
              </summary>
              <param name="editQuery"></param>
              <param name="searchQuery"></param>
@@ -393,6 +399,7 @@
         </member>
         <member name="M:Common.ServiceCommon.GenericDeleteController`1.#ctor(Common.DAL.IEditQuery{`0},Common.DAL.ISearchQuery{`0})">
              <summary>
+            
              </summary>
              <param name="editQuery"></param>
              <param name="searchQuery"></param>
@@ -750,8 +757,9 @@
             </summary>
         </member>
         <member name="M:Common.ServiceCommon.EnumTypeController.#ctor">
-            <summary>
-            </summary>
+             <summary>
+            
+             </summary>
         </member>
         <member name="M:Common.ServiceCommon.EnumTypeController.GetEnumItem(System.String,System.String)">
             <summary>
@@ -843,9 +851,10 @@
             </summary>
         </member>
         <member name="M:Common.ServiceCommon.LazyLoadedTreeController.#ctor(System.IServiceProvider)">
-            <summary>
-            </summary>
-            <param name="serviceProvider">IServiceProvider</param>
+             <summary>
+            
+             </summary>
+             <param name="serviceProvider">IServiceProvider</param>
         </member>
         <member name="M:Common.ServiceCommon.LazyLoadedTreeController.Get(System.String,System.String)">
             <summary>
@@ -868,10 +877,11 @@
             <param name="next"></param>
         </member>
         <member name="M:Common.ServiceCommon.LogMiddleware.Invoke(Microsoft.AspNetCore.Http.HttpContext)">
-            <summary>
-            </summary>
-            <param name="httpContext">HttpContext</param>
-            <returns></returns>
+             <summary>
+            
+             </summary>
+             <param name="httpContext">HttpContext</param>
+             <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.MicroServiceHelper">
             <summary>
@@ -978,8 +988,9 @@
             </summary>
         </member>
         <member name="M:Common.ServiceCommon.JArrayOutputFormatter.#ctor">
-            <summary>
-            </summary>
+             <summary>
+            
+             </summary>
         </member>
         <member name="M:Common.ServiceCommon.JArrayOutputFormatter.CanWriteType(System.Type)">
             <summary>
@@ -1009,8 +1020,9 @@
             </summary>
         </member>
         <member name="M:Common.ServiceCommon.JObjectOutputFormatter.#ctor">
-            <summary>
-            </summary>
+             <summary>
+            
+             </summary>
         </member>
         <member name="M:Common.ServiceCommon.JObjectOutputFormatter.CanWriteType(System.Type)">
             <summary>
@@ -1052,9 +1064,10 @@
             </summary>
         </member>
         <member name="M:Common.ServiceCommon.HttpContextQueryStringPageQueryParameterService.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor)">
-            <summary>
-            </summary>
-            <param name="httpContextAccessor"></param>
+             <summary>
+            
+             </summary>
+             <param name="httpContextAccessor"></param>
         </member>
         <member name="M:Common.ServiceCommon.HttpContextQueryStringPageQueryParameterService.GetQueryParameter``1">
             <summary>
@@ -1260,9 +1273,10 @@
             <returns></returns>
         </member>
         <member name="M:Common.ServiceCommon.FilterIsDeletedSearchQueryProxy`1.#ctor(Common.DAL.ISearchQuery{`0})">
-            <summary>
-            </summary>
-            <param name="searchQuery"></param>
+             <summary>
+            
+             </summary>
+             <param name="searchQuery"></param>
         </member>
         <member name="T:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1">
             <summary>
@@ -1309,9 +1323,10 @@
             <param name="updateExpression">更新体Lambda表达式</param>
         </member>
         <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.#ctor(Common.DAL.IEditQuery{`0})">
-            <summary>
-            </summary>
-            <param name="editQuery"></param>
+             <summary>
+            
+             </summary>
+             <param name="editQuery"></param>
         </member>
         <member name="T:Common.ServiceCommon.ISSOUserService">
             <summary>
