@@ -61,6 +61,8 @@ namespace TestWebAPI
             IMvcBuilder mvcBuilder = services.AddControllers(modelTypes, controllerTypes);
             services.ConfigureValidation(mvcBuilder, 10);
 
+            // services.AddQuerys(modelTypes);
+
             services.AddQuerys(modelTypes,
                 (type) =>
                 {
