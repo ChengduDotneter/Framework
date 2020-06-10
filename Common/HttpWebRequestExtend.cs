@@ -136,7 +136,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 获取请求结果数据
+        /// 同步获取请求结果数据
         /// </summary>
         /// <param name="httpWebRequest"></param>
         /// <returns></returns>
@@ -146,7 +146,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 获取请求结果数据
+        /// 异步获取请求结果数据
         /// </summary>
         /// <param name="httpWebRequest"></param>
         /// <returns></returns>

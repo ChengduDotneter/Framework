@@ -365,14 +365,14 @@
         </member>
         <member name="M:Common.HttpWebRequestExtend.GetResponseData(System.Net.HttpWebRequest)">
             <summary>
-            获取请求结果数据
+            同步获取请求结果数据
             </summary>
             <param name="httpWebRequest"></param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpWebRequestExtend.GetResponseDataAsync(System.Net.HttpWebRequest)">
             <summary>
-            获取请求结果数据
+            异步获取请求结果数据
             </summary>
             <param name="httpWebRequest"></param>
             <returns></returns>
