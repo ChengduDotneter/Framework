@@ -1,7 +1,6 @@
 ﻿using Common.Model;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
-using System.IO;
 using System.Text.Json;
 
 namespace Common.ServiceCommon
@@ -23,7 +22,6 @@ namespace Common.ServiceCommon
     /// </summary>
     public class JArraySerializeService : IJArraySerializeService
     {
-
         private IHttpContextAccessor m_httpContextAccessor;
 
         private IJArrayConverter m_jArrayConverter;

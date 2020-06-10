@@ -1,5 +1,4 @@
-﻿using Common;
-using Common.Model;
+﻿using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;

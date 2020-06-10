@@ -17,9 +17,9 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
+    using Apache.Ignite.Core.Cache;
     using System.Linq;
     using System.Linq.Expressions;
-    using Apache.Ignite.Core.Cache;
 
     /// <summary>
     /// Fields <see cref="IQueryable{T}"/> implementation for <see cref="ICache{TK,TV}"/>.
@@ -29,7 +29,7 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheQueryable{TKey, TValue}"/> class.
         /// </summary>
-        /// <param name="provider">The provider used to execute the query represented by this queryable 
+        /// <param name="provider">The provider used to execute the query represented by this queryable
         /// and to construct new queries.</param>
         /// <param name="expression">The expression representing the query.</param>
         public CacheFieldsQueryable(IQueryProvider provider, Expression expression) : base(provider, expression)

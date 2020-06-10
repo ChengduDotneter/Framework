@@ -18,7 +18,7 @@ namespace Common.ServiceCommon
         private IServiceProvider m_serviceProvider;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="serviceProvider">IServiceProvider</param>
         public LazyLoadedTreeController(IServiceProvider serviceProvider) => m_serviceProvider = serviceProvider;

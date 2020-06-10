@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Common.DAL;
+using Common.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Common.DAL;
-using Common.Model;
 
 namespace Common.ServiceCommon
 {
@@ -110,7 +110,6 @@ namespace Common.ServiceCommon
                 return $"{queryWhere} AND {isDeleted}";
         }
     }
-
 
     /// <summary>
     /// 根据ID倒序的查询代理装饰者类
@@ -373,7 +372,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="searchQuery"></param>
         public FilterIsDeletedSearchQueryProxy(ISearchQuery<T> searchQuery) => m_searchQuery = searchQuery;
@@ -445,10 +444,9 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="editQuery"></param>
         public FilterIsDeletedEditQueryProxy(IEditQuery<T> editQuery) => m_editQuery = editQuery;
     }
-
 }

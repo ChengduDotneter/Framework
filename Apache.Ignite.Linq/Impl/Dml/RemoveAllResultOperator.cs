@@ -17,14 +17,14 @@
 
 namespace Apache.Ignite.Linq.Impl.Dml
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Linq.Expressions;
     using Apache.Ignite.Core.Cache;
     using Remotion.Linq.Clauses;
     using Remotion.Linq.Clauses.ResultOperators;
     using Remotion.Linq.Clauses.StreamedData;
+    using System;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
+    using System.Linq.Expressions;
 
     /// <summary>
     /// Represents an operator for <see cref="CacheLinqExtensions.RemoveAll{TK,TV}(IQueryable{ICacheEntry{TK,TV}})"/>.
@@ -32,12 +32,14 @@ namespace Apache.Ignite.Linq.Impl.Dml
     internal sealed class RemoveAllResultOperator : ValueFromSequenceResultOperatorBase
     {
         /** <inheritdoc /> */
+
         public override IStreamedDataInfo GetOutputDataInfo(IStreamedDataInfo inputInfo)
         {
             return new StreamedScalarValueInfo(typeof(int));
         }
 
         /** <inheritdoc /> */
+
         [ExcludeFromCodeCoverage]
         public override ResultOperatorBase Clone(CloneContext cloneContext)
         {
@@ -45,6 +47,7 @@ namespace Apache.Ignite.Linq.Impl.Dml
         }
 
         /** <inheritdoc /> */
+
         [ExcludeFromCodeCoverage]
         public override void TransformExpressions(Func<Expression, Expression> transformation)
         {
@@ -52,6 +55,7 @@ namespace Apache.Ignite.Linq.Impl.Dml
         }
 
         /** <inheritdoc /> */
+
         [ExcludeFromCodeCoverage]
         public override StreamedValue ExecuteInMemory<T>(StreamedSequence sequence)
         {

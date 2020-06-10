@@ -10,8 +10,8 @@ namespace Common
     public static class AliYunFileHelper
     {
         private static string m_accessKeyId = Convert.ToString(ConfigManager.Configuration["AccessKeyId"]);
-        private static string m_endpoint = Convert.ToString(ConfigManager.Configuration["Endpoint"]) ;
-        private static string m_accessKeySecret = Convert.ToString(ConfigManager.Configuration["AccessKeySecret"]) ;
+        private static string m_endpoint = Convert.ToString(ConfigManager.Configuration["Endpoint"]);
+        private static string m_accessKeySecret = Convert.ToString(ConfigManager.Configuration["AccessKeySecret"]);
         private static string m_bucketName = Convert.ToString(ConfigManager.Configuration["BucketName"]);//Bucket路径
 
         private static OssClient client;
@@ -37,18 +37,17 @@ namespace Common
         /// <param name="filePath">本地文件地址</param>
         /// <param name="currentFilePath">阿里云服务器文件夹</param>
         /// <returns></returns>
-        public static PutObjectResult UploadLocalFile(string fileName, string filePath,string currentFilePath)
+        public static PutObjectResult UploadLocalFile(string fileName, string filePath, string currentFilePath)
         {
             try
             {
-                return client.PutObject(m_bucketName,$"{currentFilePath}/{fileName}" , filePath);
+                return client.PutObject(m_bucketName, $"{currentFilePath}/{fileName}", filePath);
             }
             catch
             {
                 throw new DealException("上传文件失败");
             }
         }
-
 
         /// <summary>
         /// 上传文件
@@ -85,7 +84,7 @@ namespace Common
 
                 return obj.Content;
             }
-            catch 
+            catch
             {
                 throw new DealException("下载失败，请检查文件是否存在");
             }
@@ -101,6 +100,5 @@ namespace Common
         {
             return client.DoesObjectExist(m_bucketName, $"{currentFilePath}/{objectName}");
         }
-
     }
 }

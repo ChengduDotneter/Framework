@@ -37,6 +37,5 @@ namespace Common.Validation
 
             return Regex.IsMatch(value.ToString(), m_regexValue);
         }
-
     }
 }

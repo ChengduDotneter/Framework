@@ -20,6 +20,7 @@ namespace Common.ServiceCommon
         /// <param name="configuration"></param>
         /// <returns></returns>
 #pragma warning disable CS0618 // 类型或成员已过时
+
         public static IApplicationBuilder RegisterConsul(this IApplicationBuilder app, IApplicationLifetime lifetime, IConfiguration configuration)
 #pragma warning restore CS0618 // 类型或成员已过时
         {
@@ -66,5 +67,4 @@ namespace Common.ServiceCommon
             return app;
         }
     }
-
 }

@@ -58,7 +58,7 @@ namespace Common.Validation
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add($"@{m_foreignColumn}", value);
 
-                return (int)queryType.GetMethod("Count", new Type[] { typeof(string),typeof(Dictionary<string, object>) }).
+                return (int)queryType.GetMethod("Count", new Type[] { typeof(string), typeof(Dictionary<string, object>) }).
                     Invoke(searchQuery, new object[] { sql, parameters }) > 0;
             }
 

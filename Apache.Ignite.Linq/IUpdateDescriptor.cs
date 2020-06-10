@@ -17,8 +17,8 @@
 
 namespace Apache.Ignite.Linq
 {
-    using System;
     using Apache.Ignite.Core.Cache;
+    using System;
 
     /// <summary>
     /// Dummy interface to provide update description for

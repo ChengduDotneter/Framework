@@ -17,14 +17,14 @@
 
 namespace Apache.Ignite.Linq.Impl.Dml
 {
+    using Remotion.Linq.Clauses;
+    using Remotion.Linq.Clauses.ResultOperators;
+    using Remotion.Linq.Clauses.StreamedData;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Linq.Expressions;
-    using Remotion.Linq.Clauses;
-    using Remotion.Linq.Clauses.ResultOperators;
-    using Remotion.Linq.Clauses.StreamedData;
 
     /// <summary>
     /// Represents an operator for <see cref="CacheLinqExtensions.UpdateAll{TKey,TValue}"/>.
@@ -46,12 +46,14 @@ namespace Apache.Ignite.Linq.Impl.Dml
         }
 
         /** <inheritdoc /> */
+
         public override IStreamedDataInfo GetOutputDataInfo(IStreamedDataInfo inputInfo)
         {
             return new StreamedScalarValueInfo(typeof(int));
         }
 
         /** <inheritdoc /> */
+
         [ExcludeFromCodeCoverage]
         public override ResultOperatorBase Clone(CloneContext cloneContext)
         {
@@ -59,6 +61,7 @@ namespace Apache.Ignite.Linq.Impl.Dml
         }
 
         /** <inheritdoc /> */
+
         [ExcludeFromCodeCoverage]
         public override void TransformExpressions(Func<Expression, Expression> transformation)
         {
@@ -66,6 +69,7 @@ namespace Apache.Ignite.Linq.Impl.Dml
         }
 
         /** <inheritdoc /> */
+
         [ExcludeFromCodeCoverage]
         public override StreamedValue ExecuteInMemory<T>(StreamedSequence sequence)
         {

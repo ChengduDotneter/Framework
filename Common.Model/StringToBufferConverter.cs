@@ -8,7 +8,9 @@ namespace Common.Model
     public interface IStringToBufferConverter
     {
         byte[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options);
+
         void Write(Utf8JsonWriter writer, byte[] value, JsonSerializerOptions options);
+
         string GetStringFromByte(byte[] value);
     }
 

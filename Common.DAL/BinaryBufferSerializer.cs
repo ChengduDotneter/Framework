@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Apache.Ignite.Core.Binary;
+using Apache.Ignite.Core.Cache.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using Apache.Ignite.Core.Binary;
-using Apache.Ignite.Core.Cache.Configuration;
 
 namespace Common.DAL
 {
     internal delegate void WriteBinaryHandler<T>(T data, IBinaryWriter binaryWriter) where T : class, IEntity, new();
+
     internal delegate void ReadBinaryHandler<T>(T data, IBinaryReader binaryReader) where T : class, IEntity, new();
 
     internal class BinaryBufferSerializer<T> : IBinarySerializer

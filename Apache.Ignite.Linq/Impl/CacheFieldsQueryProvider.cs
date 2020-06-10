@@ -17,12 +17,6 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
     using Apache.Ignite.Core;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
@@ -30,6 +24,12 @@ namespace Apache.Ignite.Linq.Impl
     using Remotion.Linq.Clauses.StreamedData;
     using Remotion.Linq.Parsing.Structure;
     using Remotion.Linq.Utilities;
+    using System;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Reflection;
 
     /// <summary>
     /// Query provider for fields queries (projections).
@@ -37,12 +37,13 @@ namespace Apache.Ignite.Linq.Impl
     internal class CacheFieldsQueryProvider : IQueryProvider
     {
         /** */
+
         private static readonly MethodInfo GenericCreateQueryMethod =
-            typeof (CacheFieldsQueryProvider).GetMethods().Single(m => m.Name == "CreateQuery" && m.IsGenericMethod);
+            typeof(CacheFieldsQueryProvider).GetMethods().Single(m => m.Name == "CreateQuery" && m.IsGenericMethod);
 
         /** */
         private readonly IQueryParser _parser;
-        
+
         /** */
         private readonly CacheFieldsQueryExecutor _executor;
 
@@ -58,8 +59,8 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheFieldsQueryProvider"/> class.
         /// </summary>
-        public CacheFieldsQueryProvider(IQueryParser queryParser, CacheFieldsQueryExecutor executor, IIgnite ignite, 
-            CacheConfiguration cacheConfiguration, string tableName, Type cacheValueType) 
+        public CacheFieldsQueryProvider(IQueryParser queryParser, CacheFieldsQueryExecutor executor, IIgnite ignite,
+            CacheConfiguration cacheConfiguration, string tableName, Type cacheValueType)
         {
             Debug.Assert(queryParser != null);
             Debug.Assert(executor != null);
@@ -123,6 +124,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0")]
         public IQueryable CreateQuery(Expression expression)
         {
@@ -131,26 +133,29 @@ namespace Apache.Ignite.Linq.Impl
             var elementType = GetItemTypeOfClosedGenericIEnumerable(expression.Type, "expression");
 
             // Slow, but this method is never called during normal LINQ usage with generics
-            return (IQueryable) GenericCreateQueryMethod.MakeGenericMethod(elementType)
-                .Invoke(this, new object[] {expression});
+            return (IQueryable)GenericCreateQueryMethod.MakeGenericMethod(elementType)
+                .Invoke(this, new object[] { expression });
         }
 
         /** <inheritdoc /> */
+
         public IQueryable<T> CreateQuery<T>(Expression expression)
         {
             return new CacheFieldsQueryable<T>(this, expression);
         }
 
         /** <inheritdoc /> */
+
         object IQueryProvider.Execute(Expression expression)
         {
             return Execute(expression);
         }
 
         /** <inheritdoc /> */
+
         public TResult Execute<TResult>(Expression expression)
         {
-            return (TResult) Execute(expression).Value;
+            return (TResult)Execute(expression).Value;
         }
 
         /// <summary>

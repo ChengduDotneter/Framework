@@ -17,23 +17,24 @@
 
 namespace Apache.Ignite.Linq.Impl.Dml
 {
+    using Apache.Ignite.Core.Cache;
+    using Remotion.Linq.Clauses;
+    using Remotion.Linq.Parsing.Structure.IntermediateModel;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
-    using Apache.Ignite.Core.Cache;
-    using Remotion.Linq.Clauses;
-    using Remotion.Linq.Parsing.Structure.IntermediateModel;
 
     /// <summary>
-    /// Represents a <see cref="MethodCallExpression"/> for 
+    /// Represents a <see cref="MethodCallExpression"/> for
     /// <see cref="CacheLinqExtensions.RemoveAll{TKey,TValue}(IQueryable{ICacheEntry{TKey,TValue}})"/>.
     /// When user calls RemoveAll, this node is generated.
     /// </summary>
     internal sealed class RemoveAllExpressionNode : ResultOperatorExpressionNodeBase
     {
         /** */
+
         private static readonly MethodInfo[] RemoveAllMethodInfos = typeof(CacheLinqExtensions)
             .GetMethods().Where(x => x.Name == "RemoveAll").ToArray();
 
@@ -63,6 +64,7 @@ namespace Apache.Ignite.Linq.Impl.Dml
         }
 
         /** <inheritdoc /> */
+
         [ExcludeFromCodeCoverage]
         public override Expression Resolve(ParameterExpression inputParameter, Expression expressionToBeResolved,
             ClauseGenerationContext clauseGenerationContext)
@@ -71,6 +73,7 @@ namespace Apache.Ignite.Linq.Impl.Dml
         }
 
         /** <inheritdoc /> */
+
         protected override ResultOperatorBase CreateResultOperator(ClauseGenerationContext clauseGenerationContext)
         {
             return new RemoveAllResultOperator();

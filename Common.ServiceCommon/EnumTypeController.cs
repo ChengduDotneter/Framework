@@ -1,5 +1,4 @@
-﻿using Common;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -38,7 +37,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public EnumTypeController()
         {
@@ -95,11 +94,11 @@ namespace Common.ServiceCommon
             throw new NotSupportedException();
         }
 
-        ///<summary>  
-        /// 获取枚举值+描述  
-        ///</summary>  
-        ///<param name="enumType">Type,该参数的格式为typeof(需要读的枚举类型)</param>  
-        ///<returns>键值对</returns>  
+        ///<summary>
+        /// 获取枚举值+描述
+        ///</summary>
+        ///<param name="enumType">Type,该参数的格式为typeof(需要读的枚举类型)</param>
+        ///<returns>键值对</returns>
         private static IEnumerable<EnumValues> GetEnumItemValuesByEnumType(Type enumType)
         {
             if (enumType.IsGenericType && enumType.GetGenericTypeDefinition() == typeof(Nullable<>))

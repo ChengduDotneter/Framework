@@ -16,16 +16,19 @@ namespace Common
         /// </summary>
         [Display(Name = "获取数据失败")]
         DataError,
+
         /// <summary>
         /// 请检查网络连接
         /// </summary>
         [Display(Name = "请检查网络连接")]
         NetworkError,
+
         /// <summary>
         /// 接口错误
         /// </summary>
         [Display(Name = "接口错误")]
         ErrorInterface,
+
         /// <summary>
         /// 操作成功
         /// </summary>
@@ -81,7 +84,7 @@ namespace Common
         /// <param name="tokenName">tokenName</param>
         /// <param name="tokenValue">token</param>
         /// <returns></returns>
-        public static HttpResult Post(string url, Dictionary<string, object> keyValues,int timeOut = 10, string tokenName = null,string tokenValue = null)
+        public static HttpResult Post(string url, Dictionary<string, object> keyValues, int timeOut = 10, string tokenName = null, string tokenValue = null)
         {
             if (url == null || string.IsNullOrWhiteSpace(url))
                 new HttpResult(NetErrorTypeEnum.ErrorInterface);
@@ -105,7 +108,7 @@ namespace Common
 
             HttpWebRequest _webRequest = (HttpWebRequest)WebRequest.Create(url);
             _webRequest.Method = "POST";
-            //内容类型  
+            //内容类型
             _webRequest.ContentType = "application/x-www-form-urlencoded";
             _webRequest.Timeout = timeOut * 1000;
             _webRequest.ContentLength = postData.Length;

@@ -26,6 +26,7 @@ namespace Apache.Ignite.Linq.Impl
     internal static class SqlTypes
     {
         /** */
+
         private static readonly Dictionary<Type, string> NetToSql = new Dictionary<Type, string>
         {
             {typeof (bool), "boolean"},
@@ -46,10 +47,11 @@ namespace Apache.Ignite.Linq.Impl
         };
 
         /** */
-        private static readonly HashSet<Type> NotSupportedTypes = new HashSet<Type>(new []
+
+        private static readonly HashSet<Type> NotSupportedTypes = new HashSet<Type>(new[]
         {
             typeof(char)
-        }); 
+        });
 
         /// <summary>
         /// Gets the corresponding Java type name.

@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -17,14 +15,19 @@ namespace Common
 
         //Content-Type值（Json）
         private const string CONTENT_TYPE_JSON = "application/json";
+
         //Content-Type值（Form表单）
         private const string CONTENT_TYPE_FORM = "application/x-www-form-urlencoded";
+
         //http请求方式GET
         private const string HTTP_METHOD_GET = "GET";
+
         //http请求方式POST
         private const string HTTP_METHOD_POST = "POST";
+
         //http请求方式DELETE
         private const string HTTP_METHOD_DELETE = "DELETE";
+
         //http请求方式PUT
         private const string HTTP_METHOD_PUT = "PUT";
 

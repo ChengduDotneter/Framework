@@ -17,11 +17,11 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
-    using System;
-    using System.Linq.Expressions;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Query;
     using Remotion.Linq;
+    using System;
+    using System.Linq.Expressions;
 
     /// <summary>
     /// Internal queryable interface.
@@ -51,7 +51,7 @@ namespace Apache.Ignite.Linq.Impl
         /// </summary>
         /// <param name="queryExpression">The query expression.</param>
         Func<object[], IQueryCursor<T>> CompileQuery<T>(LambdaExpression queryExpression);
-        
+
         /// <summary>
         /// Compiles the query without regard to the order and number of arguments.
         /// </summary>

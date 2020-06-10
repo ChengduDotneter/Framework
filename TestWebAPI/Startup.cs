@@ -1,6 +1,5 @@
 using Common;
 using Common.DAL;
-using Common.DAL.ETL;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
-using System.Threading;
 
 namespace TestWebAPI
 {
@@ -34,7 +32,6 @@ namespace TestWebAPI
                     .AllowAnyMethod()
                     .AllowCredentials();
                 });
-
             });
 
             Type[] modelTypes = TypeReflector.ReflectType((type) =>
@@ -106,6 +103,7 @@ namespace TestWebAPI
         }
 
 #pragma warning disable CS0618 // 类型或成员已过时
+
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Microsoft.AspNetCore.Hosting.IApplicationLifetime lifetime)
 #pragma warning restore CS0618 // 类型或成员已过时
         {

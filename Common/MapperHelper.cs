@@ -103,8 +103,6 @@ namespace Common
                 Expression.Assign(memberExpression, SetParameter(isNullable, isNullable ? type.GenericTypeArguments[0] : type, value))));
         }
 
-
-
         private static bool CheckIsNullable(Type type)
         {
             return type.IsGenericType &&

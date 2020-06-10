@@ -14,7 +14,6 @@ namespace Common.Model
 
             if (string.IsNullOrWhiteSpace(stringValue))
                 return 0;
-
             else
                 return Convert.ToInt64(stringValue);
         }
@@ -42,7 +41,6 @@ namespace Common.Model
         {
             if (value.HasValue)
                 writer.WriteStringValue(value.ToString());
-
             else writer.WriteNullValue();
         }
     }
@@ -58,7 +56,6 @@ namespace Common.Model
 
             if (string.IsNullOrWhiteSpace(stringValue))
                 return 0;
-
             else
                 return Convert.ToInt32(stringValue);
         }
@@ -88,11 +85,9 @@ namespace Common.Model
         {
             if (value.HasValue)
                 writer.WriteNumberValue(value.Value);
-
             else writer.WriteNullValue();
         }
     }
-
 
     /// <summary>
     /// Decimal转换类
@@ -105,7 +100,6 @@ namespace Common.Model
 
             if (string.IsNullOrWhiteSpace(stringValue))
                 return 0;
-
             else
                 return Convert.ToDecimal(stringValue);
         }
@@ -116,7 +110,6 @@ namespace Common.Model
         }
     }
 
-
     /// <summary>
     /// 可为空的Decimal转换类
     /// </summary>
@@ -124,7 +117,6 @@ namespace Common.Model
     {
         public override decimal? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-
             var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
 
             if (string.IsNullOrWhiteSpace(stringValue))
@@ -137,7 +129,6 @@ namespace Common.Model
         {
             if (value.HasValue)
                 writer.WriteNumberValue(value.Value);
-
             else writer.WriteNullValue();
         }
     }
@@ -153,7 +144,6 @@ namespace Common.Model
 
             if (string.IsNullOrWhiteSpace(stringValue))
                 return 0;
-
             else
                 return Convert.ToSingle(stringValue);
         }
@@ -164,7 +154,6 @@ namespace Common.Model
         }
     }
 
-
     /// <summary>
     /// 可为空的Decimal转换类
     /// </summary>
@@ -172,7 +161,6 @@ namespace Common.Model
     {
         public override float? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-
             var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
 
             if (string.IsNullOrWhiteSpace(stringValue))
@@ -185,11 +173,9 @@ namespace Common.Model
         {
             if (value.HasValue)
                 writer.WriteNumberValue(value.Value);
-
             else writer.WriteNullValue();
         }
     }
-
 
     /// <summary>
     /// Bool转换类
@@ -202,7 +188,6 @@ namespace Common.Model
 
             if (string.IsNullOrWhiteSpace(stringValue))
                 return false;
-
             else
                 return Convert.ToBoolean(stringValue);
         }
@@ -212,7 +197,6 @@ namespace Common.Model
             writer.WriteStringValue(value.ToString());
         }
     }
-
 
     /// <summary>
     /// 可为空的Bool转换类
@@ -233,7 +217,6 @@ namespace Common.Model
         {
             if (value.HasValue)
                 writer.WriteBooleanValue(value.Value);
-
             else writer.WriteNullValue();
         }
     }
@@ -278,7 +261,6 @@ namespace Common.Model
         {
             if (value.HasValue)
                 writer.WriteStringValue(value.Value);
-
             else writer.WriteNullValue();
         }
     }

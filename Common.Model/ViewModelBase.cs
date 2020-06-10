@@ -1,9 +1,9 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using Apache.Ignite.Core.Cache.Configuration;
+﻿using Apache.Ignite.Core.Cache.Configuration;
 using Common.DAL;
 using Common.Validation;
 using SqlSugar;
+using System;
+using System.Text.Json.Serialization;
 
 namespace Common.Model
 {
@@ -51,7 +51,7 @@ namespace Common.Model
         /// <summary>
         /// 是否删除
         /// </summary>
-        [SugarColumn(IsNullable = false, ColumnDescription = "是否删除",IndexGroupNameList = new string[] { "INDEX_ISDELETED" })]
+        [SugarColumn(IsNullable = false, ColumnDescription = "是否删除", IndexGroupNameList = new string[] { "INDEX_ISDELETED" })]
         [QuerySqlField]
         public bool IsDeleted { set; get; }
 

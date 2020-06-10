@@ -93,6 +93,4 @@ namespace Common
             return GetHttpRequest(url, bearerToken).AddPostMethod().AddFormContentType().AddContent(postData).GetResponseData();
         }
     }
-
-
 }

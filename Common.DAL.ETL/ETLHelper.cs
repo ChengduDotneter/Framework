@@ -12,7 +12,7 @@ namespace Common.DAL.ETL
     public class ETLHelper
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="modelTypes"></param>
         /// <param name="sourceSearchQueryFactory"></param>
@@ -40,7 +40,7 @@ namespace Common.DAL.ETL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="etlTable"></param>
         /// <param name="pageSize"></param>
@@ -74,7 +74,7 @@ namespace Common.DAL.ETL
                 foreach (object data in query)
                     preperInsertDatas.Add(data);
 
-                object datas = typeof(Enumerable).GetMethod(nameof(Enumerable.ToArray)).MakeGenericMethod(etlTable.TableType).Invoke(null, new object[] { typeof(Enumerable).GetMethod(nameof               (Enumerable.Cast)).MakeGenericMethod(etlTable.TableType).Invoke(null, new object[] { preperInsertDatas }) });
+                object datas = typeof(Enumerable).GetMethod(nameof(Enumerable.ToArray)).MakeGenericMethod(etlTable.TableType).Invoke(null, new object[] { typeof(Enumerable).GetMethod(nameof(Enumerable.Cast)).MakeGenericMethod(etlTable.TableType).Invoke(null, new object[] { preperInsertDatas }) });
                 editQueryType.GetMethod("Merge").Invoke(editQuery, new object[] { datas });
                 etlTable.ComplatedCount += preperInsertDatas.Count;
             }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using Apache.Ignite.Core;
+﻿using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Cache;
 using Apache.Ignite.Core.Cache.Configuration;
@@ -12,6 +7,11 @@ using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Apache.Ignite.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Common.DAL
 {
@@ -159,7 +159,7 @@ namespace Common.DAL
                                         query, orderBy).Compile();
             }
 
-            static Type GetResultType(ICacheEntry<long, TTable> left = null, ICacheEntry<long, TJoinTable> right = null)
+            private static Type GetResultType(ICacheEntry<long, TTable> left = null, ICacheEntry<long, TJoinTable> right = null)
             {
                 return new { left, right }.GetType();
             }

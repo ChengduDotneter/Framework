@@ -140,12 +140,10 @@
         </member>
         <member name="P:Common.DAL.Cache.TransactionProxy.Instance">
             <summary>
-            
             </summary>
         </member>
         <member name="P:Common.DAL.Cache.TransactionProxy.InTransaction">
             <summary>
-            
             </summary>
         </member>
         <member name="M:Common.DAL.Cache.TransactionProxy.#ctor(Common.DAL.ITransaction)">
@@ -156,7 +154,6 @@
         </member>
         <member name="M:Common.DAL.Cache.TransactionProxy.AddAction(System.Action)">
             <summary>
-            
             </summary>
             <param name="action"></param>
         </member>

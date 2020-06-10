@@ -31,7 +31,6 @@
         </member>
         <member name="T:Common.MessageQueueClient.IData">
             <summary>
-            
             </summary>
         </member>
         <member name="P:Common.MessageQueueClient.IData.CreateTime">

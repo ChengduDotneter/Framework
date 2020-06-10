@@ -3,7 +3,7 @@
 namespace Common.MessageQueueClient
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public interface IData
     {

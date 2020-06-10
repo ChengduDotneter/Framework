@@ -17,16 +17,16 @@
 
 namespace Apache.Ignite.Linq.Impl.Dml
 {
+    using Remotion.Linq.Clauses;
+    using Remotion.Linq.Clauses.Expressions;
+    using Remotion.Linq.Parsing.ExpressionVisitors;
+    using Remotion.Linq.Parsing.Structure.IntermediateModel;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
-    using Remotion.Linq.Clauses;
-    using Remotion.Linq.Clauses.Expressions;
-    using Remotion.Linq.Parsing.ExpressionVisitors;
-    using Remotion.Linq.Parsing.Structure.IntermediateModel;
 
     /// <summary>
     /// Represents a <see cref="MethodCallExpression" /> for
@@ -43,7 +43,7 @@ namespace Apache.Ignite.Linq.Impl.Dml
             .Single(x => x.Name == "UpdateAll");
 
         //** */
-        private static readonly MethodInfo[] SupportedMethods = {UpdateAllMethodInfo};
+        private static readonly MethodInfo[] SupportedMethods = { UpdateAllMethodInfo };
 
         //** */
         private readonly LambdaExpression _updateDescription;
@@ -61,6 +61,7 @@ namespace Apache.Ignite.Linq.Impl.Dml
         }
 
         /** <inheritdoc /> */
+
         [ExcludeFromCodeCoverage]
         public override Expression Resolve(ParameterExpression inputParameter, Expression expressionToBeResolved,
             ClauseGenerationContext clauseGenerationContext)
@@ -69,13 +70,14 @@ namespace Apache.Ignite.Linq.Impl.Dml
         }
 
         /** <inheritdoc /> */
+
         protected override ResultOperatorBase CreateResultOperator(ClauseGenerationContext clauseGenerationContext)
         {
             if (_updateDescription.Parameters.Count != 1)
                 throw new NotSupportedException("Expression is not supported for UpdateAll: " +
                                                 _updateDescription);
 
-            var querySourceRefExpression = (QuerySourceReferenceExpression) Source.Resolve(
+            var querySourceRefExpression = (QuerySourceReferenceExpression)Source.Resolve(
                 _updateDescription.Parameters[0],
                 _updateDescription.Parameters[0],
                 clauseGenerationContext);
@@ -90,13 +92,13 @@ namespace Apache.Ignite.Linq.Impl.Dml
 
             var updates = new List<MemberUpdateContainer>();
 
-            var methodCall = (MethodCallExpression) _updateDescription.Body;
+            var methodCall = (MethodCallExpression)_updateDescription.Body;
             while (methodCall != null)
             {
                 if (methodCall.Arguments.Count != 2)
                     throw new NotSupportedException("Method is not supported for UpdateAll: " + methodCall);
 
-                var selectorLambda = (LambdaExpression) methodCall.Arguments[0];
+                var selectorLambda = (LambdaExpression)methodCall.Arguments[0];
                 var selector = ReplacingExpressionVisitor.Replace(selectorLambda.Parameters[0], querySourceAccessValue,
                     selectorLambda.Body);
 
@@ -105,11 +107,13 @@ namespace Apache.Ignite.Linq.Impl.Dml
                 {
                     case ExpressionType.Constant:
                         break;
+
                     case ExpressionType.Lambda:
-                        var newValueLambda = (LambdaExpression) newValue;
+                        var newValueLambda = (LambdaExpression)newValue;
                         newValue = ReplacingExpressionVisitor.Replace(newValueLambda.Parameters[0],
                             querySourceRefExpression, newValueLambda.Body);
                         break;
+
                     default:
                         throw new NotSupportedException("Value expression is not supported for UpdateAll: "
                                                         + newValue);

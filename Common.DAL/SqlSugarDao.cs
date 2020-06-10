@@ -86,7 +86,6 @@ namespace Common.DAL
 
                 masterSqlSugarClient.CodeFirst.InitTables(modelTypes);
                 slaveSqlSugarClient.CodeFirst.InitTables(modelTypes);
-
             }
         }
 
@@ -392,8 +391,10 @@ namespace Common.DAL
                 {
                     case OrderByType.Asc:
                         return SqlSugar.OrderByType.Asc;
+
                     case OrderByType.Desc:
                         return SqlSugar.OrderByType.Desc;
+
                     default:
                         throw new Exception();
                 }
@@ -484,7 +485,9 @@ namespace Common.DAL
             }
         }
 
-        #endregion 
+        #endregion SqlSuger事务处理类
+
+
 
         internal static ISearchQuery<T> GetSlaveDatabase<T>(bool codeFirst)
             where T : class, IEntity, new()

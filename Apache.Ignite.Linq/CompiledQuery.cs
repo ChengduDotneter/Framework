@@ -17,14 +17,14 @@
 
 namespace Apache.Ignite.Linq
 {
+    using Apache.Ignite.Core.Cache.Query;
+    using Apache.Ignite.Core.Impl.Common;
+    using Apache.Ignite.Linq.Impl;
     using System;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Linq.Expressions;
-    using Apache.Ignite.Core.Cache.Query;
-    using Apache.Ignite.Core.Impl.Common;
-    using Apache.Ignite.Linq.Impl;
 
     /// <summary>
     /// Delegate for compiled query with arbitrary number of arguments.
@@ -44,7 +44,7 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
         public static Func<IQueryCursor<T>> Compile<T>(Expression<Func<IQueryable<T>>> query)
         {
@@ -66,7 +66,7 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
         public static CompiledQueryFunc<T> Compile<T>(IQueryable<T> query)
         {
@@ -88,7 +88,7 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
         public static Func<T1, IQueryCursor<T>> Compile<T, T1>(Expression<Func<T1, IQueryable<T>>> query)
         {
@@ -96,7 +96,7 @@ namespace Apache.Ignite.Linq
 
             var compiledQuery = GetCompiledQuery<T>(query);
 
-            return x => compiledQuery(new object[] {x});
+            return x => compiledQuery(new object[] { x });
         }
 
         /// <summary>
@@ -104,16 +104,16 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
-        public static Func<T1, T2, IQueryCursor<T>> Compile<T, T1, T2>(Expression<Func<T1, T2, 
+        public static Func<T1, T2, IQueryCursor<T>> Compile<T, T1, T2>(Expression<Func<T1, T2,
             IQueryable<T>>> query)
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
             var compiledQuery = GetCompiledQuery<T>(query);
 
-            return (x, y) => compiledQuery(new object[] {x, y});
+            return (x, y) => compiledQuery(new object[] { x, y });
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
         public static Func<T1, T2, T3, IQueryCursor<T>> Compile<T, T1, T2, T3>(Expression<Func<T1, T2, T3,
             IQueryable<T>>> query)
@@ -130,7 +130,7 @@ namespace Apache.Ignite.Linq
 
             var compiledQuery = GetCompiledQuery<T>(query);
 
-            return (x, y, z) => compiledQuery(new object[] {x, y, z});
+            return (x, y, z) => compiledQuery(new object[] { x, y, z });
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
         public static Func<T1, T2, T3, T4, IQueryCursor<T>> Compile<T, T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4,
             IQueryable<T>>> query)
@@ -147,7 +147,7 @@ namespace Apache.Ignite.Linq
 
             var compiledQuery = GetCompiledQuery<T>(query);
 
-            return (x, y, z, a) => compiledQuery(new object[] {x, y, z, a});
+            return (x, y, z, a) => compiledQuery(new object[] { x, y, z, a });
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
         public static Func<T1, T2, T3, T4, T5, IQueryCursor<T>> Compile<T, T1, T2, T3, T4, T5>(
             Expression<Func<T1, T2, T3, T4, T5, IQueryable<T>>> query)
@@ -164,7 +164,7 @@ namespace Apache.Ignite.Linq
 
             var compiledQuery = GetCompiledQuery<T>(query);
 
-            return (x, y, z, a, b) => compiledQuery(new object[] {x, y, z, a, b});
+            return (x, y, z, a, b) => compiledQuery(new object[] { x, y, z, a, b });
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
         public static Func<T1, T2, T3, T4, T5, T6, IQueryCursor<T>> Compile<T, T1, T2, T3, T4, T5, T6>(
             Expression<Func<T1, T2, T3, T4, T5, T6, IQueryable<T>>> query)
@@ -181,7 +181,7 @@ namespace Apache.Ignite.Linq
 
             var compiledQuery = GetCompiledQuery<T>(query);
 
-            return (x, y, z, a, b, c) => compiledQuery(new object[] {x, y, z, a, b, c});
+            return (x, y, z, a, b, c) => compiledQuery(new object[] { x, y, z, a, b, c });
         }
 
         /// <summary>
@@ -189,7 +189,7 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
         public static Func<T1, T2, T3, T4, T5, T6, T7, IQueryCursor<T>> Compile<T, T1, T2, T3, T4, T5, T6, T7>(
             Expression<Func<T1, T2, T3, T4, T5, T6, T7, IQueryable<T>>> query)
@@ -198,7 +198,7 @@ namespace Apache.Ignite.Linq
 
             var compiledQuery = GetCompiledQuery<T>(query);
 
-            return (x, y, z, a, b, c, d) => compiledQuery(new object[] {x, y, z, a, b, c, d});
+            return (x, y, z, a, b, c, d) => compiledQuery(new object[] { x, y, z, a, b, c, d });
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace Apache.Ignite.Linq
         /// </summary>
         /// <param name="query">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
             Justification = "Invalid warning, validation is present.")]
         public static Func<T1, T2, T3, T4, T5, T6, T7, T8, IQueryCursor<T>> Compile<T, T1, T2, T3, T4, T5, T6, T7, T8>(
             Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, IQueryable<T>>> query)
@@ -215,7 +215,7 @@ namespace Apache.Ignite.Linq
 
             var compiledQuery = GetCompiledQuery<T>(query);
 
-            return (x, y, z, a, b, c, d, e) => compiledQuery(new object[] {x, y, z, a, b, c, d, e});
+            return (x, y, z, a, b, c, d, e) => compiledQuery(new object[] { x, y, z, a, b, c, d, e });
         }
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace Apache.Ignite.Linq
         private static Func<object[], IQueryCursor<T>> GetCompiledQuery<T>(LambdaExpression expression)
         {
             Debug.Assert(expression != null);
-            
+
             // Get default parameter values.
             var paramValues = expression.Parameters
                 .Select(x => x.Type)

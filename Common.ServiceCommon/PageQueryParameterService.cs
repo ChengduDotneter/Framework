@@ -1,7 +1,7 @@
-﻿using System;
-using System.Reflection;
-using Common.Model;
+﻿using Common.Model;
 using Microsoft.AspNetCore.Http;
+using System;
+using System.Reflection;
 
 namespace Common.ServiceCommon
 {
@@ -26,7 +26,7 @@ namespace Common.ServiceCommon
         private IHttpContextAccessor m_httpContextAccessor;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="httpContextAccessor"></param>
         public HttpContextQueryStringPageQueryParameterService(IHttpContextAccessor httpContextAccessor) => m_httpContextAccessor = httpContextAccessor;

@@ -17,10 +17,10 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
-    using System.Linq;
     using Apache.Ignite.Core;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Impl.Cache;
+    using System.Linq;
 
     /// <summary>
     /// <see cref="IQueryable{T}"/> implementation for <see cref="ICache{TK,TV}"/>.
@@ -35,7 +35,7 @@ namespace Apache.Ignite.Linq.Impl
         /// <param name="ignite">The ignite.</param>
         public CacheQueryable(ICacheInternal cache, QueryOptions queryOptions, IIgnite ignite = null)
             : base(new CacheFieldsQueryProvider(CacheQueryParser.Instance,
-                new CacheFieldsQueryExecutor(cache, queryOptions), 
+                new CacheFieldsQueryExecutor(cache, queryOptions),
                 ignite, cache.GetConfiguration(), queryOptions.TableName, typeof(TValue)))
         {
             // No-op.

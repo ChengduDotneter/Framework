@@ -128,7 +128,6 @@ namespace Common
         {
             if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.PaymentRequired)
                 throw new DealException(await response.Content.ReadAsStringAsync());
-
             else if (response.StatusCode != HttpStatusCode.OK)
                 throw new Exception(await response.Content.ReadAsStringAsync());
 
@@ -145,6 +144,5 @@ namespace Common
         {
             return GetResponseAsync<T>(response).Result;
         }
-
     }
 }
