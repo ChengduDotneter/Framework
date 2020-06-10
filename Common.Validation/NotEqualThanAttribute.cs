@@ -12,7 +12,7 @@ namespace Common.Validation
         /// <summary>
         /// 验证器特性构造函数
         /// </summary>
-        /// <param name="notEqualThanValue">不等于的值</param>
+        /// <param name="notEqualThanValue">不等于的指定值</param>
         public NotEqualThanAttribute(object notEqualThanValue) => m_notEqualThanValue = notEqualThanValue;
 
         /// <summary>
@@ -39,10 +39,10 @@ namespace Common.Validation
         }
 
         /// <summary>
-        /// 获取不等于的属性名
+        /// 获取不等于的指定值的文本形式
         /// </summary>
         /// <param name="validationContext">验证器上下文</param>
-        /// <param name="m_notEqualThanValue">当前属性名</param>
+        /// <param name="m_notEqualThanValue">指定值</param>
         /// <returns></returns>
         protected virtual string GetNotEqualThanText(ValidationContext validationContext, object m_notEqualThanValue)
         {
@@ -50,10 +50,10 @@ namespace Common.Validation
         }
 
         /// <summary>
-        /// 获取不等于的属性值
+        /// 获取不等于的指定值
         /// </summary>
         /// <param name="validationContext">验证器上下文</param>
-        /// <param name="m_notEqualThanValue">不等于的值</param>
+        /// <param name="m_notEqualThanValue">指定值</param>
         /// <returns></returns>
         protected virtual object GetNotEqualThanValue(ValidationContext validationContext, object m_notEqualThanValue)
         {

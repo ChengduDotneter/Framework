@@ -3,18 +3,37 @@ using System.Reflection;
 
 namespace Common.Validation
 {
+    /// <summary>
+    /// 大于等于指定属性的验证器特性类
+    /// </summary>
     public class GreaterOrEqualThanPropertyAttribute : GreaterOrEqualThanAttribute
     {
-        public GreaterOrEqualThanPropertyAttribute(string greaterThanValuePropertyName) : base(greaterThanValuePropertyName) { }
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="greaterOrEqualThanValuePropertyName">大于等于的指定属性名</param>
+        public GreaterOrEqualThanPropertyAttribute(string greaterOrEqualThanValuePropertyName) : base(greaterOrEqualThanValuePropertyName) { }
 
-        protected override object GetMoreThanValue(ValidationContext validationContext, object moreThanValuePropertyName)
+        /// <summary>
+        /// 获取大于等于的指定属性的值
+        /// </summary>
+        /// <param name="validationContext">验证器上下文</param>
+        /// <param name="greaterOrEqualThanValuePropertyName">大于等于的指定属性名</param>
+        /// <returns></returns>
+        protected override object GetGreaterOrEqualThanValue(ValidationContext validationContext, object greaterOrEqualThanValuePropertyName)
         {
-            return validationContext.ObjectType.GetProperty((string)moreThanValuePropertyName).GetValue(validationContext.ObjectInstance);
+            return validationContext.ObjectType.GetProperty((string)greaterOrEqualThanValuePropertyName).GetValue(validationContext.ObjectInstance);
         }
 
-        protected override string GetGreaterThanText(ValidationContext validationContext, object greaterThanValuePropertyName)
+        /// <summary>
+        /// 获取大于等于的指定属性的展示名
+        /// </summary>
+        /// <param name="validationContext">验证器上下文</param>
+        /// <param name="greaterOrEqualThanValuePropertyName">大于等于的指定属性名</param>
+        /// <returns>如指定的属性带有DisplayAttribute特性，则返回DisplayAttribute的Name，否则DisplayAttribute特性则返回属性名</returns>
+        protected override string GetGreaterOrEqualThanText(ValidationContext validationContext, object greaterOrEqualThanValuePropertyName)
         {
-            return validationContext.ObjectType.GetProperty((string)greaterThanValuePropertyName).GetCustomAttribute<DisplayAttribute>()?.Name ?? (string)greaterThanValuePropertyName;
+            return validationContext.ObjectType.GetProperty((string)greaterOrEqualThanValuePropertyName).GetCustomAttribute<DisplayAttribute>()?.Name ?? (string)greaterOrEqualThanValuePropertyName;
         }
     }
 }

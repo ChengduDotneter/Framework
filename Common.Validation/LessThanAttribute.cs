@@ -27,7 +27,7 @@ namespace Common.Validation
         /// 验证属性值
         /// </summary>
         /// <param name="value">属性值</param>
-        /// <param name="validationContext">顺序名</param>
+        /// <param name="validationContext">验证器上下文</param>
         /// <returns></returns>
         protected override bool ValidateValue(object value, ValidationContext validationContext)
         {
@@ -41,8 +41,8 @@ namespace Common.Validation
         /// <summary>
         /// 获取小于指定值的文本格式
         /// </summary>
-        /// <param name="validationContext"></param>
-        /// <param name="lessThanValue"></param>
+        /// <param name="validationContext">验证器上下文</param>
+        /// <param name="lessThanValue">小于的指定值</param>
         /// <returns></returns>
         protected virtual string GetLessThanText(ValidationContext validationContext, object lessThanValue)
         {
@@ -52,8 +52,8 @@ namespace Common.Validation
         /// <summary>
         /// 获取小于的值
         /// </summary>
-        /// <param name="validationContext"></param>
-        /// <param name="lessThanValue"></param>
+        /// <param name="validationContext">验证器上下文</param>
+        /// <param name="lessThanValue">小于的指定值</param>
         /// <returns></returns>
         protected virtual object GetLessThanValue(ValidationContext validationContext, object lessThanValue)
         {

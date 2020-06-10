@@ -111,27 +111,56 @@ namespace Common.ServiceCommon
         }
     }
 
+
+    /// <summary>
+    /// 根据ID倒序的查询代理装饰者类
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class OrderByIDDescSearchQueryProxy<T> : ISearchQuery<T>
         where T : ViewModelBase, new()
     {
         private const string ORDER_BY_ID_DESC = "ID DESC";
         private ISearchQuery<T> m_searchQuery;
 
+        /// <summary>
+        /// 根据id获取实体
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public T Get(long id)
         {
             return m_searchQuery.Get(id);
         }
 
+        /// <summary>
+        /// 根据linq查询条件获取查询条数
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         public int Count(Expression<Func<T, bool>> predicate = null)
         {
             return m_searchQuery.Count(predicate);
         }
 
+        /// <summary>
+        /// 根据sql查询条件获取查询条数
+        /// </summary>
+        /// <param name="queryWhere"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
         public int Count(string queryWhere, Dictionary<string, object> parameters = null)
         {
             return m_searchQuery.Count(queryWhere, parameters);
         }
 
+        /// <summary>
+        /// 根据Linq查询条件获取查询结果列表
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
         public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
                                      IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                      int startIndex = 0,
@@ -147,6 +176,15 @@ namespace Common.ServiceCommon
             return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count);
         }
 
+        /// <summary>
+        /// 根据sql查询条件获取查询结果列表
+        /// </summary>
+        /// <param name="queryWhere"></param>
+        /// <param name="parameters"></param>
+        /// <param name="orderByFields"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
         public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
         {
             return m_searchQuery.Search(queryWhere, parameters,
@@ -155,6 +193,13 @@ namespace Common.ServiceCommon
                                         count);
         }
 
+        /// <summary>
+        /// 两表Linq联查时获取查询条数
+        /// </summary>
+        /// <typeparam name="TJoinTable"></typeparam>
+        /// <param name="joinCondition"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         public int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                      Expression<Func<T, TJoinTable, bool>> predicate = null)
             where TJoinTable : class, IEntity, new()
@@ -162,6 +207,16 @@ namespace Common.ServiceCommon
             return m_searchQuery.Count(joinCondition, predicate);
         }
 
+        /// <summary>
+        /// 两表Linq联查时获取查询结果
+        /// </summary>
+        /// <typeparam name="TJoinTable"></typeparam>
+        /// <param name="joinCondition"></param>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
         public IEnumerable<JoinResult<T, TJoinTable>> Search<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                                                          Expression<Func<T, TJoinTable, bool>> predicate = null,
                                                                          IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
@@ -183,11 +238,21 @@ namespace Common.ServiceCommon
             return m_searchQuery.Search(joinCondition, predicate, queryOrderBies, startIndex, count);
         }
 
+        /// <summary>
+        /// 根据sql查询数据
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
         public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
         {
             return m_searchQuery.Query(sql, parameters);
         }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="searchQuery"></param>
         public OrderByIDDescSearchQueryProxy(ISearchQuery<T> searchQuery) => m_searchQuery = searchQuery;
     }
 

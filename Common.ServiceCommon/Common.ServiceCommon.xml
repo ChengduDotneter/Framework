@@ -120,11 +120,11 @@
             <returns></returns>
         </member>
         <member name="M:Common.ServiceCommon.BatchGenericGetController`1.DoGet(System.Int64)">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
+             </summary>
+             <param name="id"></param>
+             <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.GenericGetController`1">
             <summary>
@@ -147,10 +147,10 @@
             <returns></returns>
         </member>
         <member name="M:Common.ServiceCommon.GenericGetController`1.#ctor(Common.DAL.ISearchQuery{`0})">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="searchQuery"></param>
+             </summary>
+             <param name="searchQuery"></param>
         </member>
         <member name="T:Common.ServiceCommon.GenericSearchController`2">
             <summary>
@@ -160,10 +160,10 @@
             <typeparam name="TResponse">结果实体泛型，继承于ViewModelBase</typeparam>
         </member>
         <member name="M:Common.ServiceCommon.GenericSearchController`2.#ctor(Common.DAL.ISearchQuery{`1})">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="searchQuery"></param>
+             </summary>
+             <param name="searchQuery"></param>
         </member>
         <member name="M:Common.ServiceCommon.GenericSearchController`2.Get(Common.ServiceCommon.IPageQueryParameterService)">
             <summary>
@@ -198,8 +198,6 @@
             自定义返回值，根据查询出的实体对返回值进行拼装
             </summary>
             <typeparam name="TRequest">请求实体参数，继承于ViewModelBase</typeparam>
-            <typeparam name="TSearhEntity">查询实体参数，继承于ViewModelBase</typeparam>
-            <typeparam name="TResponse">返回实体参数</typeparam>
         </member>
         <member name="M:Common.ServiceCommon.GenericCustomSearchController`1.Get(Common.ServiceCommon.IPageQueryParameterService)">
             <summary>
@@ -321,10 +319,10 @@
             <returns></returns>
         </member>
         <member name="M:Common.ServiceCommon.GenericSearchController`4.#ctor(Common.DAL.ISearchQuery{`3})">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="searchQuery"></param>
+             </summary>
+             <param name="searchQuery"></param>
         </member>
         <member name="T:Common.ServiceCommon.GenericPostController`1">
             <summary>
@@ -347,11 +345,11 @@
             <param name="request"></param>
         </member>
         <member name="M:Common.ServiceCommon.GenericPostController`1.#ctor(Common.DAL.IEditQuery{`0},Common.ServiceCommon.ISSOUserService)">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="editQuery"></param>
-            <param name="ssoUserService"></param>
+             </summary>
+             <param name="editQuery"></param>
+             <param name="ssoUserService"></param>
         </member>
         <member name="T:Common.ServiceCommon.GenericPutController`1">
             <summary>
@@ -373,12 +371,12 @@
             <param name="request"></param>
         </member>
         <member name="M:Common.ServiceCommon.GenericPutController`1.#ctor(Common.DAL.IEditQuery{`0},Common.DAL.ISearchQuery{`0},Common.ServiceCommon.ISSOUserService)">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="editQuery"></param>
-            <param name="searchQuery"></param>
-            <param name="ssoUserService"></param>
+             </summary>
+             <param name="editQuery"></param>
+             <param name="searchQuery"></param>
+             <param name="ssoUserService"></param>
         </member>
         <member name="T:Common.ServiceCommon.GenericDeleteController`1">
             <summary>
@@ -400,11 +398,11 @@
             <param name="id"></param>
         </member>
         <member name="M:Common.ServiceCommon.GenericDeleteController`1.#ctor(Common.DAL.IEditQuery{`0},Common.DAL.ISearchQuery{`0})">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="editQuery"></param>
-            <param name="searchQuery"></param>
+             </summary>
+             <param name="editQuery"></param>
+             <param name="searchQuery"></param>
         </member>
         <member name="T:Common.ServiceCommon.MultipleGenericGetController`2">
             <summary>
@@ -413,6 +411,20 @@
             <typeparam name="TResponse1">请求实体泛型，继承于ViewModelBase</typeparam>
             <typeparam name="TResponse2">请求实体泛型，继承于ViewModelBase</typeparam>
         </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericGetController`2.Get(System.Int64)">
+            <summary>
+            get请求入口
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericGetController`2.DoGet(System.Int64)">
+            <summary>
+            get请求具体实现方法
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.ServiceCommon.MultipleGenericGetController`3">
             <summary>
             根据ID返回三个实体且实体继承于ViewModelBase接口基类
@@ -420,6 +432,20 @@
             <typeparam name="TResponse1">请求实体泛型，继承于ViewModelBase</typeparam>
             <typeparam name="TResponse2">请求实体泛型，继承于ViewModelBase</typeparam>
             <typeparam name="TResponse3">请求实体泛型，继承于ViewModelBase</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericGetController`3.Get(System.Int64)">
+            <summary>
+            get请求入口
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericGetController`3.DoGet(System.Int64)">
+            <summary>
+            get请求具体方法实现
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
         </member>
         <member name="T:Common.ServiceCommon.IDynamicController">
             <summary>
@@ -432,11 +458,30 @@
             </summary>
             <typeparam name="TRequest1">请求实体泛型</typeparam>
         </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPostController`1.#ctor(Common.ServiceCommon.ISSOUserService)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="ssoUserService"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPostController`1.Post(`0)">
+            <summary>
+            post请求入口
+            </summary>
+            <param name="request1"></param>
+            <returns></returns>
+        </member>
         <member name="M:Common.ServiceCommon.MultipleGenericPostController`1.GetReturnValue">
             <summary>
             设置接口返回值
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPostController`1.DoPost(`0)">
+            <summary>
+            post请求具体执行方法
+            </summary>
+            <param name="request1"></param>
         </member>
         <member name="T:Common.ServiceCommon.MultipleGenericPostController`2">
             <summary>
@@ -445,11 +490,32 @@
             <typeparam name="TRequest1">请求实体泛型</typeparam>
             <typeparam name="TRequest2">请求实体泛型</typeparam>
         </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPostController`2.#ctor(Common.ServiceCommon.ISSOUserService)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="ssoUserService"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPostController`2.Post(`0,`1)">
+            <summary>
+            post请求入口
+            </summary>
+            <param name="request1"></param>
+            <param name="request2"></param>
+            <returns></returns>
+        </member>
         <member name="M:Common.ServiceCommon.MultipleGenericPostController`2.GetReturnValue">
             <summary>
             设置接口返回值
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPostController`2.DoPost(`0,`1)">
+            <summary>
+            post请求具体执行方法
+            </summary>
+            <param name="request1"></param>
+            <param name="request2"></param>
         </member>
         <member name="T:Common.ServiceCommon.MultipleGenericPostController`3">
             <summary>
@@ -459,17 +525,59 @@
             <typeparam name="TRequest2">请求实体泛型</typeparam>
             <typeparam name="TRequest3">请求实体泛型</typeparam>
         </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPostController`3.#ctor(Common.ServiceCommon.ISSOUserService)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="ssoUserService"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPostController`3.Post(`0,`1,`2)">
+            <summary>
+            post请求
+            </summary>
+            <param name="request1"></param>
+            <param name="request2"></param>
+            <param name="request3"></param>
+            <returns></returns>
+        </member>
         <member name="M:Common.ServiceCommon.MultipleGenericPostController`3.GetReturnValue">
             <summary>
             设置接口返回值
             </summary>
             <returns></returns>
         </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPostController`3.DoPost(`0,`1,`2)">
+            <summary>
+            post请求具体实现方法
+            </summary>
+            <param name="request1"></param>
+            <param name="request2"></param>
+            <param name="request3"></param>
+        </member>
         <member name="T:Common.ServiceCommon.MultipleGenericPutController`1">
             <summary>
             一个参数的Put请求接口基类
             </summary>
             <typeparam name="TRequest1">请求实体泛型</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPutController`1.#ctor(Common.ServiceCommon.ISSOUserService)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="ssoUserService"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPutController`1.Put(`0)">
+            <summary>
+            Put请求入口
+            </summary>
+            <param name="request1"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPutController`1.DoPut(`0)">
+            <summary>
+            put请求具体方法实现
+            </summary>
+            <param name="request1"></param>
         </member>
         <member name="T:Common.ServiceCommon.MultipleGenericPutController`2">
             <summary>
@@ -478,6 +586,27 @@
             <typeparam name="TRequest1">请求实体泛型</typeparam>
             <typeparam name="TRequest2">请求实体泛型</typeparam>
         </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPutController`2.#ctor(Common.ServiceCommon.ISSOUserService)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="ssoUserService"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPutController`2.Put(`0,`1)">
+            <summary>
+            put请求入口
+            </summary>
+            <param name="request1"></param>
+            <param name="request2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPutController`2.DoPut(`0,`1)">
+            <summary>
+            put请求具体执行方法
+            </summary>
+            <param name="request1"></param>
+            <param name="request2"></param>
+        </member>
         <member name="T:Common.ServiceCommon.MultipleGenericPutController`3">
             <summary>
             三个参数的Put请求接口基类
@@ -485,6 +614,29 @@
             <typeparam name="TRequest1">请求实体泛型</typeparam>
             <typeparam name="TRequest2">请求实体泛型</typeparam>
             <typeparam name="TRequest3">请求实体泛型</typeparam>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPutController`3.#ctor(Common.ServiceCommon.ISSOUserService)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="ssoUserService"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPutController`3.Put(`0,`1,`2)">
+            <summary>
+            put请求入口
+            </summary>
+            <param name="request1"></param>
+            <param name="request2"></param>
+            <param name="request3"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MultipleGenericPutController`3.DoPut(`0,`1,`2)">
+            <summary>
+            put请求具体执行方法
+            </summary>
+            <param name="request1"></param>
+            <param name="request2"></param>
+            <param name="request3"></param>
         </member>
         <member name="T:Common.ServiceCommon.DynamicControllerManager">
             <summary>
