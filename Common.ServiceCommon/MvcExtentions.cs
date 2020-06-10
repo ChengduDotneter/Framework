@@ -158,9 +158,9 @@ namespace Common.ServiceCommon
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
         }
 
-        public static void UseOrleans(this IHostBuilder hostBuilder)
+        public static IHostBuilder UseOrleans(this IHostBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices(services =>
+            return hostBuilder.ConfigureServices(services =>
             {
                 services.AddControllers();
             })
@@ -176,7 +176,7 @@ namespace Common.ServiceCommon
                  {
                      opts.AdvertisedIPAddress = IPAddress.Loopback;
                  });
-            }).RunConsoleAsync();
+            });
         }
     }
 }

@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.DAL.ETL", "Common.DA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.DAL.Transaction", "Common.DAL.Transaction\Common.DAL.Transaction.csproj", "{2F6ABD3A-A85A-4BBF-9DCD-55598E81F81D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestResourceManager", "TestResourceManager\TestResourceManager.csproj", "{75235449-4BD0-4F66-9F27-F40762541198}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{2F6ABD3A-A85A-4BBF-9DCD-55598E81F81D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F6ABD3A-A85A-4BBF-9DCD-55598E81F81D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F6ABD3A-A85A-4BBF-9DCD-55598E81F81D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75235449-4BD0-4F66-9F27-F40762541198}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75235449-4BD0-4F66-9F27-F40762541198}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75235449-4BD0-4F66-9F27-F40762541198}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75235449-4BD0-4F66-9F27-F40762541198}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
