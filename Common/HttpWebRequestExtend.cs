@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -164,6 +165,9 @@ namespace Common
                 {
                     httpWebResponse = (HttpWebResponse)ex.Response;
                 }
+
+                if (httpWebResponse == null)
+                    throw new Exception($"{httpWebRequest.Address.AbsoluteUri}请求调用失败");
 
                 Stream stream = httpWebResponse.GetResponseStream();
 
