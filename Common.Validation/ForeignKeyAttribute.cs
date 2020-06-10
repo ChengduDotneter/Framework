@@ -17,8 +17,8 @@ namespace Common.Validation
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="foreignTableType"></param>
-        /// <param name="foreignColumn"></param>
+        /// <param name="foreignTableType">外键指向表的实体Type</param>
+        /// <param name="foreignColumn">外键所指向的表的指定列</param>
         /// <param name="filterIsDeleted"></param>
         public ForeignKeyAttribute(Type foreignTableType, string foreignColumn, bool filterIsDeleted = true)
         {
@@ -30,8 +30,8 @@ namespace Common.Validation
         /// <summary>
         /// 获取验证失败的错误信息
         /// </summary>
-        /// <param name="validationContext"></param>
-        /// <param name="propertyName"></param>
+        /// <param name="validationContext">验证器上下文</param>
+        /// <param name="propertyName">属性名</param>
         /// <returns></returns>
         protected override string GetErrorMessage(ValidationContext validationContext, string propertyName) =>
             $"{m_foreignTableType.Name}中{m_foreignColumn}为{validationContext.ObjectType.GetProperty(validationContext.MemberName).GetValue(validationContext.ObjectInstance)}的数据不存在。";
@@ -40,8 +40,8 @@ namespace Common.Validation
         /// <summary>
         /// 验证属性值
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="validationContext"></param>
+        /// <param name="value">属性值</param>
+        /// <param name="validationContext">验证器上下文</param>
         /// <returns></returns>
         protected override bool ValidateValue(object value, ValidationContext validationContext)
         {
@@ -58,7 +58,7 @@ namespace Common.Validation
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add($"@{m_foreignColumn}", value);
 
-                return (int)queryType.GetMethod("Count", new Type[] { typeof(string),typeof(Dictionary<string, object>) }).
+                return (int)queryType.GetMethod("Count", new Type[] { typeof(string), typeof(Dictionary<string, object>) }).
                     Invoke(searchQuery, new object[] { sql, parameters }) > 0;
             }
 

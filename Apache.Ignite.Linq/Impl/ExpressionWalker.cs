@@ -17,6 +17,9 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
+    using Apache.Ignite.Core.Impl.Common;
+    using Remotion.Linq.Clauses;
+    using Remotion.Linq.Clauses.Expressions;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -24,9 +27,6 @@ namespace Apache.Ignite.Linq.Impl
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
-    using Apache.Ignite.Core.Impl.Common;
-    using Remotion.Linq.Clauses;
-    using Remotion.Linq.Clauses.Expressions;
 
     /// <summary>
     /// Walks expression trees to extract query and table name info.
@@ -37,6 +37,7 @@ namespace Apache.Ignite.Linq.Impl
         private const string SqlQuote = "\"";
 
         /** Compiled member readers. */
+
         private static readonly CopyOnWriteConcurrentDictionary<MemberInfo, Func<object, object>> MemberReaders =
             new CopyOnWriteConcurrentDictionary<MemberInfo, Func<object, object>>();
 
@@ -88,7 +89,7 @@ namespace Apache.Ignite.Linq.Impl
             if (memberExpr != null)
             {
                 if (memberExpr.Type.IsGenericType &&
-                    memberExpr.Type.GetGenericTypeDefinition() == typeof (IQueryable<>))
+                    memberExpr.Type.GetGenericTypeDefinition() == typeof(IQueryable<>))
                     return EvaluateExpression<ICacheQueryableInternal>(memberExpr);
 
                 return GetCacheQueryable(memberExpr.Expression, throwWhenNotFound);
@@ -109,7 +110,7 @@ namespace Apache.Ignite.Linq.Impl
             if (callExpr != null)
             {
                 // This is usually a nested query with a call to AsCacheQueryable().
-                return (ICacheQueryableInternal) Expression.Lambda(callExpr).Compile().DynamicInvoke();
+                return (ICacheQueryableInternal)Expression.Lambda(callExpr).Compile().DynamicInvoke();
             }
 
             if (throwWhenNotFound)
@@ -174,16 +175,16 @@ namespace Apache.Ignite.Linq.Impl
 
                     Func<object, object> reader;
                     if (MemberReaders.TryGetValue(memberExpr.Member, out reader))
-                        return (T) reader(target);
+                        return (T)reader(target);
 
-                    return (T) MemberReaders.GetOrAdd(memberExpr.Member, x => CompileMemberReader(memberExpr))(target);
+                    return (T)MemberReaders.GetOrAdd(memberExpr.Member, x => CompileMemberReader(memberExpr))(target);
                 }
             }
 
             // Case for compiled queries: return unchanged.
             // ReSharper disable once CanBeReplacedWithTryCastAndCheckForNull
             if (expr is ParameterExpression)
-                return (T) (object) expr;
+                return (T)(object)expr;
 
             throw new NotSupportedException("Expression not supported: " + expr);
         }
@@ -200,17 +201,20 @@ namespace Apache.Ignite.Linq.Impl
                     var memberExpression = (MemberExpression)fromExpression;
                     result = EvaluateExpression<IEnumerable>(memberExpression);
                     break;
+
                 case ExpressionType.ListInit:
                     var listInitExpression = (ListInitExpression)fromExpression;
                     result = listInitExpression.Initializers
                         .SelectMany(init => init.Arguments)
                         .Select(EvaluateExpression<object>);
                     break;
+
                 case ExpressionType.NewArrayInit:
                     var newArrayExpression = (NewArrayExpression)fromExpression;
                     result = newArrayExpression.Expressions
                         .Select(EvaluateExpression<object>);
                     break;
+
                 case ExpressionType.Parameter:
                     // This should happen only when 'IEnumerable.Contains' is called on parameter of compiled query
                     throw new NotSupportedException("'Contains' clause on compiled query parameter is not supported.");

@@ -14,6 +14,5 @@
         {
             return (byte[])data;
         }
-
     }
 }

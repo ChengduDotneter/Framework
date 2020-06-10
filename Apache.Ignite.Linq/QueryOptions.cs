@@ -17,10 +17,10 @@
 
 namespace Apache.Ignite.Linq
 {
-    using System;
-    using System.ComponentModel;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Query;
+    using System;
+    using System.ComponentModel;
 
     /// <summary>
     /// Cache query options.
@@ -39,7 +39,7 @@ namespace Apache.Ignite.Linq
         }
 
         /// <summary>
-        /// Local flag. When set query will be executed only on local node, so only local 
+        /// Local flag. When set query will be executed only on local node, so only local
         /// entries will be returned as query result.
         /// <para />
         /// Defaults to <c>false</c>.
@@ -53,7 +53,7 @@ namespace Apache.Ignite.Linq
         public int PageSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the table. 
+        /// Gets or sets the name of the table.
         /// <para />
         /// Table name is equal to short class name of a cache value.
         /// When a cache has only one type of values, or only one <see cref="QueryEntity" /> defined,

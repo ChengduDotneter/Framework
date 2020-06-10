@@ -1,9 +1,6 @@
 ﻿using Common.Model;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.IO;
 using System.Text.Json;
 
 namespace Common.ServiceCommon
@@ -25,7 +22,6 @@ namespace Common.ServiceCommon
     /// </summary>
     public class JObjectSerializeService : IJObjectSerializeService
     {
-
         private IHttpContextAccessor m_httpContextAccessor;
 
         private IJObjectConverter m_jObjectConverter;

@@ -10,7 +10,7 @@ namespace Common.ServiceCommon
     /// <summary>
     /// 微服务接口调用辅助类
     /// </summary>
-   public class MicroServiceHelper
+    public class MicroServiceHelper
     {
         private static T ReturnEntity<T>(string microServiceName, HttpResponseMessage httpResponseMessage)
         {

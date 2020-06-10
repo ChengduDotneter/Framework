@@ -217,7 +217,7 @@ namespace Apache.Ignite.Linq.Impl
             if (isInstanceMethod)
                 visitor.Visit(expression.Object);
 
-            for (int i= 0; i < expression.Arguments.Count; i++)
+            for (int i = 0; i < expression.Arguments.Count; i++)
             {
                 var arg = expression.Arguments[i];
 
@@ -252,7 +252,7 @@ namespace Apache.Ignite.Linq.Impl
 
                 if (arg.NodeType == ExpressionType.Constant)
                 {
-                    var constant = (ConstantExpression) arg;
+                    var constant = (ConstantExpression)arg;
                     var args = constant.Value as IEnumerable<char>;
 
                     if (args == null)
@@ -360,7 +360,7 @@ namespace Apache.Ignite.Linq.Impl
         private static KeyValuePair<MethodInfo, VisitMethodDelegate> GetParameterizedTrimMethod(string name,
             string sqlName)
         {
-            return GetMethod(typeof(string), name, new[] {typeof(char[])},
+            return GetMethod(typeof(string), name, new[] { typeof(char[]) },
                 (e, v) => VisitParameterizedTrimFunc(e, v, sqlName));
         }
 

@@ -1,10 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
 {
     /// <summary>
     /// 不等于验证器特性类
     /// </summary>
+    [Obsolete("已过期，请使用NotEqualThanAttribute")]
     public class NotEqualAttribute : ValidationBaseAttribute
     {
         private object m_notEqualValue;

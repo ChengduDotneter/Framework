@@ -111,7 +111,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -155,7 +155,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="searchQuery"></param>
         public GenericGetController(ISearchQuery<TResponse> searchQuery)
@@ -177,7 +177,7 @@ namespace Common.ServiceCommon
         private static ISearchQuery<TResponse> m_searchQuery;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="searchQuery"></param>
         public GenericSearchController(ISearchQuery<TResponse> searchQuery) => m_searchQuery = searchQuery;
@@ -451,7 +451,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="searchQuery"></param>
         public GenericSearchController(ISearchQuery<TResponse> searchQuery)
@@ -512,7 +512,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="editQuery"></param>
         /// <param name="ssoUserService"></param>
@@ -566,7 +566,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="editQuery"></param>
         /// <param name="searchQuery"></param>
@@ -617,7 +617,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="editQuery"></param>
         /// <param name="searchQuery"></param>
@@ -638,6 +638,11 @@ namespace Common.ServiceCommon
             where TResponse1 : ViewModelBase, new()
             where TResponse2 : ViewModelBase, new()
     {
+        /// <summary>
+        /// get请求入口
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public IActionResult Get(long id)
         {
@@ -653,6 +658,11 @@ namespace Common.ServiceCommon
             });
         }
 
+        /// <summary>
+        /// get请求具体实现方法
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         protected abstract Tuple<TResponse1, TResponse2> DoGet(long id);
     }
 
@@ -668,6 +678,11 @@ namespace Common.ServiceCommon
         where TResponse2 : ViewModelBase, new()
         where TResponse3 : ViewModelBase, new()
     {
+        /// <summary>
+        /// get请求入口
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public IActionResult Get(long id)
         {
@@ -684,6 +699,11 @@ namespace Common.ServiceCommon
             });
         }
 
+        /// <summary>
+        /// get请求具体方法实现
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         protected abstract Tuple<TResponse1, TResponse2, TResponse3> DoGet(long id);
     }
 
@@ -700,11 +720,20 @@ namespace Common.ServiceCommon
     {
         private ISSOUserService m_ssoUserService;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="ssoUserService"></param>
         public MultipleGenericPostController(ISSOUserService ssoUserService)
         {
             m_ssoUserService = ssoUserService;
         }
 
+        /// <summary>
+        /// post请求入口
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <returns></returns>
         public IActionResult Post(TRequest1 request1)
         {
             DoPost(request1);
@@ -723,6 +752,10 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public virtual object GetReturnValue() => null;
 
+        /// <summary>
+        /// post请求具体执行方法
+        /// </summary>
+        /// <param name="request1"></param>
         protected abstract void DoPost(TRequest1 request1);
     }
 
@@ -735,11 +768,21 @@ namespace Common.ServiceCommon
     {
         private ISSOUserService m_ssoUserService;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="ssoUserService"></param>
         public MultipleGenericPostController(ISSOUserService ssoUserService)
         {
             m_ssoUserService = ssoUserService;
         }
 
+        /// <summary>
+        /// post请求入口
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <param name="request2"></param>
+        /// <returns></returns>
         public IActionResult Post(TRequest1 request1, TRequest2 request2)
         {
             DoPost(request1, request2);
@@ -758,6 +801,11 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public virtual object GetReturnValue() => null;
 
+        /// <summary>
+        /// post请求具体执行方法
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <param name="request2"></param>
         protected abstract void DoPost(TRequest1 request1, TRequest2 request2);
     }
 
@@ -771,11 +819,22 @@ namespace Common.ServiceCommon
     {
         private readonly ISSOUserService m_ssoUserService;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="ssoUserService"></param>
         public MultipleGenericPostController(ISSOUserService ssoUserService)
         {
             m_ssoUserService = ssoUserService;
         }
 
+        /// <summary>
+        /// post请求
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <param name="request2"></param>
+        /// <param name="request3"></param>
+        /// <returns></returns>
         public IActionResult Post(TRequest1 request1, TRequest2 request2, TRequest3 request3)
         {
             DoPost(request1, request2, request3);
@@ -794,6 +853,12 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public virtual object GetReturnValue() => null;
 
+        /// <summary>
+        /// post请求具体实现方法
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <param name="request2"></param>
+        /// <param name="request3"></param>
         protected abstract void DoPost(TRequest1 request1, TRequest2 request2, TRequest3 request3);
     }
 
@@ -805,17 +870,30 @@ namespace Common.ServiceCommon
     {
         private ISSOUserService m_ssoUserService;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="ssoUserService"></param>
         public MultipleGenericPutController(ISSOUserService ssoUserService)
         {
             m_ssoUserService = ssoUserService;
         }
 
+        /// <summary>
+        /// Put请求入口
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <returns></returns>
         public IActionResult Put(TRequest1 request1)
         {
             DoPut(request1);
             return new OkResult();
         }
 
+        /// <summary>
+        /// put请求具体方法实现
+        /// </summary>
+        /// <param name="request1"></param>
         protected abstract void DoPut(TRequest1 request1);
     }
 
@@ -828,17 +906,32 @@ namespace Common.ServiceCommon
     {
         private readonly ISSOUserService m_ssoUserService;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="ssoUserService"></param>
         public MultipleGenericPutController(ISSOUserService ssoUserService)
         {
             m_ssoUserService = ssoUserService;
         }
 
+        /// <summary>
+        /// put请求入口
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <param name="request2"></param>
+        /// <returns></returns>
         public IActionResult Put(TRequest1 request1, TRequest2 request2)
         {
             DoPut(request1, request2);
             return new OkResult();
         }
 
+        /// <summary>
+        /// put请求具体执行方法
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <param name="request2"></param>
         protected abstract void DoPut(TRequest1 request1, TRequest2 request2);
     }
 
@@ -852,17 +945,34 @@ namespace Common.ServiceCommon
     {
         private ISSOUserService m_ssoUserService;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="ssoUserService"></param>
         public MultipleGenericPutController(ISSOUserService ssoUserService)
         {
             m_ssoUserService = ssoUserService;
         }
 
+        /// <summary>
+        /// put请求入口
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <param name="request2"></param>
+        /// <param name="request3"></param>
+        /// <returns></returns>
         public IActionResult Put(TRequest1 request1, TRequest2 request2, TRequest3 request3)
         {
             DoPut(request1, request2, request3);
             return new OkResult();
         }
 
+        /// <summary>
+        /// put请求具体执行方法
+        /// </summary>
+        /// <param name="request1"></param>
+        /// <param name="request2"></param>
+        /// <param name="request3"></param>
         protected abstract void DoPut(TRequest1 request1, TRequest2 request2, TRequest3 request3);
     }
 }

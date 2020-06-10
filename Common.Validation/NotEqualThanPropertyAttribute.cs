@@ -15,10 +15,10 @@ namespace Common.Validation
         public NotEqualThanPropertyAttribute(string notEqualThanValue) : base(notEqualThanValue) { }
 
         /// <summary>
-        /// 获取验证失败的错误信息
+        /// 获取不等于的指定属性值
         /// </summary>
         /// <param name="validationContext">验证器上下文</param>
-        /// <param name="notEqualThanValuePropertyName">不等于的属性的属性名</param>
+        /// <param name="notEqualThanValuePropertyName">不等于的指定属性名</param>
         /// <returns></returns>
         protected override object GetNotEqualThanValue(ValidationContext validationContext, object notEqualThanValuePropertyName)
         {
@@ -26,11 +26,11 @@ namespace Common.Validation
         }
 
         /// <summary>
-        /// 验证属性值
+        /// 获取不等于的指定属性的展示名
         /// </summary>
         /// <param name="validationContext">验证器上下文</param>
-        /// <param name="notEqualThanValuePropertyName">不等于的属性的属性名</param>
-        /// <returns></returns>
+        /// <param name="notEqualThanValuePropertyName">不等于的指定属性名</param>
+        /// <returns>如指定的属性带有DisplayAttribute特性，则返回DisplayAttribute的Name，否则DisplayAttribute特性则返回属性名</returns>
         protected override string GetNotEqualThanText(ValidationContext validationContext, object notEqualThanValuePropertyName)
         {
             return validationContext.ObjectType.GetProperty((string)notEqualThanValuePropertyName).GetCustomAttribute<DisplayAttribute>()?.Name ?? (string)notEqualThanValuePropertyName;

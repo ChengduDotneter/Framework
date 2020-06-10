@@ -3,15 +3,15 @@
 namespace Common.Validation
 {
     /// <summary>
-    /// 比较帮助类
+    /// 对象值比较Helper类
     /// </summary>
     public static class CompareHelper
     {
         /// <summary>
-        /// 
+        /// 将参数转换为指定泛型
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
+        /// <typeparam name="T">指定泛型</typeparam>
+        /// <param name="value">参数值</param>
         /// <returns></returns>
         private static T MakeType<T>(object value)
         {
@@ -24,10 +24,10 @@ namespace Common.Validation
         /// <summary>
         /// 比较ab参数是否相等
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">指定泛型</typeparam>
         /// <param name="a"></param>
         /// <param name="b"></param>
-        /// <returns></returns>
+        /// <returns>1：a大于b, 0:a等于b, -1:a小于b </returns>
         public static int Compare<T>(T a, object b)
         {
             if (a is IComparable comparable)

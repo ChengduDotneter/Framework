@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 namespace Apache.Ignite.Linq.Impl.Dml
 {
     using System.Linq.Expressions;

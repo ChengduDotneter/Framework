@@ -126,13 +126,12 @@ namespace Common
         /// <returns></returns>
         public static async Task<T> GetResponseAsync<T>(HttpResponseMessage response)
         {
-            if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.PaymentRequired)
+            if (response.IsSuccessStatusCode)
+                return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
+            else if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.PaymentRequired)
                 throw new DealException(await response.Content.ReadAsStringAsync());
-
-            else if (response.StatusCode != HttpStatusCode.OK)
+            else
                 throw new Exception(await response.Content.ReadAsStringAsync());
-
-            return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
         }
 
         /// <summary>
@@ -145,6 +144,5 @@ namespace Common
         {
             return GetResponseAsync<T>(response).Result;
         }
-
     }
 }

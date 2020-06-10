@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.Linq.Expressions;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Common.DAL.Cache
 {

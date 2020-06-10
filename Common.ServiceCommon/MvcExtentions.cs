@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Net;
 using System.Text;
 using Common.DAL;
 using Common.MessageQueueClient;
@@ -8,9 +9,15 @@ using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Orleans.Configuration;
+using Orleans.Hosting;
+using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// MVC扩展类
+    /// </summary>
     public static class MvcExtentions
     {
         private static bool m_isCodeFirst;
@@ -23,6 +30,11 @@ namespace Common.ServiceCommon
             m_defaultEditQueryProviderDic = new Dictionary<Type, Func<object>>();
         }
 
+        /// <summary>
+        /// 配置初始化
+        /// </summary>
+        /// <param name="hostBuilderContext"></param>
+        /// <returns></returns>
         public static HostBuilderContext ConfigInit(this HostBuilderContext hostBuilderContext)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -32,6 +44,13 @@ namespace Common.ServiceCommon
             return hostBuilderContext;
         }
 
+        /// <summary>
+        /// 添加Controller
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <param name="modelTypes"></param>
+        /// <param name="dynamicControllerTypes"></param>
+        /// <returns></returns>
         public static IMvcBuilder AddControllers(this IServiceCollection serviceCollection, Type[] modelTypes, Type[] dynamicControllerTypes)
         {
             IMvcBuilder mvcBuilder = serviceCollection.AddControllers(options =>
@@ -50,6 +69,13 @@ namespace Common.ServiceCommon
             return mvcBuilder;
         }
 
+        /// <summary>
+        /// 配置验证器
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <param name="mvcBuilder"></param>
+        /// <param name="maxErrorCount"></param>
+        /// <returns></returns>
         public static IMvcBuilder ConfigureValidation(this IServiceCollection serviceCollection, IMvcBuilder mvcBuilder, int maxErrorCount)
         {
             serviceCollection.Configure<ApiBehaviorOptions>(options =>
@@ -66,6 +92,13 @@ namespace Common.ServiceCommon
             return mvcBuilder;
         }
 
+        /// <summary>
+        /// 查询操作初始化
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <param name="modelTypes"></param>
+        /// <param name="searchQueryProvider"></param>
+        /// <param name="editQueryProvider"></param>
         public static void AddQuerys(this IServiceCollection serviceCollection, Type[] modelTypes, Func<Type, object> searchQueryProvider = null, Func<Type, object> editQueryProvider = null)
         {
             for (int i = 0; i < modelTypes.Length; i++)
@@ -102,12 +135,20 @@ namespace Common.ServiceCommon
             }
         }
 
+        /// <summary>
+        /// RBMQ相关接口依赖注册
+        /// </summary>
+        /// <param name="serviceCollection"></param>
         public static void AddTransfers(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddScoped(typeof(IPublisher<MessageBody>), sp => MessageQueueFactory.GetPublisherContext<MessageBody>());
             serviceCollection.AddScoped(typeof(ISubscriber<MessageBody>), sp => MessageQueueFactory.GetSubscriberContext<MessageBody>());
         }
 
+        /// <summary>
+        /// JSON序列化相关接口依赖注册
+        /// </summary>
+        /// <param name="serviceCollection"></param>
         public static void AddJsonSerialize(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddScoped<IJObjectSerializeService, JObjectSerializeService>();
@@ -115,6 +156,27 @@ namespace Common.ServiceCommon
 
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
+        }
+
+        public static void UseOrleans(this IHostBuilder hostBuilder)
+        {
+            hostBuilder.ConfigureServices(services =>
+            {
+                services.AddControllers();
+            })
+            .UseOrleans(siloBuilder =>
+            {
+                siloBuilder.UseLocalhostClustering()
+                 .Configure<ClusterOptions>(opts =>
+                 {
+                     opts.ClusterId = "ResourceManager";
+                     opts.ServiceId = "ResourceManager";
+                 })
+                 .Configure<EndpointOptions>(opts =>
+                 {
+                     opts.AdvertisedIPAddress = IPAddress.Loopback;
+                 });
+            }).RunConsoleAsync();
         }
     }
 }

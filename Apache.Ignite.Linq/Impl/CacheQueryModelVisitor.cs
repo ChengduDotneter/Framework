@@ -17,6 +17,11 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
+    using Apache.Ignite.Linq.Impl.Dml;
+    using Remotion.Linq;
+    using Remotion.Linq.Clauses;
+    using Remotion.Linq.Clauses.Expressions;
+    using Remotion.Linq.Clauses.ResultOperators;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -26,11 +31,6 @@ namespace Apache.Ignite.Linq.Impl
     using System.Linq;
     using System.Linq.Expressions;
     using System.Text;
-    using Apache.Ignite.Linq.Impl.Dml;
-    using Remotion.Linq;
-    using Remotion.Linq.Clauses;
-    using Remotion.Linq.Clauses.Expressions;
-    using Remotion.Linq.Clauses.ResultOperators;
 
     /// <summary>
     /// Query visitor, transforms LINQ expression to SQL.
@@ -47,6 +47,7 @@ namespace Apache.Ignite.Linq.Impl
         private readonly AliasDictionary _aliases = new AliasDictionary();
 
         /** */
+
         private static readonly Type DefaultIfEmptyEnumeratorType = new object[0]
             .DefaultIfEmpty()
             .GetType()
@@ -95,6 +96,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         public override void VisitQueryModel(QueryModel queryModel)
         {
             VisitQueryModel(queryModel, false);
@@ -348,7 +350,7 @@ namespace Apache.Ignite.Linq.Impl
             {
                 // Workaround for unlimited offset (IGNITE-2602)
                 // H2 allows NULL & -1 for unlimited, but Ignite indexing does not
-                // Maximum limit that works is (int.MaxValue - offset) 
+                // Maximum limit that works is (int.MaxValue - offset)
 
                 if (offset.Count is ParameterExpression)
                     throw new NotSupportedException("Skip() without Take() is not supported in compiled queries.");
@@ -367,6 +369,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         protected override void VisitBodyClauses(ObservableCollection<IBodyClause> bodyClauses, QueryModel queryModel)
         {
             var i = 0;
@@ -419,6 +422,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         public override void VisitMainFromClause(MainFromClause fromClause, QueryModel queryModel)
         {
@@ -462,6 +466,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         public override void VisitWhereClause(WhereClause whereClause, QueryModel queryModel, int index)
         {
@@ -487,6 +492,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         public override void VisitOrderByClause(OrderByClause orderByClause, QueryModel queryModel, int index)
         {
@@ -515,6 +521,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         public override void VisitJoinClause(JoinClause joinClause, QueryModel queryModel, int index)
         {
@@ -554,6 +561,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         public override void VisitAdditionalFromClause(AdditionalFromClause fromClause, QueryModel queryModel,
             int index)

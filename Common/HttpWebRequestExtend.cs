@@ -1,9 +1,8 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Common
 {
@@ -17,14 +16,19 @@ namespace Common
 
         //Content-Type值（Json）
         private const string CONTENT_TYPE_JSON = "application/json";
+
         //Content-Type值（Form表单）
         private const string CONTENT_TYPE_FORM = "application/x-www-form-urlencoded";
+
         //http请求方式GET
         private const string HTTP_METHOD_GET = "GET";
+
         //http请求方式POST
         private const string HTTP_METHOD_POST = "POST";
+
         //http请求方式DELETE
         private const string HTTP_METHOD_DELETE = "DELETE";
+
         //http请求方式PUT
         private const string HTTP_METHOD_PUT = "PUT";
 
@@ -132,34 +136,47 @@ namespace Common
         }
 
         /// <summary>
-        /// 获取请求结果数据
+        /// 同步获取请求结果数据
         /// </summary>
         /// <param name="httpWebRequest"></param>
         /// <returns></returns>
         public static HttpWebResponseResult GetResponseData(this HttpWebRequest httpWebRequest)
         {
-            HttpWebResponse httpWebResponse;
+            return httpWebRequest.GetResponseDataAsync().Result;
+        }
 
-            try
+        /// <summary>
+        /// 异步获取请求结果数据
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <returns></returns>
+        public static Task<HttpWebResponseResult> GetResponseDataAsync(this HttpWebRequest httpWebRequest)
+        {
+            return Task.Factory.StartNew(() =>
             {
-                httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            }
-            catch (WebException ex)
-            {
-                httpWebResponse = (HttpWebResponse)ex.Response;
-            }
+                HttpWebResponse httpWebResponse;
 
-            Stream stream = httpWebResponse.GetResponseStream();
+                try
+                {
+                    httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                }
+                catch (WebException ex)
+                {
+                    httpWebResponse = (HttpWebResponse)ex.Response;
+                }
 
-            string returnString = null;
+                Stream stream = httpWebResponse.GetResponseStream();
 
-            //获取响应内容
-            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
-            {
-                returnString = reader.ReadToEnd();
-            }
+                string returnString = null;
 
-            return new HttpWebResponseResult(httpWebResponse.StatusCode, returnString);
+                //获取响应内容
+                using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+                {
+                    returnString = reader.ReadToEnd();
+                }
+
+                return new HttpWebResponseResult(httpWebResponse.StatusCode, returnString);
+            });
         }
     }
 

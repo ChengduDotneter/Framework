@@ -17,14 +17,14 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
+    using Remotion.Linq.Clauses;
+    using Remotion.Linq.Clauses.Expressions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Text;
-    using Remotion.Linq.Clauses;
-    using Remotion.Linq.Clauses.Expressions;
 
     /// <summary>
     /// Alias dictionary.
@@ -44,7 +44,8 @@ namespace Apache.Ignite.Linq.Impl
         private readonly Dictionary<Expression, string> _fieldAliases = new Dictionary<Expression, string>();
 
         /** */
-        private readonly Stack<Dictionary<IQuerySource, string>> _stack 
+
+        private readonly Stack<Dictionary<IQuerySource, string>> _stack
             = new Stack<Dictionary<IQuerySource, string>>();
 
         /// <summary>

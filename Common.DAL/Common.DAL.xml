@@ -39,6 +39,21 @@
             <typeparam name="T"></typeparam>
             <returns></returns>
         </member>
+        <member name="T:Common.DAL.IEntity">
+            <summary>
+            实体模型接口
+            </summary>
+        </member>
+        <member name="P:Common.DAL.IEntity.ID">
+            <summary>
+            全局唯一ID，64位长整型
+            </summary>
+        </member>
+        <member name="T:Common.DAL.IgnoreTableAttribute">
+            <summary>
+            忽略表创建特性
+            </summary>
+        </member>
         <member name="T:Common.DAL.IEditQuery`1">
             <summary>
             数据修改接口

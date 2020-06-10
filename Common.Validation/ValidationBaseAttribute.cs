@@ -10,7 +10,7 @@ namespace Common.Validation
     public abstract class ValidationBaseAttribute : ValidationAttribute
     {
         /// <summary>
-        /// 获取验证失败的信息
+        /// 获取验证失败的错误信息
         /// </summary>
         /// <param name="validationContext">验证上下文</param>
         /// <param name="propertyName">属性名</param>
@@ -18,7 +18,7 @@ namespace Common.Validation
         protected abstract string GetErrorMessage(ValidationContext validationContext, string propertyName);
 
         /// <summary>
-        /// 参数值验证
+        /// 验证属性值
         /// </summary>
         /// <param name="value">属性值</param>
         /// <param name="validationContext">验证上下文</param>

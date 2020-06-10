@@ -17,13 +17,13 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
-    using System.Threading;
     using Apache.Ignite.Linq.Impl.Dml;
     using Remotion.Linq.Parsing.ExpressionVisitors.Transformation;
     using Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
     using Remotion.Linq.Parsing.Structure;
     using Remotion.Linq.Parsing.Structure.ExpressionTreeProcessors;
     using Remotion.Linq.Parsing.Structure.NodeTypeProviders;
+    using System.Threading;
 
     /// <summary>
     /// Cache query parser.
@@ -31,6 +31,7 @@ namespace Apache.Ignite.Linq.Impl
     internal static class CacheQueryParser
     {
         /** */
+
         private static readonly ThreadLocal<QueryParser> ThreadLocalInstance =
             new ThreadLocal<QueryParser>(CreateParser);
 
@@ -63,7 +64,7 @@ namespace Apache.Ignite.Linq.Impl
         {
             var methodInfoRegistry = MethodInfoBasedNodeTypeRegistry.CreateFromRelinqAssembly();
 
-            methodInfoRegistry.Register(RemoveAllExpressionNode.GetSupportedMethods(), 
+            methodInfoRegistry.Register(RemoveAllExpressionNode.GetSupportedMethods(),
                 typeof(RemoveAllExpressionNode));
 
             methodInfoRegistry.Register(UpdateAllExpressionNode.GetSupportedMethods(),

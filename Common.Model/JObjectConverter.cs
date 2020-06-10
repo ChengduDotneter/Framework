@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Linq;
 
 namespace Common.Model
 {
     public interface IJObjectConverter
     {
         JObject Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options);
+
         void Write(Utf8JsonWriter writer, JObject value, JsonSerializerOptions options);
     }
 

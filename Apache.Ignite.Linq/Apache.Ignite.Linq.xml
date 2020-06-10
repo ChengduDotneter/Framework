@@ -13,7 +13,7 @@
             <summary>
             Gets an <see cref="T:System.Linq.IQueryable`1"/> instance over this cache.
             <para />
-            Resulting query will be translated to cache SQL query and executed over the cache instance 
+            Resulting query will be translated to cache SQL query and executed over the cache instance
             via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/>
@@ -29,7 +29,7 @@
             <summary>
             Gets an <see cref="T:System.Linq.IQueryable`1"/> instance over this cache.
             <para />
-            Resulting query will be translated to cache SQL query and executed over the cache instance 
+            Resulting query will be translated to cache SQL query and executed over the cache instance
             via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/> for introspection.
@@ -37,7 +37,7 @@
             <typeparam name="TKey">The type of the key.</typeparam>
             <typeparam name="TValue">The type of the value.</typeparam>
             <param name="cache">The cache.</param>
-            <param name="local">Local flag. When set query will be executed only on local node, so only local 
+            <param name="local">Local flag. When set query will be executed only on local node, so only local
             entries will be returned as query result.</param>
             <returns><see cref="T:System.Linq.IQueryable`1"/> instance over this cache.</returns>
         </member>
@@ -45,7 +45,7 @@
             <summary>
             Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
             <para />
-            Resulting query will be translated to cache SQL query and executed over the cache instance 
+            Resulting query will be translated to cache SQL query and executed over the cache instance
             via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
@@ -53,13 +53,13 @@
             <typeparam name="TKey">The type of the key.</typeparam>
             <typeparam name="TValue">The type of the value.</typeparam>
             <param name="cache">The cache.</param>
-            <param name="local">Local flag. When set query will be executed only on local node, so only local 
+            <param name="local">Local flag. When set query will be executed only on local node, so only local
             entries will be returned as query result.</param>
             <param name="tableName">
             Name of the table.
             <para />
             Table name is equal to short class name of a cache value.
-            When a cache has only one type of values, or only one <see cref="T:Apache.Ignite.Core.Cache.Configuration.QueryEntity"/> defined, 
+            When a cache has only one type of values, or only one <see cref="T:Apache.Ignite.Core.Cache.Configuration.QueryEntity"/> defined,
             table name will be inferred and can be omitted.
             </param>
             <returns><see cref="T:System.Linq.IQueryable`1" /> instance over this cache.</returns>
@@ -68,7 +68,7 @@
             <summary>
             Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
             <para />
-            Resulting query will be translated to cache SQL query and executed over the cache instance 
+            Resulting query will be translated to cache SQL query and executed over the cache instance
             via either <see cref="M:Apache.Ignite.Core.Client.Cache.ICacheClient`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
@@ -90,8 +90,8 @@
             <summary>
             Gets an <see cref="T:System.Linq.IQueryable`1"/> instance over this cache.
             <para />
-            Resulting query will be translated to cache SQL query and executed over the cache instance 
-            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>. 
+            Resulting query will be translated to cache SQL query and executed over the cache instance
+            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/>
             for introspection, or converted with <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.ToCacheQueryable``1(System.Linq.IQueryable{``0})"/> extension method.
@@ -105,16 +105,16 @@
             <summary>
             Gets an <see cref="T:System.Linq.IQueryable`1"/> instance over this cache.
             <para />
-            Resulting query will be translated to cache SQL query and executed over the cache instance 
-            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>. 
-            depending on requested result. 
+            Resulting query will be translated to cache SQL query and executed over the cache instance
+            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
+            depending on requested result.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable"/> for introspection.
             </summary>
             <typeparam name="TKey">The type of the key.</typeparam>
             <typeparam name="TValue">The type of the value.</typeparam>
             <param name="cache">The cache.</param>
-            <param name="local">Local flag. When set query will be executed only on local node, so only local 
+            <param name="local">Local flag. When set query will be executed only on local node, so only local
             entries will be returned as query result.</param>
             <returns><see cref="T:System.Linq.IQueryable`1"/> instance over this cache.</returns>
         </member>
@@ -123,7 +123,7 @@
             Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>. 
+            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             depending on requested result.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
@@ -131,13 +131,13 @@
             <typeparam name="TKey">The type of the key.</typeparam>
             <typeparam name="TValue">The type of the value.</typeparam>
             <param name="cache">The cache.</param>
-            <param name="local">Local flag. When set query will be executed only on local node, so only local 
+            <param name="local">Local flag. When set query will be executed only on local node, so only local
             entries will be returned as query result.</param>
             <param name="tableName">
             Name of the table.
             <para />
             Table name is equal to short class name of a cache value.
-            When a cache has only one type of values, or only one <see cref="T:Apache.Ignite.Core.Cache.Configuration.QueryEntity"/> defined, 
+            When a cache has only one type of values, or only one <see cref="T:Apache.Ignite.Core.Cache.Configuration.QueryEntity"/> defined,
             table name will be inferred and can be omitted.
             </param>
             <returns><see cref="T:System.Linq.IQueryable`1" /> instance over this cache.</returns>
@@ -147,7 +147,7 @@
             Gets an <see cref="T:System.Linq.IQueryable`1" /> instance over this cache.
             <para />
             Resulting query will be translated to cache SQL query and executed over the cache instance
-            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>. 
+            via <see cref="M:Apache.Ignite.Core.Cache.ICache`2.Query(Apache.Ignite.Core.Cache.Query.SqlFieldsQuery)"/>.
             depending on requested result.
             <para />
             Result of this method (and subsequent query) can be cast to <see cref="T:Apache.Ignite.Linq.ICacheQueryable" /> for introspection.
@@ -169,7 +169,7 @@
             <summary>
             Removes all rows that are matched by the specified query.
             <para />
-            This method results in "DELETE FROM" distributed SQL query, performing bulk delete 
+            This method results in "DELETE FROM" distributed SQL query, performing bulk delete
             (as opposed to fetching all rows locally).
             </summary>
             <typeparam name="TKey">Key type.</typeparam>
@@ -196,7 +196,7 @@
             <summary>
             Updates all rows that are matched by the specified query.
             <para />
-            This method results in "UPDATE" distributed SQL query, performing bulk update 
+            This method results in "UPDATE" distributed SQL query, performing bulk update
             (as opposed to fetching all rows locally).
             </summary>
             <typeparam name="TKey">Key type.</typeparam>
@@ -413,7 +413,7 @@
             <summary>
             Initializes a new instance of the <see cref="T:Apache.Ignite.Linq.Impl.CacheQueryable`2"/> class.
             </summary>
-            <param name="provider">The provider used to execute the query represented by this queryable 
+            <param name="provider">The provider used to execute the query represented by this queryable
             and to construct new queries.</param>
             <param name="expression">The expression representing the query.</param>
         </member>
@@ -699,7 +699,7 @@
             for the whole-table select as well as _key, _val.
             </param>
             <param name="visitEntireSubQueryModel">
-            Flag indicating that subquery 
+            Flag indicating that subquery
             should be visited as full query
             </param>
         </member>
@@ -996,7 +996,7 @@
         </member>
         <member name="T:Apache.Ignite.Linq.Impl.Dml.RemoveAllExpressionNode">
             <summary>
-            Represents a <see cref="T:System.Linq.Expressions.MethodCallExpression"/> for 
+            Represents a <see cref="T:System.Linq.Expressions.MethodCallExpression"/> for
             <see cref="M:Apache.Ignite.Linq.CacheLinqExtensions.RemoveAll``2(System.Linq.IQueryable{Apache.Ignite.Core.Cache.ICacheEntry{``0,``1}})"/>.
             When user calls RemoveAll, this node is generated.
             </summary>
@@ -1423,7 +1423,7 @@
         </member>
         <member name="P:Apache.Ignite.Linq.QueryOptions.Local">
             <summary>
-            Local flag. When set query will be executed only on local node, so only local 
+            Local flag. When set query will be executed only on local node, so only local
             entries will be returned as query result.
             <para />
             Defaults to <c>false</c>.
@@ -1436,7 +1436,7 @@
         </member>
         <member name="P:Apache.Ignite.Linq.QueryOptions.TableName">
             <summary>
-            Gets or sets the name of the table. 
+            Gets or sets the name of the table.
             <para />
             Table name is equal to short class name of a cache value.
             When a cache has only one type of values, or only one <see cref="T:Apache.Ignite.Core.Cache.Configuration.QueryEntity" /> defined,

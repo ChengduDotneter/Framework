@@ -29,6 +29,92 @@
             键值对匹配
             </summary>
         </member>
+        <member name="T:Common.MessageQueueClient.IData">
+             <summary>
+            
+             </summary>
+        </member>
+        <member name="P:Common.MessageQueueClient.IData.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="T:Common.MessageQueueClient.IPublisher`1">
+            <summary>
+            数据推送相关接口
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.MessageQueueClient.IPublisher`1.Dispose">
+            <summary>
+            Dispose
+            </summary>
+        </member>
+        <member name="M:Common.MessageQueueClient.IPublisher`1.Publish(`0,System.String,System.String)">
+            <summary>
+            推送泛型对象
+            </summary>
+            <param name="message"></param>
+            <param name="exchangeName"></param>
+            <param name="routingKey"></param>
+        </member>
+        <member name="M:Common.MessageQueueClient.IPublisher`1.Publish(System.String,System.String,System.String)">
+            <summary>
+            推送字符串消息（Json）
+            </summary>
+            <param name="message"></param>
+            <param name="exchangeName"></param>
+            <param name="routingKey"></param>
+        </member>
+        <member name="M:Common.MessageQueueClient.IPublisher`1.BindingPublishQueues(System.String,Common.MessageQueueClient.ExChangeTypeEnum,System.String[])">
+            <summary>
+            绑定推送队列
+            </summary>
+            <param name="exchangeName"></param>
+            <param name="exchangeType"></param>
+            <param name="queuesName"></param>
+        </member>
+        <member name="M:Common.MessageQueueClient.IPublisher`1.PublishAsync(`0)">
+            <summary>
+            异步推送
+            </summary>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.MessageQueueClient.ISubscriber`1">
+            <summary>
+            消息订阅接口
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.MessageQueueClient.ISubscriber`1.Dispose">
+            <summary>
+            Dispose
+            </summary>
+        </member>
+        <member name="M:Common.MessageQueueClient.ISubscriber`1.Subscribe(System.String,System.Action{System.String})">
+            <summary>
+            消息订阅
+            </summary>
+            <param name="exchangeName"></param>
+            <param name="callback"></param>
+        </member>
+        <member name="M:Common.MessageQueueClient.ISubscriber`1.BindingSubscribeQueue(System.String,Common.MessageQueueClient.ExChangeTypeEnum,System.String,System.String)">
+            <summary>
+            绑定订阅队列
+            </summary>
+            <param name="exchangeName"></param>
+            <param name="exchangeType"></param>
+            <param name="routingKey"></param>
+            <param name="listenqueue"></param>
+        </member>
+        <member name="M:Common.MessageQueueClient.ISubscriber`1.SubscribeAsync(System.String)">
+            <summary>
+            异步订阅消息
+            </summary>
+            <param name="queueName"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.MessageQueueClient.MessageBody">
             <summary>
             对接推送/接收消息实体

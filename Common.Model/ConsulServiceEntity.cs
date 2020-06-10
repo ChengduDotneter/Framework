@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Common.Model
+﻿namespace Common.Model
 {
     /// <summary>
     /// Consul所需服务实体类，则不自动生成controller
@@ -38,7 +34,6 @@ namespace Common.Model
         /// 服务启动后多久进行注册
         /// </summary>
         public int DeregisterCriticalServiceAfter { get; set; }
-
 
         /// <summary>
         /// 健康检查时间间隔，或者称为心跳间隔

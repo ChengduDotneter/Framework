@@ -28,7 +28,7 @@ namespace Apache.Ignite.Linq.Impl
     {
         /** */
         private readonly ICollection<object> _parameters;
-        
+
         /** */
         private readonly string _queryText;
 

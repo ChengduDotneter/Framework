@@ -17,9 +17,9 @@
 
 namespace Apache.Ignite.Linq
 {
-    using System;
     using Apache.Ignite.Core;
     using Apache.Ignite.Core.Cache.Query;
+    using System;
 
     /// <summary>
     /// Common interface for cache queryables.

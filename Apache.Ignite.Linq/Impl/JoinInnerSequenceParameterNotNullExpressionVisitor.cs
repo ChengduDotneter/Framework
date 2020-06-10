@@ -17,12 +17,12 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
+    using Remotion.Linq.Parsing;
     using System;
     using System.Collections;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
-    using Remotion.Linq.Parsing;
 
     /// <summary>
     /// Transforms JoinClause with parameterised inner sequence to .Join(innerSequence ?? new T[0] ...
@@ -30,6 +30,7 @@ namespace Apache.Ignite.Linq.Impl
     internal class JoinInnerSequenceParameterNotNullExpressionVisitor : RelinqExpressionVisitor
     {
         /** */
+
         private static readonly MethodInfo[] JoinMethods = typeof(Queryable).GetMethods()
             .Where(info => info.Name == "Join")
             .ToArray();
@@ -41,6 +42,7 @@ namespace Apache.Ignite.Linq.Impl
         private bool _inJoin;
 
         /** <inheritdoc /> */
+
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             if (node.Method.IsGenericMethod)
@@ -58,6 +60,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         protected override Expression VisitParameter(ParameterExpression node)
         {
             if (_inJoin && EnumerableType.IsAssignableFrom(node.Type))

@@ -26,8 +26,8 @@ namespace Common.Validation
         /// <summary>
         /// 验证属性值
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="validationContext"></param>
+        /// <param name="value">属性值</param>
+        /// <param name="validationContext">验证器上下文</param>
         /// <returns></returns>
         protected override bool ValidateValue(object value, ValidationContext validationContext)
         {

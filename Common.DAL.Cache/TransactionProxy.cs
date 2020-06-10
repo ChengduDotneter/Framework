@@ -15,12 +15,12 @@ namespace Common.DAL.Cache
         private static readonly Mutex m_mutex;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public static TransactionProxy Instance { get; private set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public static bool InTransaction { get; private set; }
 
@@ -43,7 +43,7 @@ namespace Common.DAL.Cache
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="action"></param>
         public void AddAction(Action action)

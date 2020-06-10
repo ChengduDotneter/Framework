@@ -1,14 +1,14 @@
-﻿using System;
+﻿using log4net;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Primitives;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using log4net;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Primitives;
 
 namespace Common.ServiceCommon
 {
@@ -76,7 +76,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="httpContext">HttpContext</param>
         /// <returns></returns>

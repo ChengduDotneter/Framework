@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Linq;
 
 namespace Common.Model
 {
-
     public interface IJArrayConverter
     {
         JArray Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options);
+
         void Write(Utf8JsonWriter writer, JArray value, JsonSerializerOptions options);
     }
 
@@ -18,6 +18,7 @@ namespace Common.Model
         {
             return Read(ref reader, typeToConvert, options);
         }
+
         public JArray Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, bool inArray = false)
         {
             JArray jArray = new JArray();

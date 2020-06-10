@@ -20,12 +20,6 @@ using System.Text;
 
 namespace Apache.Ignite.Linq.Impl
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Cache;
@@ -35,6 +29,12 @@ namespace Apache.Ignite.Linq.Impl
     using Remotion.Linq.Clauses.Expressions;
     using Remotion.Linq.Clauses.ResultOperators;
     using Remotion.Linq.Parsing;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Reflection;
 
     /// <summary>
     /// Expression visitor, transforms query subexpressions (such as Where clauses) to SQL.
@@ -48,6 +48,7 @@ namespace Apache.Ignite.Linq.Impl
         private readonly CacheQueryModelVisitor _modelVisitor;
 
         /** */
+
         private static readonly CopyOnWriteConcurrentDictionary<MemberInfo, string> FieldNameMap =
             new CopyOnWriteConcurrentDictionary<MemberInfo, string>();
 
@@ -70,7 +71,7 @@ namespace Apache.Ignite.Linq.Impl
         /// for the whole-table select as well as _key, _val.
         /// </param>
         /// <param name="visitEntireSubQueryModel">
-        /// Flag indicating that subquery 
+        /// Flag indicating that subquery
         /// should be visited as full query
         /// </param>
         public CacheQueryExpressionVisitor(CacheQueryModelVisitor modelVisitor, bool useStar, bool includeAllFields,
@@ -109,6 +110,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0")]
         protected override Expression VisitUnary(UnaryExpression expression)
         {
@@ -138,7 +140,7 @@ namespace Apache.Ignite.Linq.Impl
 
             Visit(expression.Operand);
 
-            if(closeBracket)
+            if (closeBracket)
                 ResultBuilder.Append(")");
 
             return expression;
@@ -151,7 +153,7 @@ namespace Apache.Ignite.Linq.Impl
         /// <returns>True if function detected, otherwise false.</returns>
         private bool VisitBinaryFunc(BinaryExpression expression)
         {
-            if (expression.NodeType == ExpressionType.Add && expression.Left.Type == typeof (string))
+            if (expression.NodeType == ExpressionType.Add && expression.Left.Type == typeof(string))
                 ResultBuilder.Append("concat(");
             else if (expression.NodeType == ExpressionType.Coalesce)
                 ResultBuilder.Append("coalesce(");
@@ -167,6 +169,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         protected override Expression VisitBinary(BinaryExpression expression)
         {
@@ -181,20 +184,20 @@ namespace Apache.Ignite.Linq.Impl
             switch (expression.NodeType)
             {
                 case ExpressionType.Equal:
-                {
-                    // Use `IS [NOT] DISTINCT FROM` for correct null comparison semantics.
-                    // E.g. when user says `.Where(x => x == null)`, it should work, but with `=` it does not.
-                    ResultBuilder.Append(" IS NOT DISTINCT FROM ");
+                    {
+                        // Use `IS [NOT] DISTINCT FROM` for correct null comparison semantics.
+                        // E.g. when user says `.Where(x => x == null)`, it should work, but with `=` it does not.
+                        ResultBuilder.Append(" IS NOT DISTINCT FROM ");
 
-                    break;
-                }
+                        break;
+                    }
 
                 case ExpressionType.NotEqual:
-                {
-                    ResultBuilder.Append(" IS DISTINCT FROM ");
+                    {
+                        ResultBuilder.Append(" IS DISTINCT FROM ");
 
-                    break;
-                }
+                        break;
+                    }
 
                 case ExpressionType.AndAlso:
                 case ExpressionType.And:
@@ -257,6 +260,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         public override Expression Visit(Expression expression)
         {
             var paramExpr = expression as ParameterExpression;
@@ -272,6 +276,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         protected override Expression VisitQuerySourceReference(QuerySourceReferenceExpression expression)
         {
             // In some cases of Join clause different handling should be introduced
@@ -285,7 +290,7 @@ namespace Apache.Ignite.Linq.Impl
             }
             else if (joinClause != null && joinClause.InnerSequence is SubQueryExpression)
             {
-                var subQueryExpression = (SubQueryExpression) joinClause.InnerSequence;
+                var subQueryExpression = (SubQueryExpression)joinClause.InnerSequence;
                 base.Visit(subQueryExpression.QueryModel.SelectClause.Selector);
             }
             else
@@ -307,6 +312,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         protected override Expression VisitMember(MemberExpression expression)
         {
@@ -410,14 +416,14 @@ namespace Apache.Ignite.Linq.Impl
                     return e;
                 }
             }
-            
+
             return null;
         }
 
         /// <summary>
         /// Gets the name of the member field.
         /// </summary>
-        [SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", 
+        [SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase",
             Justification = "Not applicable.")]
         private static string GetMemberFieldName(MemberInfo member)
         {
@@ -431,7 +437,7 @@ namespace Apache.Ignite.Linq.Impl
                 // Special case: _key, _val
                 if (m.DeclaringType != null &&
                     m.DeclaringType.IsGenericType &&
-                    m.DeclaringType.GetGenericTypeDefinition() == typeof (ICacheEntry<,>))
+                    m.DeclaringType.GetGenericTypeDefinition() == typeof(ICacheEntry<,>))
                     return "_" + m.Name.ToUpperInvariant().Substring(0, 3);
 
                 var qryFieldAttr = m.GetCustomAttributes(true)
@@ -470,6 +476,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         protected override Expression VisitConstant(ConstantExpression expression)
         {
@@ -494,6 +501,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         protected override Expression VisitMethodCall(MethodCallExpression expression)
         {
@@ -503,6 +511,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         protected override Expression VisitNew(NewExpression expression)
         {
@@ -512,6 +521,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         protected override Expression VisitInvocation(InvocationExpression expression)
         {
@@ -521,6 +531,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         protected override Expression VisitConditional(ConditionalExpression expression)
         {
@@ -549,7 +560,7 @@ namespace Apache.Ignite.Linq.Impl
             var contains = subQueryModel.ResultOperators.FirstOrDefault() as ContainsResultOperator;
 
             // Check if IEnumerable.Contains is used.
-            if (subQueryModel.ResultOperators.Count == 1 && contains != null) 
+            if (subQueryModel.ResultOperators.Count == 1 && contains != null)
             {
                 VisitContains(subQueryModel, contains);
             }
@@ -592,7 +603,7 @@ namespace Apache.Ignite.Linq.Impl
                 {
                     _modelVisitor.VisitQueryModel(subQueryModel);
                 }
-                
+
                 ResultBuilder.Append(")");
             }
             else
@@ -647,10 +658,11 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         protected override Exception CreateUnhandledItemException<T>(T unhandledItem, string visitMethod)
         {
             return new NotSupportedException(string.Format("The expression '{0}' (type: {1}) is not supported.",
-                unhandledItem, typeof (T)));
+                unhandledItem, typeof(T)));
         }
 
         /// <summary>

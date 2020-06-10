@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using Apache.Ignite.Core.Cache.Configuration;
+﻿using Apache.Ignite.Core.Cache.Configuration;
 using Common;
 using Common.DAL;
 using Common.Model;
-using System.Linq;
 using Newtonsoft.Json.Linq;
-using System.Text.Json;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using SqlSugar;
-using Common.Validation;
+using System.Text.Json;
 
 namespace Test
 {
@@ -18,15 +15,14 @@ namespace Test
     {
         [QuerySqlField(IsIndexed = true, NotNull = true)]
         public string Name { get; set; }
+
         [QuerySqlField(IsIndexed = false, NotNull = false)]
         public int? Number { get; set; }
     }
 
-    class Program
+    internal class Program
     {
-       
-
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             ConfigManager.Init("Development");
 
@@ -68,7 +64,6 @@ namespace Test
 
             Console.WriteLine($"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa      {count}");
 
-
             JObject a = new JObject();
             a["a"] = "123";
             JArray jArray = new JArray();
@@ -77,7 +72,6 @@ namespace Test
             jArray.Add(3);
             jArray.Add(4);
             a["b"] = jArray;
-
 
             JArray jArray1 = new JArray();
             JArray jArray2 = new JArray();
@@ -101,7 +95,6 @@ namespace Test
             jArray1.Add(jArray4);
 
             a["c"] = jArray1;
-
 
             var options = new JsonWriterOptions
             {

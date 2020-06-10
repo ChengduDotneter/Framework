@@ -73,20 +73,80 @@
             <param name="predicate"></param>
             <param name="updateExpression"></param>
         </member>
+        <member name="T:Common.DAL.Cache.IKeyCache`1">
+            <summary>
+            键值缓存接口
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.DAL.Cache.IKeyCache`1.Get(System.Int64)">
+            <summary>
+            根据id查数据
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.DAL.Cache.IConditionCache`1">
+            <summary>
+            条件缓存接口
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Common.DAL.Cache.IConditionCache`1.Get(System.String)">
+            <summary>
+            根据筛选条件匹配数据
+            </summary>
+            <param name="condition"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.DAL.Cache.IEditQueryExtention">
+            <summary>
+            IEditQuery的扩展类
+            </summary>
+        </member>
+        <member name="M:Common.DAL.Cache.IEditQueryExtention.Cache``1(Common.DAL.IEditQuery{``0})">
+            <summary>
+            缓存
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="editQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.DAL.Cache.ISearchQueryExtention">
+            <summary>
+            ISearchQuery的扩展类
+            </summary>
+        </member>
+        <member name="M:Common.DAL.Cache.ISearchQueryExtention.KeyCache``1(Common.DAL.ISearchQuery{``0})">
+            <summary>
+            键值缓存
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="searchQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.DAL.Cache.ISearchQueryExtention.ConditionCache``1(Common.DAL.ISearchQuery{``0})">
+            <summary>
+            条件缓存
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="searchQuery"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.DAL.Cache.TransactionProxy">
             <summary>
             事务代理器
             </summary>
         </member>
         <member name="P:Common.DAL.Cache.TransactionProxy.Instance">
-            <summary>
+             <summary>
             
-            </summary>
+             </summary>
         </member>
         <member name="P:Common.DAL.Cache.TransactionProxy.InTransaction">
-            <summary>
+             <summary>
             
-            </summary>
+             </summary>
         </member>
         <member name="M:Common.DAL.Cache.TransactionProxy.#ctor(Common.DAL.ITransaction)">
             <summary>
@@ -95,10 +155,10 @@
             <param name="transaction"></param>
         </member>
         <member name="M:Common.DAL.Cache.TransactionProxy.AddAction(System.Action)">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="action"></param>
+             </summary>
+             <param name="action"></param>
         </member>
         <member name="M:Common.DAL.Cache.TransactionProxy.Context">
             <summary>

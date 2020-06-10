@@ -32,9 +32,9 @@ namespace Common.ServiceCommon
 
             _charBuffer = ArrayPool<char>.Shared.Rent(MaxCharBufferSize);
 
-            // Attempt to allocate a byte buffer than can tolerate the worst-case scenario for this 
+            // Attempt to allocate a byte buffer than can tolerate the worst-case scenario for this
             // encoding. This would allow the char -> byte conversion to complete in a single call.
-            // However limit the buffer size to prevent an encoding that has a very poor worst-case scenario. 
+            // However limit the buffer size to prevent an encoding that has a very poor worst-case scenario.
             _maxByteBufferSize = Math.Min(MaxByteBufferSize, targetEncoding.GetMaxByteCount(MaxCharBufferSize));
 
             _decoder = Encoding.UTF8.GetDecoder();
@@ -215,7 +215,7 @@ namespace Common.ServiceCommon
     public class JArrayOutputFormatter : TextOutputFormatter
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public JArrayOutputFormatter()
         {
@@ -307,7 +307,7 @@ namespace Common.ServiceCommon
     public class JObjectOutputFormatter : TextOutputFormatter
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public JObjectOutputFormatter()
         {

@@ -1,5 +1,4 @@
-﻿using Common;
-using Common.Model;
+﻿using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,6 +11,9 @@ using System.Text;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// 根据实体动态生成Get，Post，Put，Delete，Search的Controller操作类
+    /// </summary>
     public static class ModelTypeControllerManager
     {
         private static ISet<string> m_actionPaths;

@@ -10,23 +10,23 @@
             </summary>
         </member>
         <member name="M:Common.DAL.ETL.ETLHelper.Transform(System.Collections.Generic.IEnumerable{System.Type},System.Func{System.Type,System.Object},System.Func{System.Type,System.Object},System.Int32)">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="modelTypes"></param>
-            <param name="sourceSearchQueryFactory"></param>
-            <param name="destEditQueryFactory"></param>
-            <param name="pageSize"></param>
-            <returns></returns>
+             </summary>
+             <param name="modelTypes"></param>
+             <param name="sourceSearchQueryFactory"></param>
+             <param name="destEditQueryFactory"></param>
+             <param name="pageSize"></param>
+             <returns></returns>
         </member>
         <member name="M:Common.DAL.ETL.ETLHelper.Transform(Common.DAL.ETL.ETLTable,System.Int32,System.Func{System.Type,System.Object},System.Func{System.Type,System.Object})">
-            <summary>
+             <summary>
             
-            </summary>
-            <param name="etlTable"></param>
-            <param name="pageSize"></param>
-            <param name="sourceSearchQueryFactory"></param>
-            <param name="destEditQueryFactory"></param>
+             </summary>
+             <param name="etlTable"></param>
+             <param name="pageSize"></param>
+             <param name="sourceSearchQueryFactory"></param>
+             <param name="destEditQueryFactory"></param>
         </member>
         <member name="T:Common.DAL.ETL.ETLTable">
             <summary>

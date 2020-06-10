@@ -17,6 +17,12 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
+    using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache;
+    using Apache.Ignite.Core.Cache.Query;
+    using Apache.Ignite.Core.Impl.Cache;
+    using Apache.Ignite.Core.Impl.Common;
+    using Remotion.Linq;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -24,12 +30,6 @@ namespace Apache.Ignite.Linq.Impl
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
-    using Apache.Ignite.Core.Binary;
-    using Apache.Ignite.Core.Cache;
-    using Apache.Ignite.Core.Cache.Query;
-    using Apache.Ignite.Core.Impl.Cache;
-    using Apache.Ignite.Core.Impl.Common;
-    using Remotion.Linq;
 
     /// <summary>
     /// Fields query executor.
@@ -38,11 +38,12 @@ namespace Apache.Ignite.Linq.Impl
     {
         /** */
         private readonly ICacheInternal _cache;
-        
+
         /** */
         private readonly QueryOptions _options;
 
         /** */
+
         private static readonly CopyOnWriteConcurrentDictionary<ConstructorInfo, object> CtorCache =
             new CopyOnWriteConcurrentDictionary<ConstructorInfo, object>();
 
@@ -61,12 +62,14 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         public T ExecuteScalar<T>(QueryModel queryModel)
         {
             return ExecuteSingle<T>(queryModel, false);
         }
 
         /** <inheritdoc /> */
+
         public T ExecuteSingle<T>(QueryModel queryModel, bool returnDefaultWhenEmpty)
         {
             var col = ExecuteCollection<T>(queryModel);
@@ -75,6 +78,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
+
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         public IEnumerable<T> ExecuteCollection<T>(QueryModel queryModel)
         {
@@ -253,13 +257,13 @@ namespace Apache.Ignite.Linq.Impl
             var obj = reader.ReadObject<object>();
 
             if (obj is bool)
-                return (T) obj;
+                return (T)obj;
 
             if (obj is long)
-                return TypeCaster<T>.Cast((long) obj != 0);
+                return TypeCaster<T>.Cast((long)obj != 0);
 
             if (obj is int)
-                return TypeCaster<T>.Cast((int) obj != 0);
+                return TypeCaster<T>.Cast((int)obj != 0);
 
             throw new InvalidOperationException("Expected bool, got: " + obj);
         }
@@ -274,7 +278,7 @@ namespace Apache.Ignite.Linq.Impl
 
             var args = entryType.GetGenericArguments();
 
-            var targetType = typeof (CacheEntry<,>).MakeGenericType(args);
+            var targetType = typeof(CacheEntry<,>).MakeGenericType(args);
 
             return targetType.GetConstructors().Single();
         }
@@ -287,14 +291,14 @@ namespace Apache.Ignite.Linq.Impl
             object result;
 
             if (CtorCache.TryGetValue(ctorInfo, out result))
-                return (Func<IBinaryRawReader, int, T>) result;
+                return (Func<IBinaryRawReader, int, T>)result;
 
-            return (Func<IBinaryRawReader, int, T>) CtorCache.GetOrAdd(ctorInfo, x =>
-            {
-                var innerCtor1 = DelegateConverter.CompileCtor<T>(x, GetCacheEntryCtorInfo);
+            return (Func<IBinaryRawReader, int, T>)CtorCache.GetOrAdd(ctorInfo, x =>
+           {
+               var innerCtor1 = DelegateConverter.CompileCtor<T>(x, GetCacheEntryCtorInfo);
 
-                return (Func<IBinaryRawReader, int, T>) ((r, c) => innerCtor1(r));
-            });
+               return (Func<IBinaryRawReader, int, T>)((r, c) => innerCtor1(r));
+           });
         }
     }
 }
