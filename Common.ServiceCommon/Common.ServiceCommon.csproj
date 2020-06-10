@@ -28,6 +28,5 @@
     <ProjectReference Include="..\Common.MessageQueueClient\Common.MessageQueueClient.csproj" />
     <ProjectReference Include="..\Common.Model\Common.Model.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
-    <ProjectReference Include="..\Common.DAL.Transaction\Common.DAL.Transaction.csproj" />
   </ItemGroup>
 </Project>
