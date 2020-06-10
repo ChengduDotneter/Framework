@@ -26,5 +26,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Apache.Ignite.Linq\Apache.Ignite.Linq.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\Common.DAL.Transaction\Common.DAL.Transaction.csproj" />
   </ItemGroup>
 </Project>
