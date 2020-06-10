@@ -47,15 +47,7 @@ namespace Common.DAL
 
         private static async void Release(Type table)
         {
-            int id = Thread.CurrentThread.ManagedThreadId;
-            IgniteITransaction igniteITransaction = null;
-
-            lock (m_transactions)
-                if (m_transactions.ContainsKey(id))
-                    igniteITransaction = m_transactions[id];
-
-            if (igniteITransaction != null)
-                await TransactionResourceHelper.ReleaseResourceAsync(table);
+            await TransactionResourceHelper.ReleaseResourceAsync(table);
         }
 
         private class IgniteITransaction : ITransaction

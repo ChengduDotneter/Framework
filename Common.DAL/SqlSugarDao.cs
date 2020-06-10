@@ -115,15 +115,7 @@ namespace Common.DAL
 
         private static async void Release(Type table)
         {
-            int id = Thread.CurrentThread.ManagedThreadId;
-            SqlSugerTranscation sqlSugerTranscation = null;
-
-            lock (m_transactions)
-                if (m_transactions.ContainsKey(id))
-                    sqlSugerTranscation = m_transactions[id];
-
-            if (sqlSugerTranscation != null)
-                await TransactionResourceHelper.ReleaseResourceAsync(table);
+            await TransactionResourceHelper.ReleaseResourceAsync(table);
         }
 
         private static class SqlSugarJoinQuery<TLeft, TRight>

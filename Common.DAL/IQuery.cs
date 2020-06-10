@@ -11,7 +11,7 @@ namespace Common.DAL
     public interface IEditQuery<T> where T : class, IEntity, new()
     {
         /// <summary>
-        /// 增
+        /// 新增
         /// </summary>
         /// <param name="datas"></param>
         void Insert(params T[] datas);
@@ -42,8 +42,6 @@ namespace Common.DAL
         /// <param name="ids"></param>
         void Delete(params long[] ids);
 
-        //TODO: 读写分离查询问题
-        //TODO: 多客户端并发问题
         /// <summary>
         /// 开启事务
         /// </summary>

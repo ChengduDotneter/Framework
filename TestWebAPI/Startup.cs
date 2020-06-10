@@ -63,11 +63,11 @@ namespace TestWebAPI
             services.AddQuerys(modelTypes,
                 (type) =>
                 {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchSqlSugarQuery)).MakeGenericMethod(type).Invoke(null, new object[] { false });
                 },
                 (type) =>
                 {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditSqlSugarQuery)).MakeGenericMethod(type).Invoke(null, new object[] { false });
                 });
 
             services.AddJsonSerialize();

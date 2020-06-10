@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using Common.DAL;
+using Common.DAL.Transaction;
 using Common.MessageQueueClient;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -162,7 +163,9 @@ namespace Common.ServiceCommon
         {
             return hostBuilder.ConfigureServices(services =>
             {
-                services.AddControllers();
+                services.AddControllers().
+                AddApplicationPart(typeof(ResourceController).Assembly).
+                AddApplicationPart(typeof(Resource).Assembly);
             })
             .UseOrleans(siloBuilder =>
             {
