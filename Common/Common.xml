@@ -370,6 +370,13 @@
             <param name="httpWebRequest"></param>
             <returns></returns>
         </member>
+        <member name="M:Common.HttpWebRequestExtend.GetResponseDataAsync(System.Net.HttpWebRequest)">
+            <summary>
+            获取请求结果数据
+            </summary>
+            <param name="httpWebRequest"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.HttpWebResponseResult">
             <summary>
             HttpWebResponse结果类
@@ -399,7 +406,16 @@
         </member>
         <member name="M:Common.HttpWebRequestHelper.JsonPost(System.String,System.Byte[],System.String)">
             <summary>
-            Json的Post请求
+            Json的同步Post请求
+            </summary>
+            <param name="url"></param>
+            <param name="postData"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.JsonPostAsync(System.String,System.Byte[],System.String)">
+            <summary>
+            Json的异步Post请求
             </summary>
             <param name="url"></param>
             <param name="postData"></param>
@@ -408,7 +424,15 @@
         </member>
         <member name="M:Common.HttpWebRequestHelper.JsonGet(System.String,System.String)">
             <summary>
-            json的get请求
+            json的get同步请求
+            </summary>
+            <param name="url"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.JsonGetAsync(System.String,System.String)">
+            <summary>
+            json的get异步请求
             </summary>
             <param name="url"></param>
             <param name="bearerToken"></param>
@@ -416,7 +440,16 @@
         </member>
         <member name="M:Common.HttpWebRequestHelper.JsonPut(System.String,System.Byte[],System.String)">
             <summary>
-            json的put请求
+            json的put同步请求
+            </summary>
+            <param name="url"></param>
+            <param name="postData"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.JsonPutAsync(System.String,System.Byte[],System.String)">
+            <summary>
+            json的post异步请求
             </summary>
             <param name="url"></param>
             <param name="postData"></param>
@@ -425,7 +458,15 @@
         </member>
         <member name="M:Common.HttpWebRequestHelper.JsonDelete(System.String,System.String)">
             <summary>
-            json的delete请求
+            json的delete同步请求
+            </summary>
+            <param name="url"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.JsonDeleteAsync(System.String,System.String)">
+            <summary>
+            json的delete异步请求
             </summary>
             <param name="url"></param>
             <param name="bearerToken"></param>
@@ -433,7 +474,16 @@
         </member>
         <member name="M:Common.HttpWebRequestHelper.FormPost(System.String,System.Collections.Generic.IDictionary{System.String,System.Object},System.String)">
             <summary>
-            form表单的post请求
+            form表单的post同步请求
+            </summary>
+            <param name="url"></param>
+            <param name="keyValues"></param>
+            <param name="bearerToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpWebRequestHelper.FormPostAsync(System.String,System.Collections.Generic.IDictionary{System.String,System.Object},System.String)">
+            <summary>
+            form表单的post异步请求
             </summary>
             <param name="url"></param>
             <param name="keyValues"></param>

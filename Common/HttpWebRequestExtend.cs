@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Common
 {
@@ -141,28 +142,41 @@ namespace Common
         /// <returns></returns>
         public static HttpWebResponseResult GetResponseData(this HttpWebRequest httpWebRequest)
         {
-            HttpWebResponse httpWebResponse;
+            return httpWebRequest.GetResponseDataAsync().Result;
+        }
 
-            try
+        /// <summary>
+        /// 获取请求结果数据
+        /// </summary>
+        /// <param name="httpWebRequest"></param>
+        /// <returns></returns>
+        public static Task<HttpWebResponseResult> GetResponseDataAsync(this HttpWebRequest httpWebRequest)
+        {
+            return Task.Factory.StartNew(() =>
             {
-                httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            }
-            catch (WebException ex)
-            {
-                httpWebResponse = (HttpWebResponse)ex.Response;
-            }
+                HttpWebResponse httpWebResponse;
 
-            Stream stream = httpWebResponse.GetResponseStream();
+                try
+                {
+                    httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                }
+                catch (WebException ex)
+                {
+                    httpWebResponse = (HttpWebResponse)ex.Response;
+                }
 
-            string returnString = null;
+                Stream stream = httpWebResponse.GetResponseStream();
 
-            //获取响应内容
-            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
-            {
-                returnString = reader.ReadToEnd();
-            }
+                string returnString = null;
 
-            return new HttpWebResponseResult(httpWebResponse.StatusCode, returnString);
+                //获取响应内容
+                using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+                {
+                    returnString = reader.ReadToEnd();
+                }
+
+                return new HttpWebResponseResult(httpWebResponse.StatusCode, returnString);
+            });
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Common
 {
@@ -10,7 +11,7 @@ namespace Common
     public class HttpWebRequestHelper
     {
         /// <summary>
-        /// Json的Post请求
+        /// Json的同步Post请求
         /// </summary>
         /// <param name="url"></param>
         /// <param name="postData"></param>
@@ -18,22 +19,45 @@ namespace Common
         /// <returns></returns>
         public static HttpWebResponseResult JsonPost(string url, byte[] postData, string bearerToken = "")
         {
-            return GetHttpRequest(url, bearerToken).AddPostMethod().AddJsonContentType().AddContent(postData).GetResponseData();
+            return JsonPostAsync(url, postData, bearerToken).Result;
         }
 
         /// <summary>
-        /// json的get请求
+        /// Json的异步Post请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="postData"></param>
+        /// <param name="bearerToken"></param>
+        /// <returns></returns>
+        public static Task<HttpWebResponseResult> JsonPostAsync(string url, byte[] postData, string bearerToken = "")
+        {
+            return GetHttpRequest(url, bearerToken).AddPostMethod().AddJsonContentType().AddContent(postData).GetResponseDataAsync();
+        }
+
+        /// <summary>
+        /// json的get同步请求
         /// </summary>
         /// <param name="url"></param>
         /// <param name="bearerToken"></param>
         /// <returns></returns>
         public static HttpWebResponseResult JsonGet(string url, string bearerToken = "")
         {
-            return GetHttpRequest(url, bearerToken).AddGetMethod().GetResponseData();
+            return JsonGetAsync(url, bearerToken).Result;
         }
 
         /// <summary>
-        /// json的put请求
+        /// json的get异步请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="bearerToken"></param>
+        /// <returns></returns>
+        public static Task<HttpWebResponseResult> JsonGetAsync(string url, string bearerToken = "")
+        {
+            return GetHttpRequest(url, bearerToken).AddGetMethod().GetResponseDataAsync();
+        }
+
+        /// <summary>
+        /// json的put同步请求
         /// </summary>
         /// <param name="url"></param>
         /// <param name="postData"></param>
@@ -41,18 +65,41 @@ namespace Common
         /// <returns></returns>
         public static HttpWebResponseResult JsonPut(string url, byte[] postData, string bearerToken = "")
         {
-            return GetHttpRequest(url, bearerToken).AddPutMethod().AddJsonContentType().AddContent(postData).GetResponseData();
+            return JsonPutAsync(url, postData, bearerToken).Result;
         }
 
         /// <summary>
-        /// json的delete请求
+        /// json的post异步请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="postData"></param>
+        /// <param name="bearerToken"></param>
+        /// <returns></returns>
+        public static Task<HttpWebResponseResult> JsonPutAsync(string url, byte[] postData, string bearerToken = "")
+        {
+            return GetHttpRequest(url, bearerToken).AddPutMethod().AddJsonContentType().AddContent(postData).GetResponseDataAsync();
+        }
+
+        /// <summary>
+        /// json的delete同步请求
         /// </summary>
         /// <param name="url"></param>
         /// <param name="bearerToken"></param>
         /// <returns></returns>
         public static HttpWebResponseResult JsonDelete(string url, string bearerToken = "")
         {
-            return GetHttpRequest(url, bearerToken).AddDeleteMethod().GetResponseData();
+            return JsonDeleteAsync(url, bearerToken).Result;
+        }
+
+        /// <summary>
+        /// json的delete异步请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="bearerToken"></param>
+        /// <returns></returns>
+        public static Task<HttpWebResponseResult> JsonDeleteAsync(string url, string bearerToken = "")
+        {
+            return GetHttpRequest(url, bearerToken).AddDeleteMethod().GetResponseDataAsync();
         }
 
         private static HttpWebRequest GetHttpRequest(string url, string bearerToken = "")
@@ -66,13 +113,25 @@ namespace Common
         }
 
         /// <summary>
-        /// form表单的post请求
+        /// form表单的post同步请求
         /// </summary>
         /// <param name="url"></param>
         /// <param name="keyValues"></param>
         /// <param name="bearerToken"></param>
         /// <returns></returns>
         public static HttpWebResponseResult FormPost(string url, IDictionary<string, object> keyValues, string bearerToken = "")
+        {
+            return FormPostAsync(url, keyValues, bearerToken).Result;
+        }
+
+        /// <summary>
+        /// form表单的post异步请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="keyValues"></param>
+        /// <param name="bearerToken"></param>
+        /// <returns></returns>
+        public static Task<HttpWebResponseResult> FormPostAsync(string url, IDictionary<string, object> keyValues, string bearerToken = "")
         {
             StringBuilder builder = new StringBuilder();
 
@@ -90,7 +149,7 @@ namespace Common
 
             byte[] postData = Encoding.UTF8.GetBytes(builder.ToString());
 
-            return GetHttpRequest(url, bearerToken).AddPostMethod().AddFormContentType().AddContent(postData).GetResponseData();
+            return GetHttpRequest(url, bearerToken).AddPostMethod().AddFormContentType().AddContent(postData).GetResponseDataAsync();
         }
     }
 }
