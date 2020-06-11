@@ -5,7 +5,6 @@ using Orleans.Concurrency;
 
 namespace Common.DAL.Transaction
 {
-    //TODO: 死锁检测
     [Reentrant]
     public class Resource : Grain, IResource
     {
@@ -14,56 +13,36 @@ namespace Common.DAL.Transaction
         private const long DEFAULT_IDENTITY = -1L;
         private const int TASK_TIME_SPAN = 1;
         private long m_identity = DEFAULT_IDENTITY;
-        private bool m_isLocked;
+        private long m_destoryIdentity;
 
         Resource()
         {
             DEADLOCK_DETECTION_KEY = nameof(IDeadlockDetection).GetHashCode();
             PRIMARY_KEY = GrainReference.GetPrimaryKeyString();
-            m_isLocked = false;
         }
 
-        public async Task<bool> Apply(long identity,int weight, int timeOut)
+        public async Task<bool> Apply(long identity, int weight, int timeOut)
         {
             await GrainFactory.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).EnterLock(identity, PRIMARY_KEY, weight);
-
-            Console.WriteLine($"{identity} apply {GrainReference.GetPrimaryKeyString()}");
 
             if (m_identity == DEFAULT_IDENTITY ||
                 m_identity == identity)
             {
                 m_identity = identity;
-
-                Console.WriteLine($"{identity} apply successed {GrainReference.GetPrimaryKeyString()}");
-
                 return true;
             }
 
             int time = Environment.TickCount;
 
-            while (m_identity != DEFAULT_IDENTITY &&
-                   Environment.TickCount - time < timeOut &&
-                   !m_isLocked)
+            while (m_identity != DEFAULT_IDENTITY && Environment.TickCount - time < timeOut && m_destoryIdentity != identity)
                 await Task.Delay(TASK_TIME_SPAN);
 
-            if (m_isLocked)
+            if (m_identity != DEFAULT_IDENTITY || m_destoryIdentity == identity)
             {
-                _ = Release(identity);
-
-                throw new DealException("资源死锁");
-            }
-
-            if (m_identity != DEFAULT_IDENTITY)
-            {
-                Console.WriteLine($"{identity} apply timeout {GrainReference.GetPrimaryKeyString()} end total time {Environment.TickCount - time}");
-
                 return false;
             }
 
             m_identity = identity;
-
-            Console.WriteLine($"{identity} apply {GrainReference.GetPrimaryKeyString()} end total time {Environment.TickCount - time}");
-
             return true;
         }
 
@@ -74,14 +53,11 @@ namespace Common.DAL.Transaction
 
             m_identity = DEFAULT_IDENTITY;
             await GrainFactory.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).ExitLock(identity, PRIMARY_KEY);
-
-            Console.WriteLine($"{identity} release {GrainReference.GetPrimaryKeyString()}");
         }
 
         public Task ConflictResolution(long identity)
         {
-            m_isLocked = true;
-
+            m_destoryIdentity = identity;
             return Task.CompletedTask;
         }
     }

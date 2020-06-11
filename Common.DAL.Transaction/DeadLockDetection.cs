@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,15 +7,16 @@ namespace Common.DAL.Transaction
 {
     class DeadLockDetection : Grain, IDeadlockDetection
     {
-        private const int DEFAULT_RESOURCE_LENGTH = 1024;
-        private const int DEFAULT_IDENTITY_LENGTH = 1024;
+        private const int DEFAULT_RESOURCE_LENGTH = 32;
+        private const int DEFAULT_IDENTITY_LENGTH = 32;
         private IDictionary<int, int> m_weights;
         private IDictionary<long, int> m_identityIndexs;
         private IDictionary<int, long> m_identityKeyIndexs;
         private IDictionary<string, int> m_resourceNameIndexs;
         private IDictionary<int, string> m_resourceNameKeyIndexs;
+        private bool[] m_usedIdentityIndexs;
         private long[,] m_matrix;
-        private int m_tick;
+        private long m_tick;
 
         DeadLockDetection()
         {
@@ -26,13 +28,14 @@ namespace Common.DAL.Transaction
             m_resourceNameKeyIndexs = new Dictionary<int, string>();
         }
 
-        public async Task EnterLock(long identity, string resourceName, int weight)
+        public Task EnterLock(long identity, string resourceName, int weight)
         {
             int identityIndex;
+            int resourceNameIndex;
 
             if (!m_identityIndexs.ContainsKey(identity))
             {
-                identityIndex = m_identityIndexs.Count;
+                identityIndex = GetNextIdentityIndex();
                 m_identityIndexs.Add(identity, identityIndex);
                 m_identityKeyIndexs.Add(identityIndex, identity);
             }
@@ -41,50 +44,55 @@ namespace Common.DAL.Transaction
                 identityIndex = m_identityIndexs[identity];
             }
 
-            if (!m_weights.ContainsKey(identityIndex))
-            {
-                m_weights.Add(identityIndex, weight);
-            }
-
             if (!m_resourceNameIndexs.ContainsKey(resourceName))
             {
-                int resourceNameIndex = m_resourceNameIndexs.Count;
+                resourceNameIndex = m_resourceNameIndexs.Count;
                 m_resourceNameIndexs.Add(resourceName, resourceNameIndex);
                 m_resourceNameKeyIndexs.Add(resourceNameIndex, resourceName);
             }
+            else
+            {
+                resourceNameIndex = m_resourceNameIndexs[resourceName];
+            }
 
-            if (m_identityIndexs.Count >= m_matrix.GetLength(0) || m_resourceNameIndexs.Count >= m_matrix.GetLength(1))
+            m_weights[identityIndex] = weight;
+
+            if (identityIndex > m_matrix.GetLength(0) - 2 || resourceNameIndex > m_matrix.GetLength(1) - 2)
             {
                 Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
             }
 
-            await CheckLock(m_identityIndexs[identity], m_resourceNameIndexs[resourceName]);
-
-
-
-
-
-
-
-
-
-
+            CheckLock(m_identityIndexs[identity], m_resourceNameIndexs[resourceName]);
+            return Task.CompletedTask;
         }
 
         public Task ExitLock(long identity, string resourceName)
         {
-            //if (!m_locks.ContainsKey(identity))
-            //    return Task.CompletedTask;
-
-            //m_locks[identity].Resources.Remove(resourceName);
-
-            //if (m_locks[identity].Resources.Count == 0)
-            //    m_locks.Remove(identity);
+            if (m_identityIndexs.ContainsKey(identity) && m_resourceNameIndexs.ContainsKey(resourceName))
+            {
+                int identityIndex = m_identityIndexs[identity];
+                m_matrix[identityIndex, m_resourceNameIndexs[resourceName]] = 0;
+                m_usedIdentityIndexs[identityIndex] = false;
+            }
 
             return Task.CompletedTask;
         }
 
-        private async Task CheckLock(int lastIdentityIndex, int lastResourceNameIndex)
+        private int GetNextIdentityIndex()
+        {
+            for (int i = 0; i < m_usedIdentityIndexs.Length; i++)
+            {
+                if (!m_usedIdentityIndexs[i])
+                {
+                    m_usedIdentityIndexs[i] = true;
+                    return i;
+                }
+            }
+
+            throw new Exception("索引分配错误。");
+        }
+
+        private void CheckLock(int lastIdentityIndex, int lastResourceNameIndex)
         {
             m_matrix[lastIdentityIndex, lastResourceNameIndex] = ++m_tick;
 
@@ -96,7 +104,7 @@ namespace Common.DAL.Transaction
                     {
                         if (m_matrix[identityIndex, resourceIndex] > m_matrix[lastIdentityIndex, resourceIndex] && m_matrix[identityIndex, lastResourceNameIndex] > 0)
                         {
-                            await CheckWeight(identityIndex, lastIdentityIndex);
+                            ConflictResolution(identityIndex, lastIdentityIndex);
                             return;
                         }
                     }
@@ -104,10 +112,10 @@ namespace Common.DAL.Transaction
             }
         }
 
-        private async Task CheckWeight(int identityIndexA, int identityIndexB)
+        private void ConflictResolution(int identityIndexA, int identityIndexB)
         {
-            long destoryIdentity = 0;
-            int destoryIdentityIndex = 0;
+            long destoryIdentity;
+            int destoryIdentityIndex;
 
             if (m_weights[identityIndexA] >= m_weights[identityIndexB])
             {
@@ -120,7 +128,7 @@ namespace Common.DAL.Transaction
                 destoryIdentityIndex = identityIndexA;
             }
 
-            await ConflictResolution(destoryIdentity, m_resourceNameKeyIndexs[destoryIdentityIndex]);
+            ConflictResolution(destoryIdentity, m_resourceNameKeyIndexs[destoryIdentityIndex]);
         }
 
         private void Allocate(int identityLength, int resourceLength)
@@ -128,16 +136,20 @@ namespace Common.DAL.Transaction
             if (m_matrix != null)
             {
                 long[,] tempMatrix = m_matrix;
+                bool[] tempUsedIdentityIndexs = m_usedIdentityIndexs;
                 m_matrix = new long[identityLength, resourceLength];
-                //Array.Copy(temp, );
+                m_usedIdentityIndexs = new bool[identityLength];
+                Array.Copy(tempMatrix, m_matrix, tempMatrix.Length);
+                Array.Copy(tempUsedIdentityIndexs, m_usedIdentityIndexs, tempUsedIdentityIndexs.Length);
             }
             else
             {
                 m_matrix = new long[identityLength, resourceLength];
+                m_usedIdentityIndexs = new bool[identityLength];
             }
         }
 
-        private async Task ConflictResolution(long identity, string resourceName)
+        private async void ConflictResolution(long identity, string resourceName)
         {
             await GrainFactory.GetGrain<IResource>(resourceName).ConflictResolution(identity);
         }
