@@ -96,7 +96,7 @@ namespace TestWebAPI.Controllers
 
         protected override void DoPost(long id, WarehouseInfo warehouseInfo)
         {
-            using (ITransaction transaction = m_warehouseInfoEditQuery.FilterIsDeleted().BeginTransaction())
+            using (ITransaction transaction = m_warehouseInfoEditQuery.FilterIsDeleted().BeginTransaction(5))
             {
                 try
                 {

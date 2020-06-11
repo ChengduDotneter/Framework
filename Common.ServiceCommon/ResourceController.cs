@@ -17,7 +17,7 @@ namespace Common.ServiceCommon
             m_client = client;
         }
 
-        [HttpGet("{resourceName}/{identity}/{timeOut}")]
+        [HttpGet("{resourceName}/{identity}/{weight}/{timeOut}")]
         public Task<bool> Applay(string resourceName, long identity, int weight, int timeOut)
         {
             if (timeOut < 0 ||
