@@ -7,5 +7,6 @@ namespace Common.DAL.Transaction
     {
         Task<bool> Apply(long identity, int timeOut);
         Task Release(long identity);
+        Task ConflictResolution(long identity);
     }
 }
