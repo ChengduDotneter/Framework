@@ -468,10 +468,8 @@ namespace Common.DAL
         private class SqlSugerTranscation : ITransaction
         {
             private SqlSugarClient m_sqlSugarClient;
-
             public HashSet<Type> TransactionTables { get; }
             public long Identity { get; }
-
             public int Weight { get; }
 
             public SqlSugerTranscation(int weight)

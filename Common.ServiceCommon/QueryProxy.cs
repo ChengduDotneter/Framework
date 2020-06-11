@@ -391,9 +391,9 @@ namespace Common.ServiceCommon
         /// 开始事务
         /// </summary>
         /// <returns></returns>
-        public ITransaction BeginTransaction()
+        public ITransaction BeginTransaction(int weight = 0)
         {
-            return m_editQuery.BeginTransaction();
+            return m_editQuery.BeginTransaction(weight);
         }
 
         /// <summary>

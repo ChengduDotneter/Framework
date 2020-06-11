@@ -53,10 +53,8 @@ namespace Common.DAL
         private class IgniteITransaction : ITransaction
         {
             private Apache.Ignite.Core.Transactions.ITransaction m_transaction;
-
             public HashSet<Type> TransactionTables { get; }
             public long Identity { get; }
-
             public int Weight { get; }
 
             public IgniteITransaction(IIgnite ignite,int weight)

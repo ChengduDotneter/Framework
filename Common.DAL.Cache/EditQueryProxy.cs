@@ -28,9 +28,9 @@ namespace Common.DAL.Cache
         /// 开启事务
         /// </summary>
         /// <returns></returns>
-        public ITransaction BeginTransaction()
+        public ITransaction BeginTransaction(int weight = 0)
         {
-            return new TransactionProxy(m_editQuery.BeginTransaction());
+            return new TransactionProxy(m_editQuery.BeginTransaction(weight));
         }
 
         /// <summary>

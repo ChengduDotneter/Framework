@@ -25,7 +25,6 @@ namespace Common.DAL.Transaction
 
         public async Task<bool> Apply(long identity,int weight, int timeOut)
         {
-            //TODO: WEIGHT
             await GrainFactory.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).EnterLock(identity, PRIMARY_KEY, weight);
 
             Console.WriteLine($"{identity} apply {GrainReference.GetPrimaryKeyString()}");
