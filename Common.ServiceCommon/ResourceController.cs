@@ -9,7 +9,7 @@ namespace Common.ServiceCommon
     [Route("resource")]
     public class ResourceController
     {
-        private const int MAX_TIME_OUT = 1000 * 60 * 10;
+        private const int MAX_TIME_OUT = 1000 * 60;
         private readonly IGrainFactory m_client;
 
         public ResourceController(IGrainFactory client)
@@ -18,7 +18,7 @@ namespace Common.ServiceCommon
         }
 
         [HttpGet("{resourceName}/{identity}/{timeOut}")]
-        public Task<bool> Applay(string resourceName, int identity, int timeOut)
+        public Task<bool> Applay(string resourceName, long identity, int timeOut)
         {
             if (timeOut < 0 ||
                 timeOut > MAX_TIME_OUT)
@@ -29,7 +29,7 @@ namespace Common.ServiceCommon
         }
 
         [HttpDelete("{resourceName}/{identity}")]
-        public Task Release(string resourceName, int identity)
+        public Task Release(string resourceName, long identity)
         {
             IResource resource = m_client.GetGrain<IResource>(resourceName);
             return resource.Release(identity);

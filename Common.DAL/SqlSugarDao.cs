@@ -103,7 +103,7 @@ namespace Common.DAL
 
                 if (!sqlSugerTranscation.TransactionTables.Contains(table))
                 {
-                    if (TransactionResourceHelper.ApplayResource(table))
+                    if (TransactionResourceHelper.ApplayResource(table, sqlSugerTranscation.Identity))
                         sqlSugerTranscation.TransactionTables.Add(table);
                     else
                         throw new DealException($"申请事务资源{table.FullName}失败。");
@@ -113,9 +113,9 @@ namespace Common.DAL
             inTransaction = sqlSugerTranscation != null;
         }
 
-        private static async void Release(Type table)
+        private static async void Release(Type table, long identity)
         {
-            await TransactionResourceHelper.ReleaseResourceAsync(table);
+            await TransactionResourceHelper.ReleaseResourceAsync(table, identity);
         }
 
         private static class SqlSugarJoinQuery<TLeft, TRight>
@@ -151,7 +151,7 @@ namespace Common.DAL
         {
             public void Delete(params long[] ids)
             {
-                Apply<T>(out bool _);
+                Apply<T>(out _);
 
                 if (ids.Length == 0)
                     return;
@@ -161,7 +161,7 @@ namespace Common.DAL
 
             public void Insert(params T[] datas)
             {
-                Apply<T>(out bool _);
+                Apply<T>(out _);
 
                 if (datas.Length == 0)
                     return;
@@ -171,7 +171,7 @@ namespace Common.DAL
 
             public void Merge(params T[] datas)
             {
-                Apply<T>(out bool _);
+                Apply<T>(out _);
 
                 if (datas.Length == 0)
                     return;
@@ -181,7 +181,7 @@ namespace Common.DAL
 
             public void Update(T data, params string[] ignoreColumns)
             {
-                Apply<T>(out bool _);
+                Apply<T>(out _);
 
                 if (data == null)
                     return;
@@ -191,7 +191,7 @@ namespace Common.DAL
 
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
             {
-                Apply<T>(out bool _);
+                Apply<T>(out _);
 
                 CreateConnection(m_masterConnectionString, true).Updateable<T>()
                                                                 .Where(predicate)
@@ -470,9 +470,11 @@ namespace Common.DAL
             private SqlSugarClient m_sqlSugarClient;
 
             public HashSet<Type> TransactionTables { get; }
+            public long Identity { get; }
 
             public SqlSugerTranscation()
             {
+                Identity = IDGenerator.NextID();
                 TransactionTables = new HashSet<Type>();
                 m_sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                 m_sqlSugarClient.BeginTran();
@@ -493,7 +495,7 @@ namespace Common.DAL
                     m_transactions.Remove(id);
 
                 foreach (Type transactionTable in TransactionTables)
-                    Release(transactionTable);
+                    Release(transactionTable, Identity);
             }
 
             public void Rollback()

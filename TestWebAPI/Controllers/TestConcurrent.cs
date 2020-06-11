@@ -6,6 +6,7 @@ using Common.ServiceCommon;
 using Microsoft.AspNetCore.Mvc;
 using SqlSugar;
 using System;
+using System.Collections.Generic;
 
 namespace TestWebAPI.Controllers
 {
@@ -27,11 +28,18 @@ namespace TestWebAPI.Controllers
         private readonly ISearchQuery<ConcurrentModel> m_searchQuery;
         private readonly IEditQuery<ConcurrentModel> m_editQuery;
         private readonly ISSOUserService m_ssoUserService;
+        private readonly ISearchQuery<WarehouseInfo> m_warehouseInfoSearchQuery;
 
-        public TestConcurrentPostController(IEditQuery<ConcurrentModel> editQuery, ISearchQuery<ConcurrentModel> searchQuery, ISSOUserService ssoUserService) : base(editQuery, ssoUserService)
+
+        public TestConcurrentPostController(
+            IEditQuery<ConcurrentModel> editQuery,
+            ISearchQuery<ConcurrentModel> searchQuery,
+            ISearchQuery<WarehouseInfo> warehouseInfoSearchQuery,
+            ISSOUserService ssoUserService) : base(editQuery, ssoUserService)
         {
             m_editQuery = editQuery;
             m_searchQuery = searchQuery;
+            m_warehouseInfoSearchQuery = warehouseInfoSearchQuery;
             m_ssoUserService = ssoUserService;
         }
 
@@ -43,7 +51,11 @@ namespace TestWebAPI.Controllers
                 {
                     if (m_searchQuery.FilterIsDeleted().Count(item => item.UserAccount == concurrentModel.UserAccount) == 0)
                     {
-                        //System.Threading.Thread.Sleep(100);
+                        System.Threading.Thread.Sleep(5000);
+
+                        IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search();
+
+                        System.Threading.Thread.Sleep(5000);
 
                         m_editQuery.FilterIsDeleted().Insert(concurrentModel);
 
@@ -63,22 +75,48 @@ namespace TestWebAPI.Controllers
         }
     }
 
-    [Route("test")]
-    public class TestController : GenericGetController<ConcurrentModel>
+
+    [Route("testconcurrent2")]
+    public class TestConcurrentLockPostController : GenericPostController<WarehouseInfo>
     {
-        public TestController(ISearchQuery<ConcurrentModel> searchQuery) : base(searchQuery)
+        private readonly ISearchQuery<WarehouseInfo> m_warehouseInfoSearchQuery;
+        private readonly IEditQuery<WarehouseInfo> m_warehouseInfoEditQuery;
+        private readonly ISearchQuery<ConcurrentModel> m_concurrentModelSearchQuery;
+
+        public TestConcurrentLockPostController(
+            ISearchQuery<WarehouseInfo> warehouseInfoSearchQuery,
+            IEditQuery<WarehouseInfo> warehouseInfoEditQuery,
+            ISearchQuery<ConcurrentModel> concurrentModelSearchQuery,
+            ISSOUserService ssoUserService) : base(warehouseInfoEditQuery, ssoUserService)
         {
+            m_warehouseInfoSearchQuery = warehouseInfoSearchQuery;
+            m_warehouseInfoEditQuery = warehouseInfoEditQuery;
+            m_concurrentModelSearchQuery = concurrentModelSearchQuery;
         }
 
-        protected override ConcurrentModel DoGet(long id)
+        protected override void DoPost(long id, WarehouseInfo warehouseInfo)
         {
-            object data = new { accountBookCode = "123456", commodityCodes = new string[] { "20200525165618469647" } };
-            string url = "http://192.168.10.211:1098/wmscallback/stocksearchbycommodity";
-            string token = "Bearer 4zc0ANfc7kaoxxGee8uyv1R9VNq4gIj_mGkTO5gvSWQ";
+            using (ITransaction transaction = m_warehouseInfoEditQuery.FilterIsDeleted().BeginTransaction())
+            {
+                try
+                {
+                    m_warehouseInfoSearchQuery.Count();
 
-            var response = HttpJsonHelper.HttpPostByAbsoluteUri(url, data, token);
+                    System.Threading.Thread.Sleep(5000);
 
-            return null;
+                    IEnumerable<ConcurrentModel> concurrentModels = m_concurrentModelSearchQuery.FilterIsDeleted().Search();
+
+                    System.Threading.Thread.Sleep(5000);
+
+                    transaction.Submit();
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
         }
     }
+
 }

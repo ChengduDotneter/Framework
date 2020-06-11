@@ -9,12 +9,13 @@ namespace Common.DAL.Transaction
     [Reentrant]
     public class Resource : Grain, IResource
     {
+        private const long DEFAULT_IDENTITY = -1L;
         private const int TASK_TIME_SPAN = 1;
-        private int m_identity;
+        private long m_identity = DEFAULT_IDENTITY;
 
-        public async Task<bool> Apply(int identity, int timeOut)
+        public async Task<bool> Apply(long identity, int timeOut)
         {
-            if (m_identity == 0 ||
+            if (m_identity == DEFAULT_IDENTITY ||
                 m_identity == identity)
             {
                 m_identity = identity;
@@ -23,23 +24,23 @@ namespace Common.DAL.Transaction
 
             int time = Environment.TickCount;
 
-            while (m_identity != 0 &&
+            while (m_identity != DEFAULT_IDENTITY &&
                    Environment.TickCount - time < timeOut)
                 await Task.Delay(TASK_TIME_SPAN);
 
-            if (m_identity != 0)
+            if (m_identity != DEFAULT_IDENTITY)
                 return false;
 
             m_identity = identity;
             return true;
         }
 
-        public Task Release(int identity)
+        public Task Release(long identity)
         {
             if (m_identity != identity)
                 return Task.CompletedTask;
 
-            m_identity = 0;
+            m_identity = DEFAULT_IDENTITY;
             return Task.CompletedTask;
         }
     }

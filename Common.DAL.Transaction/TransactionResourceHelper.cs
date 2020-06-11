@@ -10,14 +10,14 @@ namespace Common.DAL.Transaction
         private const int EMPTY_TIME_OUT = -1;
         private readonly static int m_timeOut;
 
-        public static bool ApplayResource(Type table, int timeOut = EMPTY_TIME_OUT)
+        public static bool ApplayResource(Type table, long identity, int timeOut = EMPTY_TIME_OUT)
         {
-            return ApplayResourceAsync(table, timeOut).Result;
+            return ApplayResourceAsync(table, identity, timeOut).Result;
         }
 
-        public static async Task<bool> ApplayResourceAsync(Type table, int timeOut = EMPTY_TIME_OUT)
+        public static async Task<bool> ApplayResourceAsync(Type table, long identity, int timeOut = EMPTY_TIME_OUT)
         {
-            string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{Thread.CurrentThread.ManagedThreadId}/{(timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut)}";
+            string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{identity}/{(timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut)}";
             HttpWebResponseResult httpWebResponseResult = await HttpWebRequestHelper.JsonGetAsync(url);
 
             if (httpWebResponseResult.HttpStatus != System.Net.HttpStatusCode.OK)
@@ -26,14 +26,14 @@ namespace Common.DAL.Transaction
             return Convert.ToBoolean(httpWebResponseResult.DataString);
         }
 
-        public static void ReleaseResource(Type table)
+        public static void ReleaseResource(Type table, long identity)
         {
-            ReleaseResourceAsync(table).Wait();
+            ReleaseResourceAsync(table, identity).Wait();
         }
 
-        public static async Task ReleaseResourceAsync(Type table)
+        public static async Task ReleaseResourceAsync(Type table, long identity)
         {
-            string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{Thread.CurrentThread.ManagedThreadId}";
+            string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{identity}";
             HttpWebResponseResult httpWebResponseResult = await HttpWebRequestHelper.JsonDeleteAsync(url);
 
             if (httpWebResponseResult.HttpStatus != System.Net.HttpStatusCode.OK)

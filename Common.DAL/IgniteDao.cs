@@ -37,7 +37,7 @@ namespace Common.DAL
 
                 if (!igniteITransaction.TransactionTables.Contains(table))
                 {
-                    if (TransactionResourceHelper.ApplayResource(table))
+                    if (TransactionResourceHelper.ApplayResource(table, igniteITransaction.Identity))
                         igniteITransaction.TransactionTables.Add(table);
                     else
                         throw new DealException($"申请事务资源{table.FullName}失败。");
@@ -45,9 +45,9 @@ namespace Common.DAL
             }
         }
 
-        private static async void Release(Type table)
+        private static async void Release(Type table, long identity)
         {
-            await TransactionResourceHelper.ReleaseResourceAsync(table);
+            await TransactionResourceHelper.ReleaseResourceAsync(table, identity);
         }
 
         private class IgniteITransaction : ITransaction
@@ -55,9 +55,11 @@ namespace Common.DAL
             private Apache.Ignite.Core.Transactions.ITransaction m_transaction;
 
             public HashSet<Type> TransactionTables { get; }
+            public long Identity { get; }
 
             public IgniteITransaction(IIgnite ignite)
             {
+                Identity = IDGenerator.NextID();
                 m_transaction = ignite.GetTransactions().TxStart();
                 TransactionTables = new HashSet<Type>();
             }
@@ -77,7 +79,7 @@ namespace Common.DAL
                     m_transactions.Remove(id);
 
                 foreach (Type transactionTable in TransactionTables)
-                    Release(transactionTable);
+                    Release(transactionTable, Identity);
             }
 
             public void Rollback()
