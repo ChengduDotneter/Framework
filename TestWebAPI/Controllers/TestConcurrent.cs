@@ -16,7 +16,6 @@ namespace TestWebAPI.Controllers
         [QuerySqlField(NotNull = true)]
         public string UserAccount { get; set; }
 
-      
         [SugarColumn(IsNullable = false, ColumnDescription = "密码")]
         [QuerySqlField(NotNull = true)]
         public string Password { get; set; }
@@ -49,7 +48,6 @@ namespace TestWebAPI.Controllers
                         m_editQuery.FilterIsDeleted().Insert(concurrentModel);
 
                         transaction.Submit();
-
                     }
                     else
                     {
@@ -62,6 +60,25 @@ namespace TestWebAPI.Controllers
                     throw;
                 }
             }
+        }
+    }
+
+    [Route("test")]
+    public class TestController : GenericGetController<ConcurrentModel>
+    {
+        public TestController(ISearchQuery<ConcurrentModel> searchQuery) : base(searchQuery)
+        {
+        }
+
+        protected override ConcurrentModel DoGet(long id)
+        {
+            object data = new { accountBookCode = "123456", commodityCodes = new string[] { "20200525165618469647" } };
+            string url = "http://192.168.10.211:1098/wmscallback/stocksearchbycommodity";
+            string token = "Bearer 4zc0ANfc7kaoxxGee8uyv1R9VNq4gIj_mGkTO5gvSWQ";
+
+            var response = HttpJsonHelper.HttpPostByAbsoluteUri(url, data, token);
+
+            return null;
         }
     }
 }
