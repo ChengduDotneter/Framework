@@ -103,7 +103,7 @@ namespace Common.DAL
 
                 if (!sqlSugerTranscation.TransactionTables.Contains(table))
                 {
-                    if (TransactionResourceHelper.ApplayResource(table, sqlSugerTranscation.Identity))
+                    if (TransactionResourceHelper.ApplayResource(table, sqlSugerTranscation.Identity, sqlSugerTranscation.Weight))
                         sqlSugerTranscation.TransactionTables.Add(table);
                     else
                         throw new DealException($"申请事务资源{table.FullName}失败。");
@@ -451,13 +451,13 @@ namespace Common.DAL
                 }
             }
 
-            public ITransaction BeginTransaction()
+            public ITransaction BeginTransaction(int weight = 0)
             {
                 int id = Thread.CurrentThread.ManagedThreadId;
 
                 lock (m_transactions)
                     if (!m_transactions.ContainsKey(id))
-                        m_transactions.Add(id, new SqlSugerTranscation());
+                        m_transactions.Add(id, new SqlSugerTranscation(weight));
 
                 return m_transactions[id];
             }
@@ -472,9 +472,12 @@ namespace Common.DAL
             public HashSet<Type> TransactionTables { get; }
             public long Identity { get; }
 
-            public SqlSugerTranscation()
+            public int Weight { get; }
+
+            public SqlSugerTranscation(int weight)
             {
                 Identity = IDGenerator.NextID();
+                Weight = weight;
                 TransactionTables = new HashSet<Type>();
                 m_sqlSugarClient = CreateConnection(m_masterConnectionString, true);
                 m_sqlSugarClient.BeginTran();

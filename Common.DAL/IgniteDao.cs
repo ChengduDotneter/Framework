@@ -37,7 +37,7 @@ namespace Common.DAL
 
                 if (!igniteITransaction.TransactionTables.Contains(table))
                 {
-                    if (TransactionResourceHelper.ApplayResource(table, igniteITransaction.Identity))
+                    if (TransactionResourceHelper.ApplayResource(table, igniteITransaction.Identity, igniteITransaction.Weight))
                         igniteITransaction.TransactionTables.Add(table);
                     else
                         throw new DealException($"申请事务资源{table.FullName}失败。");
@@ -57,9 +57,12 @@ namespace Common.DAL
             public HashSet<Type> TransactionTables { get; }
             public long Identity { get; }
 
-            public IgniteITransaction(IIgnite ignite)
+            public int Weight { get; }
+
+            public IgniteITransaction(IIgnite ignite,int weight)
             {
                 Identity = IDGenerator.NextID();
+                Weight = weight;
                 m_transaction = ignite.GetTransactions().TxStart();
                 TransactionTables = new HashSet<Type>();
             }
@@ -243,13 +246,13 @@ namespace Common.DAL
                                                        expression.Parameters[1].Name);
             }
 
-            public ITransaction BeginTransaction()
+            public ITransaction BeginTransaction(int weight = 0)
             {
                 int id = Thread.CurrentThread.ManagedThreadId;
 
                 lock (m_transactions)
                     if (!m_transactions.ContainsKey(id))
-                        m_transactions.Add(id, new IgniteITransaction(m_cache.Ignite));
+                        m_transactions.Add(id, new IgniteITransaction(m_cache.Ignite, weight));
 
                 return m_transactions[id];
             }

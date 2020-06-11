@@ -18,14 +18,14 @@ namespace Common.ServiceCommon
         }
 
         [HttpGet("{resourceName}/{identity}/{timeOut}")]
-        public Task<bool> Applay(string resourceName, long identity, int timeOut)
+        public Task<bool> Applay(string resourceName, long identity, int weight, int timeOut)
         {
             if (timeOut < 0 ||
                 timeOut > MAX_TIME_OUT)
                 throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
 
             IResource resource = m_client.GetGrain<IResource>(resourceName);
-            return resource.Apply(identity, timeOut);
+            return resource.Apply(identity, weight, timeOut);
         }
 
         [HttpDelete("{resourceName}/{identity}")]

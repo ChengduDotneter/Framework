@@ -10,14 +10,14 @@ namespace Common.DAL.Transaction
         private const int EMPTY_TIME_OUT = -1;
         private readonly static int m_timeOut;
 
-        public static bool ApplayResource(Type table, long identity, int timeOut = EMPTY_TIME_OUT)
+        public static bool ApplayResource(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
         {
-            return ApplayResourceAsync(table, identity, timeOut).Result;
+            return ApplayResourceAsync(table, identity, weight, timeOut).Result;
         }
 
-        public static async Task<bool> ApplayResourceAsync(Type table, long identity, int timeOut = EMPTY_TIME_OUT)
+        public static async Task<bool> ApplayResourceAsync(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
         {
-            string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{identity}/{(timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut)}";
+            string url = $"http://{ConfigManager.Configuration["ResourceManager:EndPoint"]}/resource/{table.FullName}/{identity}/{weight}/{(timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut)}";
             HttpWebResponseResult httpWebResponseResult = await HttpWebRequestHelper.JsonGetAsync(url);
 
             if (httpWebResponseResult.HttpStatus != System.Net.HttpStatusCode.OK)

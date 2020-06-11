@@ -41,12 +41,13 @@ namespace Common.DAL
         /// </summary>
         /// <param name="ids"></param>
         void Delete(params long[] ids);
-
+      
         /// <summary>
         /// 开启事务
         /// </summary>
+        /// <param name="weight">事务权重</param>
         /// <returns></returns>
-        ITransaction BeginTransaction();
+        ITransaction BeginTransaction(int weight = 0);
     }
 
     /// <summary>
