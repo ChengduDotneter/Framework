@@ -44,7 +44,7 @@ namespace TestWebAPI.Controllers
                 {
                     if (m_searchQuery.FilterIsDeleted().Count(item => item.UserAccount == concurrentModel.UserAccount) == 0)
                     {
-                        //System.Threading.Thread.Sleep(10000);
+                        //System.Threading.Thread.Sleep(100);
 
                         m_editQuery.FilterIsDeleted().Insert(concurrentModel);
 

@@ -1,6 +1,7 @@
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace TestResourceManager
 {
@@ -8,7 +9,7 @@ namespace TestResourceManager
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).UseOrleans().Build().Run();
+            CreateHostBuilder(args).UseOrleans().ConfigureLogging(LoggingConfig).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -17,5 +18,10 @@ namespace TestResourceManager
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+
+        private static void LoggingConfig(HostBuilderContext hostBuilderContext, ILoggingBuilder loggingBuilder)
+        {
+            loggingBuilder.ClearProviders();
+        }
     }
 }
