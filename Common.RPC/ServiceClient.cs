@@ -1,5 +1,4 @@
-﻿using Common.RPC;
-using Common.RPC.BufferSerializer;
+﻿using Common.RPC.BufferSerializer;
 using Common.RPC.TransferAdapter;
 using System;
 using System.Collections.Concurrent;
@@ -7,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Common.RPC
 {
@@ -148,7 +148,7 @@ namespace Common.RPC
                 return;
 
             if (m_recieveHandlers.TryGetValue(data.MessageID, out Action<SessionContext, IRPCData> handler))
-                handler(sessionContext, data);
+               Task.Factory.StartNew(() => { handler(sessionContext, data); });
         }
 
         public void RegisterProcessor(ProcessorBase processor)

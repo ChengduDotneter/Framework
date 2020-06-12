@@ -29,7 +29,7 @@ namespace Common.DAL.Transaction
 
         public async Task<bool> Apply(long identity, int weight, int timeOut)
         {
-            Console.WriteLine($"{identity} {PRIMARY_KEY} apply start");
+            //Console.WriteLine($"{identity} {PRIMARY_KEY} apply start");
 
 
             await GrainFactory.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).EnterLock(identity, PRIMARY_KEY, weight);
@@ -40,7 +40,7 @@ namespace Common.DAL.Transaction
                 m_identity = identity;
 
 
-                Console.WriteLine($"{identity} {PRIMARY_KEY} apply successed");
+                //Console.WriteLine($"{identity} {PRIMARY_KEY} apply successed");
 
                 return true;
             }
@@ -52,10 +52,10 @@ namespace Common.DAL.Transaction
 
             if (m_identity != DEFAULT_IDENTITY || m_destoryIdentity == identity)
             {
-                if (m_destoryIdentity != identity)
-                    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild time out");
-                else
-                    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild deadlock");
+                //if (m_destoryIdentity != identity)
+                //    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild time out");
+                //else
+                //    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild deadlock");
 
 
                 return false;
@@ -64,7 +64,7 @@ namespace Common.DAL.Transaction
             m_identity = identity;
 
 
-            Console.WriteLine($"{identity} {PRIMARY_KEY} apply successed");
+            //Console.WriteLine($"{identity} {PRIMARY_KEY} apply successed");
 
             return true;
         }
@@ -83,7 +83,7 @@ namespace Common.DAL.Transaction
             m_destoryIdentity = identity;
 
 
-            Console.WriteLine($"{identity} {PRIMARY_KEY} destory");
+            //Console.WriteLine($"{identity} {PRIMARY_KEY} destory");
 
             return Task.CompletedTask;
         }

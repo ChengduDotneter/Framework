@@ -22,17 +22,36 @@ namespace TestConsole
         {
             ConfigManager.Init("Development");
 
+
+
             Parallel.For(0, 1, (index) =>
             {
-                int time = Environment.TickCount;
                 int count = 0;
+                int time = Environment.TickCount;
 
                 while (true)
                 {
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 100; i++)
                     {
-                        TransactionResourceHelper.ApplayResource(typeof(A), index, 0);
-                        TransactionResourceHelper.ReleaseResource(typeof(A), index);
+                        try
+                        {
+                            TransactionResourceHelper.ApplayResource(typeof(A), index, 0);
+                        }
+                        catch
+                        {
+
+                        }
+
+                        Thread.Sleep(5);
+
+                        try
+                        {
+                            TransactionResourceHelper.ReleaseResource(typeof(A), index);
+                        }
+                        catch
+                        {
+
+                        }
 
                         count++;
 
@@ -44,7 +63,7 @@ namespace TestConsole
                         }
                     }
 
-                    Thread.Sleep(TimeSpan.FromMilliseconds(0.1));
+                    Thread.Sleep(TimeSpan.FromMilliseconds(0.01));
                 }
             });
         }
