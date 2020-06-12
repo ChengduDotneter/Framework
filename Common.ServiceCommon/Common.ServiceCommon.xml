@@ -1284,7 +1284,7 @@
             </summary>
             <typeparam name="T"></typeparam>
         </member>
-        <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.BeginTransaction">
+        <member name="M:Common.ServiceCommon.FilterIsDeletedEditQueryProxy`1.BeginTransaction(System.Int32)">
             <summary>
             开始事务
             </summary>

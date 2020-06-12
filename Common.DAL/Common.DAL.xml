@@ -62,7 +62,7 @@
         </member>
         <member name="M:Common.DAL.IEditQuery`1.Insert(`0[])">
             <summary>
-            增
+            新增
             </summary>
             <param name="datas"></param>
         </member>
@@ -92,10 +92,11 @@
             </summary>
             <param name="ids"></param>
         </member>
-        <member name="M:Common.DAL.IEditQuery`1.BeginTransaction">
+        <member name="M:Common.DAL.IEditQuery`1.BeginTransaction(System.Int32)">
             <summary>
             开启事务
             </summary>
+            <param name="weight">事务权重</param>
             <returns></returns>
         </member>
         <member name="T:Common.DAL.ISearchQuery`1">

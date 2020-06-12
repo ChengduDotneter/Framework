@@ -20,7 +20,9 @@ namespace Common.DAL.Transaction
 
         public static bool ApplayResource(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
         {
-            return ApplayResourceAsync(table, identity, weight, timeOut).Result;
+            return true;
+
+            //return ApplayResourceAsync(table, identity, weight, timeOut).Result;
         }
 
         public static async Task<bool> ApplayResourceAsync(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
@@ -36,17 +38,17 @@ namespace Common.DAL.Transaction
 
         public static void ReleaseResource(Type table, long identity)
         {
-            ReleaseResourceAsync(table, identity).Wait();
+            //ReleaseResourceAsync(table, identity).Wait();
         }
 
         public static async Task ReleaseResourceAsync(Type table, long identity)
         {
-            int time = Environment.TickCount;
+            //int time = Environment.TickCount;
 
-            if (!await m_releaseResourceProcessor.Release(table, identity))
-                throw new DealException($"释放事务资源{table.FullName}失败。");
+            //if (!await m_releaseResourceProcessor.Release(table, identity))
+            //    throw new DealException($"释放事务资源{table.FullName}失败。");
 
-            Console.WriteLine(Environment.TickCount - time);
+            //Console.WriteLine(Environment.TickCount - time);
         }
 
         static TransactionResourceHelper()

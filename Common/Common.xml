@@ -212,76 +212,144 @@
             <summary>
             post异步请求
             </summary>
-            <param name="url"></param>
-            <param name="action"></param>
-            <param name="content"></param>
-            <param name="bearerToken"></param>
+            <param name="url">请求基地址</param>
+            <param name="action">请求方法</param>
+            <param name="content">请求Body</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpJsonHelper.HttpPost(System.String,System.String,System.Net.Http.HttpContent,System.String)">
             <summary>
             Post同步请求
             </summary>
-            <param name="url"></param>
-            <param name="action"></param>
-            <param name="content"></param>
-            <param name="bearerToken"></param>
+            <param name="url">请求基地址</param>
+            <param name="action">请求方法</param>
+            <param name="content">请求Body</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpJsonHelper.HttpGetAsync(System.String,System.String,System.String)">
             <summary>
             get异步请求
             </summary>
-            <param name="url"></param>
-            <param name="action"></param>
-            <param name="bearerToken"></param>
+            <param name="url">请求基地址</param>
+            <param name="action">请求方法</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpJsonHelper.HttpGet(System.String,System.String,System.String)">
             <summary>
             get同步请求
             </summary>
-            <param name="url"></param>
-            <param name="action"></param>
-            <param name="bearerToken"></param>
+            <param name="url">请求基地址</param>
+            <param name="action">请求方法</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpJsonHelper.HttpPutAsync(System.String,System.String,System.Net.Http.HttpContent,System.String)">
             <summary>
             put异步请求
             </summary>
-            <param name="url"></param>
-            <param name="action"></param>
-            <param name="content"></param>
-            <param name="bearerToken"></param>
+            <param name="url">请求基地址</param>
+            <param name="action">请求方法</param>
+            <param name="content">请求Body</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpJsonHelper.HttpPut(System.String,System.String,System.Net.Http.HttpContent,System.String)">
             <summary>
             put同步请求
             </summary>
-            <param name="url"></param>
-            <param name="action"></param>
-            <param name="content"></param>
-            <param name="bearerToken"></param>
+            <param name="url">请求基地址</param>
+            <param name="action">请求方法</param>
+            <param name="content">请求Body</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpJsonHelper.HttpDeleteAsync(System.String,System.String,System.String)">
             <summary>
             delete异步请求
             </summary>
-            <param name="url"></param>
-            <param name="action"></param>
-            <param name="bearerToken"></param>
+            <param name="url">请求基地址</param>
+            <param name="action">请求方法</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpJsonHelper.HttpDelete(System.String,System.String,System.String)">
             <summary>
             delete同步请求
             </summary>
-            <param name="url"></param>
-            <param name="action"></param>
-            <param name="bearerToken"></param>
+            <param name="url">请求基地址</param>
+            <param name="action">请求方法</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpPostByAbsoluteUriAsync(System.String,System.Object,System.String)">
+            <summary>
+            post绝对路径异步请求
+            </summary>
+            <param name="absoluteUri">请求绝对路径</param>
+            <param name="requestObject">请求的对象</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpPostByAbsoluteUri(System.String,System.Object,System.String)">
+            <summary>
+            Post绝对路径同步请求
+            </summary>
+            <param name="absoluteUri">请求绝对路径</param>
+            <param name="requestObject">请求的对象</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpGetByAbsoluteUriAsync(System.String,System.String)">
+            <summary>
+            get绝对路径异步请求
+            </summary>
+            <param name="absoluteUri">请求绝对路径</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpGetByAbsoluteUri(System.String,System.String)">
+            <summary>
+            get绝对路径同步请求
+            </summary>
+            <param name="absoluteUri">请求绝对路径</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpPutByAbsoluteUriAsync(System.String,System.Object,System.String)">
+            <summary>
+            put绝对路径异步请求
+            </summary>
+            <param name="absoluteUri">请求绝对路径</param>
+            <param name="requestObject">请求的对象</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpPutByAbsoluteUri(System.String,System.Object,System.String)">
+            <summary>
+            put绝对路径同步请求
+            </summary>
+            <param name="absoluteUri">请求绝对路径</param>
+            <param name="requestObject">请求的对象</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpDeleteByAbsoluteUriAsync(System.String,System.String)">
+            <summary>
+            delete绝对路径异步请求
+            </summary>
+            <param name="absoluteUri">请求绝对路径</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.HttpJsonHelper.HttpDeleteByAbsoluteUri(System.String,System.String)">
+            <summary>
+            delete绝对路径同步请求
+            </summary>
+            <param name="absoluteUri">请求绝对路径</param>
+            <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
             <returns></returns>
         </member>
         <member name="M:Common.HttpJsonHelper.GetResponseAsync``1(System.Net.Http.HttpResponseMessage)">

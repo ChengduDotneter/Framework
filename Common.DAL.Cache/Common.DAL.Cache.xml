@@ -35,7 +35,7 @@
             </summary>
             <param name="editQuery"></param>
         </member>
-        <member name="M:Common.DAL.Cache.EditQueryProxy`1.BeginTransaction">
+        <member name="M:Common.DAL.Cache.EditQueryProxy`1.BeginTransaction(System.Int32)">
             <summary>
             开启事务
             </summary>
