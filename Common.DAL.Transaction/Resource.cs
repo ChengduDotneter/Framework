@@ -5,7 +5,6 @@ using Orleans.Concurrency;
 
 namespace Common.DAL.Transaction
 {
-    //TODO: 去掉打印
     [Reentrant]
     public class Resource : Grain, IResource
     {
