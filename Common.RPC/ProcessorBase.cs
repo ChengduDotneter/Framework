@@ -85,7 +85,7 @@ namespace Common.RPC
             }
         }
 
-        private const int TASK_WAIT_TIME_SPAN = 1;
+        private readonly static TimeSpan TASK_WAIT_TIME_SPAN = TimeSpan.FromMilliseconds(0.01);
         private int m_requestTimeout;
         private ConcurrentDictionary<int, SendRequestProcessor> m_sendProcessors;
         private ConcurrentDictionary<long, TaskBody> m_taskWaits;

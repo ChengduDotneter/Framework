@@ -24,13 +24,7 @@ namespace Common.DAL.Transaction
 
         public static async Task<bool> ApplayResourceAsync(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
         {
-            int time = Environment.TickCount;
-
-            bool result = await m_applyResourceProcessor.Apply(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
-
-            Console.WriteLine(Environment.TickCount - time);
-
-            return result;
+            return await m_applyResourceProcessor.Apply(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
         }
 
         public static void ReleaseResource(Type table, long identity)
@@ -40,12 +34,8 @@ namespace Common.DAL.Transaction
 
         public static async Task ReleaseResourceAsync(Type table, long identity)
         {
-            int time = Environment.TickCount;
-
             if (!await m_releaseResourceProcessor.Release(table, identity))
                 throw new DealException($"释放事务资源{table.FullName}失败。");
-
-            Console.WriteLine(Environment.TickCount - time);
         }
 
         static TransactionResourceHelper()
@@ -54,6 +44,8 @@ namespace Common.DAL.Transaction
             m_timeOut = string.IsNullOrWhiteSpace(timeOutString) ? DEFAULT_TIME_OUT : Convert.ToInt32(timeOutString);
 
             m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateZeroMQTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), ZeroMQSocketTypeEnum.Client, ConfigManager.Configuration["RPC:Identity"]), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+
+            //m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), UDPCRCSocketTypeEnum.Client), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
 
             m_serviceClient.Start();
 
