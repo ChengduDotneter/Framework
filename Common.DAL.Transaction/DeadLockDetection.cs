@@ -18,7 +18,7 @@ namespace Common.DAL.Transaction
         private long[,] m_matrix;
         private long m_tick;
 
-        DeadLockDetection()
+        public DeadLockDetection()
         {
             Allocate(DEFAULT_IDENTITY_LENGTH, DEFAULT_RESOURCE_LENGTH);
             m_weights = new Dictionary<int, int>();
@@ -37,7 +37,7 @@ namespace Common.DAL.Transaction
             {
                 identityIndex = GetNextIdentityIndex();
                 m_identityIndexs.Add(identity, identityIndex);
-                m_identityKeyIndexs.Add(identityIndex, identity);
+                m_identityKeyIndexs[identityIndex] = identity;
             }
             else
             {
@@ -48,7 +48,7 @@ namespace Common.DAL.Transaction
             {
                 resourceNameIndex = m_resourceNameIndexs.Count;
                 m_resourceNameIndexs.Add(resourceName, resourceNameIndex);
-                m_resourceNameKeyIndexs.Add(resourceNameIndex, resourceName);
+                m_resourceNameKeyIndexs[resourceNameIndex] = resourceName;
             }
             else
             {
@@ -75,6 +75,9 @@ namespace Common.DAL.Transaction
                 m_usedIdentityIndexs[identityIndex] = false;
             }
 
+            m_identityIndexs.Remove(identity);
+            m_resourceNameIndexs.Remove(resourceName);
+
             return Task.CompletedTask;
         }
 
@@ -96,15 +99,15 @@ namespace Common.DAL.Transaction
         {
             m_matrix[lastIdentityIndex, lastResourceNameIndex] = ++m_tick;
 
-            for (int resourceIndex = 0; resourceIndex < m_matrix.GetLength(1); resourceIndex++)
+            for (int resourceNameIndex = 0; resourceNameIndex < m_matrix.GetLength(1); resourceNameIndex++)
             {
-                if (m_matrix[lastIdentityIndex, resourceIndex] != 0 && resourceIndex != lastResourceNameIndex)
+                if (m_matrix[lastIdentityIndex, resourceNameIndex] != 0 && resourceNameIndex != lastResourceNameIndex)
                 {
                     for (int identityIndex = 0; identityIndex < m_matrix.GetLength(0); identityIndex++)
                     {
-                        if (m_matrix[identityIndex, resourceIndex] > m_matrix[lastIdentityIndex, resourceIndex] && m_matrix[identityIndex, lastResourceNameIndex] > 0)
+                        if (m_matrix[identityIndex, resourceNameIndex] > m_matrix[lastIdentityIndex, resourceNameIndex] && m_matrix[identityIndex, lastResourceNameIndex] > 0)
                         {
-                            ConflictResolution(identityIndex, lastIdentityIndex);
+                            ConflictResolution(identityIndex, lastIdentityIndex, resourceNameIndex, lastResourceNameIndex);
                             return;
                         }
                     }
@@ -112,23 +115,23 @@ namespace Common.DAL.Transaction
             }
         }
 
-        private void ConflictResolution(int identityIndexA, int identityIndexB)
+        private void ConflictResolution(int identityIndexA, int identityIndexB, int resourceIndexA, int resourceIndexB)
         {
             long destoryIdentity;
-            int destoryIdentityIndex;
+            string destoryResourceName;
 
             if (m_weights[identityIndexA] >= m_weights[identityIndexB])
             {
                 destoryIdentity = m_identityKeyIndexs[identityIndexB];
-                destoryIdentityIndex = identityIndexB;
+                destoryResourceName = m_resourceNameKeyIndexs[resourceIndexB];
             }
             else
             {
                 destoryIdentity = m_identityKeyIndexs[identityIndexA];
-                destoryIdentityIndex = identityIndexA;
+                destoryResourceName = m_resourceNameKeyIndexs[resourceIndexA];
             }
 
-            ConflictResolution(destoryIdentity, m_resourceNameKeyIndexs[destoryIdentityIndex]);
+            ConflictResolution(destoryIdentity, destoryResourceName);
         }
 
         private void Allocate(int identityLength, int resourceLength)

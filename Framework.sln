@@ -19,13 +19,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.ServiceCommon", "Com
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Validation", "Common.Validation\Common.Validation.csproj", "{62C3D8CA-2AD0-4906-A8BE-A731599610A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWebAPI", "TestWebAPI\TestWebAPI.csproj", "{6EE69A23-58F3-417C-8AC5-075E4C725ED4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestWebAPI", "TestWebAPI\TestWebAPI.csproj", "{6EE69A23-58F3-417C-8AC5-075E4C725ED4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.DAL.ETL", "Common.DAL.ETL\Common.DAL.ETL.csproj", "{49415CB7-68F4-43A2-B874-1607C8171FC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.DAL.ETL", "Common.DAL.ETL\Common.DAL.ETL.csproj", "{49415CB7-68F4-43A2-B874-1607C8171FC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.DAL.Transaction", "Common.DAL.Transaction\Common.DAL.Transaction.csproj", "{8F58FCD7-EC8D-4625-AC04-147F28142F56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.DAL.Transaction", "Common.DAL.Transaction\Common.DAL.Transaction.csproj", "{8F58FCD7-EC8D-4625-AC04-147F28142F56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestResourceManager", "TestResourceManager\TestResourceManager.csproj", "{1921A760-5BD7-4EF0-AAAD-5CDAA8245114}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.RPC", "Common.RPC\Common.RPC.csproj", "{EC769BE9-D25E-4A63-BD67-117EC9EB0E19}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceManager", "ResourceManager\ResourceManager.csproj", "{72E59763-455C-494E-98D6-253A4A7245CA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,10 +79,14 @@ Global
 		{8F58FCD7-EC8D-4625-AC04-147F28142F56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F58FCD7-EC8D-4625-AC04-147F28142F56}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F58FCD7-EC8D-4625-AC04-147F28142F56}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1921A760-5BD7-4EF0-AAAD-5CDAA8245114}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1921A760-5BD7-4EF0-AAAD-5CDAA8245114}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1921A760-5BD7-4EF0-AAAD-5CDAA8245114}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1921A760-5BD7-4EF0-AAAD-5CDAA8245114}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC769BE9-D25E-4A63-BD67-117EC9EB0E19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC769BE9-D25E-4A63-BD67-117EC9EB0E19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC769BE9-D25E-4A63-BD67-117EC9EB0E19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC769BE9-D25E-4A63-BD67-117EC9EB0E19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72E59763-455C-494E-98D6-253A4A7245CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72E59763-455C-494E-98D6-253A4A7245CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72E59763-455C-494E-98D6-253A4A7245CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72E59763-455C-494E-98D6-253A4A7245CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
