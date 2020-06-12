@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
-using System;
 using System.Web;
 
 namespace Common.ServiceCommon
@@ -72,13 +70,9 @@ namespace Common.ServiceCommon
         {
             IHeaderDictionary headers = m_httpContextAccessor.HttpContext.Request.Headers;
 
+            //TODO: 可能存在下游服务失去User相关信息或验证
             if (headers["id"].Count == 0 || headers["userName"].Count == 0)
-            {
-                if (m_webHostEnvironment.IsDevelopment())
-                    return SSOUserInfo.Empty;
-                else
-                    throw new NullReferenceException();
-            }
+                return SSOUserInfo.Empty;
 
             return new SSOUserInfo(long.Parse(HttpUtility.UrlDecode(headers["id"].ToString())),
                                    HttpUtility.UrlDecode(headers["userName"].ToString()));
