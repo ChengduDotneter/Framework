@@ -158,28 +158,5 @@ namespace Common.ServiceCommon
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
         }
-
-        public static IHostBuilder UseOrleans(this IHostBuilder hostBuilder)
-        {
-            return hostBuilder.ConfigureServices(services =>
-            {
-                services.AddControllers().
-                AddApplicationPart(typeof(ResourceController).Assembly).
-                AddApplicationPart(typeof(Resource).Assembly);
-            })
-            .UseOrleans(siloBuilder =>
-            {
-                siloBuilder.UseLocalhostClustering()
-                 .Configure<ClusterOptions>(opts =>
-                 {
-                     opts.ClusterId = "ResourceManager";
-                     opts.ServiceId = "ResourceManager";
-                 })
-                 .Configure<EndpointOptions>(opts =>
-                 {
-                     opts.AdvertisedIPAddress = IPAddress.Loopback;
-                 });
-            });
-        }
     }
 }
