@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace TestWebAPI.Controllers
 {
@@ -51,15 +52,21 @@ namespace TestWebAPI.Controllers
                 {
                     if (m_searchQuery.FilterIsDeleted().Count(item => item.UserAccount == concurrentModel.UserAccount) == 0)
                     {
-                        System.Threading.Thread.Sleep(5000);
+                        int time = Environment.TickCount;
 
                         IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search();
 
-                        System.Threading.Thread.Sleep(5000);
+                        //Console.WriteLine(Environment.TickCount - time);
+                        time = Environment.TickCount;
 
                         m_editQuery.FilterIsDeleted().Insert(concurrentModel);
 
+                        //Console.WriteLine(Environment.TickCount - time);
+                        time = Environment.TickCount;
+
                         transaction.Submit();
+
+                        //Console.WriteLine(Environment.TickCount - time);
                     }
                     else
                     {
@@ -96,19 +103,30 @@ namespace TestWebAPI.Controllers
 
         protected override void DoPost(long id, WarehouseInfo warehouseInfo)
         {
+            long time = Environment.TickCount64;
+
             using (ITransaction transaction = m_warehouseInfoEditQuery.FilterIsDeleted().BeginTransaction(5))
             {
                 try
                 {
                     m_warehouseInfoSearchQuery.Count();
 
-                    System.Threading.Thread.Sleep(5000);
+                    //System.Threading.Thread.Sleep(5000);
 
                     IEnumerable<ConcurrentModel> concurrentModels = m_concurrentModelSearchQuery.FilterIsDeleted().Search();
 
-                    System.Threading.Thread.Sleep(5000);
+                    //System.Threading.Thread.Sleep(5000);
 
                     transaction.Submit();
+
+
+                    //Console.WriteLine(Environment.TickCount64 - time);
+                    //Console.WriteLine(Environment.StackTrace);
+                    //Console.WriteLine(Environment.CurrentDirectory);
+                    //Console.WriteLine(Environment.CurrentManagedThreadId);
+                    //Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+                    //Console.WriteLine(Environment.TickCount64);
+                    //Console.WriteLine(Environment.TickCount);
                 }
                 catch (Exception)
                 {
