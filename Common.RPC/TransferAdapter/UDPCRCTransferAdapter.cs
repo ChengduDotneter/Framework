@@ -82,7 +82,7 @@ namespace Common.RPC.TransferAdapter
             if (SessionContext.IsDefaultContext(sessionContext))
                 sessionContext.Context = m_endPoint;
 
-            byte[] sendBuffer = new byte[buffer.Length + DATA_ID_BUFFER_LENGTH + SESSION_ID_BUFFER_LENGTH + CRC_BUFFER_LENGTH];
+            byte[] sendBuffer = new byte[length + DATA_ID_BUFFER_LENGTH + SESSION_ID_BUFFER_LENGTH + CRC_BUFFER_LENGTH];
             long dataID = IDGenerator.NextID();
             long sessionID = sessionContext.SessionID;
 
