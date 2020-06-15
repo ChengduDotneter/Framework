@@ -4,13 +4,13 @@ using System;
 using System.Net;
 using System.Text;
 using System.Threading;
-using Common;
 
 namespace Common.RPC.TransferAdapter
 {
     internal class ZeroMQTransferAdapter : ITransferAdapter
     {
         public event OnBufferRecievedHandler OnBufferRecieved;
+
         private const int SESSION_ID_BUFFER_LENGTH = sizeof(long);
         private const int BUFFER_LENGTH = 1024 * 1024 * 64;
         private const int SPLIT_LENGTH = 65536 * 1024;
@@ -49,23 +49,27 @@ namespace Common.RPC.TransferAdapter
                     socket.Options.Identity = identity;
                     socket.Bind(connectionString);
                     break;
+
                 case ZeroMQSocketTypeEnum.Subscriber:
                     socket = new SubscriberSocket();
                     socket.Options.Identity = identity;
                     socket.Connect(connectionString);
                     ((SubscriberSocket)socket).Subscribe(string.Empty);
                     break;
+
                 case ZeroMQSocketTypeEnum.Client:
                     socket = new DealerSocket();
                     socket.Options.Identity = identity;
                     socket.Connect(connectionString);
                     break;
+
                 case ZeroMQSocketTypeEnum.Server:
                     socket = new RouterSocket();
                     socket.Options.Identity = identity;
                     socket.Bind(connectionString);
                     socket.Options.RouterMandatory = true;
                     break;
+
                 default:
                     throw new NotImplementedException();
             }
@@ -81,8 +85,10 @@ namespace Common.RPC.TransferAdapter
                 case ZeroMQSocketTypeEnum.Client:
                 case ZeroMQSocketTypeEnum.Server:
                     return true;
+
                 case ZeroMQSocketTypeEnum.Subscriber:
                     return false;
+
                 default:
                     throw new NotImplementedException();
             }
@@ -96,8 +102,10 @@ namespace Common.RPC.TransferAdapter
                 case ZeroMQSocketTypeEnum.Client:
                 case ZeroMQSocketTypeEnum.Server:
                     return true;
+
                 case ZeroMQSocketTypeEnum.Publisher:
                     return false;
+
                 default:
                     throw new NotImplementedException();
             }

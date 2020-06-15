@@ -3,7 +3,7 @@
 namespace Common.MessageQueueClient
 {
     /// <summary>
-    ///
+    /// RBMQ数据结构接口
     /// </summary>
     public interface IData
     {

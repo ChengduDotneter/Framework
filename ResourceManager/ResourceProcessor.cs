@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace ResourceManager
 {
+    /// <summary>
+    /// 申请资源处理器，服务发起端（现包括ZeroMQ和UDP）
+    /// </summary>
     class ApplyResourceProcessor : ResponseProcessorBase<ApplyRequestData>, IHostedService
     {
         private const int MAX_TIME_OUT = 1000 * 60;
@@ -31,6 +34,11 @@ namespace ResourceManager
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 数据处理
+        /// </summary>
+        /// <param name="sessionContext"></param>
+        /// <param name="data"></param>
         protected override async void ProcessData(SessionContext sessionContext, ApplyRequestData data)
         {
             if (data.TimeOut < 0 ||
@@ -46,6 +54,9 @@ namespace ResourceManager
         }
     }
 
+    /// <summary>
+    /// 释放资源处理器，服务发起端（现包括ZeroMQ和UDP）
+    /// </summary>
     class ReleaseResourceProcessor : ResponseProcessorBase<ReleaseRequestData>, IHostedService
     {
         private ServiceClient m_serviceClient;
@@ -67,6 +78,11 @@ namespace ResourceManager
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 数据处理
+        /// </summary>
+        /// <param name="sessionContext"></param>
+        /// <param name="data"></param>
         protected override async void ProcessData(SessionContext sessionContext, ReleaseRequestData data)
         {
             IResource resource = m_actorClient.GetGrain<IResource>(data.ResourceName);

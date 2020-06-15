@@ -10,8 +10,14 @@ using System.Threading.Tasks;
 
 namespace Common.RPC
 {
+    /// <summary>
+    /// RPC服务客户端
+    /// </summary>
     public class ServiceClient : IDisposable
     {
+        /// <summary>
+        /// 接收的数据
+        /// </summary>
         private class RecieveData
         {
             public SessionContext SessionContext { get; }
@@ -24,6 +30,9 @@ namespace Common.RPC
             }
         }
 
+        /// <summary>
+        /// 发送的数据
+        /// </summary>
         private class SendingData
         {
             public SessionContext SessionContext { get; }
@@ -79,11 +88,21 @@ namespace Common.RPC
                 ((IDisposable)m_transferAdapter).Dispose();
         }
 
+        /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="sessionID"></param>
+        /// <param name="data"></param>
         internal void SendData(long sessionID, IRPCData data)
         {
             m_sendQueue.Enqueue(new SendingData(new SessionContext(sessionID), data));
         }
 
+        /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="sessionContext"></param>
+        /// <param name="data"></param>
         internal void SendSessionData(SessionContext sessionContext, IRPCData data)
         {
             m_sendQueue.Enqueue(new SendingData(sessionContext, data));
@@ -148,7 +167,7 @@ namespace Common.RPC
                 return;
 
             if (m_recieveHandlers.TryGetValue(data.MessageID, out Action<SessionContext, IRPCData> handler))
-               Task.Factory.StartNew(() => { handler(sessionContext, data); });
+                Task.Factory.StartNew(() => { handler(sessionContext, data); });
         }
 
         public void RegisterProcessor(ProcessorBase processor)
