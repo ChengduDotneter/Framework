@@ -62,7 +62,7 @@ namespace Common.DAL.Transaction
         {
             //Console.WriteLine($"{identity} {PRIMARY_KEY} apply start");
 
-            await m_actorClient.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).EnterLock(identity, PRIMARY_KEY, weight);
+            //await m_actorClient.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).EnterLock(identity, PRIMARY_KEY, weight);
 
             if (m_identity == DEFAULT_IDENTITY ||
                 m_identity == identity)
@@ -113,7 +113,7 @@ namespace Common.DAL.Transaction
                 return;
 
             m_identity = DEFAULT_IDENTITY;
-            await m_actorClient.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).ExitLock(identity);
+            //await m_actorClient.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).ExitLock(identity);
         }
 
         /// <summary>

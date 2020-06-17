@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Common;
@@ -24,7 +26,109 @@ namespace TestConsole
 
 
 
-            for (int cindex = 0; cindex < 1; cindex++)
+
+
+            //HashSet<long> ids = new HashSet<long>(1024 * 1024 * 1024);
+
+
+
+
+            //for (int asd = 0; asd < 4; asd++)
+            //{
+            //    Task.Factory.StartNew(() =>
+            //    {
+            //        while (true)
+            //        {
+            //            long id = Common.IDGenerator.NextID();
+            //            if (ids.Contains(id))
+            //            {
+            //                var ld = ids.Last();
+            //            }
+            //            else
+            //            {
+            //                ids.Add(id);
+            //            }
+            //        }
+            //    });
+            //}
+
+
+            //Console.Read();
+            //return;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            for (int cindex = 0; cindex < 4; cindex++)
             {
                 int index = cindex;
 
@@ -41,7 +145,7 @@ namespace TestConsole
                             {
                                 TransactionResourceHelper.ApplayResource(typeof(A), index, 0);
                             }
-                            catch
+                            catch (Exception ex)
                             {
                                 Console.WriteLine($"index: {index} Apply Error");
                             }
@@ -52,7 +156,7 @@ namespace TestConsole
                             {
                                 TransactionResourceHelper.ReleaseResource(typeof(A), index);
                             }
-                            catch
+                            catch (Exception ex)
                             {
                                 Console.WriteLine($"index: {index} Release Error");
                             }
