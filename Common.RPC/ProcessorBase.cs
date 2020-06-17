@@ -1,6 +1,7 @@
 ﻿using Common.RPC.TransferAdapter;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,9 +44,7 @@ namespace Common.RPC
     {
         private ServiceClient[] m_serviceClients;
 
-        public ResponseProcessorBase(ServiceClient serviceClient) : this(new ServiceClient[] { serviceClient })
-        {
-        }
+        public ResponseProcessorBase(ServiceClient serviceClient) : this(new ServiceClient[] { serviceClient }) { }
 
         public ResponseProcessorBase(ServiceClient[] serviceClients)
         {
@@ -141,20 +140,20 @@ namespace Common.RPC
             /// <param name="data">接收的数据</param>
             public void SendSessionData(long sessionID, TSendData data)
             {
-                base.SendSessionData(m_serviceClient, new SessionContext(sessionID), data);
+                SendSessionData(m_serviceClient, new SessionContext(sessionID), data);
             }
         }
 
         private readonly static TimeSpan TASK_WAIT_TIME_SPAN = TimeSpan.FromMilliseconds(0.01);
         private int m_requestTimeout;
-        private ConcurrentDictionary<int, SendRequestProcessor> m_sendProcessors;
-        private ConcurrentDictionary<long, TaskBody> m_taskWaits;
+        private IDictionary<int, SendRequestProcessor> m_sendProcessors;
+        private IDictionary<long, TaskBody> m_taskWaits;
 
         public RequestProcessorBase(int requestTimeout)
         {
             m_requestTimeout = requestTimeout;
-            m_taskWaits = new ConcurrentDictionary<long, TaskBody>();
-            m_sendProcessors = new ConcurrentDictionary<int, SendRequestProcessor>();
+            m_taskWaits = new Dictionary<long, TaskBody>();
+            m_sendProcessors = new Dictionary<int, SendRequestProcessor>();
         }
 
         /// <summary>
@@ -164,8 +163,13 @@ namespace Common.RPC
         /// <param name="data">接收的数据</param>
         private void ProcessData(SessionContext sessionContext, TRecieveData data)
         {
-            if (!m_taskWaits.ContainsKey(sessionContext.SessionID) || !m_taskWaits.TryGetValue(sessionContext.SessionID, out TaskBody taskBody))
-                return;
+            TaskBody taskBody;
+
+            lock (m_taskWaits)
+            {
+                if (!m_taskWaits.ContainsKey(sessionContext.SessionID) || !m_taskWaits.TryGetValue(sessionContext.SessionID, out taskBody))
+                    throw new Exception($"接收数据异常，异常会话ID: {sessionContext.SessionID}");
+            }
 
             taskBody.ResponseObject = data;
             taskBody.IsResponses = true;
@@ -179,8 +183,6 @@ namespace Common.RPC
         {
             TaskBody taskBody = (TaskBody)((object[])state)[0];
             CancellationToken token = ((CancellationTokenSource)((object[])state)[1]).Token;
-
-            int time = Environment.TickCount;
 
             while (!token.IsCancellationRequested && !taskBody.IsResponses)
                 Thread.Sleep(TASK_WAIT_TIME_SPAN);
@@ -198,7 +200,8 @@ namespace Common.RPC
             TaskBody taskBody = (TaskBody)((object[])task.AsyncState)[0];
             cancellationTokenSource.Dispose();
 
-            m_taskWaits.TryRemove(taskBody.SessionID, out TaskBody removeTaskBody);
+            lock (m_taskWaits)
+                m_taskWaits.Remove(taskBody.SessionID);
 
             if (canceled)
                 return false;
@@ -215,15 +218,21 @@ namespace Common.RPC
         /// <returns></returns>
         protected Task<bool> Request(ServiceClient serviceClient, TSendData sendData, Func<TRecieveData, bool> callback)
         {
-            if (!m_sendProcessors.ContainsKey(serviceClient.GetHashCode()))
-                m_sendProcessors.TryAdd(serviceClient.GetHashCode(), new SendRequestProcessor(serviceClient, ProcessData));
+            lock (m_sendProcessors)
+            {
+                if (!m_sendProcessors.ContainsKey(serviceClient.GetHashCode()))
+                    m_sendProcessors.Add(serviceClient.GetHashCode(), new SendRequestProcessor(serviceClient, ProcessData));
+            }
 
             long sessionID = IDGenerator.NextID();
+            TaskBody taskBody = new TaskBody(sessionID, callback);
+
+            lock (m_taskWaits)
+                m_taskWaits.Add(sessionID, taskBody);
+
             m_sendProcessors[serviceClient.GetHashCode()].SendSessionData(sessionID, sendData);
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(m_requestTimeout);
 
-            TaskBody taskBody = new TaskBody(sessionID, callback);
-            m_taskWaits.TryAdd(sessionID, taskBody);
             return Task.Factory.StartNew(Wait, new object[] { taskBody, cancellationTokenSource }, cancellationTokenSource.Token).ContinueWith(Callback);
         }
 

@@ -3,7 +3,7 @@
 namespace Common.DAL.Transaction
 {
     /// <summary>
-    ///  死锁监测Grain接口
+    /// 死锁监测Grain接口
     /// </summary>
     internal interface IDeadlockDetection
     {
