@@ -191,6 +191,8 @@ namespace Common.DAL.Transaction
 
             m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), UDPCRCSocketTypeEnum.Client), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
 
+            //m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateZeroMQTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), ZeroMQSocketTypeEnum.Client, Guid.NewGuid().ToString()), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+
 
 
             m_applyResourceProcessor = new ApplyResourceProcessor(m_serviceClient);

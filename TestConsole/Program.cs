@@ -154,7 +154,7 @@ namespace TestConsole
 
                             try
                             {
-                                TransactionResourceHelper.ReleaseResource(typeof(A), index);
+                                TransactionResourceHelper.ReleaseResource(index);
                             }
                             catch (Exception ex)
                             {

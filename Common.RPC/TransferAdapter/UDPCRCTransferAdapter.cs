@@ -95,7 +95,7 @@ namespace Common.RPC.TransferAdapter
                     Buffer.MemoryCopy(&dataID, sendBufferPtr, sendBuffer.Length, SESSION_ID_BUFFER_LENGTH);
                     Buffer.MemoryCopy(&sessionID, sendBufferPtr + DATA_ID_BUFFER_LENGTH, sendBuffer.Length, SESSION_ID_BUFFER_LENGTH);
 
-                    byte[] crcBuffer = CRC16(sendBuffer, length + SESSION_ID_BUFFER_LENGTH);
+                    byte[] crcBuffer = CRC16(sendBuffer, length + DATA_ID_BUFFER_LENGTH + SESSION_ID_BUFFER_LENGTH);
 
                     fixed (byte* crcBufferPtr = crcBuffer)
                         Buffer.MemoryCopy(crcBufferPtr, sendBufferPtr + length + DATA_ID_BUFFER_LENGTH + SESSION_ID_BUFFER_LENGTH, sendBuffer.Length, CRC_BUFFER_LENGTH);
@@ -199,11 +199,10 @@ namespace Common.RPC.TransferAdapter
                             fixed (byte* bufferCRCPtr = bufferCRC)
                             fixed (byte* bufferPtr = buffer)
                             {
-                                Buffer.MemoryCopy(bufferCRCPtr, bufferPtr + buffer.Length - CRC_BUFFER_LENGTH, CRC_BUFFER_LENGTH, CRC_BUFFER_LENGTH);
-
+                                Buffer.MemoryCopy(bufferPtr + buffer.Length - CRC_BUFFER_LENGTH, bufferCRCPtr, CRC_BUFFER_LENGTH, CRC_BUFFER_LENGTH);
                                 byte[] valueCRC = CRC16(buffer, buffer.Length - CRC_BUFFER_LENGTH);
 
-                                if (CheckCRC(bufferCRC, valueCRC))
+                                if (!CheckCRC(bufferCRC, valueCRC))
                                     continue;
 
                                 byte[] data = new byte[buffer.Length - DATA_ID_BUFFER_LENGTH - SESSION_ID_BUFFER_LENGTH - CRC_BUFFER_LENGTH];
