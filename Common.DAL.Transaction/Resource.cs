@@ -31,12 +31,12 @@ namespace Common.DAL.Transaction
         private const int TASK_TIME_SPAN = 10;
 
         /// <summary>
-        /// 当前事务线程ID
+        /// 当前事务身份ID
         /// </summary>
         private long m_identity = DEFAULT_IDENTITY;
 
         /// <summary>
-        /// 需要释放的线程ID
+        /// 需要释放的事务身份ID
         /// </summary>
         private long m_destoryIdentity;
 
@@ -81,10 +81,16 @@ namespace Common.DAL.Transaction
 
             if (m_identity != DEFAULT_IDENTITY || m_destoryIdentity == identity)
             {
-                //if (m_destoryIdentity != identity)
-                //    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild time out");
-                //else
-                //    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild deadlock");
+                if (m_destoryIdentity != identity)
+                {
+                    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild time out");
+                }
+                else
+                {
+                    await Release(m_destoryIdentity);
+                    m_destoryIdentity = DEFAULT_IDENTITY;
+                    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild deadlock");
+                }
 
                 return false;
             }

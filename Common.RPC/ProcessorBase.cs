@@ -43,9 +43,7 @@ namespace Common.RPC
     {
         private ServiceClient[] m_serviceClients;
 
-        public ResponseProcessorBase(ServiceClient serviceClient) : this(new ServiceClient[] { serviceClient })
-        {
-        }
+        public ResponseProcessorBase(ServiceClient serviceClient) : this(new ServiceClient[] { serviceClient }) { }
 
         public ResponseProcessorBase(ServiceClient[] serviceClients)
         {
@@ -141,7 +139,7 @@ namespace Common.RPC
             /// <param name="data">接收的数据</param>
             public void SendSessionData(long sessionID, TSendData data)
             {
-                base.SendSessionData(m_serviceClient, new SessionContext(sessionID), data);
+                SendSessionData(m_serviceClient, new SessionContext(sessionID), data);
             }
         }
 
@@ -179,8 +177,6 @@ namespace Common.RPC
         {
             TaskBody taskBody = (TaskBody)((object[])state)[0];
             CancellationToken token = ((CancellationTokenSource)((object[])state)[1]).Token;
-
-            int time = Environment.TickCount;
 
             while (!token.IsCancellationRequested && !taskBody.IsResponses)
                 Thread.Sleep(TASK_WAIT_TIME_SPAN);
