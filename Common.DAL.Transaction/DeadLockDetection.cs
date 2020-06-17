@@ -1,54 +1,20 @@
-﻿using Microsoft.Extensions.Hosting;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Common.DAL.Transaction
 {
-    public enum QueueDataTypeEnum
+    public class DeadlockDetection : IDeadlockDetection
     {
-        /// <summary>
-        /// 申请
-        /// </summary>
-        Apply,
+        public event Action<long, string, bool> ApplyResponsed;
 
-        /// <summary>
-        /// 释放
-        /// </summary>
-        Release
-    }
+        private readonly static TimeSpan THREAD_TIME_SPAN = TimeSpan.FromMilliseconds(0.01);
+        private readonly object m_lockThis = new object();
+        private ConcurrentQueue<ApplyRequestData> m_applyRequestDatas;
+        private Queue<ApplyRequestData> m_waitQueue;
+        private Thread m_doApplyThread;
 
-    public struct EnQueueData
-    {
-        public long Identity { get; set; }
-
-        public string ResourceName { get; set; }
-
-        public int Weight { get; set; }
-
-        public int TimeOutTick { get; set; }
-
-        public long EnQueueTick { get; set; }
-
-        public QueueDataTypeEnum QueueDataType { get; set; }
-    }
-
-    public struct DeQueueData
-    {
-        public long DestoryIdentity { get; set; }
-
-        public long ContinueIdentity { get; set; }
-
-        public QueueDataTypeEnum QueueDataType { get; set; }
-    }
-
-    /// <summary>
-    /// 死锁监测Grain类，单例
-    /// </summary>
-    public class DeadLockDetection : IDeadlockDetection, IHostedService
-    {
         /// <summary>
         /// 默认事务资源数组长度
         /// </summary>
@@ -99,13 +65,25 @@ namespace Common.DAL.Transaction
         /// </summary>
         private long m_tick;
 
-        private static ConcurrentQueue<EnQueueData> m_enQueueDatas;
+        private class ApplyRequestData
+        {
+            public long Identity { get; }
+            public string ResourceName { get; }
+            public int Weight { get; }
+            public int TimeOut { get; }
+            public int ApplyTime { get; }
 
-        public delegate void DeQueueHandle(DeQueueData deQueueData);
+            public ApplyRequestData(long identity, string resourceName, int weight, int timeOut)
+            {
+                Identity = identity;
+                ResourceName = resourceName;
+                Weight = weight;
+                TimeOut = timeOut;
+                ApplyTime = Environment.TickCount;
+            }
+        }
 
-        public static event DeQueueHandle DeQueueEvent;
-
-        public DeadLockDetection()
+        public DeadlockDetection()
         {
             Allocate(DEFAULT_IDENTITY_LENGTH, DEFAULT_RESOURCE_LENGTH);
             m_weights = new Dictionary<int, int>();
@@ -113,151 +91,71 @@ namespace Common.DAL.Transaction
             m_identityKeyIndexs = new Dictionary<int, long>();
             m_resourceNameIndexs = new Dictionary<string, int>();
             m_resourceNameKeyIndexs = new Dictionary<int, string>();
-            m_enQueueDatas = new ConcurrentQueue<EnQueueData>();
+            m_applyRequestDatas = new ConcurrentQueue<ApplyRequestData>();
+            m_waitQueue = new Queue<ApplyRequestData>();
+            m_doApplyThread = new Thread(DoApply);
+            m_doApplyThread.IsBackground = true;
+            m_doApplyThread.Name = "DEADLOCK_DETECTION_THREAD";
+            m_doApplyThread.Start();
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public void ApplyRequest(long identity, string resourceName, int weight, int timeOut)
         {
-            RunDeadLockDetection();
-            return Task.CompletedTask;
+            m_applyRequestDatas.Enqueue(new ApplyRequestData(identity, resourceName, weight, timeOut));
         }
 
-        private Task RunDeadLockDetection()
+        private void DoApply()
         {
-            return Task.Factory.StartNew(() =>
+            while (true)
             {
-
-                while (true)
+                if (!m_applyRequestDatas.IsEmpty)
                 {
-                    if (m_enQueueDatas.TryDequeue(out EnQueueData enQueueData))
-                        switch (enQueueData.QueueDataType)
+                    while (m_applyRequestDatas.TryDequeue(out ApplyRequestData applyRequestData))
+                    {
+                        int identityIndex;
+                        int resourceNameIndex;
+
+                        lock (m_lockThis)
                         {
-                            case QueueDataTypeEnum.Apply:
-                                EnterLock(enQueueData.Identity, enQueueData.ResourceName, enQueueData.Weight);
-                                break;
+                            if (!m_identityIndexs.ContainsKey(applyRequestData.Identity))
+                            {
+                                identityIndex = GetNextIdentityIndex();
+                                m_identityIndexs.Add(applyRequestData.Identity, identityIndex);
+                                m_identityKeyIndexs[identityIndex] = applyRequestData.Identity;
+                            }
+                            else
+                            {
+                                identityIndex = m_identityIndexs[applyRequestData.Identity];
+                            }
 
-                            case QueueDataTypeEnum.Release:
-                                ExitLock(enQueueData.Identity);
-                                break;
+                            if (!m_resourceNameIndexs.ContainsKey(applyRequestData.ResourceName))
+                            {
+                                resourceNameIndex = m_resourceNameIndexs.Count;
+                                m_resourceNameIndexs.Add(applyRequestData.ResourceName, resourceNameIndex);
+                                m_resourceNameKeyIndexs[resourceNameIndex] = applyRequestData.ResourceName;
+                            }
+                            else
+                            {
+                                resourceNameIndex = m_resourceNameIndexs[applyRequestData.ResourceName];
+                            }
 
-                            default:
-                                break;
+                            m_weights[identityIndex] = applyRequestData.Weight;
+
+                            if (identityIndex > m_matrix.GetLength(0) - 2 || resourceNameIndex > m_matrix.GetLength(1) - 2)
+                            {
+                                Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
+                            }
+
+                            CheckLock(m_identityIndexs[applyRequestData.Identity], m_resourceNameIndexs[applyRequestData.ResourceName], applyRequestData);
                         }
-                };
+                    }
 
-            });
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public static Task EnQueued(EnQueueData enQueueData)
-        {
-            m_enQueueDatas.Enqueue(enQueueData);
-
-            return Task.CompletedTask;
-        }
-
-        private void DeQueueChange(DeQueueData deQueueData)
-        {
-            DeQueueEvent?.Invoke(deQueueData);
-        }
-
-        /// <summary>
-        /// 事务申请资源时，进入死锁监测，监测是否出现死锁情况
-        /// </summary>
-        /// <param name="identity">事务线程ID</param>
-        /// <param name="resourceName">事务申请的资源名，现包括数据表名</param>
-        /// <param name="weight">事务权重</param>
-        /// <returns></returns>
-        public Task EnterLock(long identity, string resourceName, int weight)
-        {
-            int identityIndex;
-            int resourceNameIndex;
-
-            if (!m_identityIndexs.ContainsKey(identity))
-            {
-                identityIndex = GetNextIdentityIndex();
-                m_identityIndexs.Add(identity, identityIndex);
-                m_identityKeyIndexs[identityIndex] = identity;
-            }
-            else
-            {
-                identityIndex = m_identityIndexs[identity];
-            }
-
-            if (!m_resourceNameIndexs.ContainsKey(resourceName))
-            {
-                resourceNameIndex = m_resourceNameIndexs.Count;
-                m_resourceNameIndexs.Add(resourceName, resourceNameIndex);
-                m_resourceNameKeyIndexs[resourceNameIndex] = resourceName;
-            }
-            else
-            {
-                resourceNameIndex = m_resourceNameIndexs[resourceName];
-            }
-
-            m_weights[identityIndex] = weight;
-
-            if (identityIndex > m_matrix.GetLength(0) - 2 || resourceNameIndex > m_matrix.GetLength(1) - 2)
-            {
-                Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
-            }
-
-            CheckLock(m_identityIndexs[identity], m_resourceNameIndexs[resourceName]);
-
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// 退出死锁监测，移除已有资源标识
-        /// </summary>
-        /// <param name="identity">事务线程ID</param>
-        /// <param name="resourceName">事务申请的资源名，现包括数据表名</param>
-        /// <returns></returns>
-        public Task ExitLock(long identity)
-        {
-            if (m_identityIndexs.ContainsKey(identity))
-            {
-                int identityIndex = m_identityIndexs[identity];
-
-                for (int i = 0; i < m_matrix.GetLength(0); i++)
-                {
-                    //if (m_matrix[identityIndex, i] > 0)
-                    //{
-                    m_matrix[identityIndex, i] = 0;
-                    //m_resourceNameIndexs.Remove(m_resourceNameKeyIndexs[i]);
-                    //}
+                    while (m_waitQueue.Count > 0)
+                        m_applyRequestDatas.Enqueue(m_waitQueue.Dequeue());
                 }
 
-                m_usedIdentityIndexs[identityIndex] = false;
-                m_identityIndexs.Remove(identity);
-
-                DeQueueChange(new DeQueueData() { DestoryIdentity = identity, QueueDataType = QueueDataTypeEnum.Release });
+                Thread.Sleep(THREAD_TIME_SPAN);
             }
-
-            Console.WriteLine($"还剩事务数：{m_identityIndexs.Count}");
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// 获取下一个事务ID索引
-        /// </summary>
-        /// <returns></returns>
-        private int GetNextIdentityIndex()
-        {
-            for (int i = 0; i < m_usedIdentityIndexs.Length; i++)
-            {
-                if (!m_usedIdentityIndexs[i])
-                {
-                    m_usedIdentityIndexs[i] = true;
-                    return i;
-                }
-            }
-
-            throw new Exception("索引分配错误。");
         }
 
         /// <summary>
@@ -265,9 +163,10 @@ namespace Common.DAL.Transaction
         /// </summary>
         /// <param name="lastIdentityIndex">最后一个进入的事务线程ID索引</param>
         /// <param name="lastResourceNameIndex">最后一个进入的事务资源索引</param>
-        private void CheckLock(int lastIdentityIndex, int lastResourceNameIndex)
+        private void CheckLock(int lastIdentityIndex, int lastResourceNameIndex, ApplyRequestData applyRequestData)
         {
-            m_matrix[lastIdentityIndex, lastResourceNameIndex] = ++m_tick;
+            if (m_matrix[lastIdentityIndex, lastResourceNameIndex] == 0)
+                m_matrix[lastIdentityIndex, lastResourceNameIndex] = ++m_tick;
 
             for (int resourceNameIndex = 0; resourceNameIndex < m_matrix.GetLength(1); resourceNameIndex++)
             {
@@ -277,40 +176,89 @@ namespace Common.DAL.Transaction
                     {
                         if (m_matrix[identityIndex, resourceNameIndex] > m_matrix[lastIdentityIndex, resourceNameIndex] && m_matrix[identityIndex, lastResourceNameIndex] > 0)
                         {
-                            ConflictResolution(identityIndex, lastIdentityIndex, resourceNameIndex, lastResourceNameIndex);
+                            ConflictResolution(identityIndex, lastIdentityIndex, resourceNameIndex, lastResourceNameIndex, applyRequestData);
                             return;
                         }
                     }
                 }
             }
 
-            DeQueueChange(new DeQueueData() { ContinueIdentity = m_identityKeyIndexs[lastIdentityIndex], QueueDataType = QueueDataTypeEnum.Apply });
+            CheckWaitAndResponse(m_identityKeyIndexs[lastIdentityIndex], lastIdentityIndex, m_resourceNameKeyIndexs[lastResourceNameIndex], lastResourceNameIndex, applyRequestData);
         }
 
+        private void CheckWaitAndResponse(long identity, int identityIndex, string resourceName, int resourceNameIndex, ApplyRequestData applyRequestData)
+        {
+            lock (m_lockThis)
+            {
+                int minIdentityIndex = 0;
+
+                foreach (var item in m_identityKeyIndexs)
+                {
+                    if (m_matrix[minIdentityIndex, resourceNameIndex] == 0)
+                        minIdentityIndex = item.Key;
+                    else if (m_matrix[item.Key, resourceNameIndex] > 0 && m_matrix[item.Key, resourceNameIndex] <= m_matrix[minIdentityIndex, resourceNameIndex])
+                        minIdentityIndex = item.Key;
+                }
+
+                if (identityIndex != minIdentityIndex)
+                {
+                    if (Environment.TickCount - applyRequestData.ApplyTime > applyRequestData.TimeOut)
+                    {
+                        ApplyResponsed?.Invoke(identity, resourceName, false);
+                    }
+                    else
+                    {
+                        m_waitQueue.Enqueue(applyRequestData);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"identity: {identity}, resourceName: {resourceName}");
+
+                    ApplyResponsed?.Invoke(identity, resourceName, true);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取下一个事务ID索引
+        /// </summary>
+        /// <returns></returns>
+        private int GetNextIdentityIndex()
+        {
+            lock (m_lockThis)
+            {
+                for (int i = 0; i < m_usedIdentityIndexs.Length; i++)
+                {
+                    if (!m_usedIdentityIndexs[i])
+                    {
+                        m_usedIdentityIndexs[i] = true;
+                        return i;
+                    }
+                }
+
+                throw new Exception("索引分配错误。");
+            }
+        }
         /// <summary>
         /// 死锁时，进行的死锁解除策略
         /// </summary>
         /// <param name="identityIndexA">出现死锁的事务A的ID索引</param>
         /// <param name="identityIndexB">出现死锁的事务B的ID索引</param>
         /// <param name="resourceIndexA">出现死锁的事务A的资源索引</param>
-        /// <param name="resourceIndexB">出现死锁的事务A的资源索引</param>
-        private void ConflictResolution(int identityIndexA, int identityIndexB, int resourceIndexA, int resourceIndexB)
+        /// <param name="resourceIndexB">出现死锁的事务B的资源索引</param>
+        private void ConflictResolution(int identityIndexA, int identityIndexB, int resourceIndexA, int resourceIndexB, ApplyRequestData applyRequestData)
         {
-            long destoryIdentity;
-            long continueIdentity;
-
             if (m_weights[identityIndexA] >= m_weights[identityIndexB])
             {
-                destoryIdentity = m_identityKeyIndexs[identityIndexB];
-                continueIdentity = m_identityKeyIndexs[identityIndexA];
+                ApplyResponsed?.Invoke(m_identityKeyIndexs[identityIndexB], m_resourceNameKeyIndexs[resourceIndexB], false);
+                CheckWaitAndResponse(m_identityKeyIndexs[identityIndexA], identityIndexA, m_resourceNameKeyIndexs[resourceIndexA], resourceIndexA, applyRequestData);
             }
             else
             {
-                destoryIdentity = m_identityKeyIndexs[identityIndexA];
-                continueIdentity = m_identityKeyIndexs[identityIndexB];
+                ApplyResponsed?.Invoke(m_identityKeyIndexs[identityIndexA], m_resourceNameKeyIndexs[resourceIndexA], false);
+                CheckWaitAndResponse(m_identityKeyIndexs[identityIndexB], identityIndexB, m_resourceNameKeyIndexs[resourceIndexB], resourceIndexB, applyRequestData);
             }
-
-            DeQueueChange(new DeQueueData() { DestoryIdentity = destoryIdentity, ContinueIdentity = continueIdentity, QueueDataType = QueueDataTypeEnum.Apply });
         }
 
         /// <summary>
@@ -333,6 +281,25 @@ namespace Common.DAL.Transaction
             {
                 m_matrix = new long[identityLength, resourceLength];
                 m_usedIdentityIndexs = new bool[identityLength];
+            }
+        }
+
+        public void RemoveTranResource(long identity)
+        {
+            lock (m_lockThis)
+            {
+                if (m_identityIndexs.ContainsKey(identity))
+                {
+                    int identityIndex = m_identityIndexs[identity];
+
+                    foreach (var item in m_resourceNameKeyIndexs)
+                    {
+                        m_matrix[identityIndex, item.Key] = 0;
+                    }
+
+                    m_usedIdentityIndexs[identityIndex] = false;
+                    m_identityIndexs.Remove(identity);
+                }
             }
         }
     }

@@ -20,9 +20,9 @@ namespace ResourceManager
         {
             ConfigManager.Init("Development");
 
-            //ServiceClient serviceClient = new ServiceClient(TransferAdapterFactory.CreateZeroMQTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), ZeroMQSocketTypeEnum.Server, ConfigManager.Configuration["RPC:Identity"]), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+            ServiceClient serviceClient = new ServiceClient(TransferAdapterFactory.CreateZeroMQTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), ZeroMQSocketTypeEnum.Server, ConfigManager.Configuration["RPC:Identity"]), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
 
-            ServiceClient serviceClient = new ServiceClient(TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), UDPCRCSocketTypeEnum.Server), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+            //ServiceClient serviceClient = new ServiceClient(TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), UDPCRCSocketTypeEnum.Server), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
 
             serviceClient.Start();
 
@@ -46,11 +46,14 @@ namespace ResourceManager
                         options.SuppressStatusMessages = true;
                     });
 
-                    services.AddSingleton<IResourceManage, ResourceManage>();
+                    services.AddSingleton<IDeadlockDetection, DeadlockDetection>();
                     services.AddSingleton(serviceClient);
-                    services.AddHostedService<DeadLockDetection>();
                     services.AddHostedService<ApplyResourceProcessor>();
                     services.AddHostedService<ReleaseResourceProcessor>();
+
+
+
+                    //services.AddHostedService<Test>();
                 })
                 .ConfigureLogging(builder =>
                 {
