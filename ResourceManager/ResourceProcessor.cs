@@ -3,7 +3,7 @@ using Common.DAL.Transaction;
 using Common.RPC;
 using Common.RPC.TransferAdapter;
 using Microsoft.Extensions.Hosting;
-using Orleans;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,13 +12,13 @@ namespace ResourceManager
     /// <summary>
     /// 申请资源处理器，服务发起端（现包括ZeroMQ和UDP）
     /// </summary>
-    class ApplyResourceProcessor : ResponseProcessorBase<ApplyRequestData>, IHostedService
+     class ApplyResourceProcessor : ResponseProcessorBase<ApplyRequestData>, IHostedService
     {
         private const int MAX_TIME_OUT = 1000 * 60;
         private ServiceClient m_serviceClient;
         private IResourceManage m_resourceManage;
 
-        public ApplyResourceProcessor(ServiceClient serviceClient,  IResourceManage resourceManage) : base(serviceClient)
+        public ApplyResourceProcessor(ServiceClient serviceClient, IResourceManage resourceManage) : base(serviceClient)
         {
             m_serviceClient = serviceClient;
             m_resourceManage = resourceManage;
@@ -41,31 +41,28 @@ namespace ResourceManager
         /// <param name="data"></param>
         protected override async void ProcessData(SessionContext sessionContext, ApplyRequestData data)
         {
-            //if (data.TimeOut < 0 ||
-            //    data.TimeOut > MAX_TIME_OUT)
-            //    throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
+            if (data.TimeOut < 0 ||
+                data.TimeOut > MAX_TIME_OUT)
+                throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
 
-            //IResource resource = m_resourceManage.GetResource(data.ResourceName);
-            //bool successed = await resource.Apply(data.Identity, data.Weight, data.TimeOut);
+            bool successed = await m_resourceManage.GetResource(data.ResourceName).Apply(data.Identity, data.Weight, data.TimeOut);
 
-            //SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = successed });
+            SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = successed });
 
-            SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = true });
+            //SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = true });
         }
     }
 
     /// <summary>
     /// 释放资源处理器，服务发起端（现包括ZeroMQ和UDP）
     /// </summary>
-    class ReleaseResourceProcessor : ResponseProcessorBase<ReleaseRequestData>, IHostedService
+     class ReleaseResourceProcessor : ResponseProcessorBase<ReleaseRequestData>, IHostedService
     {
         private ServiceClient m_serviceClient;
-        private IResourceManage m_resourceManage;
 
-        public ReleaseResourceProcessor(ServiceClient serviceClient,  IResourceManage resourceManage) : base(serviceClient)
+        public ReleaseResourceProcessor(ServiceClient serviceClient) : base(serviceClient)
         {
             m_serviceClient = serviceClient;
-            m_resourceManage = resourceManage;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -85,11 +82,8 @@ namespace ResourceManager
         /// <param name="data"></param>
         protected override async void ProcessData(SessionContext sessionContext, ReleaseRequestData data)
         {
-            //IResource resource = m_actorClient.GetGrain<IResource>(data.ResourceName);
-            //await resource.Release(data.Identity);
-
-            //await m_resourceManage.GetResource(data.ResourceName).Release(data.Identity);
-            //SendSessionData(m_serviceClient, sessionContext, new ReleaseResponseData());
+            await DeadLockDetection.EnQueued(new EnQueueData() { Identity = data.Identity, QueueDataType = QueueDataTypeEnum.Release });
+            SendSessionData(m_serviceClient, sessionContext, new ReleaseResponseData());
         }
     }
 }

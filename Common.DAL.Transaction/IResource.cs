@@ -15,19 +15,5 @@ namespace Common.DAL.Transaction
         /// <param name="timeOut">超时时间</param>
         /// <returns></returns>
         Task<bool> Apply(long identity, int weight, int timeOut);
-
-        /// <summary>
-        /// 释放线程事务资源
-        /// </summary>
-        /// <param name="identity">事务线程ID</param>
-        /// <returns></returns>
-        Task Release(long identity);
-
-        /// <summary>
-        /// 死锁检测回调资源释放策略
-        /// </summary>
-        /// <param name="destoryIdentity">需要释放的线程ID</param>
-        /// <returns></returns>
-        Task ConflictResolution(long destoryIdentity);
     }
 }

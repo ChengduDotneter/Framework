@@ -1,5 +1,4 @@
-﻿using Orleans;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Common.DAL.Transaction
 {
@@ -21,7 +20,6 @@ namespace Common.DAL.Transaction
         /// 退出死锁监测，移除已有资源标识
         /// </summary>
         /// <param name="identity">事务线程ID</param>
-        /// <param name="resourceName">事务申请的资源名，现包括数据表名</param>
         /// <returns></returns>
         Task ExitLock(long identity);
     }

@@ -74,9 +74,9 @@ namespace Common.DAL.Transaction
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
         /// <param name="identity">事务线程ID</param>
-        public static void ReleaseResource(Type table, long identity)
+        public static void ReleaseResource(long identity)
         {
-            ReleaseResourceAsync(table, identity).Wait();
+            ReleaseResourceAsync(identity).Wait();
         }
 
         /// <summary>
@@ -84,10 +84,10 @@ namespace Common.DAL.Transaction
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
         /// <param name="identity">事务线程ID</param>
-        public static async Task ReleaseResourceAsync(Type table, long identity)
+        public static async Task ReleaseResourceAsync(long identity)
         {
-            if (!await m_releaseResourceProcessor.Release(table, identity))
-                throw new DealException($"释放事务资源{table.FullName}失败。");
+            if (!await m_releaseResourceProcessor.Release(identity))
+                throw new DealException($"释放事务{identity}资源失败。");
         }
 
 

@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Cache;
@@ -14,6 +8,12 @@ using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Apache.Ignite.Linq;
 using Common.DAL.Transaction;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading;
 
 namespace Common.DAL
 {
@@ -45,9 +45,9 @@ namespace Common.DAL
             }
         }
 
-        private static async void Release(Type table, long identity)
+        private static async void Release(long identity)
         {
-            await TransactionResourceHelper.ReleaseResourceAsync(table, identity);
+            await TransactionResourceHelper.ReleaseResourceAsync(identity);
         }
 
         private class IgniteITransaction : ITransaction
@@ -57,7 +57,7 @@ namespace Common.DAL
             public long Identity { get; }
             public int Weight { get; }
 
-            public IgniteITransaction(IIgnite ignite,int weight)
+            public IgniteITransaction(IIgnite ignite, int weight)
             {
                 Identity = IDGenerator.NextID();
                 Weight = weight;
@@ -79,8 +79,7 @@ namespace Common.DAL
                 lock (m_transactions)
                     m_transactions.Remove(id);
 
-                foreach (Type transactionTable in TransactionTables)
-                    Release(transactionTable, Identity);
+                Release(Identity);
             }
 
             public void Rollback()
@@ -204,7 +203,7 @@ namespace Common.DAL
                                         query, orderBy).Compile();
             }
 
-            static Type GetResultType(ICacheEntry<long, TTable> left = null, ICacheEntry<long, TJoinTable> right = null)
+            private static Type GetResultType(ICacheEntry<long, TTable> left = null, ICacheEntry<long, TJoinTable> right = null)
             {
                 return new { left, right }.GetType();
             }
@@ -717,4 +716,3 @@ namespace Common.DAL
         }
     }
 }
-
