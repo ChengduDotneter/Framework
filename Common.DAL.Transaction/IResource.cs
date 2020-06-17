@@ -1,12 +1,11 @@
 ﻿using System.Threading.Tasks;
-using Orleans;
 
 namespace Common.DAL.Transaction
 {
     /// <summary>
     /// 资源Grains接口
     /// </summary>
-    public interface IResource : IGrainWithStringKey
+    public interface IResource
     {
         /// <summary>
         /// 申请事务资源
@@ -27,8 +26,8 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 死锁检测回调资源释放策略
         /// </summary>
-        /// <param name="identity">线程事务ID</param>
+        /// <param name="destoryIdentity">需要释放的线程ID</param>
         /// <returns></returns>
-        Task ConflictResolution(long identity);
+        Task ConflictResolution(long destoryIdentity);
     }
 }

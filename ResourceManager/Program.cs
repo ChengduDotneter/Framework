@@ -15,9 +15,9 @@ using System.Text;
 
 namespace ResourceManager
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             ConfigManager.Init("Development");
 
@@ -28,24 +28,26 @@ namespace ResourceManager
             serviceClient.Start();
 
             new HostBuilder()
-                .UseOrleans((Microsoft.Extensions.Hosting.HostBuilderContext context, ISiloBuilder builder) =>
-                {
-                    builder
-                        .UseLocalhostClustering()
-                        .Configure<ClusterOptions>(options =>
-                        {
-                            options.ClusterId = "ResourceManager";
-                            options.ServiceId = "ResourceManager";
-                        })
-                        .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
-                        .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(Resource).Assembly).WithReferences());
-                })
+                //.UseOrleans((Microsoft.Extensions.Hosting.HostBuilderContext context, ISiloBuilder builder) =>
+                //{
+                //    builder
+                //        .UseLocalhostClustering()
+                //        .Configure<ClusterOptions>(options =>
+                //        {
+                //            options.ClusterId = "ResourceManager";
+                //            options.ServiceId = "ResourceManager";
+                //        })
+                //        .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
+                //        .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(Resource).Assembly).WithReferences());
+                //})
                 .ConfigureServices(services =>
                 {
                     services.Configure<ConsoleLifetimeOptions>(options =>
                     {
                         options.SuppressStatusMessages = true;
                     });
+
+                    services.AddSingleton<IResourceManage, ResourceManage>();
 
                     services.AddSingleton(serviceClient);
                     services.AddHostedService<ApplyResourceProcessor>();

@@ -1,5 +1,4 @@
 ﻿using Orleans;
-using Orleans.Concurrency;
 using System;
 using System.Threading.Tasks;
 
@@ -9,8 +8,7 @@ namespace Common.DAL.Transaction
     /// <summary>
     /// 事务资源操作Grain类
     /// </summary>
-    [Reentrant]
-    public class Resource : Grain, IResource
+    public class Resource : IResource
     {
         /// <summary>
         /// 死锁检测Grain的Key
@@ -30,7 +28,7 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 等待时间超时间隔
         /// </summary>
-        private const int TASK_TIME_SPAN = 1;
+        private const int TASK_TIME_SPAN = 10;
 
         /// <summary>
         /// 当前事务线程ID
@@ -42,15 +40,15 @@ namespace Common.DAL.Transaction
         /// </summary>
         private long m_destoryIdentity;
 
-        public Resource()
-        {
-            DEADLOCK_DETECTION_KEY = nameof(IDeadlockDetection).GetHashCode();
-        }
+        private IGrainFactory m_actorClient;
 
-        public override Task OnActivateAsync()
+        private long m_continueIdentity;
+
+        public Resource(string resourceName, IGrainFactory actorClient)
         {
-            PRIMARY_KEY = GrainReference.GetPrimaryKeyString();
-            return base.OnActivateAsync();
+            PRIMARY_KEY = resourceName;
+            m_actorClient = actorClient;
+            DEADLOCK_DETECTION_KEY = nameof(IDeadlockDetection).GetHashCode();
         }
 
         /// <summary>
@@ -64,7 +62,7 @@ namespace Common.DAL.Transaction
         {
             //Console.WriteLine($"{identity} {PRIMARY_KEY} apply start");
 
-            await GrainFactory.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).EnterLock(identity, PRIMARY_KEY, weight);
+            await m_actorClient.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).EnterLock(identity, PRIMARY_KEY, weight);
 
             if (m_identity == DEFAULT_IDENTITY ||
                 m_identity == identity)
@@ -78,7 +76,7 @@ namespace Common.DAL.Transaction
 
             int time = Environment.TickCount;
 
-            while (m_identity != DEFAULT_IDENTITY && Environment.TickCount - time < timeOut && m_destoryIdentity != identity)
+            while (m_identity != DEFAULT_IDENTITY && Environment.TickCount - time < timeOut && m_destoryIdentity != identity && m_continueIdentity != identity)
                 await Task.Delay(TASK_TIME_SPAN);
 
             if (m_identity != DEFAULT_IDENTITY || m_destoryIdentity == identity)
@@ -109,7 +107,7 @@ namespace Common.DAL.Transaction
                 return;
 
             m_identity = DEFAULT_IDENTITY;
-            await GrainFactory.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).ExitLock(identity, PRIMARY_KEY);
+            await m_actorClient.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).ExitLock(identity);
         }
 
         /// <summary>
@@ -117,10 +115,9 @@ namespace Common.DAL.Transaction
         /// </summary>
         /// <param name="identity">线程事务ID</param>
         /// <returns></returns>
-        public Task ConflictResolution(long identity)
+        public Task ConflictResolution(long destoryIdentity)
         {
-            m_destoryIdentity = identity;
-
+            m_destoryIdentity = destoryIdentity;
             return Task.CompletedTask;
         }
     }

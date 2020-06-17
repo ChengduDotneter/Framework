@@ -8,7 +8,7 @@ namespace Common.DAL.Transaction
     /// <summary>
     /// 死锁监测Grain类，单例
     /// </summary>
-    internal class DeadLockDetection : Grain, IDeadlockDetection
+    public class DeadLockDetection : IDeadlockDetection
     {
         /// <summary>
         /// 默认事务资源数组长度
@@ -20,29 +20,19 @@ namespace Common.DAL.Transaction
         /// </summary>
         private const int DEFAULT_IDENTITY_LENGTH = 32;
 
-        /// <summary>
-        /// 权重字典<事务ID的索引，权重>
-        /// </summary>
+        /// <summary> 权重字典<事务ID的索引，权重> </summary>
         private IDictionary<int, int> m_weights;
 
-        /// <summary>
-        /// 事务ID索引字典<事务ID，事务ID索引>
-        /// </summary>
+        /// <summary> 事务ID索引字典<事务ID，事务ID索引> </summary>
         private IDictionary<long, int> m_identityIndexs;
 
-        /// <summary>
-        /// 事务ID索引字典<事务ID索引，事务ID>
-        /// </summary>
+        /// <summary> 事务ID索引字典<事务ID索引，事务ID> </summary>
         private IDictionary<int, long> m_identityKeyIndexs;
 
-        /// <summary>
-        /// 事务资源名索引字典<事务资源名，事务资源名索引>
-        /// </summary>
+        /// <summary> 事务资源名索引字典<事务资源名，事务资源名索引> </summary>
         private IDictionary<string, int> m_resourceNameIndexs;
 
-        /// <summary>
-        /// 事务资源名索引字典<事务资源名索引，事务资源名>
-        /// </summary>
+        /// <summary> 事务资源名索引字典<事务资源名索引，事务资源名> </summary>
         private IDictionary<int, string> m_resourceNameKeyIndexs;
 
         /// <summary>
@@ -60,8 +50,12 @@ namespace Common.DAL.Transaction
         /// </summary>
         private long m_tick;
 
-        public DeadLockDetection()
+        private IResourceManage m_resourceManage;
+
+        public DeadLockDetection(IResourceManage resourceManage)
         {
+            m_resourceManage = resourceManage;
+
             Allocate(DEFAULT_IDENTITY_LENGTH, DEFAULT_RESOURCE_LENGTH);
             m_weights = new Dictionary<int, int>();
             m_identityIndexs = new Dictionary<long, int>();
@@ -111,6 +105,8 @@ namespace Common.DAL.Transaction
                 Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
             }
 
+            Console.WriteLine($"identity : {identity} identityIndex {identityIndex}  ct: {m_identityIndexs.ContainsKey(identity)} resourceName {resourceName} ct2: {m_resourceNameIndexs.ContainsKey(resourceName)}");
+
             CheckLock(m_identityIndexs[identity], m_resourceNameIndexs[resourceName]);
             return Task.CompletedTask;
         }
@@ -121,17 +117,38 @@ namespace Common.DAL.Transaction
         /// <param name="identity">事务线程ID</param>
         /// <param name="resourceName">事务申请的资源名，现包括数据表名</param>
         /// <returns></returns>
-        public Task ExitLock(long identity, string resourceName)
+        public Task ExitLock(long identity)
         {
-            if (m_identityIndexs.ContainsKey(identity) && m_resourceNameIndexs.ContainsKey(resourceName))
+            //if (m_identityIndexs.ContainsKey(identity) && m_resourceNameIndexs.ContainsKey(resourceName))
+            //{
+            //    bool isRemoveIdentityIndex = true;
+
+            // int identityIndex = m_identityIndexs[identity]; int resourceNameIndex = m_resourceNameIndexs[resourceName];
+
+            // for (int i = 0; i < m_matrix.GetLength(1); i++) { if (m_matrix[identityIndex, i] != 0
+            // && i != resourceNameIndex) { isRemoveIdentityIndex = false; break; } }
+
+            // m_matrix[identityIndex, resourceNameIndex] = 0;
+
+            //    if (isRemoveIdentityIndex)
+            //    {
+            //        m_identityIndexs.Remove(identity);
+            //        m_resourceNameIndexs.Remove(resourceName);
+            //        m_usedIdentityIndexs[identityIndex] = false;
+            //    }
+            //}
+
+            if (m_identityIndexs.ContainsKey(identity))
             {
                 int identityIndex = m_identityIndexs[identity];
-                m_matrix[identityIndex, m_resourceNameIndexs[resourceName]] = 0;
+
+                for (int i = 0; i < m_matrix.GetLength(1); i++)
+                    m_matrix[identityIndex, i] = 0;
+
+                m_identityIndexs.Remove(identity);
+                m_identityKeyIndexs.Remove(identityIndex);
                 m_usedIdentityIndexs[identityIndex] = false;
             }
-
-            m_identityIndexs.Remove(identity);
-            m_resourceNameIndexs.Remove(resourceName);
 
             return Task.CompletedTask;
         }
@@ -190,16 +207,19 @@ namespace Common.DAL.Transaction
         {
             long destoryIdentity;
             string destoryResourceName;
+            long continueIdentity;
 
             if (m_weights[identityIndexA] >= m_weights[identityIndexB])
             {
                 destoryIdentity = m_identityKeyIndexs[identityIndexB];
                 destoryResourceName = m_resourceNameKeyIndexs[resourceIndexB];
+                continueIdentity = m_identityKeyIndexs[identityIndexA];
             }
             else
             {
                 destoryIdentity = m_identityKeyIndexs[identityIndexA];
                 destoryResourceName = m_resourceNameKeyIndexs[resourceIndexA];
+                continueIdentity = m_identityKeyIndexs[identityIndexB];
             }
 
             ConflictResolution(destoryIdentity, destoryResourceName);
@@ -231,11 +251,11 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 死锁解除回调
         /// </summary>
-        /// <param name="identity">需要释放资源的事务ID</param>
+        /// <param name="destoryIdentity">需要释放资源的事务ID</param>
         /// <param name="resourceName">需要释放的资源名，现包括表名</param>
-        private async void ConflictResolution(long identity, string resourceName)
+        private async void ConflictResolution(long destoryIdentity, string resourceName)
         {
-            await GrainFactory.GetGrain<IResource>(resourceName).ConflictResolution(identity);
+            await m_resourceManage.GetResource(resourceName).ConflictResolution(destoryIdentity);
         }
     }
 }

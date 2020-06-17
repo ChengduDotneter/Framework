@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 namespace Common.DAL.Transaction
 {
     /// <summary>
-    ///  死锁监测Grain接口
+    /// 死锁监测Grain接口
     /// </summary>
-    internal interface IDeadlockDetection : IGrainWithIntegerKey
+    internal interface IDeadlockDetection
     {
         /// <summary>
         /// 事务申请资源时，进入死锁监测，监测是否出现死锁情况
@@ -23,6 +23,6 @@ namespace Common.DAL.Transaction
         /// <param name="identity">事务线程ID</param>
         /// <param name="resourceName">事务申请的资源名，现包括数据表名</param>
         /// <returns></returns>
-        Task ExitLock(long identity, string resourceName);
+        Task ExitLock(long identity);
     }
 }

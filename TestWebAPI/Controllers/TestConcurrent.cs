@@ -46,7 +46,7 @@ namespace TestWebAPI.Controllers
 
         protected override void DoPost(long id, ConcurrentModel concurrentModel)
         {
-            using (ITransaction transaction = m_editQuery.FilterIsDeleted().BeginTransaction())
+            using (ITransaction transaction = m_editQuery.FilterIsDeleted().BeginTransaction(10))
             {
                 try
                 {
@@ -136,5 +136,38 @@ namespace TestWebAPI.Controllers
             }
         }
     }
+    [Route("testconcurrent3")]
+    public class TestConcurrentSUDUController : GenericPostController<WarehouseInfo>
+    {
+        private readonly ISearchQuery<WarehouseInfo> m_warehouseInfoSearchQuery;
+        private readonly IEditQuery<WarehouseInfo> m_warehouseInfoEditQuery;
 
+        public TestConcurrentSUDUController(
+            ISearchQuery<WarehouseInfo> warehouseInfoSearchQuery,
+            IEditQuery<WarehouseInfo> warehouseInfoEditQuery,
+            ISSOUserService ssoUserService) : base(warehouseInfoEditQuery, ssoUserService)
+        {
+            m_warehouseInfoSearchQuery = warehouseInfoSearchQuery;
+            m_warehouseInfoEditQuery = warehouseInfoEditQuery;
+        }
+
+        protected override void DoPost(long id, WarehouseInfo warehouseInfo)
+        {
+            long time = Environment.TickCount64;
+
+            using (ITransaction transaction = m_warehouseInfoEditQuery.FilterIsDeleted().BeginTransaction(5))
+            {
+                try
+                {
+                    m_warehouseInfoSearchQuery.FilterIsDeleted().Get(0);
+
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+    }
 }
