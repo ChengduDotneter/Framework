@@ -1,4 +1,5 @@
-﻿using NetMQ;
+﻿using log4net;
+using NetMQ;
 using NetMQ.Sockets;
 using System;
 using System.Net;
@@ -21,7 +22,15 @@ namespace Common.RPC.TransferAdapter
         private ZeroMQSocketTypeEnum m_zeroMQSocketType;
 #if OUTPUT_LOG
         private string m_identity;
+        private static ILog m_log;
 #endif
+
+        static ZeroMQTransferAdapter()
+        {
+#if OUTPUT_LOG
+            m_log = LogHelper.CreateLog("Transfer", "ZeroMQ");
+#endif
+        }
 
         public ZeroMQTransferAdapter(IPEndPoint endPoint, ZeroMQSocketTypeEnum zeroMQSocketType, string identity)
         {
@@ -147,19 +156,16 @@ namespace Common.RPC.TransferAdapter
             {
                 DoSendBuffer(sessionContext, sendBuffer, length + SESSION_ID_BUFFER_LENGTH);
             }
-            catch
+            catch (Exception ex)
             {
 #if OUTPUT_LOG
-                LogManager.WriteLog("send error session_id: {0}", sessionContext.SessionID);
+                m_log.Error($"send error session_id: {sessionContext.SessionID}{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
             }
         }
 
         private unsafe void DoSendBuffer(SessionContext sessionContext, byte[] buffer, int length)
         {
-#if OUTPUT_LOG
-            LogManager.WriteLog(string.Format("identity: {0}, session_id: {1}, send time: {2}", m_identity, sessionContext.SessionID, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ff")));
-#endif
             if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server && (sessionContext.SessionID == 0 || SessionContext.IsDefaultContext(sessionContext)))
                 throw new Exception("服务端不能调用SendData，请改用SendSessionData方法。");
             else if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server)
@@ -235,18 +241,15 @@ namespace Common.RPC.TransferAdapter
                                         Buffer.MemoryCopy(recieveBufferPtr + SESSION_ID_BUFFER_LENGTH, dataPtr, data.Length, data.Length);
 
                                         long sessionID = *(long*)recieveBufferPtr;
-#if OUTPUT_LOG
-                                        LogManager.WriteLog(string.Format("identity: {0}, recv session_id: {1}, time: {2}", m_identity, sessionID, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ff")));
-#endif
                                         OnBufferRecieved?.Invoke(new SessionContext(sessionID, identity), data);
                                     }
                                 }
                             }
                         }
-                        catch
+                        catch (Exception ex)
                         {
 #if OUTPUT_LOG
-                            LogManager.WriteLogWriteLine("recv error");
+                            m_log.Error($"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
                         }
                     }

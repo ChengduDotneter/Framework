@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
@@ -45,6 +46,17 @@ namespace Common.RPC.TransferAdapter
         private Thread m_sendThread;
         private UdpClient m_udp;
         private int m_localPort;
+
+#if OUTPUT_LOG
+        private static ILog m_log;
+#endif
+
+        static UDPCRCTransferAdapter()
+        {
+#if OUTPUT_LOG
+            m_log = LogHelper.CreateLog("Transfer", "UDP");
+#endif
+        }
 
         public UDPCRCTransferAdapter(IPEndPoint endPoint, UDPCRCSocketTypeEnum udpCRCSocketType)
         {
@@ -131,17 +143,14 @@ namespace Common.RPC.TransferAdapter
 
                                 try
                                 {
-#if OUTPUT_LOG
-                                    LogManager.WriteLog(string.Format("send session_id: {0}, time: {1}", sessionID, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ff")));
-#endif
                                     m_udp.Send(sendBufferData.Buffer, sendBufferData.Buffer.Length, (IPEndPoint)sendBufferData.SessionContext.Context);
                                     sendBufferData.RefreshRepeatTime();
                                     sendBufferData.RepeatCount++;
                                 }
-                                catch
+                                catch (Exception ex)
                                 {
 #if OUTPUT_LOG
-                                    LogManager.WriteLog("send error session_id: {0}", sessionID);
+                                    m_log.Error($"send error session_id: {sessionID}{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
                                 }
                             }
@@ -218,19 +227,16 @@ namespace Common.RPC.TransferAdapter
 
                                     long sessionID = *(long*)(bufferPtr + DATA_ID_BUFFER_LENGTH);
                                     Buffer.MemoryCopy(bufferPtr + DATA_ID_BUFFER_LENGTH + SESSION_ID_BUFFER_LENGTH, dataPtr, data.Length, data.Length);
-#if OUTPUT_LOG
-                                    LogManager.WriteLog(string.Format("recv session_id: {0}, time: {1}", sessionID, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ff")));
-#endif
                                     OnBufferRecieved?.Invoke(new SessionContext(sessionID, ip), data);
                                 }
                             }
                         }
                     }
                 }
-                catch
+                catch(Exception ex)
                 {
 #if OUTPUT_LOG
-                    LogManager.WriteLog("recv error");
+                    m_log.Error($"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
                 }
             }

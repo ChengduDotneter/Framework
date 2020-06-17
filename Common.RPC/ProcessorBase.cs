@@ -168,7 +168,7 @@ namespace Common.RPC
             lock (m_taskWaits)
             {
                 if (!m_taskWaits.ContainsKey(sessionContext.SessionID) || !m_taskWaits.TryGetValue(sessionContext.SessionID, out taskBody))
-                    return;
+                    throw new Exception($"接收数据异常，异常会话ID: {sessionContext.SessionID}");
             }
 
             taskBody.ResponseObject = data;
