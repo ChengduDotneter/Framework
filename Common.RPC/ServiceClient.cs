@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Common.RPC
 {
     /// <summary>
-    /// RPC服务客户端
+    /// RPC服务核心模块
     /// </summary>
     public class ServiceClient : IDisposable
     {
@@ -130,6 +130,7 @@ namespace Common.RPC
                 }
                 catch
                 {
+                    Console.WriteLine("invoke error");
 #if OUTPUT_LOG
                     LogManager.WriteLog(string.Format("serialize error, message_id: {0}", sendingData.Data.MessageID));
 #endif
@@ -154,6 +155,7 @@ namespace Common.RPC
                 }
                 catch
                 {
+                    Console.WriteLine("callback error");
 #if OUTPUT_LOG
                     LogManager.WriteLog(string.Format("process error, message_id: {0}", BitConverter.ToInt32(recieveData.Buffer, 0)));
 #endif

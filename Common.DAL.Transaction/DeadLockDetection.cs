@@ -212,6 +212,8 @@ namespace Common.DAL.Transaction
         /// <param name="resourceLength">事务资源数组所需申请的数组长度</param>
         private void Allocate(int identityLength, int resourceLength)
         {
+            Console.WriteLine("Allocate");
+
             if (m_matrix != null)
             {
                 long[,] tempMatrix = m_matrix;

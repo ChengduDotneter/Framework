@@ -41,16 +41,16 @@ namespace ResourceManager
         /// <param name="data"></param>
         protected override async void ProcessData(SessionContext sessionContext, ApplyRequestData data)
         {
-            if (data.TimeOut < 0 ||
-                data.TimeOut > MAX_TIME_OUT)
-                throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
+            //if (data.TimeOut < 0 ||
+            //    data.TimeOut > MAX_TIME_OUT)
+            //    throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
 
-            IResource resource = m_actorClient.GetGrain<IResource>(data.ResourceName);
-            bool successed = await resource.Apply(data.Identity, data.Weight, data.TimeOut);
+            //IResource resource = m_actorClient.GetGrain<IResource>(data.ResourceName);
+            //bool successed = await resource.Apply(data.Identity, data.Weight, data.TimeOut);
 
-            SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = successed });
+            //SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = successed });
 
-            //SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = true });
+            SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = true });
         }
     }
 
@@ -85,8 +85,8 @@ namespace ResourceManager
         /// <param name="data"></param>
         protected override async void ProcessData(SessionContext sessionContext, ReleaseRequestData data)
         {
-            IResource resource = m_actorClient.GetGrain<IResource>(data.ResourceName);
-            await resource.Release(data.Identity);
+            //IResource resource = m_actorClient.GetGrain<IResource>(data.ResourceName);
+            //await resource.Release(data.Identity);
             SendSessionData(m_serviceClient, sessionContext, new ReleaseResponseData());
         }
     }

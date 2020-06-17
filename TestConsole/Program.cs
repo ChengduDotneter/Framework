@@ -24,48 +24,55 @@ namespace TestConsole
 
 
 
-            Parallel.For(0, 1, (index) =>
+            for (int cindex = 0; cindex < 1; cindex++)
             {
-                int count = 0;
-                int time = Environment.TickCount;
+                int index = cindex;
 
-                while (true)
+                Task.Factory.StartNew(() =>
                 {
-                    for (int i = 0; i < 100; i++)
+                    int count = 0;
+                    int time = Environment.TickCount;
+
+                    while (true)
                     {
-                        try
+                        for (int i = 0; i < 10; i++)
                         {
-                            TransactionResourceHelper.ApplayResource(typeof(A), index, 0);
+                            try
+                            {
+                                TransactionResourceHelper.ApplayResource(typeof(A), index, 0);
+                            }
+                            catch
+                            {
+                                Console.WriteLine($"index: {index} Apply Error");
+                            }
+
+                            //Thread.Sleep(5);
+
+                            try
+                            {
+                                TransactionResourceHelper.ReleaseResource(typeof(A), index);
+                            }
+                            catch
+                            {
+                                Console.WriteLine($"index: {index} Release Error");
+                            }
+
+                            count++;
+
+                            if (Environment.TickCount - time > 1000)
+                            {
+                                Console.WriteLine($"index: {index}, count: {count}");
+                                time = Environment.TickCount;
+                                count = 0;
+                            }
                         }
-                        catch
-                        {
 
-                        }
-
-                        Thread.Sleep(5);
-
-                        try
-                        {
-                            TransactionResourceHelper.ReleaseResource(typeof(A), index);
-                        }
-                        catch
-                        {
-
-                        }
-
-                        count++;
-
-                        if (Environment.TickCount - time > 1000)
-                        {
-                            Console.WriteLine(count);
-                            time = Environment.TickCount;
-                            count = 0;
-                        }
+                        Thread.Sleep(TimeSpan.FromMilliseconds(10));
                     }
+                });
+            }
 
-                    Thread.Sleep(TimeSpan.FromMilliseconds(0.01));
-                }
-            });
+            Console.Read();
         }
     }
 }
