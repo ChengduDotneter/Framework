@@ -46,7 +46,7 @@ namespace TestWebAPI.Controllers
 
         protected override void DoPost(long id, ConcurrentModel concurrentModel)
         {
-            using (ITransaction transaction = m_editQuery.FilterIsDeleted().BeginTransaction())
+            using (ITransaction transaction = m_editQuery.FilterIsDeleted().BeginTransaction(20))
             {
                 try
                 {
@@ -57,12 +57,10 @@ namespace TestWebAPI.Controllers
                         IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search();
 
                         //Console.WriteLine(Environment.TickCount - time);
-                        time = Environment.TickCount;
 
                         m_editQuery.FilterIsDeleted().Insert(concurrentModel);
 
                         //Console.WriteLine(Environment.TickCount - time);
-                        time = Environment.TickCount;
 
                         transaction.Submit();
 
@@ -105,7 +103,7 @@ namespace TestWebAPI.Controllers
         {
             long time = Environment.TickCount64;
 
-            using (ITransaction transaction = m_warehouseInfoEditQuery.FilterIsDeleted().BeginTransaction(5))
+            using (ITransaction transaction = m_warehouseInfoEditQuery.FilterIsDeleted().BeginTransaction(10))
             {
                 try
                 {

@@ -103,7 +103,11 @@ namespace Common.DAL
 
                 if (!sqlSugerTranscation.TransactionTables.Contains(table))
                 {
-                    if (TransactionResourceHelper.ApplayResource(table, sqlSugerTranscation.Identity, sqlSugerTranscation.Weight))
+                    var time = Environment.TickCount;
+                    bool status = TransactionResourceHelper.ApplayResource(table, sqlSugerTranscation.Identity, sqlSugerTranscation.Weight);
+
+                    Console.WriteLine($" 申请资源时间 {Environment.TickCount - time} ");
+                    if (status)
                         sqlSugerTranscation.TransactionTables.Add(table);
                     else
                         throw new DealException($"申请事务资源{table.FullName}失败。");
@@ -113,9 +117,9 @@ namespace Common.DAL
             inTransaction = sqlSugerTranscation != null;
         }
 
-        private static async void Release(Type table, long identity)
+        private static async void Release(long identity)
         {
-            await TransactionResourceHelper.ReleaseResourceAsync(table, identity);
+            await TransactionResourceHelper.ReleaseResourceAsync(identity);
         }
 
         private static class SqlSugarJoinQuery<TLeft, TRight>
@@ -495,8 +499,7 @@ namespace Common.DAL
                 lock (m_transactions)
                     m_transactions.Remove(id);
 
-                foreach (Type transactionTable in TransactionTables)
-                    Release(transactionTable, Identity);
+                Release(Identity);
             }
 
             public void Rollback()
@@ -511,8 +514,6 @@ namespace Common.DAL
         }
 
         #endregion SqlSuger事务处理类
-
-
 
         internal static ISearchQuery<T> GetSlaveDatabase<T>(bool codeFirst)
             where T : class, IEntity, new()

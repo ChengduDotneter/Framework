@@ -1,28 +1,24 @@
-﻿using System;
+﻿using Common;
+using Common.DAL.Transaction;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Common;
-using Common.DAL.Transaction;
 
 namespace TestConsole
 {
-    class A
+    internal class A
     {
-
     }
 
-    class B
+    internal class B
     {
-
     }
 
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             ConfigManager.Init("Development");
-
-
 
             Parallel.For(0, 1, (index) =>
             {
@@ -39,18 +35,16 @@ namespace TestConsole
                         }
                         catch
                         {
-
                         }
 
                         Thread.Sleep(5);
 
                         try
                         {
-                            TransactionResourceHelper.ReleaseResource(typeof(A), index);
+                            TransactionResourceHelper.ReleaseResource(index);
                         }
                         catch
                         {
-
                         }
 
                         count++;

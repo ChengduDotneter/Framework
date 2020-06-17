@@ -1,6 +1,4 @@
-﻿using Orleans;
-using Orleans.Concurrency;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace Common.DAL.Transaction
@@ -9,14 +7,8 @@ namespace Common.DAL.Transaction
     /// <summary>
     /// 事务资源操作Grain类
     /// </summary>
-    [Reentrant]
-    public class Resource : Grain, IResource
+    public class Resource : IResource
     {
-        /// <summary>
-        /// 死锁检测Grain的Key
-        /// </summary>
-        private readonly int DEADLOCK_DETECTION_KEY;
-
         /// <summary>
         /// 当前事务Grain的唯一Key，现包括表名
         /// </summary>
@@ -42,15 +34,37 @@ namespace Common.DAL.Transaction
         /// </summary>
         private long m_destoryIdentity;
 
-        public Resource()
-        {
-            DEADLOCK_DETECTION_KEY = nameof(IDeadlockDetection).GetHashCode();
-        }
+        /// <summary>
+        /// 可以继续的线程ID
+        /// </summary>
+        private long m_continueIdentity;
 
-        public override Task OnActivateAsync()
+        public Resource(string primaryKey)
         {
-            PRIMARY_KEY = GrainReference.GetPrimaryKeyString();
-            return base.OnActivateAsync();
+            PRIMARY_KEY = primaryKey;
+
+            DeadLockDetection.DeQueueEvent += parameter =>
+            {
+                switch (parameter.QueueDataType)
+                {
+                    case QueueDataTypeEnum.Apply:
+                        m_destoryIdentity = parameter.DestoryIdentity;
+                        m_continueIdentity = parameter.ContinueIdentity;
+                        break;
+
+                    case QueueDataTypeEnum.Release:
+                        if (m_identity == parameter.DestoryIdentity)
+                        {
+                            m_identity = DEFAULT_IDENTITY;
+                            m_destoryIdentity = 0;
+                            m_continueIdentity = 0;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            };
         }
 
         /// <summary>
@@ -64,7 +78,15 @@ namespace Common.DAL.Transaction
         {
             //Console.WriteLine($"{identity} {PRIMARY_KEY} apply start");
 
-            await GrainFactory.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).EnterLock(identity, PRIMARY_KEY, weight);
+            await DeadLockDetection.EnQueued(new EnQueueData()
+            {
+                Identity = identity,
+                ResourceName = PRIMARY_KEY,
+                Weight = weight,
+                TimeOutTick = timeOut,
+                QueueDataType = QueueDataTypeEnum.Apply,
+                EnQueueTick = DateTime.Now.Ticks
+            });
 
             if (m_identity == DEFAULT_IDENTITY ||
                 m_identity == identity)
@@ -78,50 +100,24 @@ namespace Common.DAL.Transaction
 
             int time = Environment.TickCount;
 
-            while (m_identity != DEFAULT_IDENTITY && Environment.TickCount - time < timeOut && m_destoryIdentity != identity)
-                await Task.Delay(TASK_TIME_SPAN);
-
-            if (m_identity != DEFAULT_IDENTITY || m_destoryIdentity == identity)
+            while (Environment.TickCount - time < timeOut)
             {
-                //if (m_destoryIdentity != identity)
-                //    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild time out");
-                //else
-                //    Console.WriteLine($"{identity} {PRIMARY_KEY} apply faild deadlock");
+                if (m_continueIdentity == identity)
+                {
+                    m_identity = identity;
+                    return true;
+                }
 
-                return false;
+         
+                if (m_destoryIdentity == identity)
+                    return false;
+
+                await Task.Delay(TASK_TIME_SPAN);
             }
 
-            m_identity = identity;
+            Console.WriteLine($" While： {Environment.TickCount - time} ");
 
-            //Console.WriteLine($"{identity} {PRIMARY_KEY} apply successed");
-
-            return true;
-        }
-
-        /// <summary>
-        /// 释放线程事务资源
-        /// </summary>
-        /// <param name="identity">事务线程ID</param>
-        /// <returns></returns>
-        public async Task Release(long identity)
-        {
-            if (m_identity != identity)
-                return;
-
-            m_identity = DEFAULT_IDENTITY;
-            await GrainFactory.GetGrain<IDeadlockDetection>(DEADLOCK_DETECTION_KEY).ExitLock(identity, PRIMARY_KEY);
-        }
-
-        /// <summary>
-        /// 死锁检测回调资源释放策略
-        /// </summary>
-        /// <param name="identity">线程事务ID</param>
-        /// <returns></returns>
-        public Task ConflictResolution(long identity)
-        {
-            m_destoryIdentity = identity;
-
-            return Task.CompletedTask;
+            return false;
         }
     }
 }
