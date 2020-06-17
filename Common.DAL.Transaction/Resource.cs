@@ -39,6 +39,8 @@ namespace Common.DAL.Transaction
         /// </summary>
         private long m_continueIdentity;
 
+        private object m_lockThis = new object();
+
         public Resource(string primaryKey)
         {
             PRIMARY_KEY = primaryKey;
@@ -108,7 +110,6 @@ namespace Common.DAL.Transaction
                     return true;
                 }
 
-         
                 if (m_destoryIdentity == identity)
                     return false;
 

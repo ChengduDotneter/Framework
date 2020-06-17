@@ -1,37 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Common;
+using Common.DAL.Transaction;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Common;
-using Common.DAL.Transaction;
 
 namespace TestConsole
 {
-    class A
+    internal class A
     {
-
     }
 
-    class B
+    internal class B
     {
-
     }
 
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             ConfigManager.Init("Development");
 
-
-
-
-
             //HashSet<long> ids = new HashSet<long>(1024 * 1024 * 1024);
-
-
-
 
             //for (int asd = 0; asd < 4; asd++)
             //{
@@ -52,81 +41,8 @@ namespace TestConsole
             //    });
             //}
 
-
             //Console.Read();
             //return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             for (int cindex = 0; cindex < 4; cindex++)
             {

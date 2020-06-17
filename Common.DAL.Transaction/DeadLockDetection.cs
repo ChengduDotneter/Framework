@@ -116,25 +116,36 @@ namespace Common.DAL.Transaction
             m_enQueueDatas = new ConcurrentQueue<EnQueueData>();
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            while (true)
+            RunDeadLockDetection();
+            return Task.CompletedTask;
+        }
+
+        private Task RunDeadLockDetection()
+        {
+            return Task.Factory.StartNew(() =>
             {
-                if (m_enQueueDatas.TryDequeue(out EnQueueData enQueueData))
-                    switch (enQueueData.QueueDataType)
-                    {
-                        case QueueDataTypeEnum.Apply:
-                            await EnterLock(enQueueData.Identity, enQueueData.ResourceName, enQueueData.Weight);
-                            break;
 
-                        case QueueDataTypeEnum.Release:
-                            await ExitLock(enQueueData.Identity);
-                            break;
+                while (true)
+                {
+                    if (m_enQueueDatas.TryDequeue(out EnQueueData enQueueData))
+                        switch (enQueueData.QueueDataType)
+                        {
+                            case QueueDataTypeEnum.Apply:
+                                EnterLock(enQueueData.Identity, enQueueData.ResourceName, enQueueData.Weight);
+                                break;
 
-                        default:
-                            break;
-                    }
-            }
+                            case QueueDataTypeEnum.Release:
+                                ExitLock(enQueueData.Identity);
+                                break;
+
+                            default:
+                                break;
+                        }
+                };
+
+            });
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
