@@ -86,7 +86,7 @@ namespace Common.RPC.TransferAdapter
         public void SendBuffer(SessionContext sessionContext, byte[] buffer, int length)
         {
             if (m_sendBuffers.Count > MAX_SEND_BUFFER_COUNT)
-                return;
+                throw new Exception("发送队列超长。");
 
             if (m_udpCRCSocketType == UDPCRCSocketTypeEnum.Server && (sessionContext.SessionID == 0 || SessionContext.IsDefaultContext(sessionContext)))
                 throw new Exception("服务端不能调用SendData，请改用SendSessionData方法。");
@@ -233,7 +233,7 @@ namespace Common.RPC.TransferAdapter
                         }
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
 #if OUTPUT_LOG
                     m_log.Error($"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");

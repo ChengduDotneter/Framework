@@ -152,7 +152,7 @@ namespace Common.RPC.TransferAdapter
                 throw new Exception("尚未打开ZeroMQTransferAdapter。");
 
             if (m_sendQueue.Count > MAX_SEND_QUEUE_COUNT)
-                return;
+                throw new Exception("发送队列超长。");
 
             if (!CanSend(m_zeroMQSocketType))
                 throw new Exception(string.Format("{0}模式不允许发送数据。", m_zeroMQSocketType));
