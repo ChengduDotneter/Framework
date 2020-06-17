@@ -15,19 +15,9 @@ namespace Common.DAL.Transaction
         private string PRIMARY_KEY;
 
         /// <summary>
-        /// 默认事务线程ID -1 该资源未开启事务
-        /// </summary>
-        private const long DEFAULT_IDENTITY = -1L;
-
-        /// <summary>
         /// 等待时间超时间隔
         /// </summary>
         private const int TASK_TIME_SPAN = 1;
-
-        /// <summary>
-        /// 当前事务线程ID
-        /// </summary>
-        private long m_identity = DEFAULT_IDENTITY;
 
         /// <summary>
         /// 需要释放的线程ID
@@ -39,28 +29,21 @@ namespace Common.DAL.Transaction
         /// </summary>
         private long m_continueIdentity;
 
-        private object m_lockThis = new object();
-
         public Resource(string primaryKey)
         {
             PRIMARY_KEY = primaryKey;
 
-            DeadLockDetection.DeQueueEvent += parameter =>
+            ResourceDetection.DeQueueEvent += parameter =>
             {
                 switch (parameter.QueueDataType)
                 {
-                    case QueueDataTypeEnum.Apply:
-                        m_destoryIdentity = parameter.DestoryIdentity;
-                        m_continueIdentity = parameter.ContinueIdentity;
+                    case QueueDataTypeEnum2.Apply:
+                        if (parameter.ResourceName == PRIMARY_KEY)
+                            m_continueIdentity = parameter.Identity;
                         break;
 
-                    case QueueDataTypeEnum.Release:
-                        if (m_identity == parameter.DestoryIdentity)
-                        {
-                            m_identity = DEFAULT_IDENTITY;
-                            m_destoryIdentity = 0;
-                            m_continueIdentity = 0;
-                        }
+                    case QueueDataTypeEnum2.Release:
+                        m_destoryIdentity = parameter.Identity;
                         break;
 
                     default:
@@ -78,27 +61,17 @@ namespace Common.DAL.Transaction
         /// <returns></returns>
         public async Task<bool> Apply(long identity, int weight, int timeOut)
         {
-            //Console.WriteLine($"{identity} {PRIMARY_KEY} apply start");
+            //Console.WriteLine($"{identity}  apply resource {PRIMARY_KEY} start m_destoryIdentity {m_destoryIdentity} m_continueIdentity {m_continueIdentity}");
 
-            await DeadLockDetection.EnQueued(new EnQueueData()
+            await ResourceDetection.EnQueued(new EnQueueData2()
             {
                 Identity = identity,
                 ResourceName = PRIMARY_KEY,
                 Weight = weight,
                 TimeOutTick = timeOut,
-                QueueDataType = QueueDataTypeEnum.Apply,
+                QueueDataType = QueueDataTypeEnum2.Apply,
                 EnQueueTick = DateTime.Now.Ticks
             });
-
-            if (m_identity == DEFAULT_IDENTITY ||
-                m_identity == identity)
-            {
-                m_identity = identity;
-
-                //Console.WriteLine($"{identity} {PRIMARY_KEY} apply successed");
-
-                return true;
-            }
 
             int time = Environment.TickCount;
 
@@ -106,18 +79,23 @@ namespace Common.DAL.Transaction
             {
                 if (m_continueIdentity == identity)
                 {
-                    m_identity = identity;
+                    //Console.WriteLine($" 申请资源成功 identity {identity} m_continueIdentity {m_continueIdentity} m_destoryIdentity {m_destoryIdentity} resource {PRIMARY_KEY} ");
+                    //Console.WriteLine($" 申请成功时间 {Environment.TickCount - time}");
                     return true;
                 }
 
                 if (m_destoryIdentity == identity)
+                {
+                    //Console.WriteLine($" 申请资源失败 identity {identity} m_continueIdentity {m_continueIdentity} m_destoryIdentity {m_destoryIdentity} resource {PRIMARY_KEY}");
+                    //Console.WriteLine($" 申请失败时间 {Environment.TickCount - time}");
                     return false;
+                }
 
                 await Task.Delay(TASK_TIME_SPAN);
             }
 
-            Console.WriteLine($" While： {Environment.TickCount - time} ");
-
+            //Console.WriteLine($" 申请资源失败最后 identity {identity} m_continueIdentity {m_continueIdentity} m_destoryIdentity {m_destoryIdentity} resource {PRIMARY_KEY}");
+            //Console.WriteLine($" 申请超时失败时间 {Environment.TickCount - time}");
             return false;
         }
     }
