@@ -186,10 +186,10 @@ namespace Common.DAL.Transaction
             string timeOutString = ConfigManager.Configuration["ResourceManager:TimeOut"];
             m_timeOut = string.IsNullOrWhiteSpace(timeOutString) ? DEFAULT_TIME_OUT : Convert.ToInt32(timeOutString);
 
-            var a = new TestAdapter();
-            m_serviceClient = new ServiceClient(a, BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+            //var a = new TestAdapter();
+            //m_serviceClient = new ServiceClient(a, BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
 
-            //m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), UDPCRCSocketTypeEnum.Client), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+            m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), UDPCRCSocketTypeEnum.Client), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
 
 
 
@@ -200,19 +200,19 @@ namespace Common.DAL.Transaction
 
 
 
-            var b = new TestAdapter();
-            ServiceClient c = new ServiceClient(b, BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
-            AApplyResourceProcessor aApplyResourceProcessor = new AApplyResourceProcessor(c);
-            AReleaseResourceProcessor aReleaseResourceProcessor = new AReleaseResourceProcessor(c);
+            //var b = new TestAdapter();
+            //ServiceClient c = new ServiceClient(b, BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+            //AApplyResourceProcessor aApplyResourceProcessor = new AApplyResourceProcessor(c);
+            //AReleaseResourceProcessor aReleaseResourceProcessor = new AReleaseResourceProcessor(c);
 
 
-            a.S += b.Recieve;
-            b.S += a.Recieve;
+            //a.S += b.Recieve;
+            //b.S += a.Recieve;
 
 
 
             m_serviceClient.Start();
-            c.Start();
+            //c.Start();
 
 
 

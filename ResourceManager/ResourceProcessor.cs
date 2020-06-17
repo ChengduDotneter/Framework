@@ -45,8 +45,8 @@ namespace ResourceManager
             //    data.TimeOut > MAX_TIME_OUT)
             //    throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
 
-            IResource resource = m_resourceManage.GetResource(data.ResourceName);
-            bool successed = await resource.Apply(data.Identity, data.Weight, data.TimeOut);
+            //IResource resource = m_resourceManage.GetResource(data.ResourceName);
+            //bool successed = await resource.Apply(data.Identity, data.Weight, data.TimeOut);
 
             //SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = successed });
 
@@ -88,8 +88,8 @@ namespace ResourceManager
             //IResource resource = m_actorClient.GetGrain<IResource>(data.ResourceName);
             //await resource.Release(data.Identity);
 
-            await m_resourceManage.GetResource(data.ResourceName).Release(data.Identity);
-            SendSessionData(m_serviceClient, sessionContext, new ReleaseResponseData());
+            //await m_resourceManage.GetResource(data.ResourceName).Release(data.Identity);
+            //SendSessionData(m_serviceClient, sessionContext, new ReleaseResponseData());
         }
     }
 }
