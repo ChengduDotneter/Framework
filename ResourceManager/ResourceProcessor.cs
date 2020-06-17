@@ -46,7 +46,6 @@ namespace ResourceManager
             //    throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
 
             //bool successed = await m_resourceManage.GetResource(data.ResourceName).Apply(data.Identity, data.Weight, data.TimeOut);
-
             //SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = successed });
 
             SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = true });
