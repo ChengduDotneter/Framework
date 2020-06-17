@@ -44,7 +44,7 @@ namespace TestConsole
             //Console.Read();
             //return;
 
-            for (int cindex = 0; cindex < 1; cindex++)
+            for (int cindex = 0; cindex < 4; cindex++)
             {
                 int index = cindex;
 
