@@ -16,12 +16,12 @@ namespace ResourceManager
     {
         private const int MAX_TIME_OUT = 1000 * 60;
         private ServiceClient m_serviceClient;
-        private IResourceManage m_resourceManage;
+        private IResourceManager m_resourceManager;
 
-        public ApplyResourceProcessor(ServiceClient serviceClient, IResourceManage resourceManage) : base(serviceClient)
+        public ApplyResourceProcessor(ServiceClient serviceClient, IResourceManager resourceManager) : base(serviceClient)
         {
             m_serviceClient = serviceClient;
-            m_resourceManage = resourceManage;
+            m_resourceManager = resourceManager;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ namespace ResourceManager
             //    data.TimeOut > MAX_TIME_OUT)
             //    throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
 
-            //bool successed = await m_resourceManage.GetResource(data.ResourceName).Apply(data.Identity, data.Weight, data.TimeOut);
+            //bool successed = await m_resourceManager.GetResource(data.ResourceName).Apply(data.Identity, data.Weight, data.TimeOut);
             //SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = successed });
 
             SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = true });

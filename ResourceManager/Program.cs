@@ -32,7 +32,7 @@ namespace ResourceManager
                         options.SuppressStatusMessages = true;
                     });
 
-                    services.AddSingleton<IResourceManage, ResourceManage>();
+                    services.AddSingleton<IResourceManager, Common.DAL.Transaction.ResourceManager>();
                     services.AddSingleton(serviceClient);
                     services.AddHostedService<DeadLockDetection>();
                     services.AddHostedService<ApplyResourceProcessor>();
