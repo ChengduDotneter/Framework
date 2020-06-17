@@ -17,6 +17,7 @@ namespace Common.RPC.TransferAdapter
         private const int BUFFER_LENGTH = 1024 * 1024 * 64;
         private const int SPLIT_LENGTH = 65536 * 1024;
         private const int MAX_SEND_QUEUE_COUNT = 5000;
+        private readonly static TimeSpan THREAD_TIME_SPAN = TimeSpan.FromMilliseconds(1);
         private Thread m_recieveThread;
         private Thread m_sendThread;
         private int m_offset;
@@ -64,7 +65,7 @@ namespace Common.RPC.TransferAdapter
             m_recieveThread = new Thread(DoRecieveBuffer);
             m_recieveThread.IsBackground = true;
             m_recieveThread.Name = "ZEROMQ_RECIEVE_THREAD";
-            m_sendThread = new Thread(Send);
+            m_sendThread = new Thread(DoSendBuffer);
             m_sendThread.IsBackground = true;
             m_sendThread.Name = "ZEROMQ_SEND_THREAD";
             m_socket = CreateNetMQSocket(
@@ -184,55 +185,50 @@ namespace Common.RPC.TransferAdapter
             m_sendQueue.Enqueue(new SendData(sessionContext, sendBuffer, length + SESSION_ID_BUFFER_LENGTH));
         }
 
-        private unsafe void DoSendBuffer(SessionContext sessionContext, byte[] buffer)
-        {
-            if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server && (sessionContext.SessionID == 0 || SessionContext.IsDefaultContext(sessionContext)))
-                throw new Exception("服务端不能调用SendData，请改用SendSessionData方法。");
-            else if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server)
-                m_socket.SendFrame((byte[])sessionContext.Context, true);
-            else if (m_zeroMQSocketType != ZeroMQSocketTypeEnum.Server)
-                m_socket.SendFrameEmpty(true);
-
-            if (buffer.Length > SPLIT_LENGTH)
-            {
-                int totalCount = 0;
-                byte[] sendBuffer = new byte[SPLIT_LENGTH];
-
-                unsafe
-                {
-                    fixed (byte* bufferPtr = buffer)
-                    fixed (byte* sendBufferPtr = sendBuffer)
-                    {
-                        while (totalCount < buffer.Length)
-                        {
-                            int count = buffer.Length - totalCount;
-                            int sendCount = count > SPLIT_LENGTH ? SPLIT_LENGTH : count;
-
-                            Buffer.MemoryCopy(bufferPtr + totalCount, sendBufferPtr, sendBuffer.Length, sendCount);
-                            totalCount += sendCount;
-                            m_socket.SendFrame(sendBuffer, sendCount, totalCount < buffer.Length);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                m_socket.SendFrame(buffer, buffer.Length);
-            }
-        }
-
-        private void Send()
+        private void DoSendBuffer()
         {
             while (true)
             {
                 if (m_sendQueue.IsEmpty)
-                    Thread.Sleep(1);
+                    Thread.Sleep(THREAD_TIME_SPAN);
 
                 while (m_sendQueue.TryDequeue(out SendData sendData))
                 {
                     try
                     {
-                        DoSendBuffer(sendData.SessionContext, sendData.Buffer);
+                        if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server && (sendData.SessionContext.SessionID == 0 || SessionContext.IsDefaultContext(sendData.SessionContext)))
+                            throw new Exception("服务端不能调用SendData，请改用SendSessionData方法。");
+                        else if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server)
+                            m_socket.SendFrame((byte[])sendData.SessionContext.Context, true);
+                        else if (m_zeroMQSocketType != ZeroMQSocketTypeEnum.Server)
+                            m_socket.SendFrameEmpty(true);
+
+                        if (sendData.Buffer.Length > SPLIT_LENGTH)
+                        {
+                            int totalCount = 0;
+                            byte[] sendBuffer = new byte[SPLIT_LENGTH];
+
+                            unsafe
+                            {
+                                fixed (byte* bufferPtr = sendData.Buffer)
+                                fixed (byte* sendBufferPtr = sendBuffer)
+                                {
+                                    while (totalCount < sendData.Buffer.Length)
+                                    {
+                                        int count = sendData.Buffer.Length - totalCount;
+                                        int sendCount = count > SPLIT_LENGTH ? SPLIT_LENGTH : count;
+
+                                        Buffer.MemoryCopy(bufferPtr + totalCount, sendBufferPtr, sendBuffer.Length, sendCount);
+                                        totalCount += sendCount;
+                                        m_socket.SendFrame(sendBuffer, sendCount, totalCount < sendData.Buffer.Length);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            m_socket.SendFrame(sendData.Buffer, sendData.Buffer.Length);
+                        }
                     }
                     catch (Exception ex)
                     {
