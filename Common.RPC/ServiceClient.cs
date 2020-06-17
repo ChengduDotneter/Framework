@@ -1,5 +1,6 @@
 ﻿using Common.RPC.BufferSerializer;
 using Common.RPC.TransferAdapter;
+using log4net;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -55,6 +56,17 @@ namespace Common.RPC
         private ConcurrentQueue<RecieveData> m_recieveQueue;
         private byte[] m_sendBuffer;
         private ConcurrentDictionary<byte, Action<SessionContext, IRPCData>> m_recieveHandlers;
+
+#if OUTPUT_LOG
+        private static ILog m_log;
+#endif
+
+        static ServiceClient()
+        {
+#if OUTPUT_LOG
+            m_log = LogHelper.CreateLog("RPC");
+#endif
+        }
 
         public ServiceClient(ITransferAdapter transferAdapter, IBufferSerializer bufferSerializer)
         {
@@ -128,11 +140,10 @@ namespace Common.RPC
                     int count = m_bufferSerializer.Serialize(sendingData.Data, m_sendBuffer);
                     m_transferAdapter.SendBuffer(sendingData.SessionContext, m_sendBuffer, count);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Console.WriteLine("invoke error");
 #if OUTPUT_LOG
-                    LogManager.WriteLog(string.Format("serialize error, message_id: {0}", sendingData.Data.MessageID));
+                    m_log.Error($"serialize error, message_id: {sendingData.Data.MessageID}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");
 #endif
                 }
             }
@@ -153,11 +164,10 @@ namespace Common.RPC
                     IRPCData data = m_bufferSerializer.Deserialize(recieveData.Buffer);
                     OnRecieveData(recieveData.SessionContext, data);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Console.WriteLine("callback error");
 #if OUTPUT_LOG
-                    LogManager.WriteLog(string.Format("process error, message_id: {0}", BitConverter.ToInt32(recieveData.Buffer, 0)));
+                    m_log.Error($"process error, message_id: {BitConverter.ToInt32(recieveData.Buffer, 0)}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");
 #endif
                 }
             }

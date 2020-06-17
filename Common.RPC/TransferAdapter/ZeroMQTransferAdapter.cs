@@ -1,6 +1,8 @@
-﻿using NetMQ;
+﻿using log4net;
+using NetMQ;
 using NetMQ.Sockets;
 using System;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -14,24 +16,58 @@ namespace Common.RPC.TransferAdapter
         private const int SESSION_ID_BUFFER_LENGTH = sizeof(long);
         private const int BUFFER_LENGTH = 1024 * 1024 * 64;
         private const int SPLIT_LENGTH = 65536 * 1024;
+        private const int MAX_SEND_QUEUE_COUNT = 5000;
+        private readonly static TimeSpan THREAD_TIME_SPAN = TimeSpan.FromMilliseconds(1);
         private Thread m_recieveThread;
+        private Thread m_sendThread;
         private int m_offset;
         private bool m_start;
         private NetMQSocket m_socket;
         private ZeroMQSocketTypeEnum m_zeroMQSocketType;
+        private ConcurrentQueue<SendData> m_sendQueue;
 #if OUTPUT_LOG
         private string m_identity;
+        private static ILog m_log;
 #endif
+
+        class SendData
+        {
+            public SessionContext SessionContext { get; }
+            public byte[] Buffer { get; }
+
+            public unsafe SendData(SessionContext sessionContext, byte[] buffer, int length)
+            {
+                SessionContext = sessionContext;
+                Buffer = new byte[length];
+
+                fixed (byte* sourPtr = buffer)
+                fixed (byte* destPtr = Buffer)
+                {
+                    System.Buffer.MemoryCopy(sourPtr, destPtr, length, length);
+                }
+            }
+        }
+
+        static ZeroMQTransferAdapter()
+        {
+#if OUTPUT_LOG
+            m_log = LogHelper.CreateLog("Transfer", "ZeroMQ");
+#endif
+        }
 
         public ZeroMQTransferAdapter(IPEndPoint endPoint, ZeroMQSocketTypeEnum zeroMQSocketType, string identity)
         {
 #if OUTPUT_LOG
             m_identity = identity;
 #endif
+            m_sendQueue = new ConcurrentQueue<SendData>();
             m_zeroMQSocketType = zeroMQSocketType;
             m_recieveThread = new Thread(DoRecieveBuffer);
             m_recieveThread.IsBackground = true;
-            m_recieveThread.Name = "ZEROMQ_THREAD";
+            m_recieveThread.Name = "ZEROMQ_RECIEVE_THREAD";
+            m_sendThread = new Thread(DoSendBuffer);
+            m_sendThread.IsBackground = true;
+            m_sendThread.Name = "ZEROMQ_SEND_THREAD";
             m_socket = CreateNetMQSocket(
                 zeroMQSocketType,
                 string.Format("tcp://{0}:{1}", endPoint.Address.ToString(), endPoint.Port),
@@ -116,6 +152,9 @@ namespace Common.RPC.TransferAdapter
             if (!m_start)
                 throw new Exception("尚未打开ZeroMQTransferAdapter。");
 
+            if (m_sendQueue.Count > MAX_SEND_QUEUE_COUNT)
+                throw new Exception("发送队列超长。");
+
             if (!CanSend(m_zeroMQSocketType))
                 throw new Exception(string.Format("{0}模式不允许发送数据。", m_zeroMQSocketType));
 
@@ -143,55 +182,61 @@ namespace Common.RPC.TransferAdapter
                 }
             }
 
-            try
-            {
-                DoSendBuffer(sessionContext, sendBuffer, length + SESSION_ID_BUFFER_LENGTH);
-            }
-            catch
-            {
-#if OUTPUT_LOG
-                LogManager.WriteLog("send error session_id: {0}", sessionContext.SessionID);
-#endif
-            }
+            m_sendQueue.Enqueue(new SendData(sessionContext, sendBuffer, length + SESSION_ID_BUFFER_LENGTH));
         }
 
-        private unsafe void DoSendBuffer(SessionContext sessionContext, byte[] buffer, int length)
+        private void DoSendBuffer()
         {
-#if OUTPUT_LOG
-            LogManager.WriteLog(string.Format("identity: {0}, session_id: {1}, send time: {2}", m_identity, sessionContext.SessionID, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ff")));
-#endif
-            if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server && (sessionContext.SessionID == 0 || SessionContext.IsDefaultContext(sessionContext)))
-                throw new Exception("服务端不能调用SendData，请改用SendSessionData方法。");
-            else if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server)
-                m_socket.SendFrame((byte[])sessionContext.Context, true);
-            else if (m_zeroMQSocketType != ZeroMQSocketTypeEnum.Server)
-                m_socket.SendFrameEmpty(true);
-
-            if (length > SPLIT_LENGTH)
+            while (true)
             {
-                int totalCount = 0;
-                byte[] sendBuffer = new byte[SPLIT_LENGTH];
+                if (m_sendQueue.IsEmpty)
+                    Thread.Sleep(THREAD_TIME_SPAN);
 
-                unsafe
+                while (m_sendQueue.TryDequeue(out SendData sendData))
                 {
-                    fixed (byte* bufferPtr = buffer)
-                    fixed (byte* sendBufferPtr = sendBuffer)
+                    try
                     {
-                        while (totalCount < length)
-                        {
-                            int count = length - totalCount;
-                            int sendCount = count > SPLIT_LENGTH ? SPLIT_LENGTH : count;
+                        if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server && (sendData.SessionContext.SessionID == 0 || SessionContext.IsDefaultContext(sendData.SessionContext)))
+                            throw new Exception("服务端不能调用SendData，请改用SendSessionData方法。");
+                        else if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server)
+                            m_socket.SendFrame((byte[])sendData.SessionContext.Context, true);
+                        else if (m_zeroMQSocketType != ZeroMQSocketTypeEnum.Server)
+                            m_socket.SendFrameEmpty(true);
 
-                            Buffer.MemoryCopy(bufferPtr + totalCount, sendBufferPtr, sendBuffer.Length, sendCount);
-                            totalCount += sendCount;
-                            m_socket.SendFrame(sendBuffer, sendCount, totalCount < length);
+                        if (sendData.Buffer.Length > SPLIT_LENGTH)
+                        {
+                            int totalCount = 0;
+                            byte[] sendBuffer = new byte[SPLIT_LENGTH];
+
+                            unsafe
+                            {
+                                fixed (byte* bufferPtr = sendData.Buffer)
+                                fixed (byte* sendBufferPtr = sendBuffer)
+                                {
+                                    while (totalCount < sendData.Buffer.Length)
+                                    {
+                                        int count = sendData.Buffer.Length - totalCount;
+                                        int sendCount = count > SPLIT_LENGTH ? SPLIT_LENGTH : count;
+
+                                        Buffer.MemoryCopy(bufferPtr + totalCount, sendBufferPtr, sendBuffer.Length, sendCount);
+                                        totalCount += sendCount;
+                                        m_socket.SendFrame(sendBuffer, sendCount, totalCount < sendData.Buffer.Length);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            m_socket.SendFrame(sendData.Buffer, sendData.Buffer.Length);
                         }
                     }
+                    catch (Exception ex)
+                    {
+#if OUTPUT_LOG
+                        m_log.Error($"send error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
+#endif
+                    }
                 }
-            }
-            else
-            {
-                m_socket.SendFrame(buffer, length);
             }
         }
 
@@ -235,18 +280,15 @@ namespace Common.RPC.TransferAdapter
                                         Buffer.MemoryCopy(recieveBufferPtr + SESSION_ID_BUFFER_LENGTH, dataPtr, data.Length, data.Length);
 
                                         long sessionID = *(long*)recieveBufferPtr;
-#if OUTPUT_LOG
-                                        LogManager.WriteLog(string.Format("identity: {0}, recv session_id: {1}, time: {2}", m_identity, sessionID, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ff")));
-#endif
                                         OnBufferRecieved?.Invoke(new SessionContext(sessionID, identity), data);
                                     }
                                 }
                             }
                         }
-                        catch
+                        catch (Exception ex)
                         {
 #if OUTPUT_LOG
-                            LogManager.WriteLogWriteLine("recv error");
+                            m_log.Error($"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
                         }
                     }
@@ -260,6 +302,9 @@ namespace Common.RPC.TransferAdapter
 
             if (CanRecieve(m_zeroMQSocketType))
                 m_recieveThread.Start();
+
+            if (CanSend(m_zeroMQSocketType))
+                m_sendThread.Start();
         }
     }
 

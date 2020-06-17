@@ -2,16 +2,11 @@
 
 namespace Common.DAL.Transaction
 {
-    public interface IResourceManage
-    {
-        IResource GetResource(string resourceName);
-    }
-
-    public class ResourceManage : IResourceManage
+    public class ResourceManager : IResourceManager
     {
         private ConcurrentDictionary<string, IResource> m_resourceManage;
 
-        public ResourceManage()
+        public ResourceManager()
         {
             m_resourceManage = new ConcurrentDictionary<string, IResource>();
         }
