@@ -135,6 +135,9 @@ namespace Common.DAL.Transaction
             }
         }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         public DeadlockDetection()
         {
             Allocate(DEFAULT_IDENTITY_LENGTH, DEFAULT_RESOURCE_LENGTH);
@@ -146,6 +149,8 @@ namespace Common.DAL.Transaction
             m_resourceNameKeyIndexs = new Dictionary<int, string>();
             m_applyRequestDatas = new ConcurrentQueue<ApplyRequestData>();
             m_waitQueue = new Queue<ApplyRequestData>();
+
+            //死锁检测执行线程初始化
             m_doApplyThread = new Thread(DoApply);
             m_doApplyThread.IsBackground = true;
             m_doApplyThread.Name = "DEADLOCK_DETECTION_THREAD";
