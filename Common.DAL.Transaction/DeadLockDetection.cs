@@ -13,6 +13,7 @@ namespace Common.DAL.Transaction
         private readonly object m_lockThis = new object();
         private ConcurrentQueue<ApplyRequestData> m_applyRequestDatas;
         private Queue<ApplyRequestData> m_waitQueue;
+        private HashSet<long> m_destoryIdentitys;
         private Thread m_doApplyThread;
 
         /// <summary>
@@ -86,6 +87,7 @@ namespace Common.DAL.Transaction
         public DeadlockDetection()
         {
             Allocate(DEFAULT_IDENTITY_LENGTH, DEFAULT_RESOURCE_LENGTH);
+            m_destoryIdentitys = new HashSet<long>();
             m_weights = new Dictionary<int, int>();
             m_identityIndexs = new Dictionary<long, int>();
             m_identityKeyIndexs = new Dictionary<int, long>();
@@ -151,7 +153,14 @@ namespace Common.DAL.Transaction
                     }
 
                     while (m_waitQueue.Count > 0)
-                        m_applyRequestDatas.Enqueue(m_waitQueue.Dequeue());
+                    {
+                        ApplyRequestData applyRequestData = m_waitQueue.Dequeue();
+
+                        if (!m_destoryIdentitys.Contains(applyRequestData.Identity))
+                            m_applyRequestDatas.Enqueue(applyRequestData);
+                    }
+
+                    m_destoryIdentitys.Clear();
                 }
 
                 Thread.Sleep(THREAD_TIME_SPAN);
@@ -194,7 +203,9 @@ namespace Common.DAL.Transaction
 
                 foreach (var item in m_identityKeyIndexs)
                 {
-                    if (m_matrix[minIdentityIndex, resourceNameIndex] == 0)
+                    if (m_destoryIdentitys.Contains(item.Value))
+                        continue;
+                    else if (m_matrix[minIdentityIndex, resourceNameIndex] == 0)
                         minIdentityIndex = item.Key;
                     else if (m_matrix[item.Key, resourceNameIndex] > 0 && m_matrix[item.Key, resourceNameIndex] <= m_matrix[minIdentityIndex, resourceNameIndex])
                         minIdentityIndex = item.Key;
@@ -204,6 +215,7 @@ namespace Common.DAL.Transaction
                 {
                     if (Environment.TickCount - applyRequestData.ApplyTime > applyRequestData.TimeOut)
                     {
+                        Console.WriteLine($"des: {m_identityKeyIndexs[minIdentityIndex]}, resourceName: {resourceName}");
                         ApplyResponsed?.Invoke(identity, resourceName, false);
                     }
                     else
@@ -211,10 +223,12 @@ namespace Common.DAL.Transaction
                         m_waitQueue.Enqueue(applyRequestData);
                     }
                 }
+                //Console.WriteLine($"continueidentity: {m_identityKeyIndexs[minIdentityIndex]}, resourceName: {resourceName}");
+                //ApplyResponsed?.Invoke(m_identityKeyIndexs[minIdentityIndex], resourceName, true);
+
                 else
                 {
                     Console.WriteLine($"identity: {identity}, resourceName: {resourceName}");
-
                     ApplyResponsed?.Invoke(identity, resourceName, true);
                 }
             }
@@ -240,6 +254,7 @@ namespace Common.DAL.Transaction
                 throw new Exception("索引分配错误。");
             }
         }
+
         /// <summary>
         /// 死锁时，进行的死锁解除策略
         /// </summary>
@@ -251,11 +266,13 @@ namespace Common.DAL.Transaction
         {
             if (m_weights[identityIndexA] >= m_weights[identityIndexB])
             {
+                m_destoryIdentitys.Add(m_identityKeyIndexs[identityIndexB]);
                 ApplyResponsed?.Invoke(m_identityKeyIndexs[identityIndexB], m_resourceNameKeyIndexs[resourceIndexB], false);
                 CheckWaitAndResponse(m_identityKeyIndexs[identityIndexA], identityIndexA, m_resourceNameKeyIndexs[resourceIndexA], resourceIndexA, applyRequestData);
             }
             else
             {
+                m_destoryIdentitys.Add(m_identityKeyIndexs[identityIndexA]);
                 ApplyResponsed?.Invoke(m_identityKeyIndexs[identityIndexA], m_resourceNameKeyIndexs[resourceIndexA], false);
                 CheckWaitAndResponse(m_identityKeyIndexs[identityIndexB], identityIndexB, m_resourceNameKeyIndexs[resourceIndexB], resourceIndexB, applyRequestData);
             }

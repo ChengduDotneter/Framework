@@ -687,7 +687,7 @@ namespace Common.DAL
                     DefaultDataRegionConfiguration = new DataRegionConfiguration
                     {
                         Name = ConfigManager.Configuration["IgniteService:RegionName"],
-                        PersistenceEnabled = true
+                        //PersistenceEnabled = true
                     }
                 },
 
