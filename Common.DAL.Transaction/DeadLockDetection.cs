@@ -215,7 +215,7 @@ namespace Common.DAL.Transaction
                 {
                     if (Environment.TickCount - applyRequestData.ApplyTime > applyRequestData.TimeOut)
                     {
-                        Console.WriteLine($"des: {m_identityKeyIndexs[minIdentityIndex]}, resourceName: {resourceName}");
+                        //Console.WriteLine($"des: {m_identityKeyIndexs[minIdentityIndex]}, resourceName: {resourceName}");
                         ApplyResponsed?.Invoke(identity, resourceName, false);
                     }
                     else
@@ -223,12 +223,9 @@ namespace Common.DAL.Transaction
                         m_waitQueue.Enqueue(applyRequestData);
                     }
                 }
-                //Console.WriteLine($"continueidentity: {m_identityKeyIndexs[minIdentityIndex]}, resourceName: {resourceName}");
-                //ApplyResponsed?.Invoke(m_identityKeyIndexs[minIdentityIndex], resourceName, true);
-
                 else
                 {
-                    Console.WriteLine($"identity: {identity}, resourceName: {resourceName}");
+                    //Console.WriteLine($"identity: {identity}, resourceName: {resourceName}");
                     ApplyResponsed?.Invoke(identity, resourceName, true);
                 }
             }
