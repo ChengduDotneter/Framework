@@ -6,17 +6,6 @@
     <Version>1.2.31</Version>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>D:\Work\麦邦\Framework\Common.DAL.Transaction\Common.DAL.Transaction.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="IResource.cs" />
-    <Compile Remove="IResourceManage.cs" />
-    <Compile Remove="Resource.cs" />
-    <Compile Remove="ResourceDetection.cs" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Core" Version="3.2.0" />
     <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.2.0">
