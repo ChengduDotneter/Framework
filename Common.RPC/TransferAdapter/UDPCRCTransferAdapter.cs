@@ -30,14 +30,13 @@ namespace Common.RPC.TransferAdapter
         }
 
         public event OnBufferRecievedHandler OnBufferRecieved;
+
         private const int SESSION_ID_BUFFER_LENGTH = sizeof(long);
         private const int DATA_ID_BUFFER_LENGTH = sizeof(long);
         private const int CRC_BUFFER_LENGTH = 2;
         private const int THREAD_TIME_SPAN = 1;
         private const int REPEAT_SEND_MAX_COUNT = 150;
         private const int REPEAT_TIME_SPAN = 4000;
-        private const int CLEAR_TIME_OUT = 1000 * 60 * 2;
-        private const int CLEAR_TIME_SPAN = 1000;
         private const int MAX_SEND_BUFFER_COUNT = 5000;
         private IPEndPoint m_endPoint;
         private UDPCRCSocketTypeEnum m_udpCRCSocketType;
@@ -45,7 +44,6 @@ namespace Common.RPC.TransferAdapter
         private Thread m_recieveThread;
         private Thread m_sendThread;
         private UdpClient m_udp;
-        private int m_localPort;
 
 #if OUTPUT_LOG
         private static ILog m_log;
@@ -65,15 +63,9 @@ namespace Common.RPC.TransferAdapter
             m_sendBuffers = new ConcurrentDictionary<long, SendBufferData>();
 
             if (m_udpCRCSocketType == UDPCRCSocketTypeEnum.Server)
-            {
                 m_udp = new UdpClient(m_endPoint);
-                m_localPort = m_endPoint.Port;
-            }
             else
-            {
                 m_udp = new UdpClient(0);
-                m_localPort = ((IPEndPoint)m_udp.Client.LocalEndPoint).Port;
-            }
 
             m_recieveThread = new Thread(DoRecieveBuffer);
             m_recieveThread.IsBackground = true;
@@ -296,6 +288,7 @@ namespace Common.RPC.TransferAdapter
         /// 服务端
         /// </summary>
         Server,
+
         /// <summary>
         /// 客户端
         /// </summary>
