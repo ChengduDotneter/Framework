@@ -1,5 +1,4 @@
-﻿using log4net;
-using NetMQ;
+﻿using NetMQ;
 using NetMQ.Sockets;
 using System;
 using System.Collections.Concurrent;
@@ -30,7 +29,7 @@ namespace Common.RPC.TransferAdapter
         private static ILog m_log;
 #endif
 
-        class SendData
+        private class SendData
         {
             public SessionContext SessionContext { get; }
             public byte[] Buffer { get; }
@@ -308,11 +307,29 @@ namespace Common.RPC.TransferAdapter
         }
     }
 
+    /// <summary>
+    /// ZeroMQ连接类型枚举
+    /// </summary>
     public enum ZeroMQSocketTypeEnum
     {
+        /// <summary>
+        /// 发布端
+        /// </summary>
         Publisher,
+
+        /// <summary>
+        /// 接收端
+        /// </summary>
         Subscriber,
+
+        /// <summary>
+        /// 客户端
+        /// </summary>
         Client,
+
+        /// <summary>
+        /// 服务端
+        /// </summary>
         Server,
     }
 }

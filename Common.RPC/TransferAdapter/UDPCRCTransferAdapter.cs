@@ -287,9 +287,18 @@ namespace Common.RPC.TransferAdapter
         }
     }
 
+    /// <summary>
+    /// UDP连接类型枚举
+    /// </summary>
     public enum UDPCRCSocketTypeEnum
     {
+        /// <summary>
+        /// 服务端
+        /// </summary>
         Server,
+        /// <summary>
+        /// 客户端
+        /// </summary>
         Client,
     }
 }

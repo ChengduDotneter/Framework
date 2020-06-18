@@ -1364,12 +1364,11 @@
             用户认证
             </summary>
         </member>
-        <member name="M:Common.ServiceCommon.SSOUserService.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,Microsoft.AspNetCore.Hosting.IWebHostEnvironment)">
+        <member name="M:Common.ServiceCommon.SSOUserService.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor)">
             <summary>
             初始化
             </summary>
             <param name="httpContextAccessor">IHttpContextAccessor</param>
-            <param name="webHostEnvironment">IWebHostEnvironment</param>
         </member>
         <member name="M:Common.ServiceCommon.SSOUserService.GetUser">
             <summary>

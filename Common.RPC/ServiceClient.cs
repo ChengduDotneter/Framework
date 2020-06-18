@@ -17,13 +17,25 @@ namespace Common.RPC
     public class ServiceClient : IDisposable
     {
         /// <summary>
-        /// 接收的数据
+        /// 接收的数据实体
         /// </summary>
         private class RecieveData
         {
+            /// <summary>
+            /// 通讯上下文
+            /// </summary>
             public SessionContext SessionContext { get; }
+
+            /// <summary>
+            /// 字节流缓冲区
+            /// </summary>
             public byte[] Buffer { get; }
 
+            /// <summary>
+            /// 构造函数
+            /// </summary>
+            /// <param name="sessionContext">通讯上下文</param>
+            /// <param name="buffer">字节缓冲区</param>
             public RecieveData(SessionContext sessionContext, byte[] buffer)
             {
                 SessionContext = sessionContext;
@@ -32,13 +44,25 @@ namespace Common.RPC
         }
 
         /// <summary>
-        /// 发送的数据
+        /// 发送的数据实体
         /// </summary>
         private class SendingData
         {
+            /// <summary>
+            /// 通讯上下文
+            /// </summary>
             public SessionContext SessionContext { get; }
+
+            /// <summary>
+            /// RPC结构体数据
+            /// </summary>
             public IRPCData Data { get; }
 
+            /// <summary>
+            /// 构造函数
+            /// </summary>
+            /// <param name="sessionContext">上下文</param>
+            /// <param name="data">所需发送的数据</param>
             public SendingData(SessionContext sessionContext, IRPCData data)
             {
                 SessionContext = sessionContext;
@@ -67,7 +91,11 @@ namespace Common.RPC
             m_log = LogHelper.CreateLog("RPC");
 #endif
         }
-
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="transferAdapter"></param>
+        /// <param name="bufferSerializer"></param>
         public ServiceClient(ITransferAdapter transferAdapter, IBufferSerializer bufferSerializer)
         {
             m_sendBuffer = new byte[BUFFER_LENGTH];
@@ -85,6 +113,9 @@ namespace Common.RPC
             m_recieveHandlers = new ConcurrentDictionary<byte, Action<SessionContext, IRPCData>>();
         }
 
+        /// <summary>
+        /// 开始
+        /// </summary>
         public void Start()
         {
             m_sendThread.Start();
@@ -92,6 +123,9 @@ namespace Common.RPC
             m_transferAdapter.Strat();
         }
 
+        /// <summary>
+        /// 释放
+        /// </summary>
         public void Dispose()
         {
             m_transferAdapter.OnBufferRecieved -= OnBufferRecieved;
@@ -103,8 +137,8 @@ namespace Common.RPC
         /// <summary>
         /// 发送数据
         /// </summary>
-        /// <param name="sessionID"></param>
-        /// <param name="data"></param>
+        /// <param name="sessionID">通讯ID</param>
+        /// <param name="data">所需发送的数据</param>
         internal void SendData(long sessionID, IRPCData data)
         {
             m_sendQueue.Enqueue(new SendingData(new SessionContext(sessionID), data));
@@ -113,8 +147,8 @@ namespace Common.RPC
         /// <summary>
         /// 发送数据
         /// </summary>
-        /// <param name="sessionContext"></param>
-        /// <param name="data"></param>
+        /// <param name="sessionContext">通讯上下文</param>
+        /// <param name="data">所需发送的数据</param>
         internal void SendSessionData(SessionContext sessionContext, IRPCData data)
         {
             m_sendQueue.Enqueue(new SendingData(sessionContext, data));
@@ -182,6 +216,10 @@ namespace Common.RPC
                 Task.Factory.StartNew(() => { handler(sessionContext, data); });
         }
 
+        /// <summary>
+        /// 注册通讯端处理器
+        /// </summary>
+        /// <param name="processor"></param>
         public void RegisterProcessor(ProcessorBase processor)
         {
             Type[] baseTypes = processor.GetType().GetBaseTypes().ToArray();
@@ -202,6 +240,10 @@ namespace Common.RPC
             }
         }
 
+        /// <summary>
+        /// 解除注册通讯端处理器
+        /// </summary>
+        /// <param name="processor"></param>
         public void UnRegisterProcessor(object processor)
         {
             Type[] baseTypes = processor.GetType().GetBaseTypes().ToArray();

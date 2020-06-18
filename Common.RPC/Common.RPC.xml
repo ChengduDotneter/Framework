@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Common.RPC</name>
+    </assembly>
+    <members>
+        <member name="T:Common.RPC.IRPCData">
+            <summary>
+            RPC数据结构体接口
+            </summary>
+        </member>
+        <member name="P:Common.RPC.IRPCData.MessageID">
+            <summary>
+            全局唯一RPCID
+            </summary>
+        </member>
+        <member name="T:Common.RPC.ProcessorBase">
+            <summary>
+            RPC处理器基类
+            </summary>
+        </member>
+        <member name="M:Common.RPC.ProcessorBase.SendData(Common.RPC.ServiceClient,Common.RPC.IRPCData)">
+            <summary>
+            发送数据
+            </summary>
+            <param name="serviceClient">RPC服务端</param>
+            <param name="data">所需发送的数据结构体</param>
+        </member>
+        <member name="M:Common.RPC.ProcessorBase.SendSessionData(Common.RPC.ServiceClient,Common.RPC.TransferAdapter.SessionContext,Common.RPC.IRPCData)">
+            <summary>
+            发送数据
+            </summary>
+            <param name="serviceClient">RPC服务端</param>
+            <param name="sessionContext"></param>
+            <param name="data">所需发送的数据结构体</param>
+        </member>
+        <member name="T:Common.RPC.ResponseProcessorBase`1">
+            <summary>
+            RPC接收端处理器基类
+            </summary>
+            <typeparam name="TRecieveData">接收的数据结构体泛型</typeparam>
+        </member>
+        <member name="M:Common.RPC.ResponseProcessorBase`1.ProcessData(Common.RPC.TransferAdapter.SessionContext,`0)">
+            <summary>
+            数据处理方法
+            </summary>
+            <param name="sessionContext">RPC请求上下文</param>
+            <param name="data">接收的数据</param>
+        </member>
+        <member name="T:Common.RPC.RequestProcessorBase`2">
+            <summary>
+            RPC请求处理器基类
+            </summary>
+            <typeparam name="TSendData">发送的数据结构体泛型</typeparam>
+            <typeparam name="TRecieveData">接收的数据结构体泛型</typeparam>
+        </member>
+        <member name="T:Common.RPC.RequestProcessorBase`2.TaskBody">
+            <summary>
+            任务体
+            </summary>
+        </member>
+        <member name="P:Common.RPC.RequestProcessorBase`2.TaskBody.SessionID">
+            <summary>
+            连接ID
+            </summary>
+        </member>
+        <member name="P:Common.RPC.RequestProcessorBase`2.TaskBody.CallBack">
+            <summary>
+            回调
+            </summary>
+        </member>
+        <member name="P:Common.RPC.RequestProcessorBase`2.TaskBody.IsResponses">
+            <summary>
+            是否有返回的结果
+            </summary>
+        </member>
+        <member name="P:Common.RPC.RequestProcessorBase`2.TaskBody.ResponseObject">
+            <summary>
+            返回的数据
+            </summary>
+        </member>
+        <member name="T:Common.RPC.RequestProcessorBase`2.SendRequestProcessor">
+            <summary>
+            RPC发送请求处理器基类
+            </summary>
+        </member>
+        <member name="M:Common.RPC.RequestProcessorBase`2.SendRequestProcessor.ProcessData(Common.RPC.TransferAdapter.SessionContext,`1)">
+            <summary>
+            数据处理方法
+            </summary>
+            <param name="sessionContext">链接上下文</param>
+            <param name="data">接收的数据</param>
+        </member>
+        <member name="M:Common.RPC.RequestProcessorBase`2.SendRequestProcessor.SendSessionData(System.Int64,`0)">
+            <summary>
+            发送数据
+            </summary>
+            <param name="sessionID">链接上下文</param>
+            <param name="data">接收的数据</param>
+        </member>
+        <member name="M:Common.RPC.RequestProcessorBase`2.ProcessData(Common.RPC.TransferAdapter.SessionContext,`1)">
+            <summary>
+            数据处理
+            </summary>
+            <param name="sessionContext">链接上下文</param>
+            <param name="data">接收的数据</param>
+        </member>
+        <member name="M:Common.RPC.RequestProcessorBase`2.Wait(System.Object)">
+            <summary>
+            等待
+            </summary>
+            <param name="state"></param>
+        </member>
+        <member name="M:Common.RPC.RequestProcessorBase`2.Callback(System.Threading.Tasks.Task)">
+            <summary>
+            回调
+            </summary>
+            <param name="task"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.RPC.RequestProcessorBase`2.Request(Common.RPC.ServiceClient,`0,System.Func{`1,System.Boolean})">
+            <summary>
+            请求
+            </summary>
+            <param name="serviceClient">RPC服务客户端</param>
+            <param name="sendData">发送的数据结构体</param>
+            <param name="callback">回调</param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.RPC.MultipleRequestProcessorBase`2">
+            <summary>
+            RPC复合请求处理器基类
+            </summary>
+            <typeparam name="TSendData">发送的数据结构体泛型</typeparam>
+            <typeparam name="TRecieveData">接收的数据结构体泛型</typeparam>
+        </member>
+        <member name="M:Common.RPC.MultipleRequestProcessorBase`2.Request(`0,System.Func{`1,System.Boolean})">
+            <summary>
+            请求
+            </summary>
+            <param name="sendData">发送的数据</param>
+            <param name="callback">回调</param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.RPC.PartitionRequestProcessorBase`2">
+            <summary>
+            RPC部分请求处理器基类
+            </summary>
+            <typeparam name="TSendData"></typeparam>
+            <typeparam name="TRecieveData"></typeparam>
+        </member>
+        <member name="M:Common.RPC.PartitionRequestProcessorBase`2.Request(`0,System.Func{`1,System.Boolean},Common.RPC.ServiceClient@)">
+            <summary>
+            请求
+            </summary>
+            <param name="sendData">发送的数据结构体</param>
+            <param name="callback">回调</param>
+            <param name="serviceClient">RPC服务客户端</param>
+            <returns></returns>
+        </member>
+        <member name="T:Common.RPC.ServiceClient">
+            <summary>
+            RPC服务核心模块
+            </summary>
+        </member>
+        <member name="T:Common.RPC.ServiceClient.RecieveData">
+            <summary>
+            接收的数据
+            </summary>
+        </member>
+        <member name="T:Common.RPC.ServiceClient.SendingData">
+            <summary>
+            发送的数据
+            </summary>
+        </member>
+        <member name="M:Common.RPC.ServiceClient.SendData(System.Int64,Common.RPC.IRPCData)">
+            <summary>
+            发送数据
+            </summary>
+            <param name="sessionID"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:Common.RPC.ServiceClient.SendSessionData(Common.RPC.TransferAdapter.SessionContext,Common.RPC.IRPCData)">
+            <summary>
+            发送数据
+            </summary>
+            <param name="sessionContext"></param>
+            <param name="data"></param>
+        </member>
+    </members>
+</doc>

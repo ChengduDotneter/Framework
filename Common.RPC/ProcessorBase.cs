@@ -1,6 +1,5 @@
 ﻿using Common.RPC.TransferAdapter;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -44,8 +43,16 @@ namespace Common.RPC
     {
         private ServiceClient[] m_serviceClients;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="serviceClient"></param>
         public ResponseProcessorBase(ServiceClient serviceClient) : this(new ServiceClient[] { serviceClient }) { }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="serviceClients"></param>
         public ResponseProcessorBase(ServiceClient[] serviceClients)
         {
             m_serviceClients = serviceClients;
@@ -54,6 +61,9 @@ namespace Common.RPC
                 m_serviceClients[i].RegisterProcessor(this);
         }
 
+        /// <summary>
+        /// 释放
+        /// </summary>
         public void Dispose()
         {
             for (int i = 0; i < m_serviceClients.Length; i++)
@@ -149,6 +159,10 @@ namespace Common.RPC
         private IDictionary<int, SendRequestProcessor> m_sendProcessors;
         private IDictionary<long, TaskBody> m_taskWaits;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="requestTimeout"></param>
         public RequestProcessorBase(int requestTimeout)
         {
             m_requestTimeout = requestTimeout;
@@ -236,6 +250,9 @@ namespace Common.RPC
             return Task.Factory.StartNew(Wait, new object[] { taskBody, cancellationTokenSource }, cancellationTokenSource.Token).ContinueWith(Callback);
         }
 
+        /// <summary>
+        /// 释放
+        /// </summary>
         public void Dispose()
         {
             int[] keys = m_sendProcessors.Keys.ToArray();
@@ -247,7 +264,7 @@ namespace Common.RPC
     }
 
     /// <summary>
-    /// RPC复合请求处理器基类
+    /// RPC一推多请求处理器基类
     /// </summary>
     /// <typeparam name="TSendData">发送的数据结构体泛型</typeparam>
     /// <typeparam name="TRecieveData">接收的数据结构体泛型</typeparam>
@@ -257,6 +274,11 @@ namespace Common.RPC
     {
         private ServiceClient[] m_serviceClients;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="serviceClients"></param>
+        /// <param name="requestTimeout"></param>
         public MultipleRequestProcessorBase(ServiceClient[] serviceClients, int requestTimeout) : base(requestTimeout)
         {
             m_serviceClients = serviceClients;
@@ -289,7 +311,7 @@ namespace Common.RPC
     }
 
     /// <summary>
-    /// RPC部分请求处理器基类
+    /// RPC分区请求处理器基类
     /// </summary>
     /// <typeparam name="TSendData"></typeparam>
     /// <typeparam name="TRecieveData"></typeparam>
@@ -300,6 +322,11 @@ namespace Common.RPC
         private ServiceClient[] m_serviceClients;
         private long m_requestIndex;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="serviceClients"></param>
+        /// <param name="requestTimeout"></param>
         public PartitionRequestProcessorBase(ServiceClient[] serviceClients, int requestTimeout) : base(requestTimeout)
         {
             m_serviceClients = serviceClients;

@@ -242,6 +242,11 @@ namespace Common
             return GetResponseAsync<T>(response).Result;
         }
 
+        /// <summary>
+        /// 请求对象转字节数组内容 （ByteArrayContent）
+        /// </summary>
+        /// <param name="requestObject"></param>
+        /// <returns></returns>
         public static HttpContent ObjectToByteArrayContent(object requestObject)
         {
             return new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(requestObject)));
