@@ -14,6 +14,7 @@ using System.Text;
 
 namespace ResourceManager
 {
+    //TODO: ResourceManagement资源占用过高 死锁检测存在资源占用问题
     internal class Program
     {
         private static void Main(string[] args)
@@ -38,10 +39,6 @@ namespace ResourceManager
                     services.AddSingleton(serviceClient);
                     services.AddHostedService<ApplyResourceProcessor>();
                     services.AddHostedService<ReleaseResourceProcessor>();
-
-
-
-                    //services.AddHostedService<Test>();
                 })
                 .ConfigureLogging(builder =>
                 {

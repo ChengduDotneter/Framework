@@ -103,10 +103,8 @@ namespace Common.DAL
 
                 if (!sqlSugerTranscation.TransactionTables.Contains(table))
                 {
-                    var time = Environment.TickCount;
                     bool status = TransactionResourceHelper.ApplayResource(table, sqlSugerTranscation.Identity, sqlSugerTranscation.Weight);
 
-                    //Console.WriteLine($" 申请资源时间 {Environment.TickCount - time} ");
                     if (status)
                         sqlSugerTranscation.TransactionTables.Add(table);
                     else
