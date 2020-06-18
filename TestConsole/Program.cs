@@ -20,6 +20,7 @@ namespace TestConsole
         {
             ConfigManager.Init("Development");
 
+
             //HashSet<long> ids = new HashSet<long>(1024 * 1024 * 1024);
 
             //for (int asd = 0; asd < 4; asd++)
@@ -44,7 +45,7 @@ namespace TestConsole
             //Console.Read();
             //return;
 
-            for (int cindex = 0; cindex < 2; cindex++)
+            for (int cindex = 0; cindex < 4; cindex++)
             {
                 int index = cindex;
 
@@ -74,7 +75,7 @@ namespace TestConsole
                                     Console.WriteLine($"index: {index} Apply Error");
                                 }
 
-                                Thread.Sleep(10);
+                                Thread.Sleep(1);
 
 
 
@@ -108,11 +109,11 @@ namespace TestConsole
                                     Console.WriteLine($"index: {index} Apply Error");
                                 }
 
-                                Thread.Sleep(10);
+                                Thread.Sleep(1);
 
                                 try
                                 {
-                                   TransactionResourceHelper.ReleaseResource(index);
+                                    TransactionResourceHelper.ReleaseResource(index);
                                 }
 #pragma warning disable CS0168 // 声明了变量，但从未使用过
                                 catch (Exception ex)
@@ -156,7 +157,7 @@ namespace TestConsole
                                     Console.WriteLine($"index: {index} Apply Error");
                                 }
 
-                                Thread.Sleep(10);
+                                Thread.Sleep(1);
 
 
 
@@ -177,7 +178,7 @@ namespace TestConsole
                                     Console.WriteLine($"index: {index} Apply Error");
                                 }
 
-                                Thread.Sleep(10);
+                                Thread.Sleep(1);
 
                                 try
                                 {

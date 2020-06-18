@@ -16,14 +16,13 @@ namespace Common.RPC.TransferAdapter
         private const int BUFFER_LENGTH = 1024 * 1024 * 64;
         private const int SPLIT_LENGTH = 65536 * 1024;
         private const int MAX_SEND_QUEUE_COUNT = 5000;
-        private const int THREAD_TIME_SPAN = 1;
         private Thread m_recieveThread;
         private Thread m_sendThread;
         private int m_offset;
         private bool m_start;
         private NetMQSocket m_socket;
         private ZeroMQSocketTypeEnum m_zeroMQSocketType;
-        private ConcurrentQueue<SendData> m_sendQueue;
+        private BlockingCollection<SendData> m_sendDatas;
 #if OUTPUT_LOG
         private string m_identity;
         private static ILog m_log;
@@ -59,7 +58,7 @@ namespace Common.RPC.TransferAdapter
 #if OUTPUT_LOG
             m_identity = identity;
 #endif
-            m_sendQueue = new ConcurrentQueue<SendData>();
+            m_sendDatas = new BlockingCollection<SendData>();
             m_zeroMQSocketType = zeroMQSocketType;
             m_recieveThread = new Thread(DoRecieveBuffer);
             m_recieveThread.IsBackground = true;
@@ -151,7 +150,7 @@ namespace Common.RPC.TransferAdapter
             if (!m_start)
                 throw new Exception("尚未打开ZeroMQTransferAdapter。");
 
-            if (m_sendQueue.Count > MAX_SEND_QUEUE_COUNT)
+            if (m_sendDatas.Count > MAX_SEND_QUEUE_COUNT)
                 throw new Exception("发送队列超长。");
 
             if (!CanSend(m_zeroMQSocketType))
@@ -181,60 +180,56 @@ namespace Common.RPC.TransferAdapter
                 }
             }
 
-            m_sendQueue.Enqueue(new SendData(sessionContext, sendBuffer, length + SESSION_ID_BUFFER_LENGTH));
+            m_sendDatas.Add(new SendData(sessionContext, sendBuffer, length + SESSION_ID_BUFFER_LENGTH));
         }
 
         private void DoSendBuffer()
         {
             while (true)
             {
-                if (m_sendQueue.IsEmpty)
-                    Thread.Sleep(THREAD_TIME_SPAN);
+                SendData sendData = m_sendDatas.Take();
 
-                while (m_sendQueue.TryDequeue(out SendData sendData))
+                try
                 {
-                    try
+                    if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server && (sendData.SessionContext.SessionID == 0 || SessionContext.IsDefaultContext(sendData.SessionContext)))
+                        throw new Exception("服务端不能调用SendData，请改用SendSessionData方法。");
+                    else if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server)
+                        m_socket.SendFrame((byte[])sendData.SessionContext.Context, true);
+                    else if (m_zeroMQSocketType != ZeroMQSocketTypeEnum.Server)
+                        m_socket.SendFrameEmpty(true);
+
+                    if (sendData.Buffer.Length > SPLIT_LENGTH)
                     {
-                        if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server && (sendData.SessionContext.SessionID == 0 || SessionContext.IsDefaultContext(sendData.SessionContext)))
-                            throw new Exception("服务端不能调用SendData，请改用SendSessionData方法。");
-                        else if (m_zeroMQSocketType == ZeroMQSocketTypeEnum.Server)
-                            m_socket.SendFrame((byte[])sendData.SessionContext.Context, true);
-                        else if (m_zeroMQSocketType != ZeroMQSocketTypeEnum.Server)
-                            m_socket.SendFrameEmpty(true);
+                        int totalCount = 0;
+                        byte[] sendBuffer = new byte[SPLIT_LENGTH];
 
-                        if (sendData.Buffer.Length > SPLIT_LENGTH)
+                        unsafe
                         {
-                            int totalCount = 0;
-                            byte[] sendBuffer = new byte[SPLIT_LENGTH];
-
-                            unsafe
+                            fixed (byte* bufferPtr = sendData.Buffer)
+                            fixed (byte* sendBufferPtr = sendBuffer)
                             {
-                                fixed (byte* bufferPtr = sendData.Buffer)
-                                fixed (byte* sendBufferPtr = sendBuffer)
+                                while (totalCount < sendData.Buffer.Length)
                                 {
-                                    while (totalCount < sendData.Buffer.Length)
-                                    {
-                                        int count = sendData.Buffer.Length - totalCount;
-                                        int sendCount = count > SPLIT_LENGTH ? SPLIT_LENGTH : count;
+                                    int count = sendData.Buffer.Length - totalCount;
+                                    int sendCount = count > SPLIT_LENGTH ? SPLIT_LENGTH : count;
 
-                                        Buffer.MemoryCopy(bufferPtr + totalCount, sendBufferPtr, sendBuffer.Length, sendCount);
-                                        totalCount += sendCount;
-                                        m_socket.SendFrame(sendBuffer, sendCount, totalCount < sendData.Buffer.Length);
-                                    }
+                                    Buffer.MemoryCopy(bufferPtr + totalCount, sendBufferPtr, sendBuffer.Length, sendCount);
+                                    totalCount += sendCount;
+                                    m_socket.SendFrame(sendBuffer, sendCount, totalCount < sendData.Buffer.Length);
                                 }
                             }
                         }
-                        else
-                        {
-                            m_socket.SendFrame(sendData.Buffer, sendData.Buffer.Length);
-                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-#if OUTPUT_LOG
-                        m_log.Error($"send error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
-#endif
+                        m_socket.SendFrame(sendData.Buffer, sendData.Buffer.Length);
                     }
+                }
+                catch (Exception ex)
+                {
+#if OUTPUT_LOG
+                    m_log.Error($"send error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
+#endif
                 }
             }
         }

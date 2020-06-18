@@ -16,11 +16,6 @@ namespace Common.DAL.Transaction
         public event Action<long, string, bool> ApplyResponsed;
 
         /// <summary>
-        /// 线程时间间隔
-        /// </summary>
-        private const int THREAD_TIME_SPAN = 1;
-
-        /// <summary>
         /// 锁
         /// </summary>
         private readonly object m_lockThis = new object();
@@ -28,7 +23,7 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 资源申请队列
         /// </summary>
-        private ConcurrentQueue<ApplyRequestData> m_applyRequestDatas;
+        private BlockingCollection<ApplyRequestData> m_applyRequestDatas;
 
         /// <summary>
         /// 资源等待队列
@@ -147,7 +142,7 @@ namespace Common.DAL.Transaction
             m_identityKeyIndexs = new Dictionary<int, long>();
             m_resourceNameIndexs = new Dictionary<string, int>();
             m_resourceNameKeyIndexs = new Dictionary<int, string>();
-            m_applyRequestDatas = new ConcurrentQueue<ApplyRequestData>();
+            m_applyRequestDatas = new BlockingCollection<ApplyRequestData>();
             m_waitQueue = new Queue<ApplyRequestData>();
 
             //死锁检测执行线程初始化
@@ -167,7 +162,7 @@ namespace Common.DAL.Transaction
         /// <returns></returns>
         public void ApplyRequest(long identity, string resourceName, int weight, int timeOut)
         {
-            m_applyRequestDatas.Enqueue(new ApplyRequestData(identity, resourceName, weight, timeOut));
+            m_applyRequestDatas.Add(new ApplyRequestData(identity, resourceName, weight, timeOut));
         }
 
         /// <summary>
@@ -177,54 +172,48 @@ namespace Common.DAL.Transaction
         {
             while (true)
             {
-                if (!m_applyRequestDatas.IsEmpty)
+                ApplyRequestData applyRequestData = m_applyRequestDatas.Take();
+
+                int identityIndex;
+                int resourceNameIndex;
+
+                lock (m_lockThis)
                 {
-                    while (m_applyRequestDatas.TryDequeue(out ApplyRequestData applyRequestData))
+                    if (!m_identityIndexs.ContainsKey(applyRequestData.Identity))
                     {
-                        int identityIndex;
-                        int resourceNameIndex;
-
-                        lock (m_lockThis)
-                        {
-                            if (!m_identityIndexs.ContainsKey(applyRequestData.Identity))
-                            {
-                                identityIndex = GetNextIdentityIndex();
-                                m_identityIndexs.Add(applyRequestData.Identity, identityIndex);
-                                m_identityKeyIndexs[identityIndex] = applyRequestData.Identity;
-                            }
-                            else
-                                identityIndex = m_identityIndexs[applyRequestData.Identity];
-
-                            if (!m_resourceNameIndexs.ContainsKey(applyRequestData.ResourceName))
-                            {
-                                resourceNameIndex = m_resourceNameIndexs.Count;
-                                m_resourceNameIndexs.Add(applyRequestData.ResourceName, resourceNameIndex);
-                                m_resourceNameKeyIndexs[resourceNameIndex] = applyRequestData.ResourceName;
-                            }
-                            else
-                                resourceNameIndex = m_resourceNameIndexs[applyRequestData.ResourceName];
-
-                            m_weights[identityIndex] = applyRequestData.Weight;
-
-                            if (identityIndex > m_matrix.GetLength(0) - 2 || resourceNameIndex > m_matrix.GetLength(1) - 2)
-                                Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
-
-                            CheckLock(m_identityIndexs[applyRequestData.Identity], m_resourceNameIndexs[applyRequestData.ResourceName], applyRequestData);
-                        }
+                        identityIndex = GetNextIdentityIndex();
+                        m_identityIndexs.Add(applyRequestData.Identity, identityIndex);
+                        m_identityKeyIndexs[identityIndex] = applyRequestData.Identity;
                     }
+                    else
+                        identityIndex = m_identityIndexs[applyRequestData.Identity];
 
-                    while (m_waitQueue.Count > 0)
+                    if (!m_resourceNameIndexs.ContainsKey(applyRequestData.ResourceName))
                     {
-                        ApplyRequestData applyRequestData = m_waitQueue.Dequeue();
-
-                        if (!m_destoryIdentitys.Contains(applyRequestData.Identity))
-                            m_applyRequestDatas.Enqueue(applyRequestData);
+                        resourceNameIndex = m_resourceNameIndexs.Count;
+                        m_resourceNameIndexs.Add(applyRequestData.ResourceName, resourceNameIndex);
+                        m_resourceNameKeyIndexs[resourceNameIndex] = applyRequestData.ResourceName;
                     }
+                    else
+                        resourceNameIndex = m_resourceNameIndexs[applyRequestData.ResourceName];
 
-                    m_destoryIdentitys.Clear();
+                    m_weights[identityIndex] = applyRequestData.Weight;
+
+                    if (identityIndex > m_matrix.GetLength(0) - 2 || resourceNameIndex > m_matrix.GetLength(1) - 2)
+                        Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
+
+                    CheckLock(m_identityIndexs[applyRequestData.Identity], m_resourceNameIndexs[applyRequestData.ResourceName], applyRequestData);
                 }
 
-                Thread.Sleep(THREAD_TIME_SPAN);
+                while (m_waitQueue.Count > 0)
+                {
+                    ApplyRequestData waitApplyRequestData = m_waitQueue.Dequeue();
+
+                    if (!m_destoryIdentitys.Contains(waitApplyRequestData.Identity))
+                        m_applyRequestDatas.Add(waitApplyRequestData);
+                }
+
+                m_destoryIdentitys.Clear();
             }
         }
 

@@ -70,14 +70,13 @@ namespace Common.RPC
             }
         }
 
-        private const int SLEEP_TIME_SPAN = 1;
         private const int BUFFER_LENGTH = 1024 * 1024 * 64;
         private ITransferAdapter m_transferAdapter;
         private IBufferSerializer m_bufferSerializer;
         private Thread m_recieveThread;
         private Thread m_sendThread;
-        private ConcurrentQueue<SendingData> m_sendQueue;
-        private ConcurrentQueue<RecieveData> m_recieveQueue;
+        private BlockingCollection<SendingData> m_sendDatas;
+        private BlockingCollection<RecieveData> m_recieveDatas;
         private byte[] m_sendBuffer;
         private ConcurrentDictionary<byte, Action<SessionContext, IRPCData>> m_recieveHandlers;
 
@@ -99,8 +98,8 @@ namespace Common.RPC
         public ServiceClient(ITransferAdapter transferAdapter, IBufferSerializer bufferSerializer)
         {
             m_sendBuffer = new byte[BUFFER_LENGTH];
-            m_sendQueue = new ConcurrentQueue<SendingData>();
-            m_recieveQueue = new ConcurrentQueue<RecieveData>();
+            m_sendDatas = new BlockingCollection<SendingData>();
+            m_recieveDatas = new BlockingCollection<RecieveData>();
             m_transferAdapter = transferAdapter;
             m_transferAdapter.OnBufferRecieved += OnBufferRecieved;
             m_bufferSerializer = bufferSerializer;
@@ -141,7 +140,7 @@ namespace Common.RPC
         /// <param name="data">所需发送的数据</param>
         internal void SendData(long sessionID, IRPCData data)
         {
-            m_sendQueue.Enqueue(new SendingData(new SessionContext(sessionID), data));
+            m_sendDatas.Add(new SendingData(new SessionContext(sessionID), data));
         }
 
         /// <summary>
@@ -151,23 +150,19 @@ namespace Common.RPC
         /// <param name="data">所需发送的数据</param>
         internal void SendSessionData(SessionContext sessionContext, IRPCData data)
         {
-            m_sendQueue.Enqueue(new SendingData(sessionContext, data));
+            m_sendDatas.Add(new SendingData(sessionContext, data));
         }
 
         private void OnBufferRecieved(SessionContext sessionContext, byte[] buffer)
         {
-            m_recieveQueue.Enqueue(new RecieveData(sessionContext, buffer));
+            m_recieveDatas.Add(new RecieveData(sessionContext, buffer));
         }
 
         private void DoSend()
         {
             while (true)
             {
-                if (m_sendQueue.IsEmpty || !m_sendQueue.TryDequeue(out SendingData sendingData))
-                {
-                    Thread.Sleep(SLEEP_TIME_SPAN);
-                    continue;
-                }
+                SendingData sendingData = m_sendDatas.Take();
 
                 try
                 {
@@ -187,11 +182,7 @@ namespace Common.RPC
         {
             while (true)
             {
-                if (m_recieveQueue.IsEmpty || !m_recieveQueue.TryDequeue(out RecieveData recieveData))
-                {
-                    Thread.Sleep(SLEEP_TIME_SPAN);
-                    continue;
-                }
+                RecieveData recieveData = m_recieveDatas.Take();
 
                 try
                 {
@@ -235,6 +226,7 @@ namespace Common.RPC
                     Expression body = Expression.Call(instance, baseTypes[i].GetMethod("ProcessData", BindingFlags.NonPublic | BindingFlags.Instance), sessionContext, Expression.Convert(data, dataType));
                     Action<SessionContext, IRPCData> serviceContractHandler = Expression.Lambda<Action<SessionContext, IRPCData>>(body, sessionContext, data).Compile();
                     m_recieveHandlers.TryAdd(((IRPCData)Activator.CreateInstance(dataType)).MessageID, serviceContractHandler);
+
                     return;
                 }
             }
@@ -257,6 +249,7 @@ namespace Common.RPC
 
                     if (m_recieveHandlers.ContainsKey(messageID))
                         m_recieveHandlers.TryRemove(messageID, out Action<SessionContext, IRPCData> action);
+
                     return;
                 }
             }
