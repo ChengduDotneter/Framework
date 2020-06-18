@@ -14,10 +14,9 @@ using System.Text;
 
 namespace ResourceManager
 {
-    //TODO: ResourceManagement资源占用过高 死锁检测存在资源占用问题
     internal class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             ConfigManager.Init("Development");
 

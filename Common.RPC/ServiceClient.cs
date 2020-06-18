@@ -46,7 +46,7 @@ namespace Common.RPC
             }
         }
 
-        private readonly static TimeSpan SLEEP_TIME_SPAN = TimeSpan.FromMilliseconds(0.01);
+        private const int SLEEP_TIME_SPAN = 1;
         private const int BUFFER_LENGTH = 1024 * 1024 * 64;
         private ITransferAdapter m_transferAdapter;
         private IBufferSerializer m_bufferSerializer;

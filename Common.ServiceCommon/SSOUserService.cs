@@ -49,17 +49,14 @@ namespace Common.ServiceCommon
     public class SSOUserService : ISSOUserService
     {
         private IHttpContextAccessor m_httpContextAccessor;
-        private IWebHostEnvironment m_webHostEnvironment;
 
         /// <summary>
         /// 初始化
         /// </summary>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        /// <param name="webHostEnvironment">IWebHostEnvironment</param>
-        public SSOUserService(IHttpContextAccessor httpContextAccessor, IWebHostEnvironment webHostEnvironment)
+        public SSOUserService(IHttpContextAccessor httpContextAccessor)
         {
             m_httpContextAccessor = httpContextAccessor;
-            m_webHostEnvironment = webHostEnvironment;
         }
 
         /// <summary>

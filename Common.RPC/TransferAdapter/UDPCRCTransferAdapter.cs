@@ -33,7 +33,7 @@ namespace Common.RPC.TransferAdapter
         private const int SESSION_ID_BUFFER_LENGTH = sizeof(long);
         private const int DATA_ID_BUFFER_LENGTH = sizeof(long);
         private const int CRC_BUFFER_LENGTH = 2;
-        private readonly static TimeSpan THREAD_TIME_SPAN = TimeSpan.FromMilliseconds(0.01);
+        private const int THREAD_TIME_SPAN = 1;
         private const int REPEAT_SEND_MAX_COUNT = 150;
         private const int REPEAT_TIME_SPAN = 4000;
         private const int CLEAR_TIME_OUT = 1000 * 60 * 2;
