@@ -664,7 +664,7 @@
             获取从1970-01-01至今的毫秒数
             </summary>
         </member>
-        <member name="M:Common.IDGenerator.BlockUntilNextMillis">
+        <member name="M:Common.IDGenerator.BlockUntilNextMillis(System.Int64)">
             <summary>
             阻塞线程直到下一毫秒
             </summary>
