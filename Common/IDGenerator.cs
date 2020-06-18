@@ -118,10 +118,8 @@ namespace Common
         /// 阻塞线程直到下一毫秒
         /// </summary>
         /// <returns>阻塞之后的总时间毫秒数</returns>
-        private static long BlockUntilNextMillis()
+        private static long BlockUntilNextMillis(long timestamp)
         {
-            long timestamp = GetTicks();
-
             while (timestamp <= m_lastTimestamp)
                 timestamp = GetTicks();
 
@@ -130,17 +128,15 @@ namespace Common
 
         private static long CreateNewID(uint nodeType, uint node)
         {
-            if (nodeType > MAX_NODE_TYPE || nodeType < MIN_NODE_TYPE)
-                throw new Exception("节点类型错误。");
-
-            if (node > MAX_NODE || node < MIN_NODE)
-                throw new Exception("节点编号异常。");
-
-            long timestamp;
-
             lock (m_lockThis)
             {
-                timestamp = GetTicks();
+                if (nodeType > MAX_NODE_TYPE || nodeType < MIN_NODE_TYPE)
+                    throw new Exception("节点类型错误。");
+
+                if (node > MAX_NODE || node < MIN_NODE)
+                    throw new Exception("节点编号异常。");
+
+                long timestamp = GetTicks();
 
                 if (timestamp < m_lastTimestamp) //当前时间小于上一次ID生成的时间戳
                     throw new Exception("系统时间异常。");
@@ -150,7 +146,7 @@ namespace Common
                     m_sequence = (m_sequence + 1) & SEQUENCE_MASK;
 
                     if (m_sequence == 0) //毫秒内序列溢出
-                        timestamp = BlockUntilNextMillis(); //阻塞到下一个毫秒,获得新的时间戳
+                        timestamp = BlockUntilNextMillis(timestamp); //阻塞到下一个毫秒,获得新的时间戳
                 }
                 else //时间戳改变，毫秒内序列重置
                 {
@@ -158,12 +154,12 @@ namespace Common
                 }
 
                 m_lastTimestamp = timestamp; //上次生成ID的时间截
-            }
 
-            return ((timestamp - TWEPOCH) << TIME_STAMP_SHIFT) | // 时间差占用41位，最多69年，左移22位
-                   (m_sequence << SEQUENCE_SHIFT) | // 毫秒内序列，取值范围0-511，左移13位
-                   (node << NODE_SHIFT) | // 工作机器，取值范围0-127
-                   nodeType; // 生成方式占用6位
+                return ((timestamp - TWEPOCH) << TIME_STAMP_SHIFT) | // 时间差占用41位，最多69年，左移22位
+                       (m_sequence << SEQUENCE_SHIFT) | // 毫秒内序列，取值范围0-511，左移13位
+                       (node << NODE_SHIFT) | // 工作机器，取值范围0-127
+                       nodeType; // 生成方式占用6位
+            }
         }
 
         /// <summary>
