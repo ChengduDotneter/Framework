@@ -9,7 +9,7 @@ namespace Common.DAL.Cache
     /// </summary>
     public class TransactionProxy : ITransaction
     {
-        private readonly static TimeSpan THREAD_TIME_SPAN = TimeSpan.FromMilliseconds(0.01);
+        private const int THREAD_TIME_SPAN = 1;
         private ITransaction m_transaction;
         private ConcurrentQueue<Action> m_actions;
         private static readonly Mutex m_mutex;

@@ -18,7 +18,7 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 线程时间间隔
         /// </summary>
-        private readonly static TimeSpan THREAD_TIME_SPAN = TimeSpan.FromMilliseconds(0.01);
+        private const int THREAD_TIME_SPAN = 1;
 
         /// <summary>
         /// 锁

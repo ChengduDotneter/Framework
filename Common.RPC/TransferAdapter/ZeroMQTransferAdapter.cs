@@ -17,7 +17,7 @@ namespace Common.RPC.TransferAdapter
         private const int BUFFER_LENGTH = 1024 * 1024 * 64;
         private const int SPLIT_LENGTH = 65536 * 1024;
         private const int MAX_SEND_QUEUE_COUNT = 5000;
-        private readonly static TimeSpan THREAD_TIME_SPAN = TimeSpan.FromMilliseconds(1);
+        private const int THREAD_TIME_SPAN = 1;
         private Thread m_recieveThread;
         private Thread m_sendThread;
         private int m_offset;
