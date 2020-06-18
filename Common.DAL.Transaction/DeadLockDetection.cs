@@ -5,15 +5,44 @@ using System.Threading;
 
 namespace Common.DAL.Transaction
 {
+    /// <summary>
+    /// 死锁检测类
+    /// </summary>
     public class DeadlockDetection : IDeadlockDetection
     {
+        /// <summary>
+        /// 资源申请订阅事件
+        /// </summary>
         public event Action<long, string, bool> ApplyResponsed;
 
+        /// <summary>
+        /// 线程时间间隔
+        /// </summary>
         private readonly static TimeSpan THREAD_TIME_SPAN = TimeSpan.FromMilliseconds(0.01);
+
+        /// <summary>
+        /// 锁
+        /// </summary>
         private readonly object m_lockThis = new object();
+
+        /// <summary>
+        /// 资源申请队列
+        /// </summary>
         private ConcurrentQueue<ApplyRequestData> m_applyRequestDatas;
+
+        /// <summary>
+        /// 资源等待队列
+        /// </summary>
         private Queue<ApplyRequestData> m_waitQueue;
+
+        /// <summary>
+        /// 待释放的事务线程ID标识
+        /// </summary>
         private HashSet<long> m_destoryIdentitys;
+
+        /// <summary>
+        /// 死锁检查事务
+        /// </summary>
         private Thread m_doApplyThread;
 
         /// <summary>
@@ -66,12 +95,34 @@ namespace Common.DAL.Transaction
         /// </summary>
         private long m_tick;
 
+        /// <summary>
+        /// 事务申请请求数据实体
+        /// </summary>
         private class ApplyRequestData
         {
+            /// <summary>
+            /// 线程事务ID
+            /// </summary>
             public long Identity { get; }
+
+            /// <summary>
+            /// 事务申请资源名
+            /// </summary>
             public string ResourceName { get; }
+
+            /// <summary>
+            /// 权重
+            /// </summary>
             public int Weight { get; }
+
+            /// <summary>
+            /// 超时时间
+            /// </summary>
             public int TimeOut { get; }
+
+            /// <summary>
+            /// 申请时间
+            /// </summary>
             public int ApplyTime { get; }
 
             public ApplyRequestData(long identity, string resourceName, int weight, int timeOut)
@@ -101,11 +152,22 @@ namespace Common.DAL.Transaction
             m_doApplyThread.Start();
         }
 
+        /// <summary>
+        /// 事务申请资源时，进入死锁监测，监测是否出现死锁情况
+        /// </summary>
+        /// <param name="identity">事务线程ID</param>
+        /// <param name="resourceName">事务申请的资源名，现包括数据表名</param>
+        /// <param name="weight">事务权重</param>
+        /// <param name="timeOut">超时时间</param>
+        /// <returns></returns>
         public void ApplyRequest(long identity, string resourceName, int weight, int timeOut)
         {
             m_applyRequestDatas.Enqueue(new ApplyRequestData(identity, resourceName, weight, timeOut));
         }
 
+        /// <summary>
+        /// 事务资源申请
+        /// </summary>
         private void DoApply()
         {
             while (true)
@@ -126,9 +188,7 @@ namespace Common.DAL.Transaction
                                 m_identityKeyIndexs[identityIndex] = applyRequestData.Identity;
                             }
                             else
-                            {
                                 identityIndex = m_identityIndexs[applyRequestData.Identity];
-                            }
 
                             if (!m_resourceNameIndexs.ContainsKey(applyRequestData.ResourceName))
                             {
@@ -137,16 +197,12 @@ namespace Common.DAL.Transaction
                                 m_resourceNameKeyIndexs[resourceNameIndex] = applyRequestData.ResourceName;
                             }
                             else
-                            {
                                 resourceNameIndex = m_resourceNameIndexs[applyRequestData.ResourceName];
-                            }
 
                             m_weights[identityIndex] = applyRequestData.Weight;
 
                             if (identityIndex > m_matrix.GetLength(0) - 2 || resourceNameIndex > m_matrix.GetLength(1) - 2)
-                            {
                                 Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
-                            }
 
                             CheckLock(m_identityIndexs[applyRequestData.Identity], m_resourceNameIndexs[applyRequestData.ResourceName], applyRequestData);
                         }
@@ -195,6 +251,14 @@ namespace Common.DAL.Transaction
             CheckWaitAndResponse(m_identityKeyIndexs[lastIdentityIndex], lastIdentityIndex, m_resourceNameKeyIndexs[lastResourceNameIndex], lastResourceNameIndex, applyRequestData);
         }
 
+        /// <summary>
+        /// 检查事务请求的资源是否需要排队等待
+        /// </summary>
+        /// <param name="identity">事务线程ID</param>
+        /// <param name="identityIndex">事务线程ID索引</param>
+        /// <param name="resourceName">资源名</param>
+        /// <param name="resourceNameIndex">资源名索引</param>
+        /// <param name="applyRequestData">事务申请的资源对象</param>
         private void CheckWaitAndResponse(long identity, int identityIndex, string resourceName, int resourceNameIndex, ApplyRequestData applyRequestData)
         {
             lock (m_lockThis)
@@ -214,20 +278,12 @@ namespace Common.DAL.Transaction
                 if (identityIndex != minIdentityIndex)
                 {
                     if (Environment.TickCount - applyRequestData.ApplyTime > applyRequestData.TimeOut)
-                    {
-                        //Console.WriteLine($"des: {m_identityKeyIndexs[minIdentityIndex]}, resourceName: {resourceName}");
                         ApplyResponsed?.Invoke(identity, resourceName, false);
-                    }
                     else
-                    {
                         m_waitQueue.Enqueue(applyRequestData);
-                    }
                 }
                 else
-                {
-                    //Console.WriteLine($"identity: {identity}, resourceName: {resourceName}");
                     ApplyResponsed?.Invoke(identity, resourceName, true);
-                }
             }
         }
 
@@ -298,6 +354,11 @@ namespace Common.DAL.Transaction
             }
         }
 
+        /// <summary>
+        /// 退出死锁监测，移除已有资源标识
+        /// </summary>
+        /// <param name="identity">事务线程ID</param>
+        /// <returns></returns>
         public void RemoveTranResource(long identity)
         {
             lock (m_lockThis)

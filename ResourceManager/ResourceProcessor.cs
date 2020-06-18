@@ -12,7 +12,7 @@ namespace ResourceManager
     /// <summary>
     /// 申请资源处理器，服务发起端（现包括ZeroMQ和UDP）
     /// </summary>
-    class ApplyResourceProcessor : ResponseProcessorBase<ApplyRequestData>, IHostedService
+    internal class ApplyResourceProcessor : ResponseProcessorBase<ApplyRequestData>, IHostedService
     {
         private const int MAX_TIME_OUT = 1000 * 60;
         private ServiceClient m_serviceClient;
@@ -58,8 +58,6 @@ namespace ResourceManager
                 if (!m_sessionContexts[data.Identity].ContainsKey(data.ResourceName))
                     m_sessionContexts[data.Identity].Add(data.ResourceName, sessionContext);
             }
-
-            //SendSessionData(m_serviceClient, sessionContext, new ApplyResponseData() { Success = true });
         }
 
         private void ApplyResponsed(long identity, string resourceName, bool successed)
@@ -82,7 +80,7 @@ namespace ResourceManager
     /// <summary>
     /// 释放资源处理器，服务发起端（现包括ZeroMQ和UDP）
     /// </summary>
-    class ReleaseResourceProcessor : ResponseProcessorBase<ReleaseRequestData>, IHostedService
+    internal class ReleaseResourceProcessor : ResponseProcessorBase<ReleaseRequestData>, IHostedService
     {
         private ServiceClient m_serviceClient;
         private IDeadlockDetection m_deadlockDetection;
