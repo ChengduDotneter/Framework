@@ -15,9 +15,10 @@ namespace Common
         /// <param name="saveFilePath">待保存的压缩文件路径</param>
         /// <param name="isDelete">是否删除待压缩文件</param>
         /// <param name="encryptPassword">加密密码</param>
-        public static void FileToGZip(string sourceFilePath, string saveFilePath, bool isDelete = false, string encryptPassword = "")
+        /// <param name="compressionLevel">压缩等级(1-9)</param>
+        public static void FileToGZip(string sourceFilePath, string saveFilePath, int compressionLevel = 1, bool isDelete = false, string encryptPassword = "")
         {
-            FileCompression(sourceFilePath, saveFilePath, Path.GetFileName(sourceFilePath), isDelete, encryptPassword);
+            FileCompression(sourceFilePath, saveFilePath, Path.GetFileName(sourceFilePath), compressionLevel, isDelete, encryptPassword);
         }
 
         /// <summary>
@@ -28,9 +29,10 @@ namespace Common
         /// <param name="isDelete">是否删除待压缩文件</param>
         /// <param name="encryptPassword">加密密码</param>
         /// <param name="compressionedName">待压缩文件在压缩包中文件名</param>
-        public static void FileToGZip(string sourceFilePath, string saveFilePath, string compressionedName, bool isDelete = false, string encryptPassword = "")
+        /// <param name="compressionLevel">压缩等级(1-9)</param>
+        public static void FileToGZip(string sourceFilePath, string saveFilePath, string compressionedName, int compressionLevel = 1, bool isDelete = false, string encryptPassword = "")
         {
-            FileCompression(sourceFilePath, saveFilePath, compressionedName, isDelete, encryptPassword);
+            FileCompression(sourceFilePath, saveFilePath, compressionedName, compressionLevel, isDelete, encryptPassword);
         }
 
         /// <summary>
@@ -40,9 +42,10 @@ namespace Common
         /// <param name="saveFilePath">待保存的压缩文件路径</param>
         /// <param name="isDelete">是否删除待压缩文件</param>
         /// <param name="encryptPassword">加密密码</param>
-        public static void FileWithPackageToGZip(string sourceFilePath, string saveFilePath, bool isDelete = false, string encryptPassword = "")
+        /// <param name="compressionLevel">压缩等级(1-9)</param>
+        public static void FileWithPackageToGZip(string sourceFilePath, string saveFilePath, int compressionLevel = 1, bool isDelete = false, string encryptPassword = "")
         {
-            FileCompression(sourceFilePath, saveFilePath, sourceFilePath, isDelete, encryptPassword);
+            FileCompression(sourceFilePath, saveFilePath, sourceFilePath, compressionLevel, isDelete, encryptPassword);
         }
 
         /// <summary>
@@ -52,23 +55,24 @@ namespace Common
         /// <param name="saveFilePath">待保存的压缩文件路径</param>
         /// <param name="encryptPassword">加密密码</param>
         /// <param name="compressionedName">待压缩文件在压缩包中文件名</param>
-        public static void StreamToGZip(Stream sourceStream, string saveFilePath, string compressionedName, string encryptPassword = "")
+        /// <param name="compressionLevel">压缩等级(1-9)</param>
+        public static void StreamToGZip(Stream sourceStream, string saveFilePath, string compressionedName, int compressionLevel = 1, string encryptPassword = "")
         {
-            SteamCompression(sourceStream, saveFilePath, compressionedName, encryptPassword);
+            SteamCompression(sourceStream, saveFilePath, compressionedName, compressionLevel, encryptPassword);
         }
 
-        private static void FileCompression(string sourceFilePath, string saveFilePath, string compressionDirectory, bool isDelete = false, string encryptPassword = "")
+        private static void FileCompression(string sourceFilePath, string saveFilePath, string compressionDirectory, int compressionLevel = 1, bool isDelete = false, string encryptPassword = "")
         {
             using (FileStream readFileStream = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read))
             {
-                SteamCompression(readFileStream, saveFilePath, compressionDirectory, encryptPassword);
+                SteamCompression(readFileStream, saveFilePath, compressionDirectory, compressionLevel, encryptPassword);
             }
 
             if (isDelete)
                 File.Delete(sourceFilePath);
         }
 
-        private static void SteamCompression(Stream sourceStream, string saveFilePath, string compressionDirectory, string encryptPassword = "")
+        private static void SteamCompression(Stream sourceStream, string saveFilePath, string compressionDirectory, int compressionLevel = 1, string encryptPassword = "")
         {
             using (FileStream writeFileStream = File.Create(saveFilePath))
             {
@@ -83,8 +87,9 @@ namespace Common
 
                     //开始一个新的zip条目
                     outStream.PutNextEntry(entry);
+
                     //设置压缩级别
-                    outStream.SetLevel(8);
+                    outStream.SetLevel(compressionLevel);
 
                     sourceStream.Seek(0, SeekOrigin.Begin);
 
