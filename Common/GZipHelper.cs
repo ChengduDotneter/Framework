@@ -15,10 +15,10 @@ namespace Common
         /// <param name="saveFilePath">待保存的压缩文件路径</param>
         /// <param name="isDelete">是否删除待压缩文件</param>
         /// <param name="encryptPassword">加密密码</param>
-        /// <param name="compressionLevel">压缩等级(1-9)</param>
+        /// <param name="compressionLevel">压缩等级(1-9，默认为1)</param>
         public static void FileToGZip(string sourceFilePath, string saveFilePath, int compressionLevel = 1, bool isDelete = false, string encryptPassword = "")
         {
-            FileCompression(sourceFilePath, saveFilePath, Path.GetFileName(sourceFilePath), compressionLevel, isDelete, encryptPassword); 
+            FileCompression(sourceFilePath, saveFilePath, Path.GetFileName(sourceFilePath), compressionLevel, isDelete, encryptPassword);
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Common
         /// <param name="isDelete">是否删除待压缩文件</param>
         /// <param name="encryptPassword">加密密码</param>
         /// <param name="compressionedName">待压缩文件在压缩包中文件名</param>
-        /// <param name="compressionLevel">压缩等级(1-9)</param>
+        /// <param name="compressionLevel">压缩等级(1-9，默认为1)</param>
         public static void FileToGZip(string sourceFilePath, string saveFilePath, string compressionedName, int compressionLevel = 1, bool isDelete = false, string encryptPassword = "")
         {
             FileCompression(sourceFilePath, saveFilePath, compressionedName, compressionLevel, isDelete, encryptPassword);
@@ -42,7 +42,7 @@ namespace Common
         /// <param name="saveFilePath">待保存的压缩文件路径</param>
         /// <param name="isDelete">是否删除待压缩文件</param>
         /// <param name="encryptPassword">加密密码</param>
-        /// <param name="compressionLevel">压缩等级(1-9)</param>
+        /// <param name="compressionLevel">压缩等级(1-9，默认为1)</param>
         public static void FileWithPackageToGZip(string sourceFilePath, string saveFilePath, int compressionLevel = 1, bool isDelete = false, string encryptPassword = "")
         {
             FileCompression(sourceFilePath, saveFilePath, sourceFilePath, compressionLevel, isDelete, encryptPassword);
@@ -55,7 +55,7 @@ namespace Common
         /// <param name="saveFilePath">待保存的压缩文件路径</param>
         /// <param name="encryptPassword">加密密码</param>
         /// <param name="compressionedName">待压缩文件在压缩包中文件名</param>
-        /// <param name="compressionLevel">压缩等级(1-9)</param>
+        /// <param name="compressionLevel">压缩等级(1-9，默认为1)</param>
         public static void StreamToGZip(Stream sourceStream, string saveFilePath, string compressionedName, int compressionLevel = 1, string encryptPassword = "")
         {
             SteamCompression(sourceStream, saveFilePath, compressionedName, compressionLevel, encryptPassword);
