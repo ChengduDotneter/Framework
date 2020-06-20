@@ -109,6 +109,52 @@
             <param name="sheetName"></param>
             <returns></returns>
         </member>
+        <member name="T:Common.GZipHelper">
+            <summary>
+            ZIP压缩帮助类
+            </summary>
+        </member>
+        <member name="M:Common.GZipHelper.FileToGZip(System.String,System.String,System.Int32,System.Boolean,System.String)">
+            <summary>
+            文件压缩
+            </summary>
+            <param name="sourceFilePath">待压缩文件路径</param>
+            <param name="saveFilePath">待保存的压缩文件路径</param>
+            <param name="isDelete">是否删除待压缩文件</param>
+            <param name="encryptPassword">加密密码</param>
+            <param name="compressionLevel">压缩等级(1-9)</param>
+        </member>
+        <member name="M:Common.GZipHelper.FileToGZip(System.String,System.String,System.String,System.Int32,System.Boolean,System.String)">
+            <summary>
+            文件压缩
+            </summary>
+            <param name="sourceFilePath">待压缩文件路径</param>
+            <param name="saveFilePath">待保存的压缩文件路径</param>
+            <param name="isDelete">是否删除待压缩文件</param>
+            <param name="encryptPassword">加密密码</param>
+            <param name="compressionedName">待压缩文件在压缩包中文件名</param>
+            <param name="compressionLevel">压缩等级(1-9)</param>
+        </member>
+        <member name="M:Common.GZipHelper.FileWithPackageToGZip(System.String,System.String,System.Int32,System.Boolean,System.String)">
+            <summary>
+            文件带文件夹压缩
+            </summary>
+            <param name="sourceFilePath">待压缩文件路径</param>
+            <param name="saveFilePath">待保存的压缩文件路径</param>
+            <param name="isDelete">是否删除待压缩文件</param>
+            <param name="encryptPassword">加密密码</param>
+            <param name="compressionLevel">压缩等级(1-9)</param>
+        </member>
+        <member name="M:Common.GZipHelper.StreamToGZip(System.IO.Stream,System.String,System.String,System.Int32,System.String)">
+            <summary>
+            流压缩
+            </summary>
+            <param name="sourceStream">待压缩数据流</param>
+            <param name="saveFilePath">待保存的压缩文件路径</param>
+            <param name="encryptPassword">加密密码</param>
+            <param name="compressionedName">待压缩文件在压缩包中文件名</param>
+            <param name="compressionLevel">压缩等级(1-9)</param>
+        </member>
         <member name="T:Common.HttpClientExtend">
              <summary>
             Httpclient的扩展类

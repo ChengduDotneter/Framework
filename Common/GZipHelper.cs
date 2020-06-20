@@ -18,7 +18,7 @@ namespace Common
         /// <param name="compressionLevel">压缩等级(1-9)</param>
         public static void FileToGZip(string sourceFilePath, string saveFilePath, int compressionLevel = 1, bool isDelete = false, string encryptPassword = "")
         {
-            FileCompression(sourceFilePath, saveFilePath, Path.GetFileName(sourceFilePath), compressionLevel, isDelete, encryptPassword);
+            FileCompression(sourceFilePath, saveFilePath, Path.GetFileName(sourceFilePath), compressionLevel, isDelete, encryptPassword); 
         }
 
         /// <summary>
