@@ -368,6 +368,13 @@
             <param name="response"></param>
             <returns></returns>
         </member>
+        <member name="M:Common.HttpJsonHelper.ObjectToByteArrayContent(System.Object)">
+            <summary>
+            请求对象转字节数组内容 （ByteArrayContent）
+            </summary>
+            <param name="requestObject"></param>
+            <returns></returns>
+        </member>
         <member name="T:Common.HttpWebRequestExtend">
             <summary>
             httpwebrequest的扩展类

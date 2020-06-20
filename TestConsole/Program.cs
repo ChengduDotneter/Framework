@@ -20,31 +20,6 @@ namespace TestConsole
         {
             ConfigManager.Init("Development");
 
-
-            //HashSet<long> ids = new HashSet<long>(1024 * 1024 * 1024);
-
-            //for (int asd = 0; asd < 4; asd++)
-            //{
-            //    Task.Factory.StartNew(() =>
-            //    {
-            //        while (true)
-            //        {
-            //            long id = Common.IDGenerator.NextID();
-            //            if (ids.Contains(id))
-            //            {
-            //                var ld = ids.Last();
-            //            }
-            //            else
-            //            {
-            //                ids.Add(id);
-            //            }
-            //        }
-            //    });
-            //}
-
-            //Console.Read();
-            //return;
-
             for (int cindex = 0; cindex < 4; cindex++)
             {
                 int index = cindex;
@@ -68,32 +43,12 @@ namespace TestConsole
                                         wcount++;
                                     }
                                 }
-#pragma warning disable CS0168 // 声明了变量，但从未使用过
-                                catch (Exception ex)
-#pragma warning restore CS0168 // 声明了变量，但从未使用过
+                                catch
                                 {
                                     Console.WriteLine($"index: {index} Apply Error");
                                 }
 
                                 Thread.Sleep(1);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                                 try
                                 {
@@ -102,9 +57,7 @@ namespace TestConsole
                                         wcount++;
                                     }
                                 }
-#pragma warning disable CS0168 // 声明了变量，但从未使用过
-                                catch (Exception ex)
-#pragma warning restore CS0168 // 声明了变量，但从未使用过
+                                catch
                                 {
                                     Console.WriteLine($"index: {index} Apply Error");
                                 }
@@ -115,9 +68,7 @@ namespace TestConsole
                                 {
                                     TransactionResourceHelper.ReleaseResource(index);
                                 }
-#pragma warning disable CS0168 // 声明了变量，但从未使用过
-                                catch (Exception ex)
-#pragma warning restore CS0168 // 声明了变量，但从未使用过
+                                catch
                                 {
                                     Console.WriteLine($"index: {index} Release Error");
                                 }
@@ -130,7 +81,6 @@ namespace TestConsole
                                     Console.WriteLine($"index: {index}, wcount: {wcount}");
                                     time = Environment.TickCount;
                                     count = 0;
-                                    //wcount = 0;
                                 }
                             }
 
@@ -150,19 +100,12 @@ namespace TestConsole
                                         wcount++;
                                     }
                                 }
-#pragma warning disable CS0168 // 声明了变量，但从未使用过
-                                catch (Exception ex)
-#pragma warning restore CS0168 // 声明了变量，但从未使用过
+                                catch
                                 {
                                     Console.WriteLine($"index: {index} Apply Error");
                                 }
 
                                 Thread.Sleep(1);
-
-
-
-
-
 
                                 try
                                 {
@@ -171,9 +114,7 @@ namespace TestConsole
                                         wcount++;
                                     }
                                 }
-#pragma warning disable CS0168 // 声明了变量，但从未使用过
-                                catch (Exception ex)
-#pragma warning restore CS0168 // 声明了变量，但从未使用过
+                                catch
                                 {
                                     Console.WriteLine($"index: {index} Apply Error");
                                 }
@@ -184,9 +125,7 @@ namespace TestConsole
                                 {
                                     TransactionResourceHelper.ReleaseResource(index);
                                 }
-#pragma warning disable CS0168 // 声明了变量，但从未使用过
-                                catch (Exception ex)
-#pragma warning restore CS0168 // 声明了变量，但从未使用过
+                                catch
                                 {
                                     Console.WriteLine($"index: {index} Release Error");
                                 }
@@ -199,7 +138,6 @@ namespace TestConsole
                                     Console.WriteLine($"index: {index}, wcount: {wcount}");
                                     time = Environment.TickCount;
                                     count = 0;
-                                    //wcount = 0;
                                 }
                             }
 
