@@ -93,7 +93,7 @@ namespace Common
 
                     sourceStream.Seek(0, SeekOrigin.Begin);
 
-                    ///缓冲区对象
+                    //缓冲区对象
                     byte[] buffer = SteamHelper.ReadSteamToBuffer(sourceStream, sourceStream.Length);
 
                     outStream.Write(buffer, 0, buffer.Length);
