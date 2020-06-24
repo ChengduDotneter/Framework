@@ -55,12 +55,12 @@ namespace Common.ServiceCommon
             Type objectType = GetTypeByObjectTypeName(JsonUtils.PropertyNameToCSharpStyle(objectName));
 
             if (string.IsNullOrWhiteSpace(properyName))
-                throw new NullReferenceException();
+                throw new DealException("请输入需要查找的字段名");
 
             PropertyInfo propertyInfo = objectType.GetProperty(JsonUtils.PropertyNameToCSharpStyle(properyName));
 
             if (propertyInfo == null)
-                throw new NotSupportedException();
+                throw new DealException("未找到需要查找的字段");
 
             return GetEnumItemValuesByEnumType(propertyInfo.PropertyType);
         }
@@ -68,7 +68,7 @@ namespace Common.ServiceCommon
         private static Type GetTypeByObjectTypeName(string typeName)
         {
             if (string.IsNullOrWhiteSpace(typeName))
-                throw new NullReferenceException();
+                throw new DealException("请输入需要查找的文件名");
 
             Assembly[] assemblyArray = AppDomain.CurrentDomain.GetAssemblies();
 
@@ -91,7 +91,7 @@ namespace Common.ServiceCommon
                 }
             }
 
-            throw new NotSupportedException();
+            throw new DealException("未找到需要查找的文件");
         }
 
         ///<summary>
