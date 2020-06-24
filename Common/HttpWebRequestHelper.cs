@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -133,6 +134,20 @@ namespace Common
         /// <returns></returns>
         public static Task<HttpWebResponseResult> FormPostAsync(string url, IDictionary<string, object> keyValues, string bearerToken = "")
         {
+            return FormPostAsyncByEncoding(url, keyValues, bearerToken);
+        }
+
+        /// <summary>
+        /// form表单的post带编码规则异步请求
+        /// </summary>
+        /// <param name="url">请求地址</param>
+        /// <param name="keyValues">参数键值对</param>
+        /// <param name="encoding">字节编码格式</param>
+        /// <param name="buildValue">参数值处理回调</param>
+        /// <param name="bearerToken">Token</param>
+        /// <returns></returns>
+        public static Task<HttpWebResponseResult> FormPostAsyncByEncoding(string url, IDictionary<string, object> keyValues, string bearerToken = "", Encoding encoding = null, Func<object, string> buildValue = null)
+        {
             StringBuilder builder = new StringBuilder();
 
             if (keyValues != null)
@@ -142,14 +157,28 @@ namespace Common
                 {
                     if (i > 0)
                         builder.Append("&");
-                    builder.AppendFormat("{0}={1}", item.Key, item.Value);
+                    builder.AppendFormat("{0}={1}", item.Key, buildValue == null ? buildValue.Invoke(item.Value) : item.Value);
                     i++;
                 }
             }
 
-            byte[] postData = Encoding.UTF8.GetBytes(builder.ToString());
+            byte[] postData = (encoding ?? Encoding.UTF8).GetBytes(builder.ToString());
 
             return GetHttpRequest(url, bearerToken).AddPostMethod().AddFormContentType().AddContent(postData).GetResponseDataAsync();
+        }
+
+        /// <summary>
+        /// form表单的post带编码规则同步请求
+        /// </summary>
+        /// <param name="url">请求地址</param>
+        /// <param name="keyValues">参数键值对</param>
+        /// <param name="encoding">字节编码格式</param>
+        /// <param name="buildValue">参数值处理回调</param>
+        /// <param name="bearerToken">Token</param>
+        /// <returns></returns>
+        public static HttpWebResponseResult FormPostByEncoding(string url, IDictionary<string, object> keyValues, string bearerToken = "", Encoding encoding = null, Func<object, string> buildValue = null)
+        {
+            return FormPostAsyncByEncoding(url, keyValues, bearerToken, encoding, buildValue).Result;
         }
     }
 }
