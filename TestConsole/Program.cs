@@ -104,9 +104,6 @@ namespace TestConsole
         {
             ConfigManager.Init("Development");
 
-<<<<<<< Updated upstream
-=======
-
 
 
 
@@ -278,7 +275,7 @@ namespace TestConsole
             //Console.Read();
             //return;
 
->>>>>>> Stashed changes
+
             for (int cindex = 0; cindex < 4; cindex++)
             {
                 int index = cindex;
