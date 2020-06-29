@@ -269,7 +269,7 @@ namespace Common.RPC.TransferAdapter
             return new byte[] { 0, 0 };
         }
 
-        private bool CheckCRC(byte[] bufferCRC, byte[] valueCRC)
+        private static bool CheckCRC(byte[] bufferCRC, byte[] valueCRC)
         {
             for (int i = 0; i < CRC_BUFFER_LENGTH; i++)
                 if (bufferCRC[i] != valueCRC[i])

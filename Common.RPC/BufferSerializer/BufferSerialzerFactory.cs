@@ -16,5 +16,15 @@ namespace Common.RPC.BufferSerializer
         {
             return new BinaryBufferSerializer(encoding);
         }
+
+        /// <summary>
+        /// 创建JSON序列化器
+        /// </summary>
+        /// <param name="encoding">序列化编码规则</param>
+        /// <returns></returns>
+        public static IBufferSerializer CreateJsonBufferSerializer(Encoding encoding)
+        {
+            return new JsonBufferSerializer(encoding);
+        }
     }
 }

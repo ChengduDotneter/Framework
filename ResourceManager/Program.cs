@@ -1,4 +1,7 @@
-﻿using Common;
+﻿using System;
+using System.Net;
+using System.Text;
+using Common;
 using Common.DAL.Transaction;
 using Common.RPC;
 using Common.RPC.BufferSerializer;
@@ -6,11 +9,6 @@ using Common.RPC.TransferAdapter;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Orleans;
-using Orleans.Hosting;
-using System;
-using System.Net;
-using System.Text;
 
 namespace ResourceManager
 {
