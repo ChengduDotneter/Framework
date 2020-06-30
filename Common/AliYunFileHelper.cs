@@ -58,9 +58,20 @@ namespace Common
         /// <returns></returns>
         public static PutObjectResult UploadFile(byte[] binaryData, string objectName, string currentFilePath)
         {
+            return UploadFile(new MemoryStream(binaryData), objectName, currentFilePath);
+        }
+
+        /// <summary>
+        /// 上传文件
+        /// </summary>
+        /// <param name="requestContent">文件流</param>
+        /// <param name="objectName">上传文件名</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <returns></returns>
+        public static PutObjectResult UploadFile(MemoryStream requestContent, string objectName, string currentFilePath)
+        {
             try
             {
-                MemoryStream requestContent = new MemoryStream(binaryData);
                 // 上传文件。
                 return client.PutObject(m_bucketName, $"{currentFilePath}/{objectName}", requestContent);
             }

@@ -3,6 +3,7 @@ using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System.Data;
 using System.IO;
+using System.Text;
 
 namespace Common
 {
@@ -169,6 +170,120 @@ namespace Common
                 for (int j = 0; j < dtRow.ItemArray.Length; j++)
                 {
                     excelRow.CreateCell(j).SetCellValue(dtRow[j].ToString());
+                }
+            }
+        }
+
+        /// <summary>
+        /// DataTable导出到Excel的MemoryStream
+        /// </summary>
+        /// <param name="dtSource">源DataTable</param>
+        public static MemoryStream Export(DataTable dtSource)
+        {
+            IWorkbook workbook = new XSSFWorkbook();
+            ISheet sheet = workbook.CreateSheet();
+
+            //取得列宽
+            int[] arrColWidth = new int[dtSource.Columns.Count];
+
+            foreach (DataColumn item in dtSource.Columns)
+            {
+                arrColWidth[item.Ordinal] = Encoding.GetEncoding(936).GetBytes(item.ColumnName.ToString()).Length;
+            }
+
+            for (int i = 0; i < dtSource.Rows.Count; i++)
+            {
+                for (int j = 0; j < dtSource.Columns.Count; j++)
+                {
+                    int intTemp = Encoding.GetEncoding(936).GetBytes(dtSource.Rows[i][j].ToString()).Length;
+                    if (intTemp > arrColWidth[j])
+                    {
+                        arrColWidth[j] = intTemp;
+                    }
+                }
+            }
+
+            int rowIndex = 0;
+            foreach (DataRow row in dtSource.Rows)
+            {
+                #region 新建表，填充表头，填充列头，样式
+
+                if (rowIndex == 65535 || rowIndex == 0)
+                {
+                    if (rowIndex != 0)
+                    {
+                        sheet = workbook.CreateSheet();
+                    }
+
+                    #region 列头及样式
+
+                    {
+                        IRow headerRow = sheet.CreateRow(0);
+                        ICellStyle headStyle = workbook.CreateCellStyle();
+                        headStyle.Alignment = HorizontalAlignment.Center;
+
+                        IFont font = workbook.CreateFont();
+                        font.FontHeightInPoints = 10;
+                        font.Boldweight = 700;
+                        headStyle.SetFont(font);
+                        foreach (DataColumn column in dtSource.Columns)
+                        {
+                            headerRow.CreateCell(column.Ordinal).SetCellValue(column.ColumnName);
+                            headerRow.GetCell(column.Ordinal).CellStyle = headStyle;
+
+                            //设置列宽
+                            sheet.SetColumnWidth(column.Ordinal, (arrColWidth[column.Ordinal] + 1) * 256);
+                        }
+                    }
+
+                    #endregion 列头及样式
+
+                    rowIndex++;
+                }
+
+                #endregion 新建表，填充表头，填充列头，样式
+
+                #region 填充内容
+
+                IRow dataRow = sheet.CreateRow(rowIndex);
+                foreach (DataColumn column in dtSource.Columns)
+                {
+                    ICell newCell = dataRow.CreateCell(column.Ordinal);
+
+                    string drValue = row[column].ToString();
+
+                    newCell.SetCellValue(drValue);
+                }
+
+                #endregion 填充内容
+
+                rowIndex++;
+            }
+            using (MemoryStream ms = new MemoryStream())
+            {
+                workbook.Write(ms);
+                ms.Flush();
+                ms.Position = 0;
+
+                workbook.Dispose();
+                return ms;
+            }
+        }
+
+        /// <summary>
+        /// DataTable导出到Excel文件(07及以上版本excel文件)
+        /// </summary>
+        /// <param name="dtSource">源DataTable</param>
+        /// <param name="strFileName">保存位置</param>
+        public static void Export(DataTable dtSource, string strFileName)
+        {
+            using (MemoryStream ms = Export(dtSource))
+            {
+                using (FileStream fs = new FileStream(strFileName, FileMode.Create, FileAccess.Write))
+                {
+                    byte[] data = ms.ToArray();
+                    fs.Write(data, 0, data.Length);
+                    fs.Flush();
                 }
             }
         }
