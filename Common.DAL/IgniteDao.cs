@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Cache;
@@ -8,12 +14,6 @@ using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Apache.Ignite.Linq;
 using Common.DAL.Transaction;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading;
 
 namespace Common.DAL
 {
@@ -687,7 +687,7 @@ namespace Common.DAL
                     DefaultDataRegionConfiguration = new DataRegionConfiguration
                     {
                         Name = ConfigManager.Configuration["IgniteService:RegionName"],
-                        //PersistenceEnabled = true
+                        PersistenceEnabled = true
                     }
                 },
 
@@ -698,9 +698,9 @@ namespace Common.DAL
             };
 
             m_ignite = Ignition.Start(igniteConfiguration);
-
-            //TODO: 基线拓扑
             m_ignite.GetCluster().SetActive(true);
+            m_ignite.GetCluster().SetBaselineAutoAdjustEnabledFlag(Convert.ToBoolean(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustEnabled"]));
+            m_ignite.GetCluster().SetBaselineAutoAdjustTimeout(Convert.ToInt64(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustTimeout"]));
         }
 
         internal static ISearchQuery<T> GetIgniteSearchQuery<T>()

@@ -16,7 +16,7 @@ namespace ResourceManager
     {
         private static void Main()
         {
-            ConfigManager.Init("Development");
+            ConfigManager.Init("Production");
 
             //ServiceClient serviceClient = new ServiceClient(TransferAdapterFactory.CreateZeroMQTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), ZeroMQSocketTypeEnum.Server, ConfigManager.Configuration["RPC:Identity"]), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
 
