@@ -8,6 +8,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Policy;
 using System.Threading;
 
 namespace Common.DAL
@@ -34,29 +35,39 @@ namespace Common.DAL
 
         private static SqlSugarClient CreateConnection(string connectionString, bool isShadSanmeThread = false)
         {
-            SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig()
+            LocalDataStoreSlot localDataStoreSlot = Thread.GetNamedDataSlot("SqlSugarClient");
+
+            if (localDataStoreSlot == null)
+                localDataStoreSlot = Thread.AllocateNamedDataSlot("SqlSugarClient");
+
+            if (Thread.GetData(localDataStoreSlot) == null)
             {
-                ConnectionString = connectionString,
-                DbType = m_dbType,
-                InitKeyType = InitKeyType.Attribute,
-                IsAutoCloseConnection = isShadSanmeThread,
-                //标记该数据库链接是否为线程共享
-                IsShardSameThread = isShadSanmeThread
-            });
+                SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig()
+                {
+                    ConnectionString = connectionString,
+                    DbType = m_dbType,
+                    InitKeyType = InitKeyType.Attribute,
+                    IsAutoCloseConnection = isShadSanmeThread,
+                    //标记该数据库链接是否为线程共享
+                    IsShardSameThread = isShadSanmeThread
+                });
 
 #if OUTPUT_SQL
-            sqlSugarClient.Aop.OnLogExecuting = (sql, parameters) =>
-            {
-                Console.WriteLine(GetSqlLog(sql, parameters));
-            };
+                sqlSugarClient.Aop.OnLogExecuting = (sql, parameters) =>
+                {
+                    Console.WriteLine(GetSqlLog(sql, parameters));
+                };
 #endif
 
-            sqlSugarClient.Aop.OnError = (sqlSugarException) =>
-            {
-                m_log.Error($"message: {sqlSugarException.Message}{Environment.NewLine}stack_trace: {sqlSugarException.StackTrace}{Environment.NewLine}{GetSqlLog(sqlSugarException.Sql, (SugarParameter[])sqlSugarException.Parametres)}");
-            };
+                sqlSugarClient.Aop.OnError = (sqlSugarException) =>
+                {
+                    m_log.Error($"message: {sqlSugarException.Message}{Environment.NewLine}stack_trace: {sqlSugarException.StackTrace}{Environment.NewLine}{GetSqlLog(sqlSugarException.Sql, (SugarParameter[])sqlSugarException.Parametres)}");
+                };
 
-            return sqlSugarClient;
+                Thread.SetData(localDataStoreSlot, sqlSugarClient);
+            }
+
+            return (SqlSugarClient)Thread.GetData(localDataStoreSlot);
         }
 
         private static string GetSqlLog(string sql, SugarParameter[] sugarParameters)
@@ -224,7 +235,7 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    if (sqlSugarClient != null)
+                    if (sqlSugarClient != null && !inTransaction)
                         sqlSugarClient.Dispose();
                 }
             }
@@ -250,7 +261,7 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    if (sqlSugarClient != null)
+                    if (sqlSugarClient != null && !inTransaction)
                         sqlSugarClient.Dispose();
                 }
             }
@@ -271,7 +282,7 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    if (sqlSugarClient != null)
+                    if (sqlSugarClient != null && !inTransaction)
                         sqlSugarClient.Dispose();
                 }
             }
@@ -304,7 +315,7 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    if (sqlSugarClient != null)
+                    if (sqlSugarClient != null && !inTransaction)
                         sqlSugarClient.Dispose();
                 }
             }
@@ -342,7 +353,7 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    if (sqlSugarClient != null)
+                    if (sqlSugarClient != null && !inTransaction)
                         sqlSugarClient.Dispose();
                 }
             }
@@ -371,7 +382,7 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    if (sqlSugarClient != null)
+                    if (sqlSugarClient != null && !inTransaction)
                         sqlSugarClient.Dispose();
                 }
             }
@@ -402,7 +413,7 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    if (sqlSugarClient != null)
+                    if (sqlSugarClient != null && !inTransaction)
                         sqlSugarClient.Dispose();
                 }
             }
@@ -433,7 +444,7 @@ namespace Common.DAL
                 }
                 finally
                 {
-                    if (sqlSugarClient != null)
+                    if (sqlSugarClient != null && !inTransaction)
                         sqlSugarClient.Dispose();
                 }
             }
@@ -458,8 +469,12 @@ namespace Common.DAL
                 int id = Thread.CurrentThread.ManagedThreadId;
 
                 lock (m_transactions)
+                {
                     if (!m_transactions.ContainsKey(id))
                         m_transactions.Add(id, new SqlSugerTranscation(weight));
+                    else
+                        throw new Exception("当前线程存在未释放的事务。");
+                }
 
                 return m_transactions[id];
             }
