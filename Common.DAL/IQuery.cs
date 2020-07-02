@@ -46,7 +46,7 @@ namespace Common.DAL
         /// 开启事务
         /// </summary>
         /// <param name="weight">事务权重</param>
-        /// <returns></returns>
+        /// <remarks>注意：启动事务后，在事务未释放前不允许使用异步任务，否则会造成数据混乱</remarks>
         ITransaction BeginTransaction(int weight = 0);
     }
 
