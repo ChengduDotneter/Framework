@@ -277,6 +277,12 @@ namespace Common
         /// <param name="strFileName">保存位置</param>
         public static void Export(DataTable dtSource, string strFileName)
         {
+            if (string.IsNullOrWhiteSpace(strFileName))
+                throw new DealException("请传入文件名");
+
+            if (!strFileName.EndsWith(".xlsx"))
+                throw new DealException("当前只支持07及以上版本excel文件");
+
             using (MemoryStream ms = Export(dtSource))
             {
                 using (FileStream fs = new FileStream(strFileName, FileMode.Create, FileAccess.Write))
