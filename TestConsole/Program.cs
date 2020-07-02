@@ -2,7 +2,6 @@
 using Apache.Ignite.Core.Cache.Configuration;
 using Common;
 using Common.DAL;
-using Common.Model;
 
 namespace TestConsole
 {
@@ -39,7 +38,7 @@ namespace TestConsole
 
             using (ITransaction transaction = editQueryA.BeginTransaction())
             {
-                for (int i = 0; i < 10000; i++)
+                for (int i = 0; i < 10; i++)
                 {
                     editQueryA.Insert(new TestModelA()
                     {
