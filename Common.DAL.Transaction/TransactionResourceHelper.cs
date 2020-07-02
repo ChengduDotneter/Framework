@@ -95,7 +95,7 @@ namespace Common.DAL.Transaction
         /// </summary>
         static TransactionResourceHelper()
         {
-            string timeOutString = ConfigManager.Configuration["ResourceManager:TimeOut"];
+            string timeOutString = ConfigManager.Configuration["ResourceManager:Timeout"];
             m_timeOut = string.IsNullOrWhiteSpace(timeOutString) ? DEFAULT_TIME_OUT : Convert.ToInt32(timeOutString);
 
             m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), UDPCRCSocketTypeEnum.Client), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
