@@ -177,7 +177,8 @@ namespace Common.DAL.Transaction
                 int identityIndex;
                 int resourceNameIndex;
 
-                //Thread.Sleep(1);
+                //TODO: 临时解决卡顿
+                Thread.Sleep(1);
 
                 lock (m_lockThis)
                 {
