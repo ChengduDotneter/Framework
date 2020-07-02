@@ -9,7 +9,6 @@ using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Cache;
 using Apache.Ignite.Core.Cache.Configuration;
 using Apache.Ignite.Core.Cache.Query;
-using Apache.Ignite.Core.Cluster;
 using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
@@ -699,6 +698,7 @@ namespace Common.DAL
             };
 
             m_ignite = Ignition.Start(igniteConfiguration);
+            m_ignite.GetCluster().SetActive(true);
             m_ignite.GetCluster().SetBaselineAutoAdjustEnabledFlag(Convert.ToBoolean(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustEnabled"]));
             m_ignite.GetCluster().SetBaselineAutoAdjustTimeout(Convert.ToInt64(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustTimeout"]));
         }
