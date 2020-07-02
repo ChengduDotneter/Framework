@@ -4,11 +4,9 @@ using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace TestWebAPI.Controllers
 {
@@ -152,29 +150,6 @@ namespace TestWebAPI.Controllers
         }
 
         [HttpGet]
-        [Route("1")]
-        public void data()
-        {
-            var client = getclient();
-
-            client.BeginTran();
-            try
-            {
-                var datas = getclient(true).Queryable<ConcurrentModel>();
-
-                getclient().Updateable<ConcurrentModel>().Where(item => true).SetColumns(item => item.Password == "12311").ExecuteCommand();
-                getclient().Insertable(new ConcurrentModel { CreateTime = DateTime.Now, CreateUserID = 0, ID = IDGenerator.NextID(), Password = "11", UserAccount = "123" }).ExecuteCommand();
-                client.CommitTran();
-            }
-            catch
-            {
-                client.RollbackTran();
-            }
-
-
-        }
-
-        [HttpGet]
         [Route("2")]
         public void data111()
         {
@@ -183,20 +158,22 @@ namespace TestWebAPI.Controllers
 
                 try
                 {
-                    var datas = m_searchQuery.FilterIsDeleted().Search();
+                    //var datas = m_searchQuery.FilterIsDeleted().Search();
 
                     m_concurrentModelEditQuery.FilterIsDeleted().Update(item => true, item => item.Password == "12311");
                     m_concurrentModelEditQuery.FilterIsDeleted().Insert(new ConcurrentModel { CreateTime = DateTime.Now, CreateUserID = 0, ID = IDGenerator.NextID(), Password = "11", UserAccount = "123" });
-                    datas = m_searchQuery.FilterIsDeleted().Search();
+                    //datas = m_searchQuery.FilterIsDeleted().Search();
                     //int i = 0;
                     //int c = 5 / i;
 
                     transaction.Submit();
                 }
-                catch
+                catch (Exception ex)
                 {
                     transaction.Rollback();
                 }
+
+                Console.WriteLine(m_searchQuery.FilterIsDeleted().Count());
 
                 //using (ITransaction transaction2 = m_concurrentModelEditQuery.BeginTransaction())
                 //{
@@ -219,19 +196,6 @@ namespace TestWebAPI.Controllers
                 //    }
                 //}
             }
-        }
-
-        private SqlSugarClient getclient(bool isa = true)
-        {
-            return new SqlSugarClient(new ConnectionConfig()
-            {
-                ConnectionString = ConfigManager.Configuration.GetConnectionString("MasterConnection"),
-                DbType = DbType.MySql,
-                InitKeyType = InitKeyType.Attribute,
-                IsAutoCloseConnection = isa,
-                //标记该数据库链接是否为线程共享
-                IsShardSameThread = isa
-            });
         }
     }
 

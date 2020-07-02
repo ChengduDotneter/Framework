@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Common;
 using Common.DAL.Transaction;
 using Common.RPC;
@@ -36,6 +38,7 @@ namespace ResourceManager
                     services.AddSingleton(serviceClient);
                     services.AddHostedService<ApplyResourceProcessor>();
                     services.AddHostedService<ReleaseResourceProcessor>();
+                    //services.AddHostedService<Test>();
                 })
                 .ConfigureLogging(builder =>
                 {
@@ -47,6 +50,57 @@ namespace ResourceManager
             Console.Read();
 
             serviceClient.Dispose();
+        }
+    }
+
+
+    internal class Test : IHostedService
+    {
+        ApplyResourceProcessor a;
+        ReleaseResourceProcessor b;
+
+        public Test(ApplyResourceProcessor a, ReleaseResourceProcessor b)
+        {
+            this.a = a;
+            this.b = b;
+        }
+
+
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            Task.Factory.StartNew(() =>
+            {
+                int time = Environment.TickCount;
+                int count = 0;
+
+                while (true)
+                {
+                    a.Test(new ApplyRequestData() { Identity = 1, ResourceName = "a", TimeOut = 1000, Weight = 0 });
+                    a.Test(new ApplyRequestData() { Identity = 1, ResourceName = "b", TimeOut = 1000, Weight = 0 });
+
+                    //Thread.Sleep(1);
+
+                    Task.Factory.StartNew(() => { b.Test(new ReleaseRequestData() { Identity = 1, ResourceName = "a" }); });
+                    Task.Factory.StartNew(() => { b.Test(new ReleaseRequestData() { Identity = 1, ResourceName = "b" }); });
+                    
+                    count++;
+
+                    if(Environment.TickCount - time > 1000)
+                    {
+                        Console.WriteLine(count);
+                        count = 0;
+                        time = Environment.TickCount;
+                    }
+                }
+            });
+
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 }

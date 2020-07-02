@@ -177,6 +177,8 @@ namespace Common.DAL.Transaction
                 int identityIndex;
                 int resourceNameIndex;
 
+                //Thread.Sleep(1);
+
                 lock (m_lockThis)
                 {
                     if (!m_identityIndexs.ContainsKey(applyRequestData.Identity))
@@ -211,6 +213,7 @@ namespace Common.DAL.Transaction
 
                     if (!m_destoryIdentitys.Contains(waitApplyRequestData.Identity))
                         m_applyRequestDatas.Add(waitApplyRequestData);
+
                 }
 
                 m_destoryIdentitys.Clear();

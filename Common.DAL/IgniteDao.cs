@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Cache;
@@ -14,6 +8,12 @@ using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Apache.Ignite.Linq;
 using Common.DAL.Transaction;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading;
 
 namespace Common.DAL
 {
@@ -588,7 +588,8 @@ namespace Common.DAL
                     Name = typeof(T).Name,
                     CacheMode = CacheMode.Replicated,
                     QueryEntities = new[] { new QueryEntity(typeof(long), typeof(T)) { Fields = queryFields, Indexes = queryIndices } },
-                    SqlSchema = string.Format("\"{0}\"", ConfigManager.Configuration["IgniteService:RegionName"])
+                    SqlSchema = string.Format("\"{0}\"", ConfigManager.Configuration["IgniteService:RegionName"]),
+                    AtomicityMode = CacheAtomicityMode.Transactional
                 };
             }
 

@@ -60,6 +60,24 @@ namespace ResourceManager
             }
         }
 
+        public void Test(ApplyRequestData data)
+        {
+            if (data.TimeOut < 0 ||
+               data.TimeOut > MAX_TIME_OUT)
+                throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
+
+            m_deadlockDetection.ApplyRequest(data.Identity, data.ResourceName, data.Weight, data.TimeOut);
+
+            lock (m_sessionContexts)
+            {
+                if (!m_sessionContexts.ContainsKey(data.Identity))
+                    m_sessionContexts.Add(data.Identity, new Dictionary<string, SessionContext>());
+
+                if (!m_sessionContexts[data.Identity].ContainsKey(data.ResourceName))
+                    m_sessionContexts[data.Identity].Add(data.ResourceName, null);
+            }
+        }
+
         private void ApplyResponsed(long identity, string resourceName, bool successed)
         {
             lock (m_sessionContexts)
@@ -110,6 +128,11 @@ namespace ResourceManager
         {
             m_deadlockDetection.RemoveTranResource(data.Identity);
             SendSessionData(m_serviceClient, sessionContext, new ReleaseResponseData());
+        }
+
+        public void Test(ReleaseRequestData data)
+        {
+            m_deadlockDetection.RemoveTranResource(data.Identity);
         }
     }
 }
