@@ -169,7 +169,9 @@ namespace Common.RPC
                     int count = m_bufferSerializer.Serialize(sendingData.Data, m_sendBuffer);
                     m_transferAdapter.SendBuffer(sendingData.SessionContext, m_sendBuffer, count);
                 }
+#pragma warning disable CS0168 // 声明了变量，但从未使用过
                 catch (Exception ex)
+#pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
 #if OUTPUT_LOG
                     m_log.Error($"serialize error, message_id: {sendingData.Data.MessageID}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");
@@ -189,7 +191,9 @@ namespace Common.RPC
                     IRPCData data = m_bufferSerializer.Deserialize(recieveData.Buffer);
                     OnRecieveData(recieveData.SessionContext, data);
                 }
+#pragma warning disable CS0168 // 声明了变量，但从未使用过
                 catch (Exception ex)
+#pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
 #if OUTPUT_LOG
                     m_log.Error($"process error, message_id: {BitConverter.ToInt32(recieveData.Buffer, 0)}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");

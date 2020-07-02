@@ -226,7 +226,9 @@ namespace Common.RPC.TransferAdapter
                         m_socket.SendFrame(sendData.Buffer, sendData.Buffer.Length);
                     }
                 }
+#pragma warning disable CS0168 // 声明了变量，但从未使用过
                 catch (Exception ex)
+#pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
 #if OUTPUT_LOG
                     m_log.Error($"send error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
@@ -280,7 +282,9 @@ namespace Common.RPC.TransferAdapter
                                 }
                             }
                         }
+#pragma warning disable CS0168 // 声明了变量，但从未使用过
                         catch (Exception ex)
+#pragma warning restore CS0168 // 声明了变量，但从未使用过
                         {
 #if OUTPUT_LOG
                             m_log.Error($"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
