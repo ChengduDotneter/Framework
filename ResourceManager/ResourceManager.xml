@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ResourceManager</name>
+    </assembly>
+    <members>
+        <member name="T:ResourceManager.ApplyResourceProcessor">
+            <summary>
+            申请资源处理器，服务发起端（现包括ZeroMQ和UDP）
+            </summary>
+        </member>
+        <member name="M:ResourceManager.ApplyResourceProcessor.ProcessData(Common.RPC.TransferAdapter.SessionContext,Common.DAL.Transaction.ApplyRequestData)">
+            <summary>
+            数据处理
+            </summary>
+            <param name="sessionContext"></param>
+            <param name="data"></param>
+        </member>
+        <member name="T:ResourceManager.ReleaseResourceProcessor">
+            <summary>
+            释放资源处理器，服务发起端（现包括ZeroMQ和UDP）
+            </summary>
+        </member>
+        <member name="M:ResourceManager.ReleaseResourceProcessor.ProcessData(Common.RPC.TransferAdapter.SessionContext,Common.DAL.Transaction.ReleaseRequestData)">
+            <summary>
+            数据处理
+            </summary>
+            <param name="sessionContext"></param>
+            <param name="data"></param>
+        </member>
+    </members>
+</doc>

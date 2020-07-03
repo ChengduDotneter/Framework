@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Common.Compute;
 using Common.DAL;
 using Microsoft.Extensions.Hosting;
+using NPOI.HPSF;
 using ICompute = Common.Compute.ICompute;
 
 namespace TestConsole
@@ -30,7 +31,38 @@ namespace TestConsole
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine(m_compute.Bordercast(new TestFunc(), 5).Sum());
+            //Task.Factory.StartNew(async () =>
+            //{
+            //    while (true)
+            //    {
+            //        Console.WriteLine((await m_compute.BordercastAsync(new TestFunc(), 5)).Min() + 5);
+            //        await Task.Delay(100);
+            //    }
+            //});
+
+            Test1Func[] test1Func = new Test1Func[1];
+
+            for (int i = 0; i < test1Func.Length; i++)
+                test1Func[i] = new Test1Func() { Value = Guid.NewGuid().ToString() };
+
+            m_compute.Call(test1Func);
+
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    //Console.WriteLine((await m_compute.BordercastAsync(new TestFunc(), 5)).Min() + 5);
+
+                    var result = m_compute.Call(test1Func);
+
+                    foreach (var item in result)
+                    {
+                        Console.WriteLine(item);
+                    }
+
+                    await Task.Delay(100);
+                }
+            });
 
             return Task.CompletedTask;
         }
@@ -54,7 +86,17 @@ namespace TestConsole
     {
         public int Excute(int parameter)
         {
-            return parameter * 2;
+            return parameter * 2 - 1;
+        }
+    }
+
+    public class Test1Func : IComputeFunc<int>
+    {
+        public string Value { get; set; }
+
+        public int Excute()
+        {
+            return Value.GetHashCode();
         }
     }
 }
