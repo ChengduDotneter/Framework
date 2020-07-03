@@ -17,6 +17,24 @@ namespace Common.ServiceCommon
             if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
                 return HttpJsonHelper.GetResponse<T>(httpResponseMessage);
 
+             CheckReturn(microServiceName, httpResponseMessage);
+
+            throw new DealException($"{microServiceName}接口调用失败");
+        }
+
+        private static bool ReturnEntity(string microServiceName, HttpResponseMessage httpResponseMessage)
+        {
+
+            if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
+                return true;
+
+            CheckReturn(microServiceName, httpResponseMessage);
+
+            throw new DealException($"{microServiceName}接口调用失败");
+        }
+
+        private static void CheckReturn(string microServiceName, HttpResponseMessage httpResponseMessage)
+        {
             if (httpResponseMessage.StatusCode == HttpStatusCode.PaymentRequired)
                 throw new DealException($"{microServiceName}接口调用失败,原因{httpResponseMessage.Content.ReadAsStringAsync().Result}");
 
@@ -31,8 +49,6 @@ namespace Common.ServiceCommon
 
             if (httpResponseMessage.StatusCode == HttpStatusCode.InternalServerError)
                 throw new DealException($"{microServiceName}服务内部错误");
-
-            throw new DealException($"{microServiceName}接口调用失败");
         }
 
         /// <summary>
@@ -56,6 +72,29 @@ namespace Common.ServiceCommon
                                 );
 
             return ReturnEntity<T>(microServiceName, httpResponseMessage);
+        }
+
+        /// <summary>
+        /// 微服务Post
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="httpContextAccessor">IHttpContextAccessor</param>
+        /// <param name="microServiceName">微服务名称</param>
+        /// <param name="functionName">接口名</param>
+        /// <param name="sendText">参数</param>
+        /// <returns></returns>
+        public static bool SendMicroServicePost(IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
+        {
+            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sendText)));
+
+            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
+                                $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
+                                httpContent,
+                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                );
+
+            return ReturnEntity(microServiceName, httpResponseMessage);
         }
 
         /// <summary>
