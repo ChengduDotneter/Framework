@@ -1,69 +1,54 @@
 ﻿using System;
-using Apache.Ignite.Core.Cache.Configuration;
 using Common;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Common.ServiceCommon;
 using Common.DAL;
+using System.Reflection;
 
 namespace TestConsole
 {
-    internal class TestModelA : IEntity
-    {
-        [QuerySqlField(IsIndexed = true)]
-        public long ID { get; set; }
 
-        [QuerySqlField(IsIndexed = true)]
-        public string Name { get; set; }
-
-        public int Value { get; set; }
-    }
-
-    internal class TestModelB : IEntity
-    {
-        [QuerySqlField(IsIndexed = true)]
-        public long ID { get; set; }
-
-        [QuerySqlField(IsIndexed = true)]
-        public string Name { get; set; }
-
-        public int Value { get; set; }
-    }
 
     internal class Program
     {
-        private static unsafe void Main(string[] _)
+        private static void Main(string[] _)
         {
             ConfigManager.Init("Development");
 
-            IEditQuery<TestModelA> editQueryA = DaoFactory.GetEditIgniteQuery<TestModelA>();
-            IEditQuery<TestModelB> editQueryB = DaoFactory.GetEditIgniteQuery<TestModelB>();
-
-            using (ITransaction transaction = editQueryA.BeginTransaction())
+            Type[] modelTypes = TypeReflector.ReflectType((type) =>
             {
-                for (int i = 0; i < 10; i++)
+                if (type.GetInterface(typeof(IEntity).FullName) == null || type.IsInterface || type.IsAbstract)
+                    return false;
+
+                if (type.GetCustomAttribute<IgnoreTableAttribute>() != null)
+                    return false;
+
+                return true;
+            });
+
+            new HostBuilder().
+                ConfigureServices(services =>
                 {
-                    editQueryA.Insert(new TestModelA()
+                    services.Configure<ConsoleLifetimeOptions>(options =>
                     {
-                        Name = Guid.NewGuid().ToString("D"),
-                        Value = Environment.TickCount,
-                        ID = IDGenerator.NextID()
+                        options.SuppressStatusMessages = true;
                     });
 
-                    editQueryA.Insert(new TestModelA()
-                    {
-                        Name = Guid.NewGuid().ToString("D"),
-                        Value = Environment.TickCount,
-                        ID = IDGenerator.NextID()
-                    });
-
-                    editQueryB.Insert(new TestModelB()
-                    {
-                        Name = Guid.NewGuid().ToString("D"),
-                        Value = Environment.TickCount,
-                        ID = IDGenerator.NextID()
-                    });
-                }
-
-                transaction.Submit();
-            }
+                    services.AddScoped(sp => Common.Compute.ComputeFactory.GetIgniteCompute());
+                    services.AddScoped(sp => Common.Compute.ComputeFactory.GetIgniteMapReduce());
+                    services.AddScoped(sp => Common.Compute.ComputeFactory.GetIgniteAsyncMapReduce());
+                    services.AddHostedService<ComputeTestTask>();
+                }).
+                ConfigureServices(serviceCollection =>
+                {
+                    serviceCollection.AddQuerys(modelTypes);
+                }).
+                ConfigureLogging(builder =>
+                {
+                    builder.AddConsole();
+                }).RunConsoleAsync();
 
             Console.Read();
         }

@@ -675,6 +675,11 @@ namespace Common.DAL
             {
                 Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
 
+                UserAttributes = new Dictionary<string, object>()
+                {
+                    ["NodeType"] = "DataGrid"
+                },
+
                 DiscoverySpi = new TcpDiscoverySpi()
                 {
                     IpFinder = new TcpDiscoveryMulticastIpFinder()
@@ -697,7 +702,7 @@ namespace Common.DAL
                     TypeConfigurations = binaryTypeConfigurations
                 }
             };
-
+            
             m_ignite = Ignition.Start(igniteConfiguration);
             m_ignite.GetCluster().SetActive(true);
             m_ignite.GetCluster().SetBaselineAutoAdjustEnabledFlag(Convert.ToBoolean(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustEnabled"]));

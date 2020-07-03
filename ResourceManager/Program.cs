@@ -26,8 +26,8 @@ namespace ResourceManager
 
             serviceClient.Start();
 
-            new HostBuilder()
-                .ConfigureServices(services =>
+            new HostBuilder().
+                ConfigureServices(services =>
                 {
                     services.Configure<ConsoleLifetimeOptions>(options =>
                     {
@@ -39,8 +39,8 @@ namespace ResourceManager
                     services.AddHostedService<ApplyResourceProcessor>();
                     services.AddHostedService<ReleaseResourceProcessor>();
                     //services.AddHostedService<Test>();
-                })
-                .ConfigureLogging(builder =>
+                }).
+                ConfigureLogging(builder =>
                 {
                     builder.AddConsole();
                 }).RunConsoleAsync();
@@ -83,10 +83,10 @@ namespace ResourceManager
 
                     Task.Factory.StartNew(() => { b.Test(new ReleaseRequestData() { Identity = 1, ResourceName = "a" }); });
                     Task.Factory.StartNew(() => { b.Test(new ReleaseRequestData() { Identity = 1, ResourceName = "b" }); });
-                    
+
                     count++;
 
-                    if(Environment.TickCount - time > 1000)
+                    if (Environment.TickCount - time > 1000)
                     {
                         Console.WriteLine(count);
                         count = 0;
