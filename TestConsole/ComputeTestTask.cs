@@ -45,8 +45,6 @@ namespace TestConsole
             for (int i = 0; i < test1Func.Length; i++)
                 test1Func[i] = new Test1Func() { Value = Guid.NewGuid().ToString() };
 
-            m_compute.Call(test1Func);
-
             Task.Factory.StartNew(async () =>
             {
                 while (true)
@@ -90,13 +88,13 @@ namespace TestConsole
         }
     }
 
-    public class Test1Func : IComputeFunc<int>
+    public class Test1Func : IComputeFunc<string>
     {
         public string Value { get; set; }
 
-        public int Excute()
+        public string Excute()
         {
-            return Value.GetHashCode();
+            return Common.ConfigManager.Configuration["IgniteService:LocalHost"];
         }
     }
 }
