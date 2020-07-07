@@ -36,7 +36,8 @@ namespace Common.Compute
                 }
             };
 
-            m_ignite = Ignition.Start(igniteConfiguration);
+            //m_ignite = Ignition.Start(igniteConfiguration);
+            m_ignite = Ignition.GetIgnite();
         }
 
         public static ICompute CreateCompute()
@@ -56,7 +57,7 @@ namespace Common.Compute
 
         private static Apache.Ignite.Core.Compute.ICompute GetCompute()
         {
-            return m_ignite.GetCluster().ForAttribute("NodeType", "ComputeGrid").GetCompute();
+            return m_ignite.GetCluster().GetCompute();
         }
 
         internal class IgniteComputeInstance : ICompute
@@ -160,15 +161,13 @@ namespace Common.Compute
                 if (Running)
                     throw new Exception("任务已经执行。");
 
-                if (m_cancellationTokenSource != null)
-                    throw new Exception("已经执行过的任务需要销毁。");
-
                 Running = true;
                 m_cancellationTokenSource = new CancellationTokenSource();
 
                 TResult result = await GetCompute().ExecuteAsync(new IgniteComputeTaskSplitAdapter<TParameter, TResult, TSplitParameter, TSplitResult>(mapReduceTask), parameter, m_cancellationTokenSource.Token);
 
                 Running = false;
+                m_cancellationTokenSource.Dispose();
 
                 return result;
             }
@@ -177,12 +176,18 @@ namespace Common.Compute
             {
                 Running = false;
                 m_cancellationTokenSource.Cancel();
+
+                if (m_cancellationTokenSource != null)
+                    m_cancellationTokenSource.Dispose();
             }
 
             public void Dispose()
             {
                 if (Running)
                     throw new Exception("尝试销毁正在执行中的任务。");
+
+                if (m_cancellationTokenSource != null)
+                    m_cancellationTokenSource.Dispose();
             }
         }
     }

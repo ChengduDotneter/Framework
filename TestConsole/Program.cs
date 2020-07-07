@@ -43,7 +43,9 @@ namespace TestConsole
                 }).
                 ConfigureServices(serviceCollection =>
                 {
-                    serviceCollection.AddQuerys(modelTypes);
+                    serviceCollection.AddQuerys(modelTypes,
+                                                (type) => typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null),
+                                                (type) => typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null));
                 }).
                 ConfigureLogging(builder =>
                 {

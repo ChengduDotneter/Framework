@@ -3,6 +3,7 @@ using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Cache;
 using Apache.Ignite.Core.Cache.Configuration;
 using Apache.Ignite.Core.Cache.Query;
+using Apache.Ignite.Core.Cluster;
 using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
@@ -24,30 +25,30 @@ namespace Common.DAL
 
         private static void Apply<TResource>() where TResource : class, IEntity
         {
-            int id = Thread.CurrentThread.ManagedThreadId;
-            IgniteITransaction igniteITransaction = null;
+            //int id = Thread.CurrentThread.ManagedThreadId;
+            //IgniteITransaction igniteITransaction = null;
 
-            lock (m_transactions)
-                if (m_transactions.ContainsKey(id))
-                    igniteITransaction = m_transactions[id];
+            //lock (m_transactions)
+            //    if (m_transactions.ContainsKey(id))
+            //        igniteITransaction = m_transactions[id];
 
-            if (igniteITransaction != null)
-            {
-                Type table = typeof(TResource);
+            //if (igniteITransaction != null)
+            //{
+            //    Type table = typeof(TResource);
 
-                if (!igniteITransaction.TransactionTables.Contains(table))
-                {
-                    if (TransactionResourceHelper.ApplayResource(table, igniteITransaction.Identity, igniteITransaction.Weight))
-                        igniteITransaction.TransactionTables.Add(table);
-                    else
-                        throw new DealException($"申请事务资源{table.FullName}失败。");
-                }
-            }
+            //    if (!igniteITransaction.TransactionTables.Contains(table))
+            //    {
+            //        if (TransactionResourceHelper.ApplayResource(table, igniteITransaction.Identity, igniteITransaction.Weight))
+            //            igniteITransaction.TransactionTables.Add(table);
+            //        else
+            //            throw new DealException($"申请事务资源{table.FullName}失败。");
+            //    }
+            //}
         }
 
         private static async void Release(long identity)
         {
-            await TransactionResourceHelper.ReleaseResourceAsync(identity);
+            //await TransactionResourceHelper.ReleaseResourceAsync(identity);
         }
 
         private class IgniteITransaction : ITransaction
@@ -675,11 +676,6 @@ namespace Common.DAL
             {
                 Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
 
-                UserAttributes = new Dictionary<string, object>()
-                {
-                    ["NodeType"] = "DataGrid"
-                },
-
                 DiscoverySpi = new TcpDiscoverySpi()
                 {
                     IpFinder = new TcpDiscoveryMulticastIpFinder()
@@ -702,11 +698,18 @@ namespace Common.DAL
                     TypeConfigurations = binaryTypeConfigurations
                 }
             };
-            
+
+            //基线拓扑，数据再平衡
             m_ignite = Ignition.Start(igniteConfiguration);
             m_ignite.GetCluster().SetActive(true);
-            m_ignite.GetCluster().SetBaselineAutoAdjustEnabledFlag(Convert.ToBoolean(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustEnabled"]));
-            m_ignite.GetCluster().SetBaselineAutoAdjustTimeout(Convert.ToInt64(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustTimeout"]));
+            //m_ignite.GetCluster().SetBaselineAutoAdjustEnabledFlag(Convert.ToBoolean(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustEnabled"]));
+            //m_ignite.GetCluster().SetBaselineAutoAdjustTimeout(Convert.ToInt64(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustTimeout"]));
+
+            m_ignite.GetCluster().SetBaselineAutoAdjustEnabledFlag(false);
+
+            ICollection<IBaselineNode> baselineNodes = m_ignite.GetCluster().GetBaselineTopology();
+            baselineNodes.Add(m_ignite.GetCluster().GetLocalNode());
+            m_ignite.GetCluster().SetBaselineTopology(baselineNodes);
         }
 
         internal static ISearchQuery<T> GetIgniteSearchQuery<T>()
