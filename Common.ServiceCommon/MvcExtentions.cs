@@ -143,6 +143,15 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 并行计算任务工厂依赖注入
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        public static void AddComputeFactory(this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddScoped<IComputeFactory, ComputeFactory>();
+        }
+
+        /// <summary>
         /// JSON序列化相关接口依赖注册
         /// </summary>
         /// <param name="serviceCollection"></param>

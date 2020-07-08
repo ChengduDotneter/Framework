@@ -12,7 +12,8 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>D:\Work\麦邦\Framework\Common.ServiceCommon\Common.ServiceCommon.xml</DocumentationFile>
+    <DebugType></DebugType>
+    <DocumentationFile>bin\Release\netcoreapp3.0\Common.ServiceCommon.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Consul" Version="0.7.2.6" />
@@ -21,6 +22,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.1.0" />
     <PackageReference Include="System.Text.Encodings.Web" Version="4.7.1" />
     <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="3.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common.DAL.Cache\Common.DAL.Cache.csproj" />
@@ -29,5 +31,6 @@
     <ProjectReference Include="..\Common.Model\Common.Model.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Common.DAL.Transaction\Common.DAL.Transaction.csproj" />
+    <ProjectReference Include="..\Common.Compute\Common.Compute.csproj" />
   </ItemGroup>
 </Project>

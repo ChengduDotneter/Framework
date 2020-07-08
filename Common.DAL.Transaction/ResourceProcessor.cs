@@ -59,9 +59,7 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 资源释放
         /// </summary>
-        /// <param name="table">所需释放的表类型</param>
         /// <param name="identity">事务线程ID</param>
-        /// <returns></returns>
         public async Task<bool> Release(long identity)
         {
             bool result = await Request(m_serviceClient, new ReleaseRequestData()

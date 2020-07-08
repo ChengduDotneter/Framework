@@ -168,7 +168,9 @@ namespace TestWebAPI.Controllers
 
                     transaction.Submit();
                 }
+#pragma warning disable CS0168 // 声明了变量，但从未使用过
                 catch (Exception ex)
+#pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
                     transaction.Rollback();
                 }

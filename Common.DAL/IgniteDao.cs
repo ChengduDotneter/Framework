@@ -25,30 +25,30 @@ namespace Common.DAL
 
         private static void Apply<TResource>() where TResource : class, IEntity
         {
-            //int id = Thread.CurrentThread.ManagedThreadId;
-            //IgniteITransaction igniteITransaction = null;
+            int id = Thread.CurrentThread.ManagedThreadId;
+            IgniteITransaction igniteITransaction = null;
 
-            //lock (m_transactions)
-            //    if (m_transactions.ContainsKey(id))
-            //        igniteITransaction = m_transactions[id];
+            lock (m_transactions)
+                if (m_transactions.ContainsKey(id))
+                    igniteITransaction = m_transactions[id];
 
-            //if (igniteITransaction != null)
-            //{
-            //    Type table = typeof(TResource);
+            if (igniteITransaction != null)
+            {
+                Type table = typeof(TResource);
 
-            //    if (!igniteITransaction.TransactionTables.Contains(table))
-            //    {
-            //        if (TransactionResourceHelper.ApplayResource(table, igniteITransaction.Identity, igniteITransaction.Weight))
-            //            igniteITransaction.TransactionTables.Add(table);
-            //        else
-            //            throw new DealException($"申请事务资源{table.FullName}失败。");
-            //    }
-            //}
+                if (!igniteITransaction.TransactionTables.Contains(table))
+                {
+                    if (TransactionResourceHelper.ApplayResource(table, igniteITransaction.Identity, igniteITransaction.Weight))
+                        igniteITransaction.TransactionTables.Add(table);
+                    else
+                        throw new DealException($"申请事务资源{table.FullName}失败。");
+                }
+            }
         }
 
         private static async void Release(long identity)
         {
-            //await TransactionResourceHelper.ReleaseResourceAsync(identity);
+            await TransactionResourceHelper.ReleaseResourceAsync(identity);
         }
 
         private class IgniteITransaction : ITransaction

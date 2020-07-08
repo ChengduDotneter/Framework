@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>D:\Work\麦邦\Framework\Common.MessageQueueClient\Common.MessageQueueClient.xml</DocumentationFile>
+    <DebugType></DebugType>
+    <DocumentationFile>bin\Release\netstandard2.0\Common.MessageQueueClient.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
