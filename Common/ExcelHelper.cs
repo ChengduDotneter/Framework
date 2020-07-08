@@ -250,10 +250,12 @@ namespace Common
                 #region 填充内容
 
                 IRow dataRow = sheet.CreateRow(rowIndex);
+                ICellStyle rowStyle = workbook.CreateCellStyle();
+                rowStyle.WrapText = true;
                 foreach (DataColumn column in dtSource.Columns)
                 {
                     ICell newCell = dataRow.CreateCell(column.Ordinal);
-
+                    newCell.CellStyle = rowStyle;
                     string drValue = row[column].ToString();
 
                     newCell.SetCellValue(drValue);
