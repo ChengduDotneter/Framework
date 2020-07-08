@@ -196,6 +196,10 @@ namespace Common
                 for (int j = 0; j < dtSource.Columns.Count; j++)
                 {
                     int intTemp = Encoding.GetEncoding(936).GetBytes(dtSource.Rows[i][j].ToString()).Length;
+
+                    if (intTemp > 254)
+                        intTemp = 254;
+
                     if (intTemp > arrColWidth[j])
                     {
                         arrColWidth[j] = intTemp;
