@@ -587,7 +587,7 @@ namespace Common.DAL
                 CacheConfiguration = new CacheConfiguration()
                 {
                     Name = typeof(T).Name,
-                    CacheMode = CacheMode.Replicated,
+                    CacheMode = CacheMode.Replicated,//ignite平衡算法
                     QueryEntities = new[] { new QueryEntity(typeof(long), typeof(T)) { Fields = queryFields, Indexes = queryIndices } },
                     SqlSchema = string.Format("\"{0}\"", ConfigManager.Configuration["IgniteService:RegionName"]),
                     AtomicityMode = CacheAtomicityMode.Transactional

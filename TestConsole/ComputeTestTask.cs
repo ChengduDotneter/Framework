@@ -89,7 +89,7 @@ namespace TestConsole
         {
             Task.Factory.StartNew(async () =>
             {
-                bool wait = false;
+                bool wait = true;
 
                 while (wait)
                     await Task.Delay(1000);
