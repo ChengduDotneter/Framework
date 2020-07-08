@@ -37,17 +37,10 @@ namespace Common.ServiceCommon
         IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> CreateComputeMapReduceTask<T, TParameter, TResult, TSplitParameter, TSplitResult>() where T : IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>;
     }
 
-    /// <summary>
-    /// 并行计算任务创建工厂
-    /// </summary>
-    public class ComputeFactory : IComputeFactory
+    internal class ComputeFactory : IComputeFactory
     {
         private IHost m_host;
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="host">服务宿主</param>
         public ComputeFactory(IHost host)
         {
             m_host = host;
@@ -70,35 +63,16 @@ namespace Common.ServiceCommon
             return constructorInfos[0].Invoke(parameters);
         }
 
-        /// <summary>
-        /// 创建并行计算Job
-        /// </summary>
-        /// <typeparam name="T">并行计算Job实现类型</typeparam>
-        /// <typeparam name="TParameter">Job参数</typeparam>
-        /// <typeparam name="TResult">Job返回值</typeparam>
         public IComputeFunc<TParameter, TResult> CreateComputeFunc<T, TParameter, TResult>() where T : IComputeFunc<TParameter, TResult>
         {
             return (IComputeFunc<TParameter, TResult>)CreateInstance(m_host, typeof(T));
         }
 
-        /// <summary>
-        /// 创建并行计算Job
-        /// </summary>
-        /// <typeparam name="T">并行计算Job实现类型</typeparam>
-        /// <typeparam name="TResult">Job返回值</typeparam>
         public IComputeFunc<TResult> CreateComputeFunc<T, TResult>() where T : IComputeFunc<TResult>
         {
             return (IComputeFunc<TResult>)CreateInstance(m_host, typeof(T));
         }
 
-        /// <summary>
-        /// 创建并行计算任务
-        /// </summary>
-        /// <typeparam name="T">并行计算任务实现类型</typeparam>
-        /// <typeparam name="TParameter">任务参数</typeparam>
-        /// <typeparam name="TResult">任务返回值</typeparam>
-        /// <typeparam name="TSplitParameter">Job参数</typeparam>
-        /// <typeparam name="TSplitResult">Job返回值</typeparam>
         public IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> CreateComputeMapReduceTask<T, TParameter, TResult, TSplitParameter, TSplitResult>()
             where T : IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>
         {

@@ -72,7 +72,6 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 释放事务资源
         /// </summary>
-        /// <param name="table">所需申请的表类型</param>
         /// <param name="identity">事务线程ID</param>
         public static void ReleaseResource(long identity)
         {
@@ -82,7 +81,6 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 释放事务资源，异步
         /// </summary>
-        /// <param name="table">所需申请的表类型</param>
         /// <param name="identity">事务线程ID</param>
         public static async Task ReleaseResourceAsync(long identity)
         {

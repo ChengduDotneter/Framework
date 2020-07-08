@@ -51,27 +51,27 @@ namespace Common.DAL.Transaction
         private const int DEFAULT_IDENTITY_LENGTH = 32;
 
         /// <summary>
-        /// 权重字典<事务ID的索引，权重>
+        /// 权重字典：事务ID的索引和权重
         /// </summary>
         private IDictionary<int, int> m_weights;
 
         /// <summary>
-        /// 事务ID索引字典<事务ID，事务ID索引>
+        /// 事务ID索引字典：事务ID和事务ID索引
         /// </summary>
         private IDictionary<long, int> m_identityIndexs;
 
         /// <summary>
-        /// 事务ID索引字典<事务ID索引，事务ID>
+        /// 事务ID索引字典：事务ID索引和事务ID
         /// </summary>
         private IDictionary<int, long> m_identityKeyIndexs;
 
         /// <summary>
-        /// 事务资源名索引字典<事务资源名，事务资源名索引>
+        /// 事务资源名索引字典：事务资源名和事务资源名索引
         /// </summary>
         private IDictionary<string, int> m_resourceNameIndexs;
 
         /// <summary>
-        /// 事务资源名索引字典<事务资源名索引，事务资源名>
+        /// 事务资源名索引字典：事务资源名索引和事务资源名
         /// </summary>
         private IDictionary<int, string> m_resourceNameKeyIndexs;
 
@@ -81,7 +81,7 @@ namespace Common.DAL.Transaction
         private bool[] m_usedIdentityIndexs;
 
         /// <summary>
-        /// 事务资源申请时序(事务ID，时序)
+        /// 事务资源申请时序(事务ID和时序)
         /// </summary>
         private long[,] m_matrix;
 
@@ -226,6 +226,7 @@ namespace Common.DAL.Transaction
         /// </summary>
         /// <param name="lastIdentityIndex">最后一个进入的事务线程ID索引</param>
         /// <param name="lastResourceNameIndex">最后一个进入的事务资源索引</param>
+        /// <param name="applyRequestData">资源申请数据</param>
         private void CheckLock(int lastIdentityIndex, int lastResourceNameIndex, ApplyRequestData applyRequestData)
         {
             if (m_matrix[lastIdentityIndex, lastResourceNameIndex] == 0)
@@ -313,6 +314,7 @@ namespace Common.DAL.Transaction
         /// <param name="identityIndexB">出现死锁的事务B的ID索引</param>
         /// <param name="resourceIndexA">出现死锁的事务A的资源索引</param>
         /// <param name="resourceIndexB">出现死锁的事务B的资源索引</param>
+        /// <param name="applyRequestData">资源申请数据</param>
         private void ConflictResolution(int identityIndexA, int identityIndexB, int resourceIndexA, int resourceIndexB, ApplyRequestData applyRequestData)
         {
             if (m_weights[identityIndexA] >= m_weights[identityIndexB])

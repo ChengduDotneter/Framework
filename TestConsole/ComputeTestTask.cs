@@ -71,13 +71,11 @@ namespace TestConsole
     public class ComputeTestTask : IHostedService
     {
         private readonly IComputeFactory m_computeFactory;
-        private readonly IMapReduce m_mapReduce;
         private readonly IAsyncMapReduce m_asyncMapReduce;
 
-        public ComputeTestTask(IComputeFactory computeFactory, IMapReduce mapReduce, IAsyncMapReduce asyncMapReduce)
+        public ComputeTestTask(IComputeFactory computeFactory, IAsyncMapReduce asyncMapReduce)
         {
             m_computeFactory = computeFactory;
-            m_mapReduce = mapReduce;
             m_asyncMapReduce = asyncMapReduce;
         }
 
@@ -96,7 +94,7 @@ namespace TestConsole
 
                     int time = Environment.TickCount;
 
-                    IEnumerable<LogDataResult> result = m_mapReduce.Excute(m_computeFactory.CreateComputeMapReduceTask<LogDataMapReduceTask, string, IEnumerable<LogDataResult>, LogDataSplitParameter, LogDataSplitResult>(), string.Empty);
+                    IEnumerable<LogDataResult> result = await m_asyncMapReduce.ExcuteAsync(m_computeFactory.CreateComputeMapReduceTask<LogDataMapReduceTask, string, IEnumerable<LogDataResult>, LogDataSplitParameter, LogDataSplitResult>(), string.Empty);
 
                     Console.WriteLine($"task done, total time: {Environment.TickCount - time}");
 
@@ -109,9 +107,6 @@ namespace TestConsole
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            if (m_mapReduce != null)
-                m_mapReduce.Dispose();
-
             if (m_asyncMapReduce != null && m_asyncMapReduce.Running)
                 m_asyncMapReduce.Cancel();
 
