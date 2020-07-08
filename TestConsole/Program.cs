@@ -17,6 +17,8 @@ namespace TestConsole
         {
             ConfigManager.Init("Development");
 
+            DaoFactory.GetSearchIgniteQuery<LogData>();
+
             Type[] modelTypes = TypeReflector.ReflectType((type) =>
             {
                 if (type.GetInterface(typeof(IEntity).FullName) == null || type.IsInterface || type.IsAbstract)
@@ -43,6 +45,8 @@ namespace TestConsole
                 }).
                 ConfigureServices(serviceCollection =>
                 {
+                    serviceCollection.AddComputeFactory();
+
                     serviceCollection.AddQuerys(modelTypes,
                                                 (type) => typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null),
                                                 (type) => typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null));

@@ -21,6 +21,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.1.0" />
     <PackageReference Include="System.Text.Encodings.Web" Version="4.7.1" />
     <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="3.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common.DAL.Cache\Common.DAL.Cache.csproj" />
@@ -29,5 +30,6 @@
     <ProjectReference Include="..\Common.Model\Common.Model.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Common.DAL.Transaction\Common.DAL.Transaction.csproj" />
+    <ProjectReference Include="..\Common.Compute\Common.Compute.csproj" />
   </ItemGroup>
 </Project>
