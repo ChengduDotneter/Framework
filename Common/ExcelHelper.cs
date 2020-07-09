@@ -196,6 +196,10 @@ namespace Common
                 for (int j = 0; j < dtSource.Columns.Count; j++)
                 {
                     int intTemp = Encoding.GetEncoding(936).GetBytes(dtSource.Rows[i][j].ToString()).Length;
+
+                    if (intTemp > 254)
+                        intTemp = 254;
+
                     if (intTemp > arrColWidth[j])
                     {
                         arrColWidth[j] = intTemp;
@@ -246,10 +250,12 @@ namespace Common
                 #region 填充内容
 
                 IRow dataRow = sheet.CreateRow(rowIndex);
+                ICellStyle rowStyle = workbook.CreateCellStyle();
+                rowStyle.WrapText = true;
                 foreach (DataColumn column in dtSource.Columns)
                 {
                     ICell newCell = dataRow.CreateCell(column.Ordinal);
-
+                    newCell.CellStyle = rowStyle;
                     string drValue = row[column].ToString();
 
                     newCell.SetCellValue(drValue);

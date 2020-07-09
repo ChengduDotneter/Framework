@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Apache.Ignite.Core;
 using Apache.Ignite.Core.Cache.Configuration;
-using Apache.Ignite.Core.Cache.Query;
-using Apache.Ignite.Linq;
+using Common;
 using Common.Compute;
 using Common.DAL;
+using Common.ServiceCommon;
 using Microsoft.Extensions.Hosting;
 using SqlSugar;
-using ICompute = Common.Compute.ICompute;
 
 namespace TestConsole
 {
@@ -72,24 +70,20 @@ namespace TestConsole
 
     public class ComputeTestTask : IHostedService
     {
-        private readonly ISearchQuery<LogData> m_logDataSearchQuery;
-        private readonly ICompute m_compute;
-        private readonly IMapReduce m_mapReduce;
+        private readonly IComputeFactory m_computeFactory;
         private readonly IAsyncMapReduce m_asyncMapReduce;
 
-        public ComputeTestTask(ISearchQuery<LogData> logDataSearchQuery, IMapReduce mapReduce, IAsyncMapReduce asyncMapReduce, ICompute compute)
+        public ComputeTestTask(IComputeFactory computeFactory, IAsyncMapReduce asyncMapReduce)
         {
-            m_logDataSearchQuery = logDataSearchQuery;
-            m_mapReduce = mapReduce;
+            m_computeFactory = computeFactory;
             m_asyncMapReduce = asyncMapReduce;
-            m_compute = compute;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             Task.Factory.StartNew(async () =>
             {
-                bool wait = false;
+                bool wait = true;
 
                 while (wait)
                     await Task.Delay(1000);
@@ -100,10 +94,7 @@ namespace TestConsole
 
                     int time = Environment.TickCount;
 
-                    IEnumerable<LogDataJobResult> result = m_mapReduce.Excute(new LogDataMapReduceTask(), string.Empty);
-
-                    //foreach (LogDataJobResult item in result)
-                    //    Console.WriteLine($"timestamp: {item.TimeStamp}, count: {item.Count}");
+                    IEnumerable<LogDataResult> result = await m_asyncMapReduce.ExcuteAsync(m_computeFactory.CreateComputeMapReduceTask<LogDataMapReduceTask, string, IEnumerable<LogDataResult>, LogDataSplitParameter, LogDataSplitResult>(), string.Empty);
 
                     Console.WriteLine($"task done, total time: {Environment.TickCount - time}");
 
@@ -116,9 +107,6 @@ namespace TestConsole
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            if (m_mapReduce != null)
-                m_mapReduce.Dispose();
-
             if (m_asyncMapReduce != null && m_asyncMapReduce.Running)
                 m_asyncMapReduce.Cancel();
 
@@ -129,11 +117,16 @@ namespace TestConsole
         }
     }
 
-    public class LogDataJobResult
+    public class LogDataResult
     {
         public int Count { get; set; }
         public string TimeStamp { get; set; }
-        public string NodeID { get; set; }
+    }
+
+    public class LogDataSplitResult
+    {
+        public IEnumerable<LogDataResult> LogDataResults { get; set; }
+        public string IPAddress { get; set; }
     }
 
     public class LogDataSplitParameter
@@ -142,17 +135,24 @@ namespace TestConsole
         public int Limit { get; set; }
     }
 
-    public class LogDataFunc : IComputeFunc<LogDataSplitParameter, IEnumerable<LogDataJobResult>>
+    public class LogDataFunc : IComputeFunc<LogDataSplitParameter, LogDataSplitResult>
     {
-        public IEnumerable<LogDataJobResult> Excute(LogDataSplitParameter logDataSplitParameter)
+        private ISearchQuery<LogData> m_searchQuery;
+
+        public LogDataFunc(ISearchQuery<LogData> searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
+
+        public LogDataSplitResult Excute(LogDataSplitParameter logDataSplitParameter)
         {
             Console.WriteLine($"id: {logDataSplitParameter.ID}, limit: {logDataSplitParameter.Limit}");
 
             int time = Environment.TickCount;
 
-            IList<LogDataJobResult> logDataJobResults = new List<LogDataJobResult>();
+            IList<LogDataResult> logDataJobResults = new List<LogDataResult>();
 
-            var result = Ignition.GetIgnite().GetCache<long, LogData>("LogData").Query(new SqlFieldsQuery(
+            var result = m_searchQuery.Query(
                 $@"SELECT
 	                    COUNT(*) AS NUM,
 	                    TIME_STAMP
@@ -166,8 +166,8 @@ namespace TestConsole
 			                    UNQIUEDATA, SID, MID, FORMATDATETIME (DATEADD('SECOND', CD, '1970-1-1'), 'yyyy-MM-dd HH') AS TIME_STAMP
 		                    FROM LOGDATA
                             WHERE
-                                ID > {logDataSplitParameter.ID}
-                            LIMIT {logDataSplitParameter.Limit}) A
+                                ID > @ID
+                            LIMIT @LIMIT) A
                         WHERE
                             A.MID = 0
                             AND A.SID = 1
@@ -176,46 +176,60 @@ namespace TestConsole
                     GROUP BY
                        TIME_STAMP
                     ORDER BY
-                        TIME_STAMP", true));
+                        TIME_STAMP",
+                new Dictionary<string, object>()
+                {
+                    ["@ID"] = logDataSplitParameter.ID,
+                    ["@LIMIT"] = logDataSplitParameter.Limit
+                });
 
             foreach (var item in result)
-                logDataJobResults.Add(new LogDataJobResult() { Count = Convert.ToInt32(item[0]), TimeStamp = Convert.ToString(item[1]), NodeID = Ignition.GetIgnite().GetCluster().GetLocalNode().ConsistentId.ToString() });
+                logDataJobResults.Add(new LogDataResult() { Count = Convert.ToInt32(item["NUM"]), TimeStamp = Convert.ToString(item["TIME_STAMP"]) });
 
             Console.WriteLine($"job time: {Environment.TickCount - time}");
 
-            return logDataJobResults;
-
-            //var data = Ignition.GetIgnite().GetCache<long, LogData>("LogData").GroupBy(item => new DateTime(1970, 1, 1).AddSeconds(item.Value.CD).ToString("yyyy-MM-dd HH")).Select(item => new LogDataJobResult() { TimeStamp = item.Key, Count = item.Count() });
-
-            //return data;
+            return new LogDataSplitResult()
+            {
+                LogDataResults = logDataJobResults,
+                IPAddress = ConfigManager.Configuration["IgniteService:LocalHost"]
+            };
         }
     }
 
-    public class LogDataMapReduceTask : IMapReduceTask<string, IEnumerable<LogDataJobResult>, LogDataSplitParameter, IEnumerable<LogDataJobResult>>
+    public class LogDataMapReduceTask : IMapReduceTask<string, IEnumerable<LogDataResult>, LogDataSplitParameter, LogDataSplitResult>
     {
-        public IEnumerable<LogDataJobResult> Reduce(IEnumerable<IEnumerable<LogDataJobResult>> splitResults)
+        private IComputeFactory m_computeFactory;
+        private ISearchQuery<LogData> m_searchQuery;
+
+        public LogDataMapReduceTask(IComputeFactory computeFactory, ISearchQuery<LogData> searchQuery)
+        {
+            m_computeFactory = computeFactory;
+            m_searchQuery = searchQuery;
+        }
+
+        public IEnumerable<LogDataResult> Reduce(IEnumerable<LogDataSplitResult> splitResults)
         {
             foreach (var item in splitResults)
             {
-                Console.WriteLine(item.First().NodeID);
+                Console.WriteLine(item.IPAddress);
             }
 
-            return splitResults.SelectMany(item => item).GroupBy(item => item.TimeStamp).Select(item => new LogDataJobResult() { TimeStamp = item.Key, Count = item.Sum(item => item.Count) });
+            return splitResults.SelectMany(item => item.LogDataResults).GroupBy(item => item.TimeStamp).Select(item => new LogDataResult() { TimeStamp = item.Key, Count = item.Sum(item => item.Count) });
         }
 
-        public IEnumerable<MapReduceSplitJob<LogDataSplitParameter, IEnumerable<LogDataJobResult>>> Split(int nodeCount, string parameter)
+        public IEnumerable<MapReduceSplitJob<LogDataSplitParameter, LogDataSplitResult>> Split(int nodeCount, string parameter)
         {
-            int count = Ignition.GetIgnite().GetCache<long, LogData>("LogData").AsCacheQueryable().Count();
+            int count = m_searchQuery.Count();
             int splitCount = count / nodeCount;
 
-            MapReduceSplitJob<LogDataSplitParameter, IEnumerable<LogDataJobResult>>[] mapReduceSplitJobs = new MapReduceSplitJob<LogDataSplitParameter, IEnumerable<LogDataJobResult>>[nodeCount];
+            MapReduceSplitJob<LogDataSplitParameter, LogDataSplitResult>[] mapReduceSplitJobs = new MapReduceSplitJob<LogDataSplitParameter, LogDataSplitResult>[nodeCount];
 
             for (int i = 0; i < nodeCount; i++)
             {
-                mapReduceSplitJobs[i] = new MapReduceSplitJob<LogDataSplitParameter, IEnumerable<LogDataJobResult>>();
-                long id = (long)Ignition.GetIgnite().GetCache<long, LogData>("LogData").Query(new SqlFieldsQuery($"SELECT ID FROM LOGDATA LIMIT 1 OFFSET {i * splitCount}")).ToArray()[0].ToArray()[0];
+                mapReduceSplitJobs[i] = new MapReduceSplitJob<LogDataSplitParameter, LogDataSplitResult>();
+                long id = m_searchQuery.Search(startIndex: i * splitCount, count: 1).First().ID;
                 mapReduceSplitJobs[i].Parameter = new LogDataSplitParameter() { ID = id, Limit = splitCount };
-                mapReduceSplitJobs[i].ComputeFunc = new LogDataFunc();
+                mapReduceSplitJobs[i].ComputeFunc = m_computeFactory.CreateComputeFunc<LogDataFunc, LogDataSplitParameter, LogDataSplitResult>();
             }
 
             return mapReduceSplitJobs;

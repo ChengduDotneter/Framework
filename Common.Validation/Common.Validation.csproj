@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>D:\Work\麦邦\Framework\Common.Validation\Common.Validation.xml</DocumentationFile>
+    <DebugType></DebugType>
+    <DocumentationFile>bin\Release\netstandard2.0\Common.Validation.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

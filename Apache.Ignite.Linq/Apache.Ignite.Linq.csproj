@@ -10,7 +10,8 @@
         <Version>1.2.32</Version>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <DocumentationFile>D:\Work\麦邦\Framework\Apache.Ignite.Linq\Apache.Ignite.Linq.xml</DocumentationFile>
+      <DebugType></DebugType>
+      <DocumentationFile>bin\Release\netstandard2.0\Apache.Ignite.Linq.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Remotion.Linq" Version="2.1.2" />

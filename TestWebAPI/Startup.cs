@@ -104,10 +104,7 @@ namespace TestWebAPI
             //});
         }
 
-#pragma warning disable CS0618 // 类型或成员已过时
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Microsoft.AspNetCore.Hosting.IApplicationLifetime lifetime)
-#pragma warning restore CS0618 // 类型或成员已过时
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
         {
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
