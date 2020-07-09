@@ -212,7 +212,7 @@ namespace Common
             {
                 #region 新建表，填充表头，填充列头，样式
 
-                if (rowIndex == 65535 || rowIndex == 0)
+                if (rowIndex == EXCEL03_MaxRow || rowIndex == 0)
                 {
                     if (rowIndex != 0)
                     {
