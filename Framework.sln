@@ -3,35 +3,35 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apache.Ignite.Linq", "Apache.Ignite.Linq\Apache.Ignite.Linq.csproj", "{E53F0851-A7E7-4ACB-9E3F-B14753354934}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apache.Ignite.Linq", "Apache.Ignite.Linq\Apache.Ignite.Linq.csproj", "{E53F0851-A7E7-4ACB-9E3F-B14753354934}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{66C7B06B-EBD3-4C9B-A797-98D3D81A1B1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{66C7B06B-EBD3-4C9B-A797-98D3D81A1B1D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.DAL", "Common.DAL\Common.DAL.csproj", "{3DF998BE-70C4-4E9F-94BA-D76DBBEB0193}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.DAL", "Common.DAL\Common.DAL.csproj", "{3DF998BE-70C4-4E9F-94BA-D76DBBEB0193}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.DAL.Cache", "Common.DAL.Cache\Common.DAL.Cache.csproj", "{DE97FFD5-D1A9-48B6-9FD8-D414195E49AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.DAL.Cache", "Common.DAL.Cache\Common.DAL.Cache.csproj", "{DE97FFD5-D1A9-48B6-9FD8-D414195E49AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.MessageQueueClient", "Common.MessageQueueClient\Common.MessageQueueClient.csproj", "{EC704F5B-5245-4E10-B437-5346CB32A00A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.MessageQueueClient", "Common.MessageQueueClient\Common.MessageQueueClient.csproj", "{EC704F5B-5245-4E10-B437-5346CB32A00A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Model", "Common.Model\Common.Model.csproj", "{FA0ADDD1-A099-4C15-A072-253CA667F909}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Model", "Common.Model\Common.Model.csproj", "{FA0ADDD1-A099-4C15-A072-253CA667F909}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.ServiceCommon", "Common.ServiceCommon\Common.ServiceCommon.csproj", "{0B3411BF-6BCF-4260-B27C-A465CA443E66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.ServiceCommon", "Common.ServiceCommon\Common.ServiceCommon.csproj", "{0B3411BF-6BCF-4260-B27C-A465CA443E66}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Validation", "Common.Validation\Common.Validation.csproj", "{62C3D8CA-2AD0-4906-A8BE-A731599610A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Validation", "Common.Validation\Common.Validation.csproj", "{62C3D8CA-2AD0-4906-A8BE-A731599610A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWebAPI", "TestWebAPI\TestWebAPI.csproj", "{6EE69A23-58F3-417C-8AC5-075E4C725ED4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestWebAPI", "TestWebAPI\TestWebAPI.csproj", "{6EE69A23-58F3-417C-8AC5-075E4C725ED4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.DAL.ETL", "Common.DAL.ETL\Common.DAL.ETL.csproj", "{49415CB7-68F4-43A2-B874-1607C8171FC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.DAL.ETL", "Common.DAL.ETL\Common.DAL.ETL.csproj", "{49415CB7-68F4-43A2-B874-1607C8171FC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.DAL.Transaction", "Common.DAL.Transaction\Common.DAL.Transaction.csproj", "{8F58FCD7-EC8D-4625-AC04-147F28142F56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.DAL.Transaction", "Common.DAL.Transaction\Common.DAL.Transaction.csproj", "{8F58FCD7-EC8D-4625-AC04-147F28142F56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.RPC", "Common.RPC\Common.RPC.csproj", "{EC769BE9-D25E-4A63-BD67-117EC9EB0E19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.RPC", "Common.RPC\Common.RPC.csproj", "{EC769BE9-D25E-4A63-BD67-117EC9EB0E19}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceManager", "ResourceManager\ResourceManager.csproj", "{72E59763-455C-494E-98D6-253A4A7245CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "TestConsole\TestConsole.csproj", "{E3569904-2212-4D8C-893A-67CBDDC60B3F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsole", "TestConsole\TestConsole.csproj", "{E3569904-2212-4D8C-893A-67CBDDC60B3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Compute", "Common.Compute\Common.Compute.csproj", "{10956496-9FFA-4F04-A43F-E42A00853728}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Compute", "Common.Compute\Common.Compute.csproj", "{10956496-9FFA-4F04-A43F-E42A00853728}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
