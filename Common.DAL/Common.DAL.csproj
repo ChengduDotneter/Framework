@@ -13,8 +13,8 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType></DebugType>
-    <DefineConstants>TRACE;OUTPUT_ERROR_SQL;RELEASE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
-    <DocumentationFile>bin\Release\netstandard2.0\Common.DAL.xml</DocumentationFile>
+    <DefineConstants>TRACE;OUTPUT_ERROR_SQL;NETSTANDARD2_0;RELEASE;NETSTANDARD;NETSTANDARD2_1</DefineConstants>
+    <DocumentationFile>bin\Release\netstandard2.1\Common.DAL.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="sqlSugarCore" Version="5.0.0.14" />

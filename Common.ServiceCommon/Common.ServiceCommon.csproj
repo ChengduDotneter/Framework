@@ -13,7 +13,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType></DebugType>
-    <DocumentationFile>bin\Release\netcoreapp3.0\Common.ServiceCommon.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netcoreapp3.1\Common.ServiceCommon.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Consul" Version="0.7.2.6" />

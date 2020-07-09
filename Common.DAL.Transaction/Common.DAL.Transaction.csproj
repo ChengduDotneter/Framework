@@ -8,7 +8,7 @@
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType></DebugType>
-    <DocumentationFile>bin\Release\netstandard2.0\Common.DAL.Transaction.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netstandard2.1\Common.DAL.Transaction.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common.RPC\Common.RPC.csproj" />

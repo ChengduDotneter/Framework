@@ -10,7 +10,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>D:\Work\麦邦\Framework\ResourceManager\ResourceManager.xml</DocumentationFile>
+    <DebugType></DebugType>
+    <DocumentationFile>bin\Release\netcoreapp3.1\ResourceManager.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
