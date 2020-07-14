@@ -1,26 +1,20 @@
-using Apache.Ignite.Core;
-using Apache.Ignite.Core.Binary;
-using Apache.Ignite.Core.Cache;
-using Apache.Ignite.Core.Cache.Configuration;
-using Apache.Ignite.Core.Cache.Query;
-using Apache.Ignite.Core.Cluster;
-using Apache.Ignite.Core.Configuration;
-using Apache.Ignite.Core.Discovery.Tcp;
-using Apache.Ignite.Core.Discovery.Tcp.Multicast;
-using Apache.Ignite.Linq;
-using Common.DAL.Transaction;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using Apache.Ignite.Core;
+using Apache.Ignite.Core.Cache;
+using Apache.Ignite.Core.Cache.Configuration;
+using Apache.Ignite.Core.Cache.Query;
+using Apache.Ignite.Linq;
+using Common.DAL.Transaction;
 
 namespace Common.DAL
 {
     internal static class IgniteDao
     {
-        private readonly static IIgnite m_ignite;
         private readonly static IDictionary<int, IgniteITransaction> m_transactions;
 
         private static void Apply<TResource>() where TResource : class, IEntity
@@ -611,9 +605,9 @@ namespace Common.DAL
                     return propertyType;
             }
 
-            public IgniteDaoInstance(IIgnite ignite)
+            public IgniteDaoInstance()
             {
-                m_cache = ignite.GetOrCreateCache<long, T>(CacheConfiguration);
+                m_cache = IgniteManager.GetIgnite().GetOrCreateCache<long, T>(CacheConfiguration);
             }
         }
 
@@ -651,77 +645,18 @@ namespace Common.DAL
         static IgniteDao()
         {
             m_transactions = new Dictionary<int, IgniteITransaction>();
-            IList<BinaryTypeConfiguration> binaryTypeConfigurations = new List<BinaryTypeConfiguration>();
-
-            Type[] modelTypes = TypeReflector.ReflectType((type) =>
-            {
-                if (type.GetInterface(typeof(IEntity).FullName) == null || type.IsInterface || type.IsAbstract)
-                    return false;
-
-                if (type.GetCustomAttribute<IgnoreTableAttribute>() != null)
-                    return false;
-
-                return true;
-            });
-
-            for (int i = 0; i < modelTypes.Length; i++)
-            {
-                binaryTypeConfigurations.Add(new BinaryTypeConfiguration(modelTypes[i])
-                {
-                    Serializer = (IBinarySerializer)Activator.CreateInstance(typeof(BinaryBufferSerializer<>).MakeGenericType(modelTypes[i])),
-                });
-            }
-
-            IgniteConfiguration igniteConfiguration = new IgniteConfiguration()
-            {
-                Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
-
-                DiscoverySpi = new TcpDiscoverySpi()
-                {
-                    IpFinder = new TcpDiscoveryMulticastIpFinder()
-                    {
-                        Endpoints = new[] { ConfigManager.Configuration["IgniteService:TcpDiscoveryMulticastIpFinderEndPoint"] }
-                    }
-                },
-
-                DataStorageConfiguration = new DataStorageConfiguration
-                {
-                    DefaultDataRegionConfiguration = new DataRegionConfiguration
-                    {
-                        Name = ConfigManager.Configuration["IgniteService:RegionName"],
-                        PersistenceEnabled = true
-                    }
-                },
-
-                BinaryConfiguration = new BinaryConfiguration
-                {
-                    TypeConfigurations = binaryTypeConfigurations
-                }
-            };
-
-            //基线拓扑，数据再平衡
-            m_ignite = Ignition.Start(igniteConfiguration);
-            m_ignite.GetCluster().SetActive(true);
-            //m_ignite.GetCluster().SetBaselineAutoAdjustEnabledFlag(Convert.ToBoolean(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustEnabled"]));
-            //m_ignite.GetCluster().SetBaselineAutoAdjustTimeout(Convert.ToInt64(ConfigManager.Configuration["IgniteService:BaselineAutoAdjustTimeout"]));
-
-            m_ignite.GetCluster().SetBaselineAutoAdjustEnabledFlag(false);
-
-            ICollection<IBaselineNode> baselineNodes = m_ignite.GetCluster().GetBaselineTopology();
-            baselineNodes.Add(m_ignite.GetCluster().GetLocalNode());
-            m_ignite.GetCluster().SetBaselineTopology(baselineNodes);
         }
 
         internal static ISearchQuery<T> GetIgniteSearchQuery<T>()
             where T : class, IEntity, new()
         {
-            return new IgniteDaoInstance<T>(m_ignite);
+            return new IgniteDaoInstance<T>();
         }
 
         internal static IEditQuery<T> GetIgniteEditQuery<T>()
             where T : class, IEntity, new()
         {
-            return new IgniteDaoInstance<T>(m_ignite);
+            return new IgniteDaoInstance<T>();
         }
     }
 }

@@ -9,9 +9,6 @@
     <DocumentationFile>bin\Release\netstandard2.1\Common.Compute.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Apache.Ignite" Version="2.8.0" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
   </ItemGroup>
 </Project>

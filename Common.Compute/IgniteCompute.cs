@@ -3,43 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Apache.Ignite.Core;
 using Apache.Ignite.Core.Compute;
-using Apache.Ignite.Core.Discovery.Tcp;
-using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 
 namespace Common.Compute
 {
     internal static class IgniteTask
     {
-        private readonly static IIgnite m_ignite;
-
-        static IgniteTask()
-        {
-            IgniteConfiguration igniteConfiguration = new IgniteConfiguration()
-            {
-                Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
-
-                IgniteInstanceName = "ComputeGrid",
-
-                UserAttributes = new Dictionary<string, object>()
-                {
-                    ["NodeType"] = "ComputeGrid"
-                },
-
-                DiscoverySpi = new TcpDiscoverySpi()
-                {
-                    IpFinder = new TcpDiscoveryMulticastIpFinder()
-                    {
-                        Endpoints = new[] { ConfigManager.Configuration["IgniteService:TcpDiscoveryMulticastIpFinderEndPoint"] }
-                    }
-                }
-            };
-
-            //m_ignite = Ignition.Start(igniteConfiguration);
-            m_ignite = Ignition.GetIgnite();
-        }
-
         public static ICompute CreateCompute()
         {
             return new IgniteComputeInstance();
@@ -57,7 +26,7 @@ namespace Common.Compute
 
         private static Apache.Ignite.Core.Compute.ICompute GetCompute()
         {
-            return m_ignite.GetCluster().GetCompute();
+            return IgniteManager.GetIgnite().GetCluster().GetCompute();
         }
 
         internal class IgniteComputeInstance : ICompute

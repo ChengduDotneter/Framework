@@ -1,13 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+using Apache.Ignite.Core;
+using Apache.Ignite.Core.Binary;
+using Apache.Ignite.Core.Configuration;
+using Apache.Ignite.Core.Discovery.Tcp;
+using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Common.DAL;
 using Common.MessageQueueClient;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
 using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 
 namespace Common.ServiceCommon
@@ -34,11 +40,71 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public static HostBuilderContext ConfigInit(this HostBuilderContext hostBuilderContext)
         {
+#if DEBUG
+            hostBuilderContext.HostingEnvironment.EnvironmentName = "Development";
+# elif RELEASE
+            hostBuilderContext.HostingEnvironment.EnvironmentName = "Production";
+#endif
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             ConfigManager.Init(hostBuilderContext.HostingEnvironment.EnvironmentName);
+            IgniteManager.Init(ConfigIgnite());
             m_isCodeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
 
             return hostBuilderContext;
+        }
+
+        private static IgniteConfiguration ConfigIgnite()
+        {
+            IList<BinaryTypeConfiguration> binaryTypeConfigurations = new List<BinaryTypeConfiguration>();
+
+            Type[] modelTypes = TypeReflector.ReflectType((type) =>
+            {
+                if (type.GetInterface(typeof(IEntity).FullName) == null || type.IsInterface || type.IsAbstract)
+                    return false;
+
+                if (type.GetCustomAttribute<IgnoreTableAttribute>() != null)
+                    return false;
+
+                return true;
+            });
+
+            for (int i = 0; i < modelTypes.Length; i++)
+            {
+                binaryTypeConfigurations.Add(new BinaryTypeConfiguration(modelTypes[i])
+                {
+                    Serializer = (IBinarySerializer)Activator.CreateInstance(typeof(IgniteBinaryBufferSerializer<>).MakeGenericType(modelTypes[i])),
+                });
+            }
+
+            IgniteConfiguration igniteConfiguration = new IgniteConfiguration()
+            {
+                Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
+
+                DiscoverySpi = new TcpDiscoverySpi()
+                {
+                    IpFinder = new TcpDiscoveryMulticastIpFinder()
+                    {
+                        Endpoints = new[] { ConfigManager.Configuration["IgniteService:TcpDiscoveryMulticastIpFinderEndPoint"] }
+                    }
+                },
+
+                DataStorageConfiguration = new DataStorageConfiguration
+                {
+                    DefaultDataRegionConfiguration = new DataRegionConfiguration
+                    {
+                        Name = ConfigManager.Configuration["IgniteService:RegionName"],
+                        PersistenceEnabled = true
+                    }
+                },
+
+                BinaryConfiguration = new BinaryConfiguration
+                {
+                    TypeConfigurations = binaryTypeConfigurations
+                }
+            };
+
+            return igniteConfiguration;
         }
 
         /// <summary>
