@@ -224,13 +224,13 @@ namespace Common.RPC
         }
 
         /// <summary>
-        /// 请求
+        /// 异步请求
         /// </summary>
         /// <param name="serviceClient">RPC服务客户端</param>
         /// <param name="sendData">发送的数据结构体</param>
         /// <param name="callback">回调</param>
         /// <returns></returns>
-        protected Task<bool> Request(ServiceClient serviceClient, TSendData sendData, Func<TRecieveData, bool> callback)
+        protected Task<bool> RequestAsync(ServiceClient serviceClient, TSendData sendData, Func<TRecieveData, bool> callback)
         {
             lock (m_sendProcessors)
             {
@@ -247,7 +247,43 @@ namespace Common.RPC
             m_sendProcessors[serviceClient.GetHashCode()].SendSessionData(sessionID, sendData);
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(m_requestTimeout);
 
-            return Task.Factory.StartNew(Wait, new object[] { taskBody, cancellationTokenSource }, cancellationTokenSource.Token).ContinueWith(Callback);
+            return Task.Factory.StartNew(Wait, new object[] { taskBody, cancellationTokenSource }, cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(Callback);
+        }
+
+        /// <summary>
+        /// 同步请求
+        /// </summary>
+        /// <param name="serviceClient">RPC服务客户端</param>
+        /// <param name="sendData">发送的数据结构体</param>
+        /// <param name="callback">回调</param>
+        /// <returns></returns>
+        protected bool Request(ServiceClient serviceClient, TSendData sendData, Func<TRecieveData, bool> callback)
+        {
+            lock (m_sendProcessors)
+            {
+                if (!m_sendProcessors.ContainsKey(serviceClient.GetHashCode()))
+                    m_sendProcessors.Add(serviceClient.GetHashCode(), new SendRequestProcessor(serviceClient, ProcessData));
+            }
+
+            long sessionID = IDGenerator.NextID();
+            TaskBody taskBody = new TaskBody(sessionID, callback);
+
+            lock (m_taskWaits)
+                m_taskWaits.Add(sessionID, taskBody);
+
+            m_sendProcessors[serviceClient.GetHashCode()].SendSessionData(sessionID, sendData);
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(m_requestTimeout);
+
+            while (!cancellationTokenSource.Token.IsCancellationRequested && !taskBody.IsResponses)
+                Thread.Sleep(TASK_WAIT_TIME_SPAN);
+
+            lock (m_taskWaits)
+                m_taskWaits.Remove(taskBody.SessionID);
+
+            if (cancellationTokenSource.Token.IsCancellationRequested)
+                return false;
+
+            return callback.Invoke((TRecieveData)taskBody.ResponseObject);
         }
 
         /// <summary>
@@ -285,25 +321,50 @@ namespace Common.RPC
         }
 
         /// <summary>
-        /// 请求
+        /// 异步请求
         /// </summary>
         /// <param name="sendData">发送的数据</param>
         /// <param name="callback">回调</param>
         /// <returns></returns>
-        protected Task<bool> Request(TSendData sendData, Func<TRecieveData, bool> callback)
+        protected Task<bool> RequestAsync(TSendData sendData, Func<TRecieveData, bool> callback)
         {
             Task<bool>[] tasks = new Task<bool>[m_serviceClients.Length];
 
             for (int i = 0; i < tasks.Length; i++)
-                tasks[i] = Request(m_serviceClients[i], sendData, callback);
+                tasks[i] = RequestAsync(m_serviceClients[i], sendData, callback);
 
-            return Task.Factory.ContinueWhenAll(tasks, ProcessData);
+            return Task.Factory.ContinueWhenAll(tasks, ProcessDataAsync);
         }
 
-        private bool ProcessData(Task<bool>[] tasks)
+        /// <summary>
+        /// 同步请求
+        /// </summary>
+        /// <param name="sendData">发送的数据</param>
+        /// <param name="callback">回调</param>
+        /// <returns></returns>
+        protected bool Request(TSendData sendData, Func<TRecieveData, bool> callback)
+        {
+            bool[] results = new bool[m_serviceClients.Length];
+
+            for (int i = 0; i < results.Length; i++)
+                results[i] = Request(m_serviceClients[i], sendData, callback);
+
+            return ProcessData(results);
+        }
+
+        private bool ProcessDataAsync(Task<bool>[] tasks)
         {
             for (int i = 0; i < tasks.Length; i++)
                 if (!tasks[i].Result)
+                    return false;
+
+            return true;
+        }
+
+        private bool ProcessData(bool[] results)
+        {
+            for (int i = 0; i < results.Length; i++)
+                if (!results[i])
                     return false;
 
             return true;
@@ -333,13 +394,27 @@ namespace Common.RPC
         }
 
         /// <summary>
-        /// 请求
+        /// 异步请求
         /// </summary>
         /// <param name="sendData">发送的数据结构体</param>
         /// <param name="callback">回调</param>
         /// <param name="serviceClient">RPC服务客户端</param>
         /// <returns></returns>
-        protected Task<bool> Request(TSendData sendData, Func<TRecieveData, bool> callback, out ServiceClient serviceClient)
+        protected Task<bool> RequestAsync(TSendData sendData, Func<TRecieveData, bool> callback, out ServiceClient serviceClient)
+        {
+            int serviceIndex = (int)(m_requestIndex++ % m_serviceClients.Length);
+            serviceClient = m_serviceClients[serviceIndex];
+            return RequestAsync(serviceClient, sendData, callback);
+        }
+
+        /// <summary>
+        /// 同步请求
+        /// </summary>
+        /// <param name="sendData">发送的数据结构体</param>
+        /// <param name="callback">回调</param>
+        /// <param name="serviceClient">RPC服务客户端</param>
+        /// <returns></returns>
+        protected bool Request(TSendData sendData, Func<TRecieveData, bool> callback, out ServiceClient serviceClient)
         {
             int serviceIndex = (int)(m_requestIndex++ % m_serviceClients.Length);
             serviceClient = m_serviceClients[serviceIndex];

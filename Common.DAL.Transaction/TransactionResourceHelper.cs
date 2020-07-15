@@ -53,7 +53,7 @@ namespace Common.DAL.Transaction
         /// <returns></returns>
         public static bool ApplayResource(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
         {
-            return ApplayResourceAsync(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut).Result;
+            return m_applyResourceProcessor.Apply(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Common.DAL.Transaction
         /// <returns></returns>
         public static async Task<bool> ApplayResourceAsync(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
         {
-            return await m_applyResourceProcessor.Apply(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
+            return await m_applyResourceProcessor.ApplyAsync(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
         }
 
         /// <summary>
@@ -75,7 +75,8 @@ namespace Common.DAL.Transaction
         /// <param name="identity">事务线程ID</param>
         public static void ReleaseResource(long identity)
         {
-            ReleaseResourceAsync(identity).Wait();
+            if (!m_releaseResourceProcessor.Release(identity))
+                throw new DealException($"释放事务{identity}资源失败。");
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace Common.DAL.Transaction
         /// <param name="identity">事务线程ID</param>
         public static async Task ReleaseResourceAsync(long identity)
         {
-            if (!await m_releaseResourceProcessor.Release(identity))
+            if (!await m_releaseResourceProcessor.ReleaseAsync(identity))
                 throw new DealException($"释放事务{identity}资源失败。");
         }
 
