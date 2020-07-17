@@ -177,9 +177,6 @@ namespace Common.DAL.Transaction
                 int identityIndex;
                 int resourceNameIndex;
 
-                //TODO: 临时解决卡顿
-                Thread.Sleep(1);
-
                 lock (m_lockThis)
                 {
                     if (!m_identityIndexs.ContainsKey(applyRequestData.Identity))
@@ -336,16 +333,31 @@ namespace Common.DAL.Transaction
         /// </summary>
         /// <param name="identityLength">事务ID数组所需申请的数组长度</param>
         /// <param name="resourceLength">事务资源数组所需申请的数组长度</param>
-        private void Allocate(int identityLength, int resourceLength)
+        private unsafe void Allocate(int identityLength, int resourceLength)
         {
             if (m_matrix != null)
             {
-                long[,] tempMatrix = m_matrix;
-                bool[] tempUsedIdentityIndexs = m_usedIdentityIndexs;
-                m_matrix = new long[identityLength, resourceLength];
-                m_usedIdentityIndexs = new bool[identityLength];
-                Array.Copy(tempMatrix, m_matrix, tempMatrix.Length);
-                Array.Copy(tempUsedIdentityIndexs, m_usedIdentityIndexs, tempUsedIdentityIndexs.Length);
+                fixed (long* matrixSourcePtr = m_matrix)
+                {
+                    int orignIdentityLength = m_matrix.GetLength(0);
+                    int orignResourceLength = m_matrix.GetLength(1);
+                    m_matrix = new long[identityLength, resourceLength];
+
+                    fixed (long* matrixDestPtr = m_matrix)
+                    {
+                        for (int i = 0; i < orignIdentityLength; i++)
+                            Buffer.MemoryCopy(matrixSourcePtr + i * orignResourceLength, matrixDestPtr + i * resourceLength, resourceLength, orignResourceLength);
+                    }
+                }
+
+                fixed (bool* usedIdentityIndexsSourcePtr = m_usedIdentityIndexs)
+                {
+                    int orignIdentityLength = m_usedIdentityIndexs.Length;
+                    m_usedIdentityIndexs = new bool[identityLength];
+
+                    fixed (bool* usedIdentityIndexsDestPtr = m_usedIdentityIndexs)
+                        Buffer.MemoryCopy(usedIdentityIndexsSourcePtr, usedIdentityIndexsDestPtr, identityLength, orignIdentityLength);
+                }
             }
             else
             {

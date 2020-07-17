@@ -1,96 +1,72 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
-using System.Text;
+using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
+using Apache.Ignite.Core.Cache.Configuration;
 using Common;
-using Common.RPC;
-using Common.RPC.BufferSerializer;
-using Common.RPC.TransferAdapter;
+using Common.DAL;
+using Common.ServiceCommon;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace UDPConsoleA
 {
-    public struct TestDataA : IRPCData
+    public class TestData : IEntity
     {
-        public byte MessageID => 0xff;
+        [QuerySqlField]
+        public long ID { get; set; }
 
+        [QuerySqlField]
+        public string Name { get; set; }
+
+        [QuerySqlField]
         public string Data { get; set; }
     }
 
-    public struct TestDataB : IRPCData
+    public class TestService : IHostedService
     {
-        public byte MessageID => 0xfe;
+        private readonly ISearchQuery<TestData> m_searchQuery;
+        private readonly IEditQuery<TestData> m_editQuery;
 
-        public string Data { get; set; }
-    }
-
-    public class TestProcessorA : RequestProcessorBase<TestDataA, TestDataB>
-    {
-        private readonly ServiceClient serviceClient;
-
-        public TestProcessorA(ServiceClient serviceClient) : base(10000)
+        public TestService(ISearchQuery<TestData> searchQuery, IEditQuery<TestData> editQuery)
         {
-            this.serviceClient = serviceClient;
+            m_searchQuery = searchQuery;
+            m_editQuery = editQuery;
         }
 
-        public void Test(int[] parameter, int index)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            Thread thread = new Thread(() =>
-            {
-                while (true)
-                {
-                    TestDataA testDataA = new TestDataA() { Data = Guid.NewGuid().ToString("D") };
-
-                    bool success = RequestAsync(serviceClient, testDataA, testDataB =>
-                    {
-                        if (testDataA.Data == testDataB.Data)
-                        {
-                            parameter[index]++;
-                            return true;
-                        }
-
-                        return false;
-                    }).Result;
-
-                    //bool success = Request1(serviceClient, testDataA, testDataB =>
-                    //{
-                    //    if (testDataA.Data == testDataB.Data)
-                    //    {
-                    //        parameter[index]++;
-                    //        return true;
-                    //    }
-
-                    //    return false;
-                    //});
-
-                    if (!success)
-                    {
-                        Console.WriteLine("error");
-                    }
-                }
-            });
-
-            thread.IsBackground = true;
-            thread.Start();
-        }
-    }
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            ConfigManager.Init("Development");
-
             int[] parameter = new int[100];
 
             for (int i = 0; i < parameter.Length; i++)
             {
-                ITransferAdapter transferTesterA = TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse("192.168.10.200"), 5555), UDPCRCSocketTypeEnum.Client);
-                ServiceClient serviceClientA = new ServiceClient(transferTesterA, BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
-                TestProcessorA testProcessorA = new TestProcessorA(serviceClientA);
+                Thread threadWork = new Thread((state) =>
+                {
+                    int index = (int)state;
 
-                serviceClientA.Start();
-                testProcessorA.Test(parameter, i);
+                    while (true)
+                    {
+                        using (ITransaction transaction = m_editQuery.BeginTransaction())
+                        {
+                            int count = m_searchQuery.Count();
+
+                            m_editQuery.Insert(new TestData()
+                            {
+                                ID = IDGenerator.NextID(),
+                                Data = Guid.NewGuid().ToString(),
+                                Name = index.ToString()
+                            });
+
+                            parameter[index]++;
+                            transaction.Submit();
+                        }
+                    }
+                });
+
+                threadWork.IsBackground = true;
+                threadWork.Start(i);
             }
 
             Thread thread = new Thread(() =>
@@ -107,6 +83,56 @@ namespace UDPConsoleA
             thread.IsBackground = true;
             thread.Start();
 
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            new HostBuilder().
+            ConfigureServices((context, services) =>
+            {
+                services.Configure<ConsoleLifetimeOptions>(options =>
+                {
+                    options.SuppressStatusMessages = true;
+                });
+
+                services.AddQuerys(
+                TypeReflector.ReflectType((type) =>
+                {
+                    if (type.GetInterface(typeof(IEntity).FullName) == null || type.IsInterface || type.IsAbstract)
+                        return false;
+
+                    if (type.GetCustomAttribute<IgnoreTableAttribute>() != null)
+                        return false;
+
+                    return true;
+                }),
+                (type) =>
+                {
+                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+                },
+                (type) =>
+                {
+                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+                });
+
+                context.ConfigInit();
+                services.AddHostedService<TestService>();
+            }).
+            ConfigureLogging(builder =>
+            {
+                builder.AddConsole();
+            }).RunConsoleAsync().Wait();
+
+            Console.WriteLine("work done..");
             Console.Read();
         }
     }
