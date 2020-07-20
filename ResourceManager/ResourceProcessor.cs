@@ -3,7 +3,9 @@ using Common.DAL.Transaction;
 using Common.RPC;
 using Common.RPC.TransferAdapter;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -111,10 +113,99 @@ namespace ResourceManager
             m_deadlockDetection.RemoveTranResource(data.Identity);
             SendSessionData(m_serviceClient, sessionContext, new ReleaseResponseData());
         }
+    }
 
-        public void Test(ReleaseRequestData data)
+    /// <summary>
+    /// 资源占用心跳检测处理器
+    /// </summary>
+    internal class ResourceHeartBeatProcessor : ResponseProcessorBase<ResourceHeartBeatReqesut>, IHostedService
+    {
+        private const int THREAD_TIME_SPAN = 100;
+        private const int HEARTBEAT_TIME_OUT = 1000;
+        private readonly IDeadlockDetection m_deadlockDetection;
+        private IDictionary<long, int> m_heartBeats;
+        private Thread m_heartBeatCheckThread;
+        private bool m_running;
+
+        public ResourceHeartBeatProcessor(ServiceClient serviceClient, IDeadlockDetection deadlockDetection) : base(serviceClient)
         {
-            m_deadlockDetection.RemoveTranResource(data.Identity);
+            m_heartBeats = new Dictionary<long, int>();
+            m_heartBeatCheckThread = new Thread(HeartBeatCheck);
+            m_heartBeatCheckThread.IsBackground = true;
+            m_heartBeatCheckThread.Name = "HEARTBEAT_CHECK_THREAD";
+            m_deadlockDetection = deadlockDetection;
+
+
+
+
+
+
+
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    Console.WriteLine($"IDENTITY COUNT: {m_heartBeats.Count}");
+                    Thread.Sleep(1000);
+                }
+            })
+            {
+                IsBackground = true
+            }.Start();
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            m_running = true;
+            m_heartBeatCheckThread.Start();
+
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            m_running = false;
+
+            lock (m_heartBeats)
+                m_heartBeats.Clear();
+
+            return Task.CompletedTask;
+        }
+
+        private void HeartBeatCheck()
+        {
+            while (m_running)
+            {
+                long[] keys;
+
+                lock (m_heartBeats)
+                    keys = m_heartBeats.Keys.ToArray();
+
+                for (int i = 0; i < keys.Length; i++)
+                {
+                    if (Environment.TickCount - m_heartBeats[keys[i]] > HEARTBEAT_TIME_OUT)
+                    {
+                        m_deadlockDetection.RemoveTranResource(keys[i]);
+
+                        lock (m_heartBeats)
+                            m_heartBeats.Remove(keys[i]);
+                    }
+                }
+
+                Thread.Sleep(THREAD_TIME_SPAN);
+            }
+        }
+
+        /// <summary>
+        /// 数据处理
+        /// </summary>
+        /// <param name="sessionContext"></param>
+        /// <param name="data"></param>
+        protected override void ProcessData(SessionContext sessionContext, ResourceHeartBeatReqesut data)
+        {
+            lock (m_heartBeats)
+                if (m_heartBeats.ContainsKey(data.Identity))
+                    m_heartBeats[data.Identity] = Environment.TickCount;
         }
     }
 }

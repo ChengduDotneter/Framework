@@ -1,5 +1,9 @@
 ﻿using Common.RPC;
+using Common.RPC.TransferAdapter;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Common.DAL.Transaction
@@ -115,6 +119,63 @@ namespace Common.DAL.Transaction
             });
 
             return result;
+        }
+    }
+
+    internal class ResourceHeartBeatProcessor : ProcessorBase, IDisposable
+    {
+        private const int THREAD_TIME_SPAN = 20;
+        private ServiceClient m_serviceClient;
+        private ISet<long> m_identitys;
+        private bool m_running;
+        private Thread m_heartBeatThread;
+
+        public ResourceHeartBeatProcessor(ServiceClient serviceClient)
+        {
+            m_serviceClient = serviceClient;
+            m_identitys = new HashSet<long>();
+            m_running = true;
+
+            m_heartBeatThread = new Thread(HeartBeatCheck);
+            m_heartBeatThread.IsBackground = true;
+            m_heartBeatThread.Name = "HEARTBEAT_CHECK_THREAD";
+            m_heartBeatThread.Start();
+        }
+
+        public void Dispose()
+        {
+            m_running = false;
+
+            lock (m_identitys)
+                m_identitys.Clear();
+        }
+
+        public void RegisterIdentity(long identity)
+        {
+            lock (m_identitys)
+                m_identitys.Add(identity);
+        }
+
+        public void UnRegisterIdentity(long identity)
+        {
+            lock (m_identitys)
+                m_identitys.Remove(identity);
+        }
+
+        private void HeartBeatCheck()
+        {
+            while (m_running)
+            {
+                long[] identitys;
+
+                lock (m_identitys)
+                    identitys = m_identitys.ToArray();
+
+                for (int i = 0; i < identitys.Length; i++)
+                    SendSessionData(m_serviceClient, new SessionContext(IDGenerator.NextID()), new ResourceHeartBeatReqesut() { Identity = identitys[i] });
+
+                Thread.Sleep(THREAD_TIME_SPAN);
+            }
         }
     }
 }

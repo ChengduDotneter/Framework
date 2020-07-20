@@ -80,4 +80,20 @@ namespace Common.DAL.Transaction
         /// </summary>
         public byte MessageID { get { return 0x4; } }
     }
+
+    /// <summary>
+    /// 资源占用心跳检测请求数据结构体
+    /// </summary>
+    public struct ResourceHeartBeatReqesut : IRPCData
+    {
+        /// <summary>
+        /// 事务线程ID
+        /// </summary>
+        public long Identity { get; set; }
+
+        /// <summary>
+        /// 全局唯一RPCID
+        /// </summary>
+        public byte MessageID { get { return 0x5; } }
+    }
 }

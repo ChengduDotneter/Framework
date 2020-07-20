@@ -211,7 +211,6 @@ namespace Common.DAL.Transaction
 
                     if (!m_destoryIdentitys.Contains(waitApplyRequestData.Identity))
                         m_applyRequestDatas.Add(waitApplyRequestData);
-
                 }
 
                 m_destoryIdentitys.Clear();
