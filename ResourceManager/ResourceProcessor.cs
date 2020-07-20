@@ -204,8 +204,7 @@ namespace ResourceManager
         protected override void ProcessData(SessionContext sessionContext, ResourceHeartBeatReqesut data)
         {
             lock (m_heartBeats)
-                if (m_heartBeats.ContainsKey(data.Identity))
-                    m_heartBeats[data.Identity] = Environment.TickCount;
+                m_heartBeats[data.Identity] = Environment.TickCount;
         }
     }
 }

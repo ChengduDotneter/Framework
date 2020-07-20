@@ -36,6 +36,7 @@ namespace ResourceManager
                     services.AddSingleton(serviceClient);
                     services.AddHostedService<ApplyResourceProcessor>();
                     services.AddHostedService<ReleaseResourceProcessor>();
+                    services.AddHostedService<ResourceHeartBeatProcessor>();
                 }).
                 ConfigureLogging(builder =>
                 {
