@@ -420,6 +420,7 @@ namespace Common.DAL
 
                 foreach (ICacheEntry<long, T> entity in m_cache.AsCacheQueryable().Where(ConvertExpression(predicate)))
                 {
+                    //TODO: 可能会出现字段覆盖，需要改成SQL实现
                     if (updateHandler(entity.Value))
                         m_cache.Replace(entity.Key, entity.Value);
                 }
