@@ -11,7 +11,7 @@ namespace Common.DAL.Transaction
     {
         private ServiceClient m_serviceClient;
 
-        public ApplyResourceProcessor(ServiceClient serviceClient) : base(1000 * 10)
+        public ApplyResourceProcessor(ServiceClient serviceClient) : base(1000 * 90)
         {
             m_serviceClient = serviceClient;
         }
@@ -78,7 +78,7 @@ namespace Common.DAL.Transaction
     {
         private ServiceClient m_serviceClient;
 
-        public ReleaseResourceProcessor(ServiceClient serviceClient) : base(1000 * 10)
+        public ReleaseResourceProcessor(ServiceClient serviceClient) : base(1000 * 90)
         {
             m_serviceClient = serviceClient;
         }

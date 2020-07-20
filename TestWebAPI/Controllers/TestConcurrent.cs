@@ -55,15 +55,9 @@ namespace TestWebAPI.Controllers
 
                         IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search();
 
-                        //Console.WriteLine(Environment.TickCount - time);
-
                         m_editQuery.FilterIsDeleted().Insert(concurrentModel);
 
-                        //Console.WriteLine(Environment.TickCount - time);
-
                         transaction.Submit();
-
-                        //Console.WriteLine(Environment.TickCount - time);
                     }
                     else
                     {
@@ -108,24 +102,11 @@ namespace TestWebAPI.Controllers
                 {
                     m_warehouseInfoSearchQuery.Count();
 
-                    //System.Threading.Thread.Sleep(5000);
-
                     IEnumerable<ConcurrentModel> concurrentModels = m_concurrentModelSearchQuery.FilterIsDeleted().Search();
 
-                    //System.Threading.Thread.Sleep(5000);
-
                     transaction.Submit();
-
-
-                    //Console.WriteLine(Environment.TickCount64 - time);
-                    //Console.WriteLine(Environment.StackTrace);
-                    //Console.WriteLine(Environment.CurrentDirectory);
-                    //Console.WriteLine(Environment.CurrentManagedThreadId);
-                    //Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-                    //Console.WriteLine(Environment.TickCount64);
-                    //Console.WriteLine(Environment.TickCount);
                 }
-                catch (Exception)
+                catch
                 {
                     transaction.Rollback();
                     throw;
@@ -153,50 +134,22 @@ namespace TestWebAPI.Controllers
         [Route("2")]
         public void data111()
         {
-            using (ITransaction transaction = m_concurrentModelEditQuery.BeginTransaction())
+            using (ITransaction transaction = m_warehouseInfoEditQuery.BeginTransaction())
             {
-
                 try
                 {
-                    //var datas = m_searchQuery.FilterIsDeleted().Search();
+                    Console.WriteLine(m_searchQuery.FilterIsDeleted().Count());
 
-                    m_concurrentModelEditQuery.FilterIsDeleted().Update(item => true, item => item.Password == "12311");
                     m_concurrentModelEditQuery.FilterIsDeleted().Insert(new ConcurrentModel { CreateTime = DateTime.Now, CreateUserID = 0, ID = IDGenerator.NextID(), Password = "11", UserAccount = "123" });
-                    //datas = m_searchQuery.FilterIsDeleted().Search();
-                    //int i = 0;
-                    //int c = 5 / i;
 
                     transaction.Submit();
                 }
-#pragma warning disable CS0168 // 声明了变量，但从未使用过
-                catch (Exception ex)
-#pragma warning restore CS0168 // 声明了变量，但从未使用过
+                catch
                 {
                     transaction.Rollback();
+                    throw;
                 }
 
-                Console.WriteLine(m_searchQuery.FilterIsDeleted().Count());
-
-                //using (ITransaction transaction2 = m_concurrentModelEditQuery.BeginTransaction())
-                //{
-
-                //    try
-                //    {
-                //        var datas = m_searchQuery.FilterIsDeleted().Search();
-
-                //        m_concurrentModelEditQuery.FilterIsDeleted().Update(item => true, item => item.Password == "123112222");
-                //        m_concurrentModelEditQuery.FilterIsDeleted().Insert(new ConcurrentModel { CreateTime = DateTime.Now, CreateUserID = 0, ID = IDGenerator.NextID(), Password = "11", UserAccount = "123" });
-                //        datas = m_searchQuery.FilterIsDeleted().Search();
-                //        int i = 0;
-                //        int c = 5 / i;
-
-                //        transaction2.Submit();
-                //    }
-                //    catch
-                //    {
-                //        transaction2.Rollback();
-                //    }
-                //}
             }
         }
     }

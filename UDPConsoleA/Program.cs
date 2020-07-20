@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -39,34 +41,47 @@ namespace UDPConsoleA
         public Task StartAsync(CancellationToken cancellationToken)
         {
             int[] parameter = new int[100];
+            TestTaskScheduler testTaskScheduler = new TestTaskScheduler();
+
+            int maxtime = 0;
 
             for (int i = 0; i < parameter.Length; i++)
             {
-                Thread threadWork = new Thread((state) =>
+                Task.Factory.StartNew((state) =>
                 {
                     int index = (int)state;
 
                     while (true)
                     {
-                        using (ITransaction transaction = m_editQuery.BeginTransaction())
+                        try
                         {
-                            int count = m_searchQuery.Count();
-
-                            m_editQuery.Insert(new TestData()
+                            using (ITransaction transaction = m_editQuery.BeginTransaction())
                             {
-                                ID = IDGenerator.NextID(),
-                                Data = Guid.NewGuid().ToString(),
-                                Name = index.ToString()
-                            });
+                                int time = Environment.TickCount;
 
-                            parameter[index]++;
-                            transaction.Submit();
+                                int count = m_searchQuery.Count();
+
+                                m_editQuery.Insert(new TestData()
+                                {
+                                    ID = IDGenerator.NextID(),
+                                    Data = Guid.NewGuid().ToString(),
+                                    Name = index.ToString()
+                                });
+
+                                parameter[index]++;
+                                transaction.Submit();
+
+                                maxtime = Math.Max(maxtime, Environment.TickCount - time);
+                            }
                         }
-                    }
-                });
+                        catch
+                        {
+                            Console.WriteLine("error " + index);
+                        }
 
-                threadWork.IsBackground = true;
-                threadWork.Start(i);
+                        Thread.Sleep(TimeSpan.FromMilliseconds(0.01));
+                    }
+                }, i, cancellationToken, TaskCreationOptions.None, testTaskScheduler);
             }
 
             Thread thread = new Thread(() =>
@@ -76,6 +91,7 @@ namespace UDPConsoleA
                 while (true)
                 {
                     Console.WriteLine(parameter.Sum() * 1000.0 / (Environment.TickCount - time));
+                    Console.WriteLine("transaction_time: " + maxtime);
                     Thread.Sleep(1000);
                 }
             });
@@ -89,6 +105,48 @@ namespace UDPConsoleA
         public Task StopAsync(CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
+        }
+    }
+
+    public class TestTaskScheduler : TaskScheduler
+    {
+        private BlockingCollection<Task> m_tasks;
+        private Thread m_doWorkThread;
+
+        protected override IEnumerable<Task> GetScheduledTasks()
+        {
+            return m_tasks;
+        }
+
+        protected override void QueueTask(Task task)
+        {
+            m_tasks.Add(task);
+        }
+
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        {
+            return false;
+        }
+
+        public TestTaskScheduler()
+        {
+            m_tasks = new BlockingCollection<Task>();
+            m_doWorkThread = new Thread(DoWork);
+            m_doWorkThread.IsBackground = true;
+            m_doWorkThread.Start();
+        }
+
+        private void DoWork()
+        {
+            while (true)
+            {
+                if (m_tasks.TryTake(out Task task))
+                {
+                    Thread thread = new Thread(() => TryExecuteTask(task));
+                    thread.IsBackground = true;
+                    thread.Start();
+                }
+            }
         }
     }
 

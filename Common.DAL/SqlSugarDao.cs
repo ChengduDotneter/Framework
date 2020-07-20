@@ -125,9 +125,9 @@ namespace Common.DAL
             inTransaction = sqlSugerTranscation != null;
         }
 
-        private static async void Release(long identity)
+        private static void Release(long identity)
         {
-            await TransactionResourceHelper.ReleaseResourceAsync(identity);
+            TransactionResourceHelper.ReleaseResource(identity);
         }
 
         private static class SqlSugarJoinQuery<TLeft, TRight>
