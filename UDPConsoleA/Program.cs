@@ -72,6 +72,8 @@ namespace UDPConsoleA
                                 transaction.Submit();
 
                                 maxtime = Math.Max(maxtime, Environment.TickCount - time);
+
+                                //Thread.Sleep(10000);
                             }
                         }
                         catch

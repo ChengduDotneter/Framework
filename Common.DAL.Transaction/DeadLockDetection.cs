@@ -36,6 +36,11 @@ namespace Common.DAL.Transaction
         private HashSet<long> m_destoryIdentitys;
 
         /// <summary>
+        /// 已释放的事务ID
+        /// </summary>
+        private HashSet<long> m_relaseIdentitys;
+
+        /// <summary>
         /// 死锁检查事务
         /// </summary>
         private Thread m_doApplyThread;
@@ -137,6 +142,7 @@ namespace Common.DAL.Transaction
         {
             Allocate(DEFAULT_IDENTITY_LENGTH, DEFAULT_RESOURCE_LENGTH);
             m_destoryIdentitys = new HashSet<long>();
+            m_relaseIdentitys = new HashSet<long>();
             m_weights = new Dictionary<int, int>();
             m_identityIndexs = new Dictionary<long, int>();
             m_identityKeyIndexs = new Dictionary<int, long>();
@@ -150,6 +156,18 @@ namespace Common.DAL.Transaction
             m_doApplyThread.IsBackground = true;
             m_doApplyThread.Name = "DEADLOCK_DETECTION_THREAD";
             m_doApplyThread.Start();
+
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    Console.WriteLine($"RELASEIDENTITY COUNT: {m_relaseIdentitys.Count}");
+                    Thread.Sleep(1000);
+                }
+            })
+            {
+                IsBackground = true
+            }.Start();
         }
 
         /// <summary>
@@ -179,30 +197,33 @@ namespace Common.DAL.Transaction
 
                 lock (m_lockThis)
                 {
-                    if (!m_identityIndexs.ContainsKey(applyRequestData.Identity))
+                    if (!m_relaseIdentitys.Contains(applyRequestData.Identity))
                     {
-                        identityIndex = GetNextIdentityIndex();
-                        m_identityIndexs.Add(applyRequestData.Identity, identityIndex);
-                        m_identityKeyIndexs[identityIndex] = applyRequestData.Identity;
+                        if (!m_identityIndexs.ContainsKey(applyRequestData.Identity))
+                        {
+                            identityIndex = GetNextIdentityIndex();
+                            m_identityIndexs.Add(applyRequestData.Identity, identityIndex);
+                            m_identityKeyIndexs[identityIndex] = applyRequestData.Identity;
+                        }
+                        else
+                            identityIndex = m_identityIndexs[applyRequestData.Identity];
+
+                        if (!m_resourceNameIndexs.ContainsKey(applyRequestData.ResourceName))
+                        {
+                            resourceNameIndex = m_resourceNameIndexs.Count;
+                            m_resourceNameIndexs.Add(applyRequestData.ResourceName, resourceNameIndex);
+                            m_resourceNameKeyIndexs[resourceNameIndex] = applyRequestData.ResourceName;
+                        }
+                        else
+                            resourceNameIndex = m_resourceNameIndexs[applyRequestData.ResourceName];
+
+                        m_weights[identityIndex] = applyRequestData.Weight;
+
+                        if (identityIndex > m_matrix.GetLength(0) - 2 || resourceNameIndex > m_matrix.GetLength(1) - 2)
+                            Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
+
+                        CheckLock(m_identityIndexs[applyRequestData.Identity], m_resourceNameIndexs[applyRequestData.ResourceName], applyRequestData);
                     }
-                    else
-                        identityIndex = m_identityIndexs[applyRequestData.Identity];
-
-                    if (!m_resourceNameIndexs.ContainsKey(applyRequestData.ResourceName))
-                    {
-                        resourceNameIndex = m_resourceNameIndexs.Count;
-                        m_resourceNameIndexs.Add(applyRequestData.ResourceName, resourceNameIndex);
-                        m_resourceNameKeyIndexs[resourceNameIndex] = applyRequestData.ResourceName;
-                    }
-                    else
-                        resourceNameIndex = m_resourceNameIndexs[applyRequestData.ResourceName];
-
-                    m_weights[identityIndex] = applyRequestData.Weight;
-
-                    if (identityIndex > m_matrix.GetLength(0) - 2 || resourceNameIndex > m_matrix.GetLength(1) - 2)
-                        Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
-
-                    CheckLock(m_identityIndexs[applyRequestData.Identity], m_resourceNameIndexs[applyRequestData.ResourceName], applyRequestData);
                 }
 
                 while (m_waitQueue.Count > 0)
@@ -374,6 +395,9 @@ namespace Common.DAL.Transaction
         {
             lock (m_lockThis)
             {
+                if (!m_relaseIdentitys.Contains(identity))
+                    m_relaseIdentitys.Add(identity);
+
                 if (m_identityIndexs.ContainsKey(identity))
                 {
                     int identityIndex = m_identityIndexs[identity];

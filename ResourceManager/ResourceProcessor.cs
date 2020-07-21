@@ -19,18 +19,21 @@ namespace ResourceManager
         private const int MAX_TIME_OUT = 1000 * 60;
         private ServiceClient m_serviceClient;
         private IDeadlockDetection m_deadlockDetection;
+        private ResourceHeartBeatProcessor m_resourceHeartBeatProcessor;
         private IDictionary<long, IDictionary<string, SessionContext>> m_sessionContexts;
 
         public ApplyResourceProcessor(ServiceClient serviceClient, IDeadlockDetection deadlockDetection) : base(serviceClient)
         {
             m_serviceClient = serviceClient;
             m_deadlockDetection = deadlockDetection;
+            m_resourceHeartBeatProcessor = new ResourceHeartBeatProcessor(serviceClient, deadlockDetection);
             m_sessionContexts = new Dictionary<long, IDictionary<string, SessionContext>>();
             m_deadlockDetection.ApplyResponsed += ApplyResponsed;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            m_resourceHeartBeatProcessor.StartAsync(cancellationToken);
             return Task.CompletedTask;
         }
 
@@ -51,6 +54,7 @@ namespace ResourceManager
                 throw new DealException($"超时时间范围为：{0}-{MAX_TIME_OUT}ms");
 
             m_deadlockDetection.ApplyRequest(data.Identity, data.ResourceName, data.Weight, data.TimeOut);
+            m_resourceHeartBeatProcessor.RegisterHeartBeat(data.Identity);
 
             lock (m_sessionContexts)
             {
@@ -134,24 +138,17 @@ namespace ResourceManager
             m_heartBeatCheckThread.IsBackground = true;
             m_heartBeatCheckThread.Name = "HEARTBEAT_CHECK_THREAD";
             m_deadlockDetection = deadlockDetection;
-
-
-
-
-
-
-
-            new Thread(() =>
-            {
-                while (true)
-                {
-                    Console.WriteLine($"IDENTITY COUNT: {m_heartBeats.Count}");
-                    Thread.Sleep(1000);
-                }
-            })
-            {
-                IsBackground = true
-            }.Start();
+            //new Thread(() =>
+            //{
+            //    while (true)
+            //    {
+            //        Console.WriteLine($"IDENTITY COUNT: {m_heartBeats.Count}");
+            //        Thread.Sleep(1000);
+            //    }
+            //})
+            //{
+            //    IsBackground = true
+            //}.Start();
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -203,8 +200,13 @@ namespace ResourceManager
         /// <param name="data"></param>
         protected override void ProcessData(SessionContext sessionContext, ResourceHeartBeatReqesut data)
         {
+            RegisterHeartBeat(data.Identity);
+        }
+
+        internal void RegisterHeartBeat(long identity)
+        {
             lock (m_heartBeats)
-                m_heartBeats[data.Identity] = Environment.TickCount;
+                m_heartBeats[identity] = Environment.TickCount;
         }
     }
 }

@@ -310,6 +310,7 @@ namespace Common.DAL
                 m_cache.PutAll(datas.Select(data => new KeyValuePair<long, T>(data.ID, data)));
             }
 
+            //TODO: Marge存在操作错误
             public void Merge(params T[] datas)
             {
                 Apply<T>();
@@ -412,6 +413,7 @@ namespace Common.DAL
                 m_cache.Replace(data.ID, data);
             }
 
+            //TODO: 修改Update实现为Sql
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
             {
                 Apply<T>();

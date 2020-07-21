@@ -34,9 +34,9 @@ namespace ResourceManager
 
                     services.AddSingleton<IDeadlockDetection, DeadlockDetection>();
                     services.AddSingleton(serviceClient);
+                    //services.AddHostedService<ResourceHeartBeatProcessor>();
                     services.AddHostedService<ApplyResourceProcessor>();
                     services.AddHostedService<ReleaseResourceProcessor>();
-                    services.AddHostedService<ResourceHeartBeatProcessor>();
                 }).
                 ConfigureLogging(builder =>
                 {
