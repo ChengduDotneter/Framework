@@ -422,6 +422,7 @@ namespace Common.DAL
 
                 foreach (ICacheEntry<long, T> entity in m_cache.AsCacheQueryable().Where(ConvertExpression(predicate)))
                 {
+                    //TODO: 可能会出现字段覆盖，需要改成SQL实现
                     if (updateHandler(entity.Value))
                         m_cache.Replace(entity.Key, entity.Value);
                 }
@@ -583,7 +584,8 @@ namespace Common.DAL
                 CacheConfiguration = new CacheConfiguration()
                 {
                     Name = typeof(T).Name,
-                    CacheMode = CacheMode.Replicated,//ignite平衡算法
+                    //TODO: ignite平衡算法
+                    CacheMode = CacheMode.Replicated,
                     QueryEntities = new[] { new QueryEntity(typeof(long), typeof(T)) { Fields = queryFields, Indexes = queryIndices } },
                     SqlSchema = string.Format("\"{0}\"", ConfigManager.Configuration["IgniteService:RegionName"]),
                     AtomicityMode = CacheAtomicityMode.Transactional
