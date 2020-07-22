@@ -12,11 +12,10 @@ namespace Common.RPC.TransferAdapter
         /// </summary>
         /// <param name="endPoint">终结点端口</param>
         /// <param name="zeroMQSocketType">ZeroMQ连接类型</param>
-        /// <param name="identity">RPC通讯端标识</param>
         /// <returns></returns>
-        public static ITransferAdapter CreateZeroMQTransferAdapter(IPEndPoint endPoint, ZeroMQSocketTypeEnum zeroMQSocketType, string identity)
+        public static ITransferAdapter CreateZeroMQTransferAdapter(IPEndPoint endPoint, ZeroMQSocketTypeEnum zeroMQSocketType)
         {
-            return new ZeroMQTransferAdapter(endPoint, zeroMQSocketType, identity);
+            return new ZeroMQTransferAdapter(endPoint, zeroMQSocketType);
         }
 
         /// <summary>
@@ -24,11 +23,10 @@ namespace Common.RPC.TransferAdapter
         /// </summary>
         /// <param name="endPoint">终结点端口</param>
         /// <param name="zeroMQSocketType">ZeroMQ连接类型</param>
-        /// <param name="identity">RPC通讯端标识</param>
         /// <returns></returns>
-        public static ITransferAdapter CreatePackageSpliterZeroMQTransferAdapter(IPEndPoint endPoint, ZeroMQSocketTypeEnum zeroMQSocketType, string identity)
+        public static ITransferAdapter CreatePackageSpliterZeroMQTransferAdapter(IPEndPoint endPoint, ZeroMQSocketTypeEnum zeroMQSocketType)
         {
-            return new PackageSpliterTransferAdapter(CreateZeroMQTransferAdapter(endPoint, zeroMQSocketType, identity));
+            return new PackageSpliterTransferAdapter(CreateZeroMQTransferAdapter(endPoint, zeroMQSocketType));
         }
 
         /// <summary>

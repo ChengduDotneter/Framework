@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Common.DAL.Transaction
@@ -10,6 +11,16 @@ namespace Common.DAL.Transaction
     /// </summary>
     public class DeadlockDetection : IDeadlockDetection
     {
+        /// <summary>
+        /// 清理释放的HOST时间超时
+        /// </summary>
+        private const int CLEAR_TIME_OUT = 30 * 1000;
+
+        /// <summary>
+        /// 线程等待时间
+        /// </summary>
+        private const int THREAD_TIME_SPAN = 200;
+
         /// <summary>
         /// 资源申请订阅事件
         /// </summary>
@@ -33,17 +44,22 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 待释放的事务线程ID标识
         /// </summary>
-        private HashSet<long> m_destoryIdentitys;
+        private ISet<long> m_destoryIdentitys;
 
         /// <summary>
-        /// 已释放的事务ID
+        /// 已释放的HOST
         /// </summary>
-        private HashSet<long> m_relaseIdentitys;
+        private IDictionary<long, int> m_relaseHosts;
 
         /// <summary>
         /// 死锁检查事务
         /// </summary>
         private Thread m_doApplyThread;
+
+        /// <summary>
+        /// 清除HOST线程
+        /// </summary>
+        private Thread m_clearThread;
 
         /// <summary>
         /// 默认事务资源数组长度
@@ -79,6 +95,11 @@ namespace Common.DAL.Transaction
         /// 事务资源名索引字典：事务资源名索引和事务资源名
         /// </summary>
         private IDictionary<int, string> m_resourceNameKeyIndexs;
+
+        /// <summary>
+        /// 发送请求的HOST集合
+        /// </summary>
+        private IDictionary<long, ISet<long>> m_hosts;
 
         /// <summary>
         /// 已被使用过的事务ID数组的索引
@@ -121,12 +142,18 @@ namespace Common.DAL.Transaction
             public int TimeOut { get; }
 
             /// <summary>
+            /// HOSTID
+            /// </summary>
+            public long HostID { get; set; }
+
+            /// <summary>
             /// 申请时间
             /// </summary>
             public int ApplyTime { get; }
 
-            public ApplyRequestData(long identity, string resourceName, int weight, int timeOut)
+            public ApplyRequestData(long hostID, long identity, string resourceName, int weight, int timeOut)
             {
+                HostID = hostID;
                 Identity = identity;
                 ResourceName = resourceName;
                 Weight = weight;
@@ -142,12 +169,13 @@ namespace Common.DAL.Transaction
         {
             Allocate(DEFAULT_IDENTITY_LENGTH, DEFAULT_RESOURCE_LENGTH);
             m_destoryIdentitys = new HashSet<long>();
-            m_relaseIdentitys = new HashSet<long>();
+            m_relaseHosts = new Dictionary<long, int>();
             m_weights = new Dictionary<int, int>();
             m_identityIndexs = new Dictionary<long, int>();
             m_identityKeyIndexs = new Dictionary<int, long>();
             m_resourceNameIndexs = new Dictionary<string, int>();
             m_resourceNameKeyIndexs = new Dictionary<int, string>();
+            m_hosts = new Dictionary<long, ISet<long>>();
             m_applyRequestDatas = new BlockingCollection<ApplyRequestData>();
             m_waitQueue = new Queue<ApplyRequestData>();
 
@@ -157,30 +185,24 @@ namespace Common.DAL.Transaction
             m_doApplyThread.Name = "DEADLOCK_DETECTION_THREAD";
             m_doApplyThread.Start();
 
-            new Thread(() =>
-            {
-                while (true)
-                {
-                    Console.WriteLine($"RELASEIDENTITY COUNT: {m_relaseIdentitys.Count}");
-                    Thread.Sleep(1000);
-                }
-            })
-            {
-                IsBackground = true
-            }.Start();
+            m_clearThread = new Thread(DoClear);
+            m_clearThread.IsBackground = true;
+            m_clearThread.Name = "DEADLOCK_HOST_CLEAR_THREAD";
+            m_clearThread.Start();
         }
 
         /// <summary>
         /// 事务申请资源时，进入死锁监测，监测是否出现死锁情况
         /// </summary>
+        /// <param name="hostID">HOSTID</param>
         /// <param name="identity">事务线程ID</param>
         /// <param name="resourceName">事务申请的资源名，现包括数据表名</param>
         /// <param name="weight">事务权重</param>
         /// <param name="timeOut">超时时间</param>
         /// <returns></returns>
-        public void ApplyRequest(long identity, string resourceName, int weight, int timeOut)
+        public void ApplyRequest(long hostID, long identity, string resourceName, int weight, int timeOut)
         {
-            m_applyRequestDatas.Add(new ApplyRequestData(identity, resourceName, weight, timeOut));
+            m_applyRequestDatas.Add(new ApplyRequestData(hostID, identity, resourceName, weight, timeOut));
         }
 
         /// <summary>
@@ -197,8 +219,16 @@ namespace Common.DAL.Transaction
 
                 lock (m_lockThis)
                 {
-                    if (!m_relaseIdentitys.Contains(applyRequestData.Identity))
+                    if (!m_relaseHosts.ContainsKey(applyRequestData.HostID))
                     {
+                        lock (m_hosts)
+                        {
+                            if (!m_hosts.ContainsKey(applyRequestData.HostID))
+                                m_hosts.Add(applyRequestData.HostID, new HashSet<long>());
+
+                            m_hosts[applyRequestData.HostID].Add(applyRequestData.Identity);
+                        }
+
                         if (!m_identityIndexs.ContainsKey(applyRequestData.Identity))
                         {
                             identityIndex = GetNextIdentityIndex();
@@ -223,6 +253,10 @@ namespace Common.DAL.Transaction
                             Allocate(m_matrix.GetLength(0) * 2, m_matrix.GetLength(1) * 2);
 
                         CheckLock(m_identityIndexs[applyRequestData.Identity], m_resourceNameIndexs[applyRequestData.ResourceName], applyRequestData);
+                    }
+                    else
+                    {
+                        Console.WriteLine("AAA");
                     }
                 }
 
@@ -389,27 +423,78 @@ namespace Common.DAL.Transaction
         /// <summary>
         /// 退出死锁监测，移除已有资源标识
         /// </summary>
+        /// <param name="hostID">HOSTID</param>
         /// <param name="identity">事务线程ID</param>
         /// <returns></returns>
-        public void RemoveTranResource(long identity)
+        public void RemoveTranResource(long hostID, long identity)
+        {
+            lock (m_lockThis)
+                CloseTranResource(hostID, identity);
+        }
+
+        /// <summary>
+        /// 强制关闭死锁监测，移除已有资源标识
+        /// </summary>
+        /// <param name="hostID">HOSTID</param>
+        /// <returns></returns>
+        public void KillTranResource(long hostID)
         {
             lock (m_lockThis)
             {
-                if (!m_relaseIdentitys.Contains(identity))
-                    m_relaseIdentitys.Add(identity);
+                if (!m_hosts.ContainsKey(hostID))
+                    return;
 
-                if (m_identityIndexs.ContainsKey(identity))
+                if (!m_relaseHosts.ContainsKey(hostID))
+                    m_relaseHosts.Add(hostID, Environment.TickCount);
+
+                long[] identitys = m_hosts[hostID].ToArray();
+
+                for (int i = 0; i < identitys.Length; i++)
+                    CloseTranResource(hostID, identitys[i]);
+
+                m_hosts.Remove(hostID);
+            }
+        }
+
+        private void CloseTranResource(long hostID, long identity)
+        {
+            if (m_identityIndexs.ContainsKey(identity))
+            {
+                int identityIndex = m_identityIndexs[identity];
+
+                foreach (var item in m_resourceNameKeyIndexs)
                 {
-                    int identityIndex = m_identityIndexs[identity];
-
-                    foreach (var item in m_resourceNameKeyIndexs)
-                    {
-                        m_matrix[identityIndex, item.Key] = 0;
-                    }
-
-                    m_usedIdentityIndexs[identityIndex] = false;
-                    m_identityIndexs.Remove(identity);
+                    m_matrix[identityIndex, item.Key] = 0;
                 }
+
+                m_usedIdentityIndexs[identityIndex] = false;
+                m_identityIndexs.Remove(identity);
+                m_hosts[hostID].Remove(identity);
+            }
+        }
+
+        /// <summary>
+        /// HOST清除线程执行方法
+        /// </summary>
+        private void DoClear()
+        {
+            while (true)
+            {
+                long[] hostIDs;
+
+                lock (m_lockThis)
+                    hostIDs = m_relaseHosts.Keys.ToArray();
+
+                for (int i = 0; i < hostIDs.Length; i++)
+                {
+                    if (Environment.TickCount - m_relaseHosts[hostIDs[i]] > CLEAR_TIME_OUT)
+                    {
+                        lock (m_lockThis)
+                            m_relaseHosts.Remove(hostIDs[i]);
+                    }
+                }
+
+                Thread.Sleep(THREAD_TIME_SPAN);
             }
         }
     }

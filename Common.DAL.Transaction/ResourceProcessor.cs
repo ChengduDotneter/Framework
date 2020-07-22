@@ -1,10 +1,8 @@
-﻿using Common.RPC;
-using Common.RPC.TransferAdapter;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Common.RPC;
+using Common.RPC.TransferAdapter;
 
 namespace Common.DAL.Transaction
 {
@@ -14,10 +12,12 @@ namespace Common.DAL.Transaction
     internal class ApplyResourceProcessor : RequestProcessorBase<ApplyRequestData, ApplyResponseData>
     {
         private ServiceClient m_serviceClient;
+        private long m_hostID;
 
-        public ApplyResourceProcessor(ServiceClient serviceClient) : base(1000 * 90)
+        public ApplyResourceProcessor(ServiceClient serviceClient, long hostID) : base(1000 * 45)
         {
             m_serviceClient = serviceClient;
+            m_hostID = hostID;
         }
 
         /// <summary>
@@ -37,7 +37,8 @@ namespace Common.DAL.Transaction
                 ResourceName = table.FullName,
                 Identity = identity,
                 Weight = weight,
-                TimeOut = timeOut
+                TimeOut = timeOut,
+                HostID = m_hostID
             }, applyResponseData =>
             {
                 successed = applyResponseData.Success;
@@ -64,7 +65,8 @@ namespace Common.DAL.Transaction
                 ResourceName = table.FullName,
                 Identity = identity,
                 Weight = weight,
-                TimeOut = timeOut
+                TimeOut = timeOut,
+                HostID = m_hostID
             }, applyResponseData =>
             {
                 successed = applyResponseData.Success;
@@ -81,10 +83,12 @@ namespace Common.DAL.Transaction
     internal class ReleaseResourceProcessor : RequestProcessorBase<ReleaseRequestData, ReleaseResponseData>
     {
         private ServiceClient m_serviceClient;
+        private long m_hostID;
 
-        public ReleaseResourceProcessor(ServiceClient serviceClient) : base(1000 * 90)
+        public ReleaseResourceProcessor(ServiceClient serviceClient, long hostID) : base(1000 * 45)
         {
             m_serviceClient = serviceClient;
+            m_hostID = hostID;
         }
 
         /// <summary>
@@ -95,7 +99,8 @@ namespace Common.DAL.Transaction
         {
             bool result = await RequestAsync(m_serviceClient, new ReleaseRequestData()
             {
-                Identity = identity
+                Identity = identity,
+                HostID = m_hostID
             }, releaseResponseData =>
             {
                 return true;
@@ -112,7 +117,8 @@ namespace Common.DAL.Transaction
         {
             bool result = Request(m_serviceClient, new ReleaseRequestData()
             {
-                Identity = identity
+                Identity = identity,
+                HostID = m_hostID
             }, releaseResponseData =>
             {
                 return true;
@@ -124,17 +130,17 @@ namespace Common.DAL.Transaction
 
     internal class ResourceHeartBeatProcessor : ProcessorBase, IDisposable
     {
-        private const int THREAD_TIME_SPAN = 20;
+        private const int THREAD_TIME_SPAN = 200;
         private ServiceClient m_serviceClient;
-        private ISet<long> m_identitys;
         private bool m_running;
         private Thread m_heartBeatThread;
+        private long m_hostID;
 
-        public ResourceHeartBeatProcessor(ServiceClient serviceClient)
+        public ResourceHeartBeatProcessor(ServiceClient serviceClient, long hostID)
         {
             m_serviceClient = serviceClient;
-            m_identitys = new HashSet<long>();
             m_running = true;
+            m_hostID = hostID;
 
             m_heartBeatThread = new Thread(HeartBeatCheck);
             m_heartBeatThread.IsBackground = true;
@@ -145,35 +151,13 @@ namespace Common.DAL.Transaction
         public void Dispose()
         {
             m_running = false;
-
-            lock (m_identitys)
-                m_identitys.Clear();
-        }
-
-        public void RegisterIdentity(long identity)
-        {
-            lock (m_identitys)
-                m_identitys.Add(identity);
-        }
-
-        public void UnRegisterIdentity(long identity)
-        {
-            lock (m_identitys)
-                m_identitys.Remove(identity);
         }
 
         private void HeartBeatCheck()
         {
             while (m_running)
             {
-                long[] identitys;
-
-                lock (m_identitys)
-                    identitys = m_identitys.ToArray();
-
-                for (int i = 0; i < identitys.Length; i++)
-                    SendSessionData(m_serviceClient, new SessionContext(IDGenerator.NextID()), new ResourceHeartBeatReqesut() { Identity = identitys[i] });
-
+                SendSessionData(m_serviceClient, new SessionContext(IDGenerator.NextID()), new ResourceHeartBeatReqesut() { HostID = m_hostID });
                 Thread.Sleep(THREAD_TIME_SPAN);
             }
         }

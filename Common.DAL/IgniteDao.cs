@@ -413,7 +413,6 @@ namespace Common.DAL
                 m_cache.Replace(data.ID, data);
             }
 
-            //TODO: 修改Update实现为Sql
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
             {
                 Apply<T>();

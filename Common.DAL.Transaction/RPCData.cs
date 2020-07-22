@@ -28,6 +28,11 @@ namespace Common.DAL.Transaction
         public int TimeOut { get; set; }
 
         /// <summary>
+        /// 发送请求的宿主ID
+        /// </summary>
+        public long HostID { get; set; }
+
+        /// <summary>
         /// 全局唯一RPCID
         /// </summary>
         public byte MessageID { get { return 0x1; } }
@@ -55,14 +60,14 @@ namespace Common.DAL.Transaction
     public struct ReleaseRequestData : IRPCData
     {
         /// <summary>
-        /// 所需释放的资源名，现包括数据表名
-        /// </summary>
-        public string ResourceName { get; set; }
-
-        /// <summary>
         /// 事务线程ID
         /// </summary>
         public long Identity { get; set; }
+
+        /// <summary>
+        /// 发送请求的宿主ID
+        /// </summary>
+        public long HostID { get; set; }
 
         /// <summary>
         /// 全局唯一RPCID
@@ -87,9 +92,9 @@ namespace Common.DAL.Transaction
     public struct ResourceHeartBeatReqesut : IRPCData
     {
         /// <summary>
-        /// 事务线程ID
+        /// 发送请求的宿主ID
         /// </summary>
-        public long Identity { get; set; }
+        public long HostID { get; set; }
 
         /// <summary>
         /// 全局唯一RPCID

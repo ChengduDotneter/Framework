@@ -49,6 +49,11 @@ namespace Common.DAL.Transaction
         private readonly static ResourceHeartBeatProcessor m_resourceHeartBeatProcessor;
 
         /// <summary>
+        /// HOSTID
+        /// </summary>
+        private readonly static long m_hostID;
+
+        /// <summary>
         /// 申请事务资源
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
@@ -58,14 +63,7 @@ namespace Common.DAL.Transaction
         /// <returns></returns>
         public static bool ApplayResource(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
         {
-            bool result = m_applyResourceProcessor.Apply(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
-
-            if (result)
-                m_resourceHeartBeatProcessor.RegisterIdentity(identity);
-            else
-                m_resourceHeartBeatProcessor.UnRegisterIdentity(identity);
-
-            return result;
+            return m_applyResourceProcessor.Apply(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
         }
 
         /// <summary>
@@ -78,14 +76,7 @@ namespace Common.DAL.Transaction
         /// <returns></returns>
         public static async Task<bool> ApplayResourceAsync(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
         {
-            bool result = await m_applyResourceProcessor.ApplyAsync(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
-
-            if (result)
-                m_resourceHeartBeatProcessor.RegisterIdentity(identity);
-            else
-                m_resourceHeartBeatProcessor.UnRegisterIdentity(identity);
-
-            return result;
+            return await m_applyResourceProcessor.ApplyAsync(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
         }
 
         /// <summary>
@@ -94,8 +85,6 @@ namespace Common.DAL.Transaction
         /// <param name="identity">事务线程ID</param>
         public static void ReleaseResource(long identity)
         {
-            m_resourceHeartBeatProcessor.UnRegisterIdentity(identity);
-
             if (!m_releaseResourceProcessor.Release(identity))
                 throw new DealException($"释放事务{identity}资源失败。");
         }
@@ -106,8 +95,6 @@ namespace Common.DAL.Transaction
         /// <param name="identity">事务线程ID</param>
         public static async Task ReleaseResourceAsync(long identity)
         {
-            m_resourceHeartBeatProcessor.UnRegisterIdentity(identity);
-
             if (!await m_releaseResourceProcessor.ReleaseAsync(identity))
                 throw new DealException($"释放事务{identity}资源失败。");
         }
@@ -117,16 +104,17 @@ namespace Common.DAL.Transaction
         /// </summary>
         static TransactionResourceHelper()
         {
+            m_hostID = IDGenerator.NextID();
             string timeOutString = ConfigManager.Configuration["ResourceManager:Timeout"];
             m_timeOut = string.IsNullOrWhiteSpace(timeOutString) ? DEFAULT_TIME_OUT : Convert.ToInt32(timeOutString);
 
             m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), UDPCRCSocketTypeEnum.Client), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
 
-            //m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateZeroMQTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), ZeroMQSocketTypeEnum.Client, Guid.NewGuid().ToString()), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+            //m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateZeroMQTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), ZeroMQSocketTypeEnum.Client), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
 
-            m_applyResourceProcessor = new ApplyResourceProcessor(m_serviceClient);
-            m_releaseResourceProcessor = new ReleaseResourceProcessor(m_serviceClient);
-            m_resourceHeartBeatProcessor = new ResourceHeartBeatProcessor(m_serviceClient);
+            m_applyResourceProcessor = new ApplyResourceProcessor(m_serviceClient, m_hostID);
+            m_releaseResourceProcessor = new ReleaseResourceProcessor(m_serviceClient, m_hostID);
+            m_resourceHeartBeatProcessor = new ResourceHeartBeatProcessor(m_serviceClient, m_hostID);
 
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 

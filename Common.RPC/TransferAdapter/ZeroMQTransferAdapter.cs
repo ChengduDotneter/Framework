@@ -24,8 +24,8 @@ namespace Common.RPC.TransferAdapter
         private NetMQSocket m_socket;
         private ZeroMQSocketTypeEnum m_zeroMQSocketType;
         private BlockingCollection<SendData> m_sendDatas;
-#if OUTPUT_LOG
         private string m_identity;
+#if OUTPUT_LOG
         private static ILog m_log;
 #endif
 
@@ -54,11 +54,9 @@ namespace Common.RPC.TransferAdapter
 #endif
         }
 
-        public ZeroMQTransferAdapter(IPEndPoint endPoint, ZeroMQSocketTypeEnum zeroMQSocketType, string identity)
+        public ZeroMQTransferAdapter(IPEndPoint endPoint, ZeroMQSocketTypeEnum zeroMQSocketType)
         {
-#if OUTPUT_LOG
-            m_identity = identity;
-#endif
+            m_identity = Guid.NewGuid().ToString();
             m_sendDatas = new BlockingCollection<SendData>();
             m_zeroMQSocketType = zeroMQSocketType;
             m_recieveThread = new Thread(DoRecieveBuffer);
@@ -70,7 +68,7 @@ namespace Common.RPC.TransferAdapter
             m_socket = CreateNetMQSocket(
                 zeroMQSocketType,
                 string.Format("tcp://{0}:{1}", endPoint.Address.ToString(), endPoint.Port),
-                Encoding.UTF8.GetBytes(identity));
+                Encoding.UTF8.GetBytes(m_identity));
         }
 
         private static NetMQSocket CreateNetMQSocket(ZeroMQSocketTypeEnum zeroMQSocketType, string connectionString, byte[] identity)
