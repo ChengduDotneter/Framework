@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 namespace Common
 {
     /// <summary>
-    /// HTTPJsonHelperÇëÇó°ïÖúÀà
+    /// HTTPJsonHelperè¯·æ±‚å¸®åŠ©ç±»
     /// </summary>
     public static class HttpJsonHelper
     {
         /// <summary>
-        /// postÒì²½ÇëÇó
+        /// postå¼‚æ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="url">ÇëÇó»ùµØÖ·</param>
-        /// <param name="action">ÇëÇó·½·¨</param>
-        /// <param name="content">ÇëÇóBody</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="url">è¯·æ±‚åŸºåœ°å€</param>
+        /// <param name="action">è¯·æ±‚æ–¹æ³•</param>
+        /// <param name="content">è¯·æ±‚Body</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static Task<HttpResponseMessage> HttpPostAsync(string url, string action, HttpContent content, string bearerToken = "")
         {
@@ -25,12 +25,12 @@ namespace Common
         }
 
         /// <summary>
-        /// PostÍ¬²½ÇëÇó
+        /// PoståŒæ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="url">ÇëÇó»ùµØÖ·</param>
-        /// <param name="action">ÇëÇó·½·¨</param>
-        /// <param name="content">ÇëÇóBody</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="url">è¯·æ±‚åŸºåœ°å€</param>
+        /// <param name="action">è¯·æ±‚æ–¹æ³•</param>
+        /// <param name="content">è¯·æ±‚Body</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static HttpResponseMessage HttpPost(string url, string action, HttpContent content, string bearerToken = "")
         {
@@ -38,11 +38,11 @@ namespace Common
         }
 
         /// <summary>
-        /// getÒì²½ÇëÇó
+        /// getå¼‚æ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="url">ÇëÇó»ùµØÖ·</param>
-        /// <param name="action">ÇëÇó·½·¨</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="url">è¯·æ±‚åŸºåœ°å€</param>
+        /// <param name="action">è¯·æ±‚æ–¹æ³•</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static Task<HttpResponseMessage> HttpGetAsync(string url, string action, string bearerToken = "")
         {
@@ -50,11 +50,11 @@ namespace Common
         }
 
         /// <summary>
-        /// getÍ¬²½ÇëÇó
+        /// getåŒæ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="url">ÇëÇó»ùµØÖ·</param>
-        /// <param name="action">ÇëÇó·½·¨</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="url">è¯·æ±‚åŸºåœ°å€</param>
+        /// <param name="action">è¯·æ±‚æ–¹æ³•</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static HttpResponseMessage HttpGet(string url, string action, string bearerToken = "")
         {
@@ -62,12 +62,12 @@ namespace Common
         }
 
         /// <summary>
-        /// putÒì²½ÇëÇó
+        /// putå¼‚æ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="url">ÇëÇó»ùµØÖ·</param>
-        /// <param name="action">ÇëÇó·½·¨</param>
-        /// <param name="content">ÇëÇóBody</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="url">è¯·æ±‚åŸºåœ°å€</param>
+        /// <param name="action">è¯·æ±‚æ–¹æ³•</param>
+        /// <param name="content">è¯·æ±‚Body</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static Task<HttpResponseMessage> HttpPutAsync(string url, string action, HttpContent content, string bearerToken = "")
         {
@@ -75,12 +75,12 @@ namespace Common
         }
 
         /// <summary>
-        /// putÍ¬²½ÇëÇó
+        /// putåŒæ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="url">ÇëÇó»ùµØÖ·</param>
-        /// <param name="action">ÇëÇó·½·¨</param>
-        /// <param name="content">ÇëÇóBody</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="url">è¯·æ±‚åŸºåœ°å€</param>
+        /// <param name="action">è¯·æ±‚æ–¹æ³•</param>
+        /// <param name="content">è¯·æ±‚Body</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static HttpResponseMessage HttpPut(string url, string action, HttpContent content, string bearerToken = "")
         {
@@ -88,11 +88,11 @@ namespace Common
         }
 
         /// <summary>
-        /// deleteÒì²½ÇëÇó
+        /// deleteå¼‚æ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="url">ÇëÇó»ùµØÖ·</param>
-        /// <param name="action">ÇëÇó·½·¨</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="url">è¯·æ±‚åŸºåœ°å€</param>
+        /// <param name="action">è¯·æ±‚æ–¹æ³•</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static Task<HttpResponseMessage> HttpDeleteAsync(string url, string action, string bearerToken = "")
         {
@@ -100,11 +100,11 @@ namespace Common
         }
 
         /// <summary>
-        /// deleteÍ¬²½ÇëÇó
+        /// deleteåŒæ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="url">ÇëÇó»ùµØÖ·</param>
-        /// <param name="action">ÇëÇó·½·¨</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="url">è¯·æ±‚åŸºåœ°å€</param>
+        /// <param name="action">è¯·æ±‚æ–¹æ³•</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static HttpResponseMessage HttpDelete(string url, string action, string bearerToken = "")
         {
@@ -112,11 +112,11 @@ namespace Common
         }
 
         /// <summary>
-        /// post¾ø¶ÔÂ·¾¶Òì²½ÇëÇó
+        /// postç»å¯¹è·¯å¾„å¼‚æ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="absoluteUri">ÇëÇó¾ø¶ÔÂ·¾¶</param>
-        /// <param name="requestObject">ÇëÇóµÄ¶ÔÏó</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="absoluteUri">è¯·æ±‚ç»å¯¹è·¯å¾„</param>
+        /// <param name="requestObject">è¯·æ±‚çš„å¯¹è±¡</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static Task<HttpResponseMessage> HttpPostByAbsoluteUriAsync(string absoluteUri, object requestObject, string bearerToken = "")
         {
@@ -124,11 +124,11 @@ namespace Common
         }
 
         /// <summary>
-        /// Post¾ø¶ÔÂ·¾¶Í¬²½ÇëÇó
+        /// Postç»å¯¹è·¯å¾„åŒæ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="absoluteUri">ÇëÇó¾ø¶ÔÂ·¾¶</param>
-        /// <param name="requestObject">ÇëÇóµÄ¶ÔÏó</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="absoluteUri">è¯·æ±‚ç»å¯¹è·¯å¾„</param>
+        /// <param name="requestObject">è¯·æ±‚çš„å¯¹è±¡</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static HttpResponseMessage HttpPostByAbsoluteUri(string absoluteUri, object requestObject, string bearerToken = "")
         {
@@ -136,10 +136,10 @@ namespace Common
         }
 
         /// <summary>
-        /// get¾ø¶ÔÂ·¾¶Òì²½ÇëÇó
+        /// getç»å¯¹è·¯å¾„å¼‚æ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="absoluteUri">ÇëÇó¾ø¶ÔÂ·¾¶</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="absoluteUri">è¯·æ±‚ç»å¯¹è·¯å¾„</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static Task<HttpResponseMessage> HttpGetByAbsoluteUriAsync(string absoluteUri, string bearerToken = "")
         {
@@ -147,10 +147,10 @@ namespace Common
         }
 
         /// <summary>
-        /// get¾ø¶ÔÂ·¾¶Í¬²½ÇëÇó
+        /// getç»å¯¹è·¯å¾„åŒæ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="absoluteUri">ÇëÇó¾ø¶ÔÂ·¾¶</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="absoluteUri">è¯·æ±‚ç»å¯¹è·¯å¾„</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static HttpResponseMessage HttpGetByAbsoluteUri(string absoluteUri, string bearerToken = "")
         {
@@ -158,11 +158,11 @@ namespace Common
         }
 
         /// <summary>
-        /// put¾ø¶ÔÂ·¾¶Òì²½ÇëÇó
+        /// putç»å¯¹è·¯å¾„å¼‚æ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="absoluteUri">ÇëÇó¾ø¶ÔÂ·¾¶</param>
-        /// <param name="requestObject">ÇëÇóµÄ¶ÔÏó</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="absoluteUri">è¯·æ±‚ç»å¯¹è·¯å¾„</param>
+        /// <param name="requestObject">è¯·æ±‚çš„å¯¹è±¡</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static Task<HttpResponseMessage> HttpPutByAbsoluteUriAsync(string absoluteUri, object requestObject, string bearerToken = "")
         {
@@ -170,11 +170,11 @@ namespace Common
         }
 
         /// <summary>
-        /// put¾ø¶ÔÂ·¾¶Í¬²½ÇëÇó
+        /// putç»å¯¹è·¯å¾„åŒæ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="absoluteUri">ÇëÇó¾ø¶ÔÂ·¾¶</param>
-        /// <param name="requestObject">ÇëÇóµÄ¶ÔÏó</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="absoluteUri">è¯·æ±‚ç»å¯¹è·¯å¾„</param>
+        /// <param name="requestObject">è¯·æ±‚çš„å¯¹è±¡</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static HttpResponseMessage HttpPutByAbsoluteUri(string absoluteUri, object requestObject, string bearerToken = "")
         {
@@ -182,10 +182,10 @@ namespace Common
         }
 
         /// <summary>
-        /// delete¾ø¶ÔÂ·¾¶Òì²½ÇëÇó
+        /// deleteç»å¯¹è·¯å¾„å¼‚æ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="absoluteUri">ÇëÇó¾ø¶ÔÂ·¾¶</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="absoluteUri">è¯·æ±‚ç»å¯¹è·¯å¾„</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static Task<HttpResponseMessage> HttpDeleteByAbsoluteUriAsync(string absoluteUri, string bearerToken = "")
         {
@@ -193,10 +193,10 @@ namespace Common
         }
 
         /// <summary>
-        /// delete¾ø¶ÔÂ·¾¶Í¬²½ÇëÇó
+        /// deleteç»å¯¹è·¯å¾„åŒæ­¥è¯·æ±‚
         /// </summary>
-        /// <param name="absoluteUri">ÇëÇó¾ø¶ÔÂ·¾¶</param>
-        /// <param name="bearerToken">BearerÑéÖ¤£¬Èç²»ÓÃBearerÈÏÖ¤Ôò²»´«</param>
+        /// <param name="absoluteUri">è¯·æ±‚ç»å¯¹è·¯å¾„</param>
+        /// <param name="bearerToken">BeareréªŒè¯ï¼Œå¦‚ä¸ç”¨Bearerè®¤è¯åˆ™ä¸ä¼ </param>
         /// <returns></returns>
         public static HttpResponseMessage HttpDeleteByAbsoluteUri(string absoluteUri, string bearerToken = "")
         {
@@ -216,7 +216,7 @@ namespace Common
         }
 
         /// <summary>
-        /// Òì²½»ñÈ¡ÇëÇó½á¹û
+        /// å¼‚æ­¥è·å–è¯·æ±‚ç»“æœ
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="response"></param>
@@ -232,7 +232,7 @@ namespace Common
         }
 
         /// <summary>
-        /// Í¬²½»ñÈ¡ÇëÇó½á¹û
+        /// åŒæ­¥è·å–è¯·æ±‚ç»“æœ
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="response"></param>
@@ -243,7 +243,7 @@ namespace Common
         }
 
         /// <summary>
-        /// ¸ù¾İObject»ñÈ¡httpcontext
+        /// æ ¹æ®Objectè·å–httpcontext
         /// </summary>
         /// <param name="requestObject"></param>
         /// <returns></returns>
