@@ -35,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Compute", "Common.Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UDPConsoleA", "UDPConsoleA\UDPConsoleA.csproj", "{3B105BB8-BCAF-45F4-A821-6151C4B16D41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCCManager", "TCCManager\TCCManager.csproj", "{D3EA55B9-FF25-4EA8-AB64-3D5F97E8D333}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCCManager", "TCCManager\TCCManager.csproj", "{DDD5CA78-E39D-4728-B0EE-A42AC0F9A4CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -107,10 +107,10 @@ Global
 		{3B105BB8-BCAF-45F4-A821-6151C4B16D41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B105BB8-BCAF-45F4-A821-6151C4B16D41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B105BB8-BCAF-45F4-A821-6151C4B16D41}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D3EA55B9-FF25-4EA8-AB64-3D5F97E8D333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3EA55B9-FF25-4EA8-AB64-3D5F97E8D333}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3EA55B9-FF25-4EA8-AB64-3D5F97E8D333}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3EA55B9-FF25-4EA8-AB64-3D5F97E8D333}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDD5CA78-E39D-4728-B0EE-A42AC0F9A4CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDD5CA78-E39D-4728-B0EE-A42AC0F9A4CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDD5CA78-E39D-4728-B0EE-A42AC0F9A4CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDD5CA78-E39D-4728-B0EE-A42AC0F9A4CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
