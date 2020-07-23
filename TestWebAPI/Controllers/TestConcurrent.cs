@@ -4,6 +4,7 @@ using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -116,41 +117,82 @@ namespace TestWebAPI.Controllers
     }
 
     [ApiController]
-    [Route("tttt")]
-    public class testcontroller : ControllerBase
+    [Route("tccdo")]
+    public class tccdocontroller : ControllerBase
     {
         private readonly IEditQuery<WarehouseInfo> m_warehouseInfoEditQuery;
         private readonly IEditQuery<ConcurrentModel> m_concurrentModelEditQuery;
         private readonly ISearchQuery<ConcurrentModel> m_searchQuery;
 
-        public testcontroller(IEditQuery<WarehouseInfo> warehouseInfoEditQuery, IEditQuery<ConcurrentModel> concurrentModelEditQuery, ISearchQuery<ConcurrentModel> searchQuery)
+        private readonly ITransaction m_transaction;
+
+        public tccdocontroller(IEditQuery<WarehouseInfo> warehouseInfoEditQuery, IEditQuery<ConcurrentModel> concurrentModelEditQuery, ISearchQuery<ConcurrentModel> searchQuery)
         {
             m_warehouseInfoEditQuery = warehouseInfoEditQuery;
             m_concurrentModelEditQuery = concurrentModelEditQuery;
             m_searchQuery = searchQuery;
+            m_transaction = m_warehouseInfoEditQuery.BeginTransaction();
+        }
+
+        [HttpPost]
+        [Route("Try")]
+        public void Try()
+        {
+            try
+            {
+                Console.WriteLine(m_searchQuery.FilterIsDeleted().Count());
+
+                m_concurrentModelEditQuery.FilterIsDeleted().Insert(new ConcurrentModel { CreateTime = DateTime.Now, CreateUserID = 0, ID = IDGenerator.NextID(), Password = "11", UserAccount = "123" });
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        [HttpPost]
+        [Route("Cancel")]
+        public void Cancel()
+        {
+            m_transaction.Rollback();
+        }
+
+        [HttpPost]
+        [Route("Commit")]
+        public void Commit()
+        {
+            m_transaction.Submit();
+        }
+
+    }
+
+    [ApiController]
+    [Route("tccstart")]
+    public class tccstartcontroller : ControllerBase
+    {
+        public tccstartcontroller()
+        {
         }
 
         [HttpGet]
-        [Route("2")]
-        public void data111()
+        public void Try()
         {
-            using (ITransaction transaction = m_warehouseInfoEditQuery.BeginTransaction())
-            {
-                try
-                {
-                    Console.WriteLine(m_searchQuery.FilterIsDeleted().Count());
+            JObject jObject = new JObject();
+            jObject["id"] = IDGenerator.NextID();
+            jObject["timeOut"] = 30;
+            JArray jArray = new JArray();
 
-                    m_concurrentModelEditQuery.FilterIsDeleted().Insert(new ConcurrentModel { CreateTime = DateTime.Now, CreateUserID = 0, ID = IDGenerator.NextID(), Password = "11", UserAccount = "123" });
+            JObject jObject1 = new JObject();
+            jObject1["Url"] = "http://192.168.10.211:1098/tt1/tccdo";
+            jArray.Add(jObject1);
 
-                    transaction.Submit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
+            jObject1["Url"] = "http://192.168.10.211:1098/tt2/tccdo";
+            jArray.Add(jObject1);
 
-            }
+            jObject["TCCNodes"] = jArray;
+
+
+            var data = HttpJsonHelper.HttpPostByAbsoluteUri("http://192.168.10.211:1098/tcc", jObject);
         }
     }
 
