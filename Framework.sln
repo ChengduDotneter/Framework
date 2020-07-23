@@ -5,9 +5,9 @@ VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apache.Ignite.Linq", "Apache.Ignite.Linq\Apache.Ignite.Linq.csproj", "{E53F0851-A7E7-4ACB-9E3F-B14753354934}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{66C7B06B-EBD3-4C9B-A797-98D3D81A1B1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{66C7B06B-EBD3-4C9B-A797-98D3D81A1B1D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.DAL", "Common.DAL\Common.DAL.csproj", "{3DF998BE-70C4-4E9F-94BA-D76DBBEB0193}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.DAL", "Common.DAL\Common.DAL.csproj", "{3DF998BE-70C4-4E9F-94BA-D76DBBEB0193}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.DAL.Cache", "Common.DAL.Cache\Common.DAL.Cache.csproj", "{DE97FFD5-D1A9-48B6-9FD8-D414195E49AF}"
 EndProject
@@ -29,11 +29,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.RPC", "Common.RPC\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceManager", "ResourceManager\ResourceManager.csproj", "{72E59763-455C-494E-98D6-253A4A7245CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "TestConsole\TestConsole.csproj", "{E3569904-2212-4D8C-893A-67CBDDC60B3F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsole", "TestConsole\TestConsole.csproj", "{E3569904-2212-4D8C-893A-67CBDDC60B3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Compute", "Common.Compute\Common.Compute.csproj", "{10956496-9FFA-4F04-A43F-E42A00853728}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Compute", "Common.Compute\Common.Compute.csproj", "{10956496-9FFA-4F04-A43F-E42A00853728}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UDPConsoleA", "UDPConsoleA\UDPConsoleA.csproj", "{3B105BB8-BCAF-45F4-A821-6151C4B16D41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UDPConsoleA", "UDPConsoleA\UDPConsoleA.csproj", "{3B105BB8-BCAF-45F4-A821-6151C4B16D41}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
