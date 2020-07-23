@@ -1,0 +1,53 @@
+﻿RabbitMQ服务环境配置步骤：
+
+1、	安装Erlang语言运行环境
+由于RabbitMQ使用Erlang语言编写，所以先安装Erlang语言运行环境。
+
+Windows配置Erlang环境如下：
+<1>下载地址：http://www.erlang.org/downloads 
+<2>本次提供的版本为otp_win64_22.3版本
+<3>直接运行安装包程序安装即可，配置以默认选择即可，路径可自选。
+<4>设置环境变量：手动编辑“path”加入路径  C:\Program Files\erl10.7\bin  ，需要注意该路径是否为你安装的路径，若不是则需更换为你的安装路径。
+<5>打开 cmd ,输入 erl 后回车，如果看到Eshell和版本号的信息，表明安装成功
+<6>若上述步骤有表达不清的地方可访问网址 https://www.cnblogs.com/longlongogo/p/6479424.html 进行详细安装步骤的查看。
+
+2、安装RabbitMQ服务端,下载地址： http://www.rabbitmq.com/
+
+3、本次提供的版本为 rabbitmq-server-3.8.3
+
+4、直接运行安装包程序安装即可，配置以默认选择即可，路径可自选。
+
+5、安装服务：
+使RabbitMQ以Windows Service的方式在后台运行：打开cmd切换到sbin目录下执行
+rabbitmq-service install
+rabbitmq-service enable
+rabbitmq-service start
+
+6、RabbitMQ的服务端已经启动后。若要查看和控制RabbitMQ服务端的状态，可以用rabbitmqctl这个脚本。
+
+比如查看状态：
+rabbitmqctl status
+
+注：假如显示node没有连接上，需要到C:\Windows目录下，将.erlang.cookie文件，拷贝到用户目录下 C:\Users\{用户名}，这是Erlang的Cookie文件，允许与Erlang进行交互。
+
+使用命令查看用户：rabbitmqctl list_users
+
+7、RabbitMQ会为我们创建默认的用户名guest和密码guest，guest默认拥有RabbitMQ的所有权限。
+
+8、一般的，我们需要新建一个我们自己的用户，设置密码，并授予权限，并将其设置为管理员，可以使用下面的命令来执行这一操作：
+
+rabbitmqctl  add_user  JC JayChou   //创建用户JC密码为JayChou
+rabbitmqctl  set_permissions  JC ".*"  ".*"  ".*"    //赋予JC读写所有消息队列的权限
+rabbitmqctl  set_user_tags JC administrator    //分配用户组
+
+修改JC密码为123：
+rabbitmqctl change_password JC  123
+
+删除用户JC：
+rabbitmqctl delete_user  JC
+
+也可以开启rabbitmq_management插件，在web界面查看和管理RabbitMQ服务
+rabbitmq-plugins enable rabbitmq_management  
+
+
+9、在你的浏览器中输入   localhost:15672 能够显示RabbitMQ的UI操作界面就表明服务安装配置成功了
