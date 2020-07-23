@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using Common;
 
 namespace Common.ServiceCommon
 {
@@ -17,7 +18,7 @@ namespace Common.ServiceCommon
             if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
                 return HttpJsonHelper.GetResponse<T>(httpResponseMessage);
 
-             CheckReturn(microServiceName, httpResponseMessage);
+            CheckReturn(microServiceName, httpResponseMessage);
 
             throw new DealException($"{microServiceName}接口调用失败");
         }
