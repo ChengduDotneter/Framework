@@ -11,6 +11,7 @@ using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Common.DAL;
 using Common.MessageQueueClient;
 using Common.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Hosting;
@@ -238,6 +239,7 @@ namespace Common.ServiceCommon
 
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
+
         }
     }
 }

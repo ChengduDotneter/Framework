@@ -32,6 +32,8 @@ namespace TCCManager
             });
 
             IMvcBuilder mvcBuilder = services.AddControllers();
+
+            services.AddHttpContextAccessor();
             services.ConfigureValidation(mvcBuilder, 10);
             services.AddJsonSerialize();
             services.AddSwagger();
@@ -60,7 +62,7 @@ namespace TCCManager
             });
 
             //注册服务发现
-            if (!env.IsDevelopment())
+            //if (!env.IsDevelopment())
                 app.RegisterConsul(lifetime, m_configuration);
         }
     }
