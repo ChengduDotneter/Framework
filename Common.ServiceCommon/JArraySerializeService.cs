@@ -18,7 +18,7 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
-    /// JArrayS序列化
+    /// JArray序列化
     /// </summary>
     public class JArraySerializeService : IJArraySerializeService
     {
