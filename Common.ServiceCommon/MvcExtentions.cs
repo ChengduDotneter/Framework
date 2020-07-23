@@ -48,9 +48,19 @@ namespace Common.ServiceCommon
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             ConfigManager.Init(hostBuilderContext.HostingEnvironment.EnvironmentName);
-            IgniteManager.Init(ConfigIgnite());
             m_isCodeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
 
+            return hostBuilderContext;
+        }
+
+        /// <summary>
+        /// Ignite初始化配置
+        /// </summary>
+        /// <param name="hostBuilderContext"></param>
+        /// <returns></returns>
+        public static HostBuilderContext ConfigIgnite(this HostBuilderContext hostBuilderContext)
+        {
+            IgniteManager.Init(ConfigIgnite());
             return hostBuilderContext;
         }
 
