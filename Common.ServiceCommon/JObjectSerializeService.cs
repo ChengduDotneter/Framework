@@ -23,7 +23,6 @@ namespace Common.ServiceCommon
     public class JObjectSerializeService : IJObjectSerializeService
     {
         private IHttpContextAccessor m_httpContextAccessor;
-
         private IJObjectConverter m_jObjectConverter;
 
         /// <summary>
