@@ -56,5 +56,17 @@ namespace Common
                 index--;
             }
         }
+
+        /// <summary>
+        /// 遍历集合执行委托
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="func"></param>
+        public static void ForEach<T>(this IEnumerable<T> instance, Action<T> func)
+        {
+            foreach (T item in instance)
+                func(item);
+        }
     }
 }

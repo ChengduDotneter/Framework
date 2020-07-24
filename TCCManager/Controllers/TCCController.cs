@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Common;
+using Common.Model;
 using Common.Validation;
 using log4net;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +31,7 @@ namespace TCCManager.Controllers
         public string CommitUrl { get; set; }
 
         [NotNull]
+        [JsonConverter(typeof(JObjectConverter))]
         public JObject TryContent { get; set; }
     }
 
@@ -142,10 +145,12 @@ namespace TCCManager.Controllers
                 }));
             }
 
+            tryTasks.ForEach(tryTask => tryTask.Start());
             errorNodeResults = (await Task.WhenAll(tryTasks)).Where(nodeResult => !nodeResult.Success);
 
-            if (errorNodeResults != null)
+            if (errorNodeResults != null && errorNodeResults.Count() > 0)
             {
+                cancelTasks.ForEach(cancelTask => cancelTask.Start());
                 errorNodeResults = errorNodeResults.Concat((await Task.WhenAll(cancelTasks)).Where(nodeResult => !nodeResult.Success));
                 string errorText = $"{tccModel.ID}请求失败{Environment.NewLine}{string.Join(Environment.NewLine, errorNodeResults.Select(errorNodeResult => errorNodeResult.ErrorMessage))}";
 
@@ -154,9 +159,10 @@ namespace TCCManager.Controllers
                 throw new DealException(errorText);
             }
 
+            commitTasks.ForEach(commitTask => commitTask.Start());
             errorNodeResults = (await Task.WhenAll(commitTasks)).Where(nodeResult => !nodeResult.Success);
 
-            if (errorNodeResults != null)
+            if (errorNodeResults != null && errorNodeResults.Count() > 0)
             {
                 string errorText = $"{tccModel.ID}请求失败{Environment.NewLine}{string.Join(Environment.NewLine, errorNodeResults.Select(errorNodeResult => errorNodeResult.ErrorMessage))}";
 

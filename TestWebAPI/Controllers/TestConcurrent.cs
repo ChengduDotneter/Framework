@@ -125,13 +125,14 @@ namespace TestWebAPI.Controllers
         private readonly ISearchQuery<ConcurrentModel> m_searchQuery;
 
         private readonly ITransaction m_transaction;
+        private readonly long ID = IDGenerator.NextID();
 
         public tccdocontroller(IEditQuery<WarehouseInfo> warehouseInfoEditQuery, IEditQuery<ConcurrentModel> concurrentModelEditQuery, ISearchQuery<ConcurrentModel> searchQuery)
         {
             m_warehouseInfoEditQuery = warehouseInfoEditQuery;
             m_concurrentModelEditQuery = concurrentModelEditQuery;
             m_searchQuery = searchQuery;
-            m_transaction = m_warehouseInfoEditQuery.BeginTransaction();
+            //m_transaction = m_warehouseInfoEditQuery.BeginTransaction();
         }
 
         [HttpPost]
@@ -140,12 +141,15 @@ namespace TestWebAPI.Controllers
         {
             try
             {
-                Console.WriteLine(m_searchQuery.FilterIsDeleted().Count());
+                Console.WriteLine($"try:{ID}");
 
-                m_concurrentModelEditQuery.FilterIsDeleted().Insert(new ConcurrentModel { CreateTime = DateTime.Now, CreateUserID = 0, ID = IDGenerator.NextID(), Password = "11", UserAccount = "123" });
+                //Console.WriteLine(m_searchQuery.FilterIsDeleted().Count());
+
+                //m_concurrentModelEditQuery.FilterIsDeleted().Insert(new ConcurrentModel { CreateTime = DateTime.Now, CreateUserID = 0, ID = IDGenerator.NextID(), Password = "11", UserAccount = "123" });
             }
             catch
             {
+                Console.WriteLine($"catch:{ID}");
                 throw;
             }
         }
@@ -154,14 +158,18 @@ namespace TestWebAPI.Controllers
         [Route("Cancel")]
         public void Cancel()
         {
-            m_transaction.Rollback();
+            //m_transaction.Rollback();
+            Console.WriteLine($"cancel:{ID}");
+            //m_transaction.Dispose();
         }
 
         [HttpPost]
         [Route("Commit")]
         public void Commit()
         {
-            m_transaction.Submit();
+            //m_transaction.Submit();
+            Console.WriteLine($"commit:{ID}");
+            //m_transaction.Dispose();
         }
 
     }
@@ -192,7 +200,7 @@ namespace TestWebAPI.Controllers
             jObject["TCCNodes"] = jArray;
 
 
-            var data = HttpJsonHelper.HttpPostByAbsoluteUri("http://192.168.10.211:1098/tcc", jObject);
+            var data = HttpJsonHelper.HttpPostByAbsoluteUri("http://192.168.10.211:1098/tccmanager/tcc", jObject);
         }
     }
 

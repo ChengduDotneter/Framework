@@ -58,17 +58,17 @@ namespace TestWebAPI
             IMvcBuilder mvcBuilder = services.AddControllers(modelTypes, controllerTypes);
             services.ConfigureValidation(mvcBuilder, 10);
 
-            //services.AddQuerys(modelTypes);
+            services.AddQuerys(modelTypes);
 
-            services.AddQuerys(modelTypes,
-                (type) =>
-                {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
-                },
-                (type) =>
-                {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
-                });
+            //services.AddQuerys(modelTypes,
+            //    (type) =>
+            //    {
+            //        return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+            //    },
+            //    (type) =>
+            //    {
+            //        return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+            //    });
 
             services.AddJsonSerialize();
 
