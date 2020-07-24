@@ -159,6 +159,8 @@ namespace UDPConsoleA
             new HostBuilder().
             ConfigureServices((context, services) =>
             {
+                context.ConfigIgnite();
+
                 services.Configure<ConsoleLifetimeOptions>(options =>
                 {
                     options.SuppressStatusMessages = true;

@@ -19,6 +19,7 @@ namespace TestConsole
                 ConfigureServices((hostBuilderContext, services) =>
                 {
                     hostBuilderContext.ConfigInit();
+                    hostBuilderContext.ConfigIgnite();
 
                     services.Configure<ConsoleLifetimeOptions>(options =>
                     {
