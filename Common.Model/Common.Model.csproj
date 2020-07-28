@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.2.33</Version>
-    <AssemblyVersion>1.2.33.0</AssemblyVersion>
-    <FileVersion>1.2.33.0</FileVersion>
+    <Version>1.2.34</Version>
+    <AssemblyVersion>1.2.34.0</AssemblyVersion>
+    <FileVersion>1.2.34.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

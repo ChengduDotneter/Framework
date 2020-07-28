@@ -899,6 +899,26 @@
             <param name="sendText">参数</param>
             <returns></returns>
         </member>
+        <member name="M:Common.ServiceCommon.MicroServiceHelper.SendMicroServicePost(Microsoft.AspNetCore.Http.IHttpContextAccessor,System.String,System.String,System.Object)">
+            <summary>
+            微服务Post
+            </summary>
+            <param name="httpContextAccessor">IHttpContextAccessor</param>
+            <param name="microServiceName">微服务名称</param>
+            <param name="functionName">接口名</param>
+            <param name="sendText">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.ServiceCommon.MicroServiceHelper.SendMicroServicePut(Microsoft.AspNetCore.Http.IHttpContextAccessor,System.String,System.String,System.Object)">
+            <summary>
+            微服务Put
+            </summary>
+            <param name="httpContextAccessor">IHttpContextAccessor</param>
+            <param name="microServiceName">微服务名称</param>
+            <param name="functionName">接口名</param>
+            <param name="sendText">参数</param>
+            <returns></returns>
+        </member>
         <member name="M:Common.ServiceCommon.MicroServiceHelper.MicroServiceGetByID(Microsoft.AspNetCore.Http.IHttpContextAccessor,System.String,System.String,System.String)">
             <summary>
             微服务Get，通过ID
