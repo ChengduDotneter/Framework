@@ -96,7 +96,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 微服务Post
+        /// 微服务Put
         /// </summary>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="microServiceName">微服务名称</param>
