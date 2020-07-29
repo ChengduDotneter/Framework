@@ -118,6 +118,28 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        ///  通过url Post
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="httpContextAccessor"></param>
+        /// <param name="url"></param>
+        /// <param name="functionName"></param>
+        /// <param name="displayName"></param>
+        /// <param name="sendText"></param>
+        /// <returns></returns>
+        public static T SendByUrlPost<T>(string url, string functionName, string displayName, object sendText)
+        {
+            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sendText)));
+
+            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
+                                $"{url}",
+                                $"{functionName}",
+                                httpContent);
+
+            return ReturnEntity<T>(displayName, httpResponseMessage);
+        }
+
+        /// <summary>
         /// 微服务Get，通过ID
         /// </summary>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
