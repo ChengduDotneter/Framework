@@ -125,20 +125,22 @@ namespace Common.ServiceCommon
         /// 根据id获取实体
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public T Get(long id)
+        public T Get(long id, ITransaction transaction = null)
         {
-            return m_searchQuery.Get(id);
+            return m_searchQuery.Get(id, transaction);
         }
 
         /// <summary>
         /// 根据linq查询条件获取查询条数
         /// </summary>
         /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public int Count(Expression<Func<T, bool>> predicate = null)
+        public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
         {
-            return m_searchQuery.Count(predicate);
+            return m_searchQuery.Count(predicate, transaction);
         }
 
         /// <summary>
@@ -146,10 +148,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="queryWhere"></param>
         /// <param name="parameters"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public int Count(string queryWhere, Dictionary<string, object> parameters = null)
+        public int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
         {
-            return m_searchQuery.Count(queryWhere, parameters);
+            return m_searchQuery.Count(queryWhere, parameters, transaction);
         }
 
         /// <summary>
@@ -159,11 +162,13 @@ namespace Common.ServiceCommon
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
                                      IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                      int startIndex = 0,
-                                     int count = int.MaxValue)
+                                     int count = int.MaxValue,
+                                     ITransaction transaction = null)
         {
             IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
 
@@ -172,7 +177,7 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count);
+            return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, transaction);
         }
 
         /// <summary>
@@ -183,13 +188,15 @@ namespace Common.ServiceCommon
         /// <param name="orderByFields"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
+        public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
         {
             return m_searchQuery.Search(queryWhere, parameters,
                                         string.IsNullOrEmpty(orderByFields) ? ORDER_BY_ID_DESC : $"{orderByFields},{ORDER_BY_ID_DESC}",
                                         startIndex,
-                                        count);
+                                        count,
+                                        transaction);
         }
 
         /// <summary>
@@ -198,12 +205,14 @@ namespace Common.ServiceCommon
         /// <typeparam name="TJoinTable"></typeparam>
         /// <param name="joinCondition"></param>
         /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         public int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
-                                     Expression<Func<T, TJoinTable, bool>> predicate = null)
+                                     Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                     ITransaction transaction = null)
             where TJoinTable : class, IEntity, new()
         {
-            return m_searchQuery.Count(joinCondition, predicate);
+            return m_searchQuery.Count(joinCondition, predicate, transaction);
         }
 
         /// <summary>
@@ -215,12 +224,14 @@ namespace Common.ServiceCommon
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         public IEnumerable<JoinResult<T, TJoinTable>> Search<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                                                          Expression<Func<T, TJoinTable, bool>> predicate = null,
                                                                          IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
                                                                          int startIndex = 0,
-                                                                         int count = int.MaxValue)
+                                                                         int count = int.MaxValue,
+                                                                         ITransaction transaction = null)
             where TJoinTable : class, IEntity, new()
         {
             IEnumerable<QueryOrderBy<T, TJoinTable>> orderByIDDesc = new[]
@@ -234,7 +245,7 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return m_searchQuery.Search(joinCondition, predicate, queryOrderBies, startIndex, count);
+            return m_searchQuery.Search(joinCondition, predicate, queryOrderBies, startIndex, count, transaction);
         }
 
         /// <summary>
@@ -242,10 +253,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="sql"></param>
         /// <param name="parameters"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
+        public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
         {
-            return m_searchQuery.Query(sql, parameters);
+            return m_searchQuery.Query(sql, parameters, transaction);
         }
 
         /// <summary>
@@ -268,10 +280,11 @@ namespace Common.ServiceCommon
         /// Get
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public T Get(long id)
+        public T Get(long id, ITransaction transaction = null)
         {
-            T data = m_searchQuery.Get(id);
+            T data = m_searchQuery.Get(id, transaction);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
@@ -279,10 +292,11 @@ namespace Common.ServiceCommon
         /// 通过Lambda表达式获取Count
         /// </summary>
         /// <param name="predicate">Lambda表达式</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public int Count(Expression<Func<T, bool>> predicate = null)
+        public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
         {
-            return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(predicate));
+            return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(predicate), transaction);
         }
 
         /// <summary>
@@ -290,10 +304,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="queryWhere">sql语句</param>
         /// <param name="parameters">查询条件值</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public int Count(string queryWhere, Dictionary<string, object> parameters = null)
+        public int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
         {
-            return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters);
+            return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters, transaction);
         }
 
         /// <summary>
@@ -303,13 +318,15 @@ namespace Common.ServiceCommon
         /// <param name="queryOrderBies">排序方式</param>
         /// <param name="startIndex">开始位置</param>
         /// <param name="count">结果总数</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
                                      IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                      int startIndex = 0,
-                                     int count = int.MaxValue)
+                                     int count = int.MaxValue,
+                                     ITransaction transaction = null)
         {
-            return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count);
+            return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, transaction);
         }
 
         /// <summary>
@@ -320,10 +337,11 @@ namespace Common.ServiceCommon
         /// <param name="orderByFields">排序方式</param>
         /// <param name="startIndex">开始位置</param>
         /// <param name="count">结果总数</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
+        public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
         {
-            return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters, orderByFields, startIndex, count);
+            return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters, orderByFields, startIndex, count, transaction);
         }
 
         /// <summary>
@@ -331,10 +349,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="sql">sql语句</param>
         /// <param name="parameters">查询条件值</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
+        public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
         {
-            return m_searchQuery.Query(sql, parameters);
+            return m_searchQuery.Query(sql, parameters, transaction);
         }
 
         /// <summary>
@@ -343,12 +362,14 @@ namespace Common.ServiceCommon
         /// <typeparam name="TJoinTable">关联表实体</typeparam>
         /// <param name="joinCondition">关联查询条件</param>
         /// <param name="predicate">Lambda表达式</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         public int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
-                                     Expression<Func<T, TJoinTable, bool>> predicate = null)
+                                     Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                     ITransaction transaction = null)
                 where TJoinTable : class, IEntity, new()
         {
-            return m_searchQuery.Count(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate));
+            return m_searchQuery.Count(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate), transaction);
         }
 
         /// <summary>
@@ -360,15 +381,17 @@ namespace Common.ServiceCommon
         /// <param name="queryOrderBies">拍讯方式</param>
         /// <param name="startIndex">开始位置</param>
         /// <param name="count">结果总数</param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         public IEnumerable<JoinResult<T, TJoinTable>> Search<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                                                                   Expression<Func<T, TJoinTable, bool>> predicate = null,
                                                                                   IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
                                                                                   int startIndex = 0,
-                                                                                  int count = int.MaxValue)
+                                                                                  int count = int.MaxValue,
+                                                                                  ITransaction transaction = null)
             where TJoinTable : class, IEntity, new()
         {
-            return m_searchQuery.Search(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate), queryOrderBies, startIndex, count);
+            return m_searchQuery.Search(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate), queryOrderBies, startIndex, count, transaction);
         }
 
         /// <summary>
@@ -399,38 +422,42 @@ namespace Common.ServiceCommon
         /// <summary>
         /// 逻辑删除
         /// </summary>
+        /// <param name="transaction"></param>
         /// <param name="ids"></param>
-        public void Delete(params long[] ids)
+        public void Delete(ITransaction transaction = null, params long[] ids)
         {
-            m_editQuery.Update(item => ids.Contains(item.ID), item => item.IsDeleted == true);
+            m_editQuery.Update(item => ids.Contains(item.ID), item => item.IsDeleted == true, transaction);
         }
 
         /// <summary>
         /// 新增
         /// </summary>
+        /// <param name="transaction"></param>
         /// <param name="datas"></param>
-        public void Insert(params T[] datas)
+        public void Insert(ITransaction transaction = null, params T[] datas)
         {
-            m_editQuery.Insert(datas);
+            m_editQuery.Insert(transaction, datas);
         }
 
         /// <summary>
         /// 新增或更新
         /// </summary>
+        /// <param name="transaction"></param>
         /// <param name="datas"></param>
-        public void Merge(params T[] datas)
+        public void Merge(ITransaction transaction = null, params T[] datas)
         {
-            m_editQuery.Merge(datas);
+            m_editQuery.Merge(transaction, datas);
         }
 
         /// <summary>
         /// 通过实体类更新
         /// </summary>
         /// <param name="data">实体类</param>
+        /// <param name="transaction"></param>
         /// <param name="ignoreColumns">忽略行</param>
-        public void Update(T data, params string[] ignoreColumns)
+        public void Update(T data, ITransaction transaction = null, params string[] ignoreColumns)
         {
-            m_editQuery.Update(data, ignoreColumns);
+            m_editQuery.Update(data, transaction, ignoreColumns);
         }
 
         /// <summary>
@@ -438,9 +465,10 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="predicate">匹配体Lambda表达式</param>
         /// <param name="updateExpression">更新体Lambda表达式</param>
-        public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
+        /// <param name="transaction"></param>
+        public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
         {
-            m_editQuery.Update(predicate, updateExpression);
+            m_editQuery.Update(predicate, updateExpression, transaction);
         }
 
         /// <summary>

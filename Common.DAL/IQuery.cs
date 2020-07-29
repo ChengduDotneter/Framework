@@ -13,35 +13,40 @@ namespace Common.DAL
         /// <summary>
         /// 新增
         /// </summary>
+        /// <param name="transaction">执行的事务</param>
         /// <param name="datas"></param>
-        void Insert(params T[] datas);
+        void Insert(ITransaction transaction = null, params T[] datas);
 
         /// <summary>
         /// 合并
         /// </summary>
+        /// <param name="transaction">执行的事务</param>
         /// <param name="datas"></param>
-        void Merge(params T[] datas);
+        void Merge(ITransaction transaction = null, params T[] datas);
 
         /// <summary>
         /// 修改
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="transaction">执行的事务</param>
         /// <param name="ignoreColumns"></param>
-        void Update(T data, params string[] ignoreColumns);
+        void Update(T data, ITransaction transaction = null, params string[] ignoreColumns);
 
         /// <summary>
         /// 修改
         /// </summary>
         /// <param name="predicate"></param>
         /// <param name="updateExpression"></param>
-        void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression);
+        /// <param name="transaction">执行的事务</param>
+        void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null);
 
         /// <summary>
         /// 删除
         /// </summary>
+        /// <param name="transaction">执行的事务</param>
         /// <param name="ids"></param>
-        void Delete(params long[] ids);
-      
+        void Delete(ITransaction transaction = null, params long[] ids);
+
         /// <summary>
         /// 开启事务
         /// </summary>
@@ -60,31 +65,35 @@ namespace Common.DAL
         /// 根据ID查询
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        T Get(long id);
+        T Get(long id, ITransaction transaction = null);
 
         /// <summary>
         /// 根据Linq筛选条件查询条数
         /// </summary>
         /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        int Count(Expression<Func<T, bool>> predicate = null);
+        int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null);
 
         /// <summary>
         /// 根据Sql筛选条件查询条数
         /// </summary>
         /// <param name="queryWhere"></param>
         /// <param name="parameters"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        int Count(string queryWhere, Dictionary<string, object> parameters = null);
+        int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null);
 
         /// <summary>
         /// 根据SQL查询，用于复合查询
         /// </summary>
         /// <param name="sql"></param>
         /// <param name="parameters"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null);
+        IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null);
 
         /// <summary>
         /// 根据Linq筛选条件查询
@@ -93,11 +102,13 @@ namespace Common.DAL
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
                               IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                               int startIndex = 0,
-                              int count = int.MaxValue);
+                              int count = int.MaxValue,
+                              ITransaction transaction = null);
 
         /// <summary>
         /// 根据SQL筛选条件查询
@@ -107,12 +118,14 @@ namespace Common.DAL
         /// <param name="orderByFields"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         IEnumerable<T> Search(string queryWhere,
                               Dictionary<string, object> parameters = null,
                               string orderByFields = null,
                               int startIndex = 0,
-                              int count = int.MaxValue);
+                              int count = int.MaxValue,
+                              ITransaction transaction = null);
 
         /// <summary>
         /// 根据Linq筛选条件两表联查条数
@@ -120,9 +133,11 @@ namespace Common.DAL
         /// <typeparam name="TJoinTable"></typeparam>
         /// <param name="joinCondition"></param>
         /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
-                              Expression<Func<T, TJoinTable, bool>> predicate = null)
+                              Expression<Func<T, TJoinTable, bool>> predicate = null,
+                              ITransaction transaction = null)
             where TJoinTable : class, IEntity, new();
 
         /// <summary>
@@ -134,12 +149,14 @@ namespace Common.DAL
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         IEnumerable<JoinResult<T, TJoinTable>> Search<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                                                   Expression<Func<T, TJoinTable, bool>> predicate = null,
                                                                   IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
                                                                   int startIndex = 0,
-                                                                  int count = int.MaxValue)
+                                                                  int count = int.MaxValue,
+                                                                  ITransaction transaction = null)
             where TJoinTable : class, IEntity, new();
     }
 

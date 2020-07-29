@@ -10,25 +10,25 @@ namespace Common
         /// <summary>
         /// 获取异常信息
         /// </summary>
-        /// <param name="ex">异常实例</param>
-        public static string GetMessage(Exception ex)
+        /// <param name="exception">异常实例</param>
+        public static string GetMessage(Exception exception)
         {
-            if (ex.InnerException != null)
-                return GetMessage(ex.InnerException);
+            if (exception.InnerException != null)
+                return GetMessage(exception.InnerException);
             else
-                return ex.Message;
+                return exception.Message;
         }
 
         /// <summary>
         /// 获取异常调用堆栈
         /// </summary>
-        /// <param name="ex">异常信实例</param>
-        public static string GetStackTrace(Exception ex)
+        /// <param name="exception">异常信实例</param>
+        public static string GetStackTrace(Exception exception)
         {
-            if (ex.InnerException != null)
-                return GetStackTrace(ex.InnerException);
+            if (exception.InnerException != null)
+                return GetStackTrace(exception.InnerException);
             else
-                return ex.StackTrace;
+                return exception.StackTrace;
         }
     }
 }

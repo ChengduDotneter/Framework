@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Common.ServiceCommon
 {
@@ -43,9 +45,10 @@ namespace Common.ServiceCommon
                 IDictionary<string, object> error = new Dictionary<string, object>();
                 error["message"] = "参数验证不通过。";
                 error["errors"] = GetValidationSummary(actionExecutingContext.ModelState);
-                JsonResult jsonResult = new JsonResult(error);
-                jsonResult.StatusCode = StatusCodes.Status400BadRequest;
-                actionExecutingContext.Result = jsonResult;
+
+                ValidJsonResult validJsonResult = new ValidJsonResult(error);
+                validJsonResult.StatusCode = StatusCodes.Status400BadRequest;
+                actionExecutingContext.Result = validJsonResult;
             }
         }
 
@@ -69,6 +72,47 @@ namespace Common.ServiceCommon
             }
 
             return error;
+        }
+    }
+
+    /// <summary>
+    /// 验证返回结果
+    /// </summary>
+    public class ValidJsonResult : JsonResult
+    {
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="value"></param>
+        public ValidJsonResult(object value) : base(value) { }
+
+        /// <summary>
+        /// 执行写入Response
+        /// </summary>
+        /// <param name="context"></param>
+        public override void ExecuteResult(ActionContext context)
+        {
+            context.HttpContext.Response.ContentType = string.IsNullOrEmpty(ContentType) ? "application/json" : ContentType;
+            context.HttpContext.Response.StatusCode = StatusCode ?? StatusCodes.Status400BadRequest;
+
+            if (Value != null)
+                context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(Value)).Wait();
+        }
+
+        /// <summary>
+        /// 执行异步写入Response
+        /// </summary>
+        /// <param name="context"></param>
+        public override Task ExecuteResultAsync(ActionContext context)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                context.HttpContext.Response.ContentType = string.IsNullOrEmpty(ContentType) ? "application/json" : ContentType;
+                context.HttpContext.Response.StatusCode = StatusCode ?? StatusCodes.Status400BadRequest;
+
+                if (Value != null)
+                    context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(Value)).Wait();
+            });
         }
     }
 }

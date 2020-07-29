@@ -3,11 +3,14 @@ using Common;
 using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
+using Common.Validation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace TestWebAPI.Controllers
 {
@@ -50,13 +53,13 @@ namespace TestWebAPI.Controllers
             {
                 try
                 {
-                    if (m_searchQuery.FilterIsDeleted().Count(item => item.UserAccount == concurrentModel.UserAccount) == 0)
+                    if (m_searchQuery.FilterIsDeleted().Count(item => item.UserAccount == concurrentModel.UserAccount, transaction) == 0)
                     {
                         int time = Environment.TickCount;
 
-                        IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search();
+                        IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search(transaction: transaction);
 
-                        m_editQuery.FilterIsDeleted().Insert(concurrentModel);
+                        m_editQuery.FilterIsDeleted().Insert(transaction, concurrentModel);
 
                         transaction.Submit();
                     }
@@ -101,9 +104,9 @@ namespace TestWebAPI.Controllers
             {
                 try
                 {
-                    m_warehouseInfoSearchQuery.Count();
+                    m_warehouseInfoSearchQuery.Count(transaction: transaction);
 
-                    IEnumerable<ConcurrentModel> concurrentModels = m_concurrentModelSearchQuery.FilterIsDeleted().Search();
+                    IEnumerable<ConcurrentModel> concurrentModels = m_concurrentModelSearchQuery.FilterIsDeleted().Search(transaction: transaction);
 
                     transaction.Submit();
                 }
@@ -116,92 +119,29 @@ namespace TestWebAPI.Controllers
         }
     }
 
-    [ApiController]
+    public class TCCTestData : ViewModelBase
+    {
+        [SugarColumn(IsNullable = false, Length = 10)]
+        [NotNull]
+        [StringMaxLength(100)]
+        public string Data { get; set; }
+    }
+
     [Route("tccdo")]
-    public class tccdocontroller : ControllerBase
+    public class tccdocontroller : TransactionTCCController<TCCTestData>
     {
-        private readonly IEditQuery<WarehouseInfo> m_warehouseInfoEditQuery;
-        private readonly IEditQuery<ConcurrentModel> m_concurrentModelEditQuery;
-        private readonly ISearchQuery<ConcurrentModel> m_searchQuery;
+        private IEditQuery<TCCTestData> m_tccTestDataeditQuery;
 
-        private readonly ITransaction m_transaction;
-        private readonly long ID = IDGenerator.NextID();
-
-        public tccdocontroller(IEditQuery<WarehouseInfo> warehouseInfoEditQuery, IEditQuery<ConcurrentModel> concurrentModelEditQuery, ISearchQuery<ConcurrentModel> searchQuery)
+        public tccdocontroller(ISearchQuery<TCCTransaction> searchQuery, IEditQuery<TCCTransaction> editQuery, IEditQuery<TCCTestData> tccTestDataeditQuery, IHttpContextAccessor httpContextAccessor, ISSOUserService ssoUserService, ITccTransactionManager tccTransactionManager) : base(searchQuery, editQuery, httpContextAccessor, ssoUserService, tccTransactionManager)
         {
-            m_warehouseInfoEditQuery = warehouseInfoEditQuery;
-            m_concurrentModelEditQuery = concurrentModelEditQuery;
-            m_searchQuery = searchQuery;
-            //m_transaction = m_warehouseInfoEditQuery.BeginTransaction();
+            m_tccTestDataeditQuery = tccTestDataeditQuery;
         }
 
-        [HttpPost]
-        [Route("Try")]
-        public void Try()
+        protected override void DoTry(long tccID, ITransaction transaction, TCCTestData data)
         {
-            try
-            {
-                Console.WriteLine($"try:{ID}");
-
-                //Console.WriteLine(m_searchQuery.FilterIsDeleted().Count());
-
-                //m_concurrentModelEditQuery.FilterIsDeleted().Insert(new ConcurrentModel { CreateTime = DateTime.Now, CreateUserID = 0, ID = IDGenerator.NextID(), Password = "11", UserAccount = "123" });
-            }
-            catch
-            {
-                Console.WriteLine($"catch:{ID}");
-                throw;
-            }
-        }
-
-        [HttpPost]
-        [Route("Cancel")]
-        public void Cancel()
-        {
-            //m_transaction.Rollback();
-            Console.WriteLine($"cancel:{ID}");
-            //m_transaction.Dispose();
-        }
-
-        [HttpPost]
-        [Route("Commit")]
-        public void Commit()
-        {
-            //m_transaction.Submit();
-            Console.WriteLine($"commit:{ID}");
-            //m_transaction.Dispose();
-        }
-
-    }
-
-    [ApiController]
-    [Route("tccstart")]
-    public class tccstartcontroller : ControllerBase
-    {
-        public tccstartcontroller()
-        {
-        }
-
-        [HttpGet]
-        public void Try()
-        {
-            JObject jObject = new JObject();
-            jObject["id"] = IDGenerator.NextID();
-            jObject["timeOut"] = 30;
-            JArray jArray = new JArray();
-
-            JObject jObject1 = new JObject();
-            jObject1["Url"] = "http://192.168.10.211:1098/tt1/tccdo";
-            jArray.Add(jObject1);
-
-            jObject1["Url"] = "http://192.168.10.211:1098/tt2/tccdo";
-            jArray.Add(jObject1);
-
-            jObject["TCCNodes"] = jArray;
-
-
-            var data = HttpJsonHelper.HttpPostByAbsoluteUri("http://192.168.10.211:1098/tccmanager/tcc", jObject);
+            data.Data = $"{data.Data}:{data.ID}, tccID:{tccID}";
+            data.ID = IDGenerator.NextID();
+            m_tccTestDataeditQuery.Insert(transaction, data);
         }
     }
-
 }

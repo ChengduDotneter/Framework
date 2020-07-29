@@ -131,6 +131,9 @@ namespace Common.RPC
 
             if (m_transferAdapter is IDisposable)
                 ((IDisposable)m_transferAdapter).Dispose();
+
+            m_sendDatas.Dispose();
+            m_recieveDatas.Dispose();
         }
 
         /// <summary>

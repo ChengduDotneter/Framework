@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Common.DAL.Transaction;
 using log4net;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +19,6 @@ namespace Common.DAL
         private static readonly string m_masterConnectionString;
         private static readonly string m_slaveConnectionString;
         private static readonly object m_lockThis;
-        private static readonly IDictionary<int, SqlSugerTranscation> m_transactions;
         private static readonly ILog m_log;
         private static bool m_initTables;
         private static DbType m_dbType;
@@ -29,44 +30,31 @@ namespace Common.DAL
             m_log = LogHelper.CreateLog("sql", "error");
             m_masterConnectionString = ConfigManager.Configuration.GetConnectionString("MasterConnection");
             m_slaveConnectionString = ConfigManager.Configuration.GetConnectionString("SalveConnection");
-            m_transactions = new Dictionary<int, SqlSugerTranscation>();
         }
 
-        private static SqlSugarClient CreateConnection(string connectionString, bool isShadSanmeThread = false)
+        private static SqlSugarClient CreateConnection(string connectionString)
         {
-            LocalDataStoreSlot localDataStoreSlot = Thread.GetNamedDataSlot("SqlSugarClient");
-
-            if (localDataStoreSlot == null)
-                localDataStoreSlot = Thread.AllocateNamedDataSlot("SqlSugarClient");
-
-            if (Thread.GetData(localDataStoreSlot) == null)
+            SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig()
             {
-                SqlSugarClient sqlSugarClient = new SqlSugarClient(new ConnectionConfig()
-                {
-                    ConnectionString = connectionString,
-                    DbType = m_dbType,
-                    InitKeyType = InitKeyType.Attribute,
-                    IsAutoCloseConnection = isShadSanmeThread,
-                    //标记该数据库链接是否为线程共享
-                    IsShardSameThread = isShadSanmeThread
-                });
+                ConnectionString = connectionString,
+                DbType = m_dbType,
+                InitKeyType = InitKeyType.Attribute,
+                IsAutoCloseConnection = false
+            });
 
 #if OUTPUT_SQL
-                sqlSugarClient.Aop.OnLogExecuting = (sql, parameters) =>
-                {
-                    Console.WriteLine(GetSqlLog(sql, parameters));
-                };
+            sqlSugarClient.Aop.OnLogExecuting = (sql, parameters) =>
+            {
+                Console.WriteLine(GetSqlLog(sql, parameters));
+            };
 #endif
 
-                sqlSugarClient.Aop.OnError = (sqlSugarException) =>
-                {
-                    m_log.Error($"message: {sqlSugarException.Message}{Environment.NewLine}stack_trace: {sqlSugarException.StackTrace}{Environment.NewLine}{GetSqlLog(sqlSugarException.Sql, (SugarParameter[])sqlSugarException.Parametres)}");
-                };
+            sqlSugarClient.Aop.OnError = (sqlSugarException) =>
+            {
+                m_log.Error($"message: {sqlSugarException.Message}{Environment.NewLine}stack_trace: {sqlSugarException.StackTrace}{Environment.NewLine}{GetSqlLog(sqlSugarException.Sql, (SugarParameter[])sqlSugarException.Parametres)}");
+            };
 
-                Thread.SetData(localDataStoreSlot, sqlSugarClient);
-            }
-
-            return (SqlSugarClient)Thread.GetData(localDataStoreSlot);
+            return sqlSugarClient;
         }
 
         private static string GetSqlLog(string sql, SugarParameter[] sugarParameters)
@@ -98,36 +86,88 @@ namespace Common.DAL
             }
         }
 
-        private static void Apply<TResource>(out bool inTransaction) where TResource : class, IEntity
+        private static void Apply<TResource>(ITransaction transaction, out bool inTransaction) where TResource : class, IEntity
         {
-            int id = Thread.CurrentThread.ManagedThreadId;
-            SqlSugerTranscation sqlSugerTranscation = null;
+            if (transaction != null && !(transaction is SqlSugarTranscation))
+                throw new DealException("错误的事务对象。");
 
-            lock (m_transactions)
-                if (m_transactions.ContainsKey(id))
-                    sqlSugerTranscation = m_transactions[id];
+            SqlSugarTranscation sqlSugarTrtanscation = transaction as SqlSugarTranscation;
 
-            if (sqlSugerTranscation != null)
+            if (sqlSugarTrtanscation != null)
             {
                 Type table = typeof(TResource);
 
-                if (!sqlSugerTranscation.TransactionTables.Contains(table))
+                if (!sqlSugarTrtanscation.TransactionTables.Contains(table))
                 {
-                    bool status = TransactionResourceHelper.ApplayResource(table, sqlSugerTranscation.Identity, sqlSugerTranscation.Weight);
+                    bool status = TransactionResourceHelper.ApplayResource(table, sqlSugarTrtanscation.Identity, sqlSugarTrtanscation.Weight);
 
                     if (status)
-                        sqlSugerTranscation.TransactionTables.Add(table);
+                        sqlSugarTrtanscation.TransactionTables.Add(table);
                     else
                         throw new DealException($"申请事务资源{table.FullName}失败。");
                 }
             }
 
-            inTransaction = sqlSugerTranscation != null;
+            inTransaction = sqlSugarTrtanscation != null;
         }
 
-        private static void Release(long identity)
+        private static void Release(string identity)
         {
-            TransactionResourceHelper.ReleaseResource(identity);
+            TransactionResourceHelper.ReleaseResourceAsync(identity);
+        }
+
+        private class SqlSugarTaskScheduler : TaskScheduler, IDisposable
+        {
+            private Thread m_thread;
+            private BlockingCollection<Task> m_tasks;
+            private bool m_running;
+            public SqlSugarClient SqlSugarClient { get; private set; }
+
+            private void DoWork()
+            {
+                SqlSugarClient = CreateConnection(m_masterConnectionString);
+                SqlSugarClient.BeginTran();
+
+                while (m_running || m_tasks.Count > 0)
+                {
+                    Task task = m_tasks.Take();
+                    TryExecuteTask(task);
+                }
+            }
+
+            protected override IEnumerable<Task> GetScheduledTasks()
+            {
+                return m_tasks;
+            }
+
+            protected override void QueueTask(Task task)
+            {
+                m_tasks.Add(task);
+            }
+
+            protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+            {
+                return false;
+            }
+
+            public void Dispose()
+            {
+                QueueTask(Task.Factory.StartNew(() =>
+                {
+                    m_running = false;
+                    SqlSugarClient.Dispose();
+                }, CancellationToken.None, TaskCreationOptions.None, this));
+            }
+
+            public SqlSugarTaskScheduler()
+            {
+                m_running = true;
+                m_tasks = new BlockingCollection<Task>();
+                m_thread = new Thread(DoWork);
+                m_thread.IsBackground = false;
+                m_thread.Name = $"SQLSUGAR_TRANSACTION_THREAD_{Guid.NewGuid():D}";
+                m_thread.Start();
+            }
         }
 
         private static class SqlSugarJoinQuery<TLeft, TRight>
@@ -161,161 +201,328 @@ namespace Common.DAL
         private class SqlSugarDaoInstance<T> : IEditQuery<T>, ISearchQuery<T>
             where T : class, IEntity, new()
         {
-            public void Delete(params long[] ids)
+            public void Delete(ITransaction transaction = null, params long[] ids)
             {
-                Apply<T>(out _);
+                Apply<T>(transaction, out bool inTransaction);
 
                 if (ids.Length == 0)
                     return;
 
-                CreateConnection(m_masterConnectionString, true).Deleteable<T>(ids).ExecuteCommand();
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        sqlSugarClient.Deleteable<T>(ids).ExecuteCommand();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    sqlSugarTranscation.Do(() =>
+                    {
+                        sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Deleteable<T>(ids).ExecuteCommand();
+                    }).Wait();
+                }
             }
 
-            public void Insert(params T[] datas)
+            public void Insert(ITransaction transaction = null, params T[] datas)
             {
-                Apply<T>(out _);
+                Apply<T>(transaction, out bool inTransaction);
 
                 if (datas.Length == 0)
                     return;
 
-                CreateConnection(m_masterConnectionString, true).Insertable(datas).ExecuteCommand();
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        sqlSugarClient.Insertable(datas).ExecuteCommand();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    sqlSugarTranscation.Do(() =>
+                    {
+                        sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Insertable(datas).ExecuteCommand();
+                    }).Wait();
+                }
             }
 
-            public void Merge(params T[] datas)
+            public void Merge(ITransaction transaction = null, params T[] datas)
             {
-                Apply<T>(out _);
+                Apply<T>(transaction, out bool inTransaction);
 
                 if (datas.Length == 0)
                     return;
 
-                CreateConnection(m_masterConnectionString, true).Saveable(new List<T>(datas)).ExecuteCommand();
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        sqlSugarClient.Saveable(new List<T>(datas)).ExecuteCommand();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    sqlSugarTranscation.Do(() =>
+                    {
+                        sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Saveable(new List<T>(datas)).ExecuteCommand();
+                    }).Wait();
+                }
             }
 
-            public void Update(T data, params string[] ignoreColumns)
+            public void Update(T data, ITransaction transaction = null, params string[] ignoreColumns)
             {
-                Apply<T>(out _);
+                Apply<T>(transaction, out bool inTransaction);
 
                 if (data == null)
                     return;
 
-                CreateConnection(m_masterConnectionString, true).Updateable(data).IgnoreColumns(ignoreColumns).ExecuteCommand();
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        sqlSugarClient.Updateable(data).IgnoreColumns(ignoreColumns).ExecuteCommand();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    sqlSugarTranscation.Do(() =>
+                    {
+                        sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Updateable(data).IgnoreColumns(ignoreColumns).ExecuteCommand();
+                    }).Wait();
+                }
             }
 
-            public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
+            public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
             {
-                Apply<T>(out _);
+                Apply<T>(transaction, out bool inTransaction);
 
-                CreateConnection(m_masterConnectionString, true).Updateable<T>()
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        sqlSugarClient.Updateable<T>()
+                                      .Where(predicate)
+                                      .SetColumns(updateExpression)
+                                      .ExecuteCommand();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    sqlSugarTranscation.Do(() =>
+                    {
+                        sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Updateable<T>()
                                                                 .Where(predicate)
                                                                 .SetColumns(updateExpression)
                                                                 .ExecuteCommand();
-            }
-
-            public int Count(string queryWhere, Dictionary<string, object> parameters = null)
-            {
-                Apply<T>(out bool inTransaction);
-                SqlSugarClient sqlSugarClient = null;
-
-                try
-                {
-                    if (inTransaction)
-                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                    else
-                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
-
-                    ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
-
-                    if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
-                        query.Where(queryWhere, parameters);
-                    else if (!string.IsNullOrWhiteSpace(queryWhere))
-                        query.Where(queryWhere);
-
-                    return query.Count();
-                }
-                finally
-                {
-                    if (sqlSugarClient != null && !inTransaction)
-                        sqlSugarClient.Dispose();
+                    }).Wait();
                 }
             }
 
-            public int Count(Expression<Func<T, bool>> predicate = null)
+            public int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
             {
-                Apply<T>(out bool inTransaction);
-                SqlSugarClient sqlSugarClient = null;
+                Apply<T>(transaction, out bool inTransaction);
 
-                try
+                if (!inTransaction)
                 {
-                    if (inTransaction)
-                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                    else
-                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                    ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+                    try
+                    {
+                        ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
 
-                    if (predicate != null)
-                        query = query.Where(predicate);
+                        if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else if (!string.IsNullOrWhiteSpace(queryWhere))
+                            query.Where(queryWhere);
 
-                    return query.Count();
+                        return query.Count();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
                 }
-                finally
+                else
                 {
-                    if (sqlSugarClient != null && !inTransaction)
-                        sqlSugarClient.Dispose();
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return sqlSugarTranscation.Do(() =>
+                    {
+                        ISugarQueryable<T> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>();
+
+                        if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else if (!string.IsNullOrWhiteSpace(queryWhere))
+                            query.Where(queryWhere);
+
+                        return query.Count();
+                    }).Result;
                 }
             }
 
-            public T Get(long id)
+            public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
             {
-                Apply<T>(out bool inTransaction);
-                SqlSugarClient sqlSugarClient = null;
+                Apply<T>(transaction, out bool inTransaction);
 
-                try
+                if (!inTransaction)
                 {
-                    if (inTransaction)
-                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                    else
-                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                    return sqlSugarClient.Queryable<T>().InSingle(id);
+                    try
+                    {
+                        ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+
+                        if (predicate != null)
+                            query = query.Where(predicate);
+
+                        return query.Count();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
                 }
-                finally
+                else
                 {
-                    if (sqlSugarClient != null && !inTransaction)
-                        sqlSugarClient.Dispose();
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return sqlSugarTranscation.Do(() =>
+                    {
+                        ISugarQueryable<T> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>();
+
+                        if (predicate != null)
+                            query = query.Where(predicate);
+
+                        return query.Count();
+                    }).Result;
+                }
+            }
+
+            public T Get(long id, ITransaction transaction = null)
+            {
+                Apply<T>(transaction, out bool inTransaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        return sqlSugarClient.Queryable<T>().InSingle(id);
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return sqlSugarTranscation.Do(() =>
+                    {
+                        return sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>().InSingle(id);
+                    }).Result;
                 }
             }
 
             public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                          int startIndex = 0,
-                                         int count = int.MaxValue)
+                                         int count = int.MaxValue,
+                                         ITransaction transaction = null)
             {
-                Apply<T>(out bool inTransaction);
-                SqlSugarClient sqlSugarClient = null;
+                Apply<T>(transaction, out bool inTransaction);
 
-                try
+                if (!inTransaction)
                 {
-                    if (inTransaction)
-                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                    else
-                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                    ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+                    try
+                    {
+                        ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
 
-                    if (predicate != null)
-                        query = query.Where(predicate);
+                        if (predicate != null)
+                            query = query.Where(predicate);
 
-                    if (queryOrderBies != null)
-                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                            query = query.OrderBy(queryOrderBy.Expression, GetOrderByType(queryOrderBy.OrderByType));
+                        if (queryOrderBies != null)
+                            foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                                query = query.OrderBy(queryOrderBy.Expression, GetOrderByType(queryOrderBy.OrderByType));
 
-                    return query.Skip(startIndex).Take(count).ToArray();
+                        return query.Skip(startIndex).Take(count).ToArray();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
                 }
-                finally
+                else
                 {
-                    if (sqlSugarClient != null && !inTransaction)
-                        sqlSugarClient.Dispose();
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return sqlSugarTranscation.Do(() =>
+                    {
+                        ISugarQueryable<T> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>();
+
+                        if (predicate != null)
+                            query = query.Where(predicate);
+
+                        if (queryOrderBies != null)
+                            foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                                query = query.OrderBy(queryOrderBy.Expression, GetOrderByType(queryOrderBy.OrderByType));
+
+                        return query.Skip(startIndex).Take(count).ToArray();
+                    }).Result;
                 }
             }
 
@@ -323,128 +530,202 @@ namespace Common.DAL
                                                                              Expression<Func<T, TJoinTable, bool>> predicate = null,
                                                                              IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
                                                                              int startIndex = 0,
-                                                                             int count = int.MaxValue)
+                                                                             int count = int.MaxValue,
+                                                                             ITransaction transaction = null)
                 where TJoinTable : class, IEntity, new()
             {
-                Apply<T>(out bool inTransaction);
-                Apply<TJoinTable>(out bool _);
-                SqlSugarClient sqlSugarClient = null;
+                Apply<T>(transaction, out bool inTransaction);
+                Apply<TJoinTable>(transaction, out bool _);
 
-                try
+                if (!inTransaction)
                 {
-                    if (inTransaction)
-                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                    else
-                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                    ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(
-                                SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
+                    try
+                    {
+                        ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(
+                                    SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
 
-                    if (predicate != null)
-                        query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+                        if (predicate != null)
+                            query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
 
-                    if (queryOrderBies != null)
-                        foreach (QueryOrderBy<T, TJoinTable> queryOrderBy in queryOrderBies)
-                            query = query.OrderBy(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(queryOrderBy.Expression), GetOrderByType(queryOrderBy.OrderByType));
+                        if (queryOrderBies != null)
+                            foreach (QueryOrderBy<T, TJoinTable> queryOrderBy in queryOrderBies)
+                                query = query.OrderBy(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(queryOrderBy.Expression), GetOrderByType(queryOrderBy.OrderByType));
 
-                    foreach (var data in query.Select((tleft, tright) => new { tleft, tright }).Skip(startIndex).Take(count).ToArray())
-                        yield return new JoinResult<T, TJoinTable>(data.tleft, data.tright);
+                        return query.Select((tleft, tright) => new { tleft, tright }).Skip(startIndex).Take(count).ToArray().Select(item => new JoinResult<T, TJoinTable>(item.tleft, item.tright));
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
                 }
-                finally
+                else
                 {
-                    if (sqlSugarClient != null && !inTransaction)
-                        sqlSugarClient.Dispose();
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return sqlSugarTranscation.Do(() =>
+                     {
+                         ISugarQueryable<T, TJoinTable> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable(
+                                        SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
+
+                         if (predicate != null)
+                             query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+
+                         if (queryOrderBies != null)
+                             foreach (QueryOrderBy<T, TJoinTable> queryOrderBy in queryOrderBies)
+                                 query = query.OrderBy(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(queryOrderBy.Expression), GetOrderByType(queryOrderBy.OrderByType));
+
+                         return query.Select((tleft, tright) => new { tleft, tright }).Skip(startIndex).Take(count).ToArray().Select(item => new JoinResult<T, TJoinTable>(item.tleft, item.tright));
+
+                     }).Result;
                 }
             }
 
             public int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
-                                         Expression<Func<T, TJoinTable, bool>> predicate = null)
+                                         Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                         ITransaction transaction = null)
                 where TJoinTable : class, IEntity, new()
             {
-                Apply<T>(out bool inTransaction);
-                Apply<TJoinTable>(out bool _);
-                SqlSugarClient sqlSugarClient = null;
+                Apply<T>(transaction, out bool inTransaction);
+                Apply<TJoinTable>(transaction, out bool _);
 
-                try
+                if (!inTransaction)
                 {
-                    if (inTransaction)
-                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                    else
-                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
 
-                    ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
-
-                    if (predicate != null)
-                        query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
-
-                    return query.Count();
-                }
-                finally
-                {
-                    if (sqlSugarClient != null && !inTransaction)
-                        sqlSugarClient.Dispose();
-                }
-            }
-
-            public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
-            {
-                Apply<T>(out bool inTransaction);
-                SqlSugarClient sqlSugarClient = null;
-
-                try
-                {
-                    if (inTransaction)
-                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                    else
-                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
-
-                    ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
-
-                    if (parameters != null)
-                        query.Where(queryWhere, parameters);
-                    else
-                        query.Where(queryWhere);
-
-                    if (!string.IsNullOrWhiteSpace(orderByFields))
-                        query.OrderBy(orderByFields);
-
-                    return query.Skip(startIndex).Take(count).ToArray();
-                }
-                finally
-                {
-                    if (sqlSugarClient != null && !inTransaction)
-                        sqlSugarClient.Dispose();
-                }
-            }
-
-            public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
-            {
-                Apply<T>(out bool inTransaction);
-                SqlSugarClient sqlSugarClient = null;
-
-                try
-                {
-                    if (inTransaction)
-                        sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                    else
-                        sqlSugarClient = CreateConnection(m_slaveConnectionString);
-
-                    IEnumerable<IDictionary<string, object>> datas = sqlSugarClient.Ado.SqlQuery<ExpandoObject>(sql, parameters);
-
-                    foreach (IDictionary<string, object> data in datas)
+                    try
                     {
-                        IDictionary<string, object> result = new Dictionary<string, object>();
+                        ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
 
-                        foreach (KeyValuePair<string, object> item in data)
-                            result.Add(item.Key.ToUpper(), item.Value);
+                        if (predicate != null)
+                            query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
 
-                        yield return result;
+                        return query.Count();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
                     }
                 }
-                finally
+                else
                 {
-                    if (sqlSugarClient != null && !inTransaction)
-                        sqlSugarClient.Dispose();
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return sqlSugarTranscation.Do(() =>
+                    {
+                        ISugarQueryable<T, TJoinTable> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable(SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
+
+                        if (predicate != null)
+                            query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+
+                        return query.Count();
+                    }).Result;
+                }
+            }
+
+            public IEnumerable<T> Search(string queryWhere,
+                                         Dictionary<string, object> parameters = null,
+                                         string orderByFields = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue,
+                                         ITransaction transaction = null)
+            {
+                Apply<T>(transaction, out bool inTransaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+
+                        if (parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else
+                            query.Where(queryWhere);
+
+                        if (!string.IsNullOrWhiteSpace(orderByFields))
+                            query.OrderBy(orderByFields);
+
+                        return query.Skip(startIndex).Take(count).ToArray();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return sqlSugarTranscation.Do(() =>
+                    {
+                        ISugarQueryable<T> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>();
+
+                        if (parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else
+                            query.Where(queryWhere);
+
+                        if (!string.IsNullOrWhiteSpace(orderByFields))
+                            query.OrderBy(orderByFields);
+
+                        return query.Skip(startIndex).Take(count).ToArray();
+                    }).Result;
+                }
+            }
+
+            public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
+            {
+                Apply<T>(transaction, out bool inTransaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        IEnumerable<IDictionary<string, object>> datas = sqlSugarClient.Ado.SqlQuery<ExpandoObject>(sql, parameters);
+
+                        return datas.Select(data =>
+                        {
+                            IDictionary<string, object> result = new Dictionary<string, object>();
+
+                            foreach (KeyValuePair<string, object> item in data)
+                                result.Add(item.Key.ToUpper(), item.Value);
+
+                            return result;
+                        });
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return sqlSugarTranscation.Do(() =>
+                    {
+                        IEnumerable<IDictionary<string, object>> datas = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Ado.SqlQuery<ExpandoObject>(sql, parameters);
+
+                        return datas.Select(data =>
+                        {
+                            IDictionary<string, object> result = new Dictionary<string, object>();
+
+                            foreach (KeyValuePair<string, object> item in data)
+                                result.Add(item.Key.ToUpper(), item.Value);
+
+                            return result;
+                        });
+                    }).Result;
                 }
             }
 
@@ -465,63 +746,56 @@ namespace Common.DAL
 
             public ITransaction BeginTransaction(int weight = 0)
             {
-                int id = Thread.CurrentThread.ManagedThreadId;
-
-                lock (m_transactions)
-                {
-                    if (!m_transactions.ContainsKey(id))
-                        m_transactions.Add(id, new SqlSugerTranscation(weight));
-                    else
-                        throw new Exception("当前线程存在未释放的事务。");
-                }
-
-                return m_transactions[id];
+                return new SqlSugarTranscation(weight);
             }
         }
 
         #region SqlSuger事务处理类
 
-        private class SqlSugerTranscation : ITransaction
+        private class SqlSugarTranscation : ITransaction
         {
-            private SqlSugarClient m_sqlSugarClient;
             public HashSet<Type> TransactionTables { get; }
-            public long Identity { get; }
+            public string Identity { get; }
             public int Weight { get; }
+            public SqlSugarTaskScheduler SqlSugarTaskScheduler { get; }
 
-            public SqlSugerTranscation(int weight)
+            public SqlSugarTranscation(int weight)
             {
-                Identity = IDGenerator.NextID();
+                Identity = Guid.NewGuid().ToString("D");
                 Weight = weight;
                 TransactionTables = new HashSet<Type>();
-                m_sqlSugarClient = CreateConnection(m_masterConnectionString, true);
-                m_sqlSugarClient.BeginTran();
+                SqlSugarTaskScheduler = new SqlSugarTaskScheduler();
             }
 
             public object Context()
             {
-                return m_sqlSugarClient.Context;
+                return SqlSugarTaskScheduler;
             }
 
             public void Dispose()
             {
-                m_sqlSugarClient.Dispose();
-
-                int id = Thread.CurrentThread.ManagedThreadId;
-
-                lock (m_transactions)
-                    m_transactions.Remove(id);
-
+                SqlSugarTaskScheduler.Dispose();
                 Release(Identity);
             }
 
             public void Rollback()
             {
-                m_sqlSugarClient.RollbackTran();
+                Do(() => { SqlSugarTaskScheduler.SqlSugarClient.RollbackTran(); }).Wait();
             }
 
             public void Submit()
             {
-                m_sqlSugarClient.CommitTran();
+                Do(() => { SqlSugarTaskScheduler.SqlSugarClient.CommitTran(); }).Wait();
+            }
+
+            public async Task<T> Do<T>(Func<T> func)
+            {
+                return await Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.None, SqlSugarTaskScheduler);
+            }
+
+            public async Task Do(Action action)
+            {
+                await Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, SqlSugarTaskScheduler);
             }
         }
 

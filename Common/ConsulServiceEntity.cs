@@ -1,7 +1,7 @@
-﻿namespace Common.Model
+﻿namespace Common
 {
     /// <summary>
-    /// Consul所需服务实体类，则不自动生成controller
+    /// Consul所需服务实体类
     /// </summary>
     public class ConsulServiceEntity
     {

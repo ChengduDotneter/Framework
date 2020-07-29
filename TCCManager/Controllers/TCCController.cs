@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -35,12 +36,6 @@ namespace TCCManager.Controllers
         public JObject TryContent { get; set; }
     }
 
-    public class TccTryContent
-    {
-        public long TCCID { get; set; }
-        public JObject Content { get; set; }
-    }
-
     public class NodeResult
     {
         public bool Success { get; set; }
@@ -51,9 +46,9 @@ namespace TCCManager.Controllers
     [ApiController]
     public class TCCController : ControllerBase
     {
-        private const string TRY = "Try";
-        private const string CANCEL = "Cancel";
-        private const string COMMIT = "Commit";
+        private const string TRY = "try";
+        private const string CANCEL = "cancel";
+        private const string COMMIT = "commit";
         private readonly static int MIN_TIMEOUT;
         private readonly static ILog m_transactionsLog;
         private readonly static ILog m_detailsLog;
@@ -93,13 +88,13 @@ namespace TCCManager.Controllers
                 tryTasks.Add(new Task<NodeResult>(() =>
                 {
                     HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPostByAbsoluteUri(
-                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{tryUrl}",
-                                new TccTryContent() { TCCID = tccModel.ID, Content = tccNode.TryContent },
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{tryUrl}/{tccModel.ID}/{tccModel.TimeOut}/{WebUtility.UrlEncode(cancelUrl)}/{WebUtility.UrlEncode(cancelUrl)}",
+                                tccNode.TryContent,
                                 m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
 
                     NodeResult nodeResult = new NodeResult() { Success = true };
 
-                    if (httpResponseMessage.StatusCode != System.Net.HttpStatusCode.OK)
+                    if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                     {
                         nodeResult.Success = false;
                         nodeResult.ErrorMessage = $"{tryUrl} Try失败{Environment.NewLine}详细信息：{httpResponseMessage.Content.ReadAsStringAsync().Result}{Environment.NewLine}Data：{tccNode.TryContent}。";
@@ -111,13 +106,13 @@ namespace TCCManager.Controllers
                 cancelTasks.Add(new Task<NodeResult>(() =>
                 {
                     HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPostByAbsoluteUri(
-                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{cancelUrl}",
-                                tccModel.ID,
-                                m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{cancelUrl}/{tccModel.ID}",
+                                null,
+                                bearerToken: m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
 
                     NodeResult nodeResult = new NodeResult() { Success = true };
 
-                    if (httpResponseMessage.StatusCode != System.Net.HttpStatusCode.OK)
+                    if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                     {
                         nodeResult.Success = false;
                         nodeResult.ErrorMessage = $"{cancelUrl} Cancel失败{Environment.NewLine}详细信息：{httpResponseMessage.Content.ReadAsStringAsync().Result}。";
@@ -129,13 +124,13 @@ namespace TCCManager.Controllers
                 commitTasks.Add(new Task<NodeResult>(() =>
                 {
                     HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPostByAbsoluteUri(
-                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{commitUrl}",
-                                tccModel.ID,
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{commitUrl}/{tccModel.ID}",
+                                null,
                                 m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
 
                     NodeResult nodeResult = new NodeResult() { Success = true };
 
-                    if (httpResponseMessage.StatusCode != System.Net.HttpStatusCode.OK)
+                    if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                     {
                         nodeResult.Success = false;
                         nodeResult.ErrorMessage = $"{commitUrl} Commit失败{Environment.NewLine}详细信息：{httpResponseMessage.Content.ReadAsStringAsync().Result}。";
@@ -176,17 +171,17 @@ namespace TCCManager.Controllers
 
         private static string GetTryUrl(string url)
         {
-            return $"{url}{TRY}";
+            return $"{url}/{TRY}";
         }
 
         private static string GetCancelUrl(string url)
         {
-            return $"{url}{CANCEL}";
+            return $"{url}/{CANCEL}";
         }
 
         private static string GetCommitUrl(string url)
         {
-            return $"{url}{COMMIT}";
+            return $"{url}/{COMMIT}";
         }
 
         static TCCController()

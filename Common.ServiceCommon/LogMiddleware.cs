@@ -110,18 +110,19 @@ namespace Common.ServiceCommon
             }
             catch (DealException exception)
             {
-                string error = $"parameter_info: {parameterInfo}{Environment.NewLine}{Environment.NewLine}exception_message: {Environment.NewLine}{exception.Message}{Environment.NewLine}{Environment.NewLine}stack_trace: {Environment.NewLine}{exception.StackTrace}";
+                string error = $"parameter_info: {parameterInfo}{Environment.NewLine}{Environment.NewLine}exception_message: {Environment.NewLine}{ExceptionHelper.GetMessage(exception)}{Environment.NewLine}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(exception)}";
                 GetControllerLog(controllerActionDescriptor.ControllerName, controllerActionDescriptor.ActionName).Error(error);
 
                 httpContext.Response.StatusCode = StatusCodes.Status402PaymentRequired;
-                await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, exception.Message, Encoding.UTF8);
+                await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, ExceptionHelper.GetMessage(exception), Encoding.UTF8);
             }
             catch (Exception exception)
             {
-                string error = $"parameter_info: {parameterInfo}{Environment.NewLine}{Environment.NewLine}exception_message: {Environment.NewLine}{exception.Message}{Environment.NewLine}{Environment.NewLine}stack_trace: {Environment.NewLine}{exception.StackTrace}";
+                string error = $"parameter_info: {parameterInfo}{Environment.NewLine}{Environment.NewLine}exception_message: {Environment.NewLine}{ExceptionHelper.GetMessage(exception)}{Environment.NewLine}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(exception)}";
                 GetControllerLog(controllerActionDescriptor.ControllerName, controllerActionDescriptor.ActionName).Error(error);
 
-                throw new Exception("内部异常");
+                httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, "内部异常", Encoding.UTF8);
             }
         }
 

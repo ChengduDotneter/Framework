@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Cache;
 using Apache.Ignite.Core.Cache.Configuration;
@@ -15,16 +14,9 @@ namespace Common.DAL
 {
     internal static class IgniteDao
     {
-        private readonly static IDictionary<int, IgniteITransaction> m_transactions;
-
-        private static void Apply<TResource>() where TResource : class, IEntity
+        private static void Apply<TResource>(ITransaction transaction) where TResource : class, IEntity
         {
-            int id = Thread.CurrentThread.ManagedThreadId;
-            IgniteITransaction igniteITransaction = null;
-
-            lock (m_transactions)
-                if (m_transactions.ContainsKey(id))
-                    igniteITransaction = m_transactions[id];
+            IgniteITransaction igniteITransaction = transaction as IgniteITransaction;
 
             if (igniteITransaction != null)
             {
@@ -40,21 +32,21 @@ namespace Common.DAL
             }
         }
 
-        private static void Release(long identity)
+        private static void Release(string identity)
         {
-            TransactionResourceHelper.ReleaseResource(identity);
+            TransactionResourceHelper.ReleaseResourceAsync(identity);
         }
 
         private class IgniteITransaction : ITransaction
         {
             private Apache.Ignite.Core.Transactions.ITransaction m_transaction;
             public HashSet<Type> TransactionTables { get; }
-            public long Identity { get; }
+            public string Identity { get; }
             public int Weight { get; }
 
             public IgniteITransaction(IIgnite ignite, int weight)
             {
-                Identity = IDGenerator.NextID();
+                Identity = Guid.NewGuid().ToString("D");
                 Weight = weight;
                 m_transaction = ignite.GetTransactions().TxStart();
                 TransactionTables = new HashSet<Type>();
@@ -68,12 +60,6 @@ namespace Common.DAL
             public void Dispose()
             {
                 m_transaction.Dispose();
-
-                int id = Thread.CurrentThread.ManagedThreadId;
-
-                lock (m_transactions)
-                    m_transactions.Remove(id);
-
                 Release(Identity);
             }
 
@@ -240,18 +226,12 @@ namespace Common.DAL
 
             public ITransaction BeginTransaction(int weight = 0)
             {
-                int id = Thread.CurrentThread.ManagedThreadId;
-
-                lock (m_transactions)
-                    if (!m_transactions.ContainsKey(id))
-                        m_transactions.Add(id, new IgniteITransaction(m_cache.Ignite, weight));
-
-                return m_transactions[id];
+                return new IgniteITransaction(m_cache.Ignite, weight);
             }
 
-            public int Count(Expression<Func<T, bool>> predicate = null)
+            public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
             {
-                Apply<T>();
+                Apply<T>(transaction);
 
                 if (predicate != null)
                     return m_cache.AsCacheQueryable().Count(ConvertExpression(predicate));
@@ -259,9 +239,9 @@ namespace Common.DAL
                     return m_cache.AsCacheQueryable().Count();
             }
 
-            public int Count(string queryWhere, Dictionary<string, object> parameters = null)
+            public int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
             {
-                Apply<T>();
+                Apply<T>(transaction);
 
                 object[] args = new object[parameters?.Count ?? 0];
                 int index = 0;
@@ -288,15 +268,15 @@ namespace Common.DAL
                 return Convert.ToInt32(data?[0]);
             }
 
-            public void Delete(params long[] ids)
+            public void Delete(ITransaction transaction = null, params long[] ids)
             {
-                Apply<T>();
+                Apply<T>(transaction);
                 m_cache.RemoveAll(ids);
             }
 
-            public T Get(long id)
+            public T Get(long id, ITransaction transaction = null)
             {
-                Apply<T>();
+                Apply<T>(transaction);
 
                 if (m_cache.TryGet(id, out T data))
                     return data;
@@ -304,16 +284,16 @@ namespace Common.DAL
                     return null;
             }
 
-            public void Insert(params T[] datas)
+            public void Insert(ITransaction transaction = null, params T[] datas)
             {
-                Apply<T>();
+                Apply<T>(transaction);
                 m_cache.PutAll(datas.Select(data => new KeyValuePair<long, T>(data.ID, data)));
             }
 
             //TODO: Marge存在操作错误
-            public void Merge(params T[] datas)
+            public void Merge(ITransaction transaction = null, params T[] datas)
             {
-                Apply<T>();
+                Apply<T>(transaction);
 
                 for (int i = 0; i < datas.Length; i++)
                     m_cache.Put(datas[i].ID, datas[i]);
@@ -322,9 +302,10 @@ namespace Common.DAL
             public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                          int startIndex = 0,
-                                         int count = int.MaxValue)
+                                         int count = int.MaxValue,
+                                         ITransaction transaction = null)
             {
-                Apply<T>();
+                Apply<T>(transaction);
 
                 IQueryable<ICacheEntry<long, T>> query = m_cache.AsCacheQueryable();
 
@@ -352,9 +333,9 @@ namespace Common.DAL
                 return datas;
             }
 
-            public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue)
+            public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
             {
-                Apply<T>();
+                Apply<T>(transaction);
 
                 object[] args = new object[parameters?.Count ?? 0];
                 int index = 0;
@@ -388,9 +369,9 @@ namespace Common.DAL
                 return fieldsQueryCursor.Select(row => ConvertData(fieldsQueryCursor, row));
             }
 
-            public void Update(T data, params string[] ignoreColumns)
+            public void Update(T data, ITransaction transaction = null, params string[] ignoreColumns)
             {
-                Apply<T>();
+                Apply<T>(transaction);
 
                 T oldData = m_cache.Get(data.ID);
 
@@ -413,9 +394,9 @@ namespace Common.DAL
                 m_cache.Replace(data.ID, data);
             }
 
-            public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
+            public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
             {
-                Apply<T>();
+                Apply<T>(transaction);
 
                 Func<T, bool> updateHandler = updateExpression.ReplaceAssign().Compile();
 
@@ -431,11 +412,12 @@ namespace Common.DAL
                                                                              Expression<Func<T, TJoinTable, bool>> predicate = null,
                                                                              IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
                                                                              int startIndex = 0,
-                                                                             int count = int.MaxValue)
+                                                                             int count = int.MaxValue,
+                                                                             ITransaction transaction = null)
                 where TJoinTable : class, IEntity, new()
             {
-                Apply<T>();
-                Apply<TJoinTable>();
+                Apply<T>(transaction);
+                Apply<TJoinTable>(transaction);
 
                 return new IgniteJoinQuery<T, TJoinTable>().Search(m_cache.AsCacheQueryable(),
                                                                    m_cache.Ignite.GetOrCreateCache<long, TJoinTable>(IgniteDaoInstance<TJoinTable>.CacheConfiguration).AsCacheQueryable(),
@@ -448,11 +430,12 @@ namespace Common.DAL
             }
 
             public int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
-                                         Expression<Func<T, TJoinTable, bool>> predicate = null)
+                                         Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                         ITransaction transaction = null)
                 where TJoinTable : class, IEntity, new()
             {
-                Apply<T>();
-                Apply<TJoinTable>();
+                Apply<T>(transaction);
+                Apply<TJoinTable>(transaction);
 
                 return new IgniteJoinQuery<T, TJoinTable>().Count(m_cache.AsCacheQueryable(),
                                                                   m_cache.Ignite.GetOrCreateCache<long, TJoinTable>(IgniteDaoInstance<TJoinTable>.CacheConfiguration).AsCacheQueryable(),
@@ -461,9 +444,9 @@ namespace Common.DAL
                                                                   predicate);
             }
 
-            public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null)
+            public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
             {
-                Apply<T>();
+                Apply<T>(transaction);
 
                 SqlFieldsQuery sqlFieldsQuery;
 
@@ -643,11 +626,6 @@ namespace Common.DAL
                                  Environment.NewLine,
                                  sql,
                                  string.Join(Environment.NewLine, arguments));
-        }
-
-        static IgniteDao()
-        {
-            m_transactions = new Dictionary<int, IgniteITransaction>();
         }
 
         internal static ISearchQuery<T> GetIgniteSearchQuery<T>()

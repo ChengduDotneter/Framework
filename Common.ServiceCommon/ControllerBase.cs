@@ -49,7 +49,7 @@ namespace Common.ServiceCommon
         /// <param name="jObjectSerializeService"></param>
         /// <returns></returns>
         [HttpPost]
-        public TResponse Post([FromServices]IJObjectSerializeService jObjectSerializeService)
+        public TResponse Post([FromServices] IJObjectSerializeService jObjectSerializeService)
         {
             return DoPost(jObjectSerializeService.GetJObject());
         }
@@ -75,7 +75,7 @@ namespace Common.ServiceCommon
         /// <param name="jArraySerializeService"></param>
         /// <returns></returns>
         [HttpPost]
-        public TResponse Post([FromServices]IJArraySerializeService jArraySerializeService)
+        public TResponse Post([FromServices] IJArraySerializeService jArraySerializeService)
         {
             return DoPost(jArraySerializeService.GetJArray());
         }
@@ -188,7 +188,7 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        public PageQueryResult<TResponse> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
             Tuple<IEnumerable<TResponse>, int> tupleDatas = SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
 
@@ -207,7 +207,6 @@ namespace Common.ServiceCommon
         protected virtual Tuple<IEnumerable<TResponse>, int> SearchDatas(PageQuery<TRequest> pageQuery)
         {
             Expression<Func<TResponse, bool>> linq = GetBaseLinq(pageQuery.Condition);
-
             return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), m_searchQuery.FilterIsDeleted().Count(linq));
         }
 
@@ -261,7 +260,7 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public JObject Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        public JObject Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
             return new JObject()
             {
@@ -302,7 +301,7 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        public PageQueryResult<TResponse> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
             PageQuery<TRequest> pageQuery = pageQueryParameterService.GetQueryParameter<TRequest>();
 
@@ -391,7 +390,7 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        public PageQueryResult<TResponse> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
             PageQuery<TRequest> pageQuery = pageQueryParameterService.GetQueryParameter<TRequest>();
 
@@ -489,7 +488,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult Post([FromBody]TRequest request)
+        public IActionResult Post([FromBody] TRequest request)
         {
             request.ID = IDGenerator.NextID();
             request.CreateUserID = m_ssoUserService.GetUser().ID;
@@ -508,7 +507,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         protected virtual void DoPost(long id, TRequest request)
         {
-            m_editQuery.FilterIsDeleted().Insert(request);
+            m_editQuery.FilterIsDeleted().Insert(datas: request);
         }
 
         /// <summary>
@@ -541,7 +540,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPut]
-        public virtual IActionResult Put([FromBody]TRequest request)
+        public virtual IActionResult Put([FromBody] TRequest request)
         {
             if (m_searchQuery.FilterIsDeleted().Count(item => item.ID == request.ID) > 0)
             {
@@ -562,7 +561,7 @@ namespace Common.ServiceCommon
         protected virtual void DoPut(TRequest request)
         {
             IgnoreColumnAttribute ignoreColumnAttribute = typeof(TRequest).GetCustomAttribute<IgnoreColumnAttribute>();
-            m_editQuery.FilterIsDeleted().Update(request, ignoreColumnAttribute?.IgnoreColumns);
+            m_editQuery.FilterIsDeleted().Update(request, ignoreColumns: ignoreColumnAttribute?.IgnoreColumns);
         }
 
         /// <summary>
@@ -613,7 +612,7 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         protected virtual void DoDelete(long id)
         {
-            m_editQuery.FilterIsDeleted().Delete(id);
+            m_editQuery.FilterIsDeleted().Delete(ids: id);
         }
 
         /// <summary>

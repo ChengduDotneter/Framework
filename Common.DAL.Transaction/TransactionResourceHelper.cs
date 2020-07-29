@@ -1,10 +1,10 @@
-﻿using Common.RPC;
-using Common.RPC.BufferSerializer;
-using Common.RPC.TransferAdapter;
-using System;
-using System.Net;
-using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Consul;
+using Microsoft.Extensions.Configuration;
 
 namespace Common.DAL.Transaction
 {
@@ -19,9 +19,9 @@ namespace Common.DAL.Transaction
         private const int DEFAULT_TIME_OUT = 60 * 1000;
 
         /// <summary>
-        /// 空的超时时间
+        /// TTL
         /// </summary>
-        private const int EMPTY_TIME_OUT = -1;
+        private readonly static TimeSpan TTL = TimeSpan.FromMilliseconds(10 * 1000);
 
         /// <summary>
         /// 超时时间
@@ -29,41 +29,72 @@ namespace Common.DAL.Transaction
         private readonly static int m_timeOut;
 
         /// <summary>
-        /// RPC服务客户端
+        /// Consul
         /// </summary>
-        private readonly static ServiceClient m_serviceClient;
+        private readonly static IConsulClient m_consulClient;
 
         /// <summary>
-        /// 申请事务资源处理器
+        /// SessionID集合
         /// </summary>
-        private readonly static ApplyResourceProcessor m_applyResourceProcessor;
+        private readonly static IDictionary<string, IDictionary<string, IDistributedLock>> m_lockInstances;
 
         /// <summary>
-        /// 释放事务资源处理器
+        /// SessionID
         /// </summary>
-        private readonly static ReleaseResourceProcessor m_releaseResourceProcessor;
-
-        /// <summary>
-        /// 资源占用心跳检测处理器
-        /// </summary>
-        private readonly static ResourceHeartBeatProcessor m_resourceHeartBeatProcessor;
-
-        /// <summary>
-        /// HOSTID
-        /// </summary>
-        private readonly static long m_hostID;
+        private readonly static string m_sessionID;
 
         /// <summary>
         /// 申请事务资源
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
         /// <param name="identity">事务线程ID</param>
-        /// <param name="weight">权重</param>
-        /// <param name="timeOut">超时时间</param>
+        /// <param name="weight">事务权重</param>
         /// <returns></returns>
-        public static bool ApplayResource(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
+        public static bool ApplayResource(Type table, string identity, int weight)
         {
-            return m_applyResourceProcessor.Apply(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
+            if (m_consulClient != null)
+            {
+                lock (m_lockInstances)
+                {
+                    if (!m_lockInstances.ContainsKey(identity))
+                        m_lockInstances.Add(identity, new Dictionary<string, IDistributedLock>());
+                }
+
+                lock (m_lockInstances[identity])
+                {
+                    if (!m_lockInstances[identity].ContainsKey(table.FullName))
+                    {
+                        LockOptions lockOptions = new LockOptions(table.FullName)
+                        {
+                            LockTryOnce = true,
+                            LockWaitTime = TimeSpan.FromMilliseconds(m_timeOut),
+                            Value = BitConverter.GetBytes(weight),
+                            Session = m_sessionID,
+                            SessionTTL = TTL
+                        };
+
+                        IDistributedLock distributedLock = m_consulClient.CreateLock(lockOptions);
+
+                        try
+                        {
+                            distributedLock.Acquire(CancellationToken.None).Wait();
+                            m_lockInstances[identity][table.FullName] = distributedLock;
+
+                            return true;
+                        }
+                        catch
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return m_lockInstances[identity][table.FullName].IsHeld;
+                    }
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -71,32 +102,41 @@ namespace Common.DAL.Transaction
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
         /// <param name="identity">事务线程ID</param>
-        /// <param name="weight">权重</param>
-        /// <param name="timeOut">超时时间</param>
-        /// <returns></returns>
-        public static async Task<bool> ApplayResourceAsync(Type table, long identity, int weight, int timeOut = EMPTY_TIME_OUT)
+        /// <param name="weight">事务权重</param>
+        // <returns></returns>
+        public static Task<bool> ApplayResourceAsync(Type table, string identity, int weight)
         {
-            return await m_applyResourceProcessor.ApplyAsync(table, identity, weight, timeOut == EMPTY_TIME_OUT ? m_timeOut : timeOut);
+            return Task.Factory.StartNew(() => { return ApplayResource(table, identity, weight); });
         }
 
         /// <summary>
         /// 释放事务资源
         /// </summary>
         /// <param name="identity">事务线程ID</param>
-        public static void ReleaseResource(long identity)
+        public static void ReleaseResource(string identity)
         {
-            if (!m_releaseResourceProcessor.Release(identity))
-                throw new DealException($"释放事务{identity}资源失败。");
+            if (m_consulClient != null)
+            {
+                if (!m_lockInstances.ContainsKey(identity))
+                    return;
+
+                IDistributedLock[] distributedLocks;
+
+                lock (m_lockInstances)
+                    distributedLocks = m_lockInstances[identity].Values.ToArray();
+
+                for (int i = 0; i < distributedLocks.Length; i++)
+                    distributedLocks[i].Release().Wait();
+            }
         }
 
         /// <summary>
         /// 释放事务资源，异步
         /// </summary>
         /// <param name="identity">事务线程ID</param>
-        public static async Task ReleaseResourceAsync(long identity)
+        public static Task ReleaseResourceAsync(string identity)
         {
-            if (!await m_releaseResourceProcessor.ReleaseAsync(identity))
-                throw new DealException($"释放事务{identity}资源失败。");
+            return Task.Factory.StartNew(() => { ReleaseResource(identity); });
         }
 
         /// <summary>
@@ -104,41 +144,20 @@ namespace Common.DAL.Transaction
         /// </summary>
         static TransactionResourceHelper()
         {
-            m_hostID = IDGenerator.NextID();
-            string timeOutString = ConfigManager.Configuration["ResourceManager:Timeout"];
+            string timeOutString = ConfigManager.Configuration["TransactionTimeout"];
             m_timeOut = string.IsNullOrWhiteSpace(timeOutString) ? DEFAULT_TIME_OUT : Convert.ToInt32(timeOutString);
 
-            m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateUDPCRCTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), UDPCRCSocketTypeEnum.Client), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+            ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
+            ConfigManager.Configuration.Bind("ConsulService", serviceEntity);
 
-            //m_serviceClient = new ServiceClient(TransferAdapterFactory.CreateZeroMQTransferAdapter(new IPEndPoint(IPAddress.Parse(ConfigManager.Configuration["RPC:IPAddress"]), Convert.ToInt32(ConfigManager.Configuration["RPC:Port"])), ZeroMQSocketTypeEnum.Client), BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8));
+            if (!string.IsNullOrWhiteSpace(serviceEntity.ConsulIP) && serviceEntity.ConsulPort != 0)
+                m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));
 
-            m_applyResourceProcessor = new ApplyResourceProcessor(m_serviceClient, m_hostID);
-            m_releaseResourceProcessor = new ReleaseResourceProcessor(m_serviceClient, m_hostID);
-            m_resourceHeartBeatProcessor = new ResourceHeartBeatProcessor(m_serviceClient, m_hostID);
+            m_lockInstances = new Dictionary<string, IDictionary<string, IDistributedLock>>();
 
-            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-
-            m_serviceClient.Start();
-        }
-
-        /// <summary>
-        /// 服务退出触发释放事件
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
-        {
-            if (m_applyResourceProcessor != null)
-                m_applyResourceProcessor.Dispose();
-
-            if (m_releaseResourceProcessor != null)
-                m_releaseResourceProcessor.Dispose();
-
-            if (m_resourceHeartBeatProcessor != null)
-                m_resourceHeartBeatProcessor.Dispose();
-
-            if (m_serviceClient != null)
-                m_serviceClient.Dispose();
+            WriteResult<string> sessionRequest = m_consulClient.Session.Create(new SessionEntry()).Result;
+            m_sessionID = sessionRequest.Response;
+            m_consulClient.Session.RenewPeriodic(TTL, m_sessionID, CancellationToken.None);
         }
     }
 }

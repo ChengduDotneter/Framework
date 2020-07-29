@@ -118,7 +118,7 @@ namespace Common
         /// <param name="requestObject">请求的对象</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpPostByAbsoluteUriAsync(string absoluteUri, object requestObject, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpPostByAbsoluteUriAsync(string absoluteUri, object requestObject = null, string bearerToken = "")
         {
             return GetHttpClient().AddAuthorizationHeader(bearerToken).PostAsync(absoluteUri, ObjectToByteArrayContent(requestObject).AddJsonContentType());
         }
@@ -130,7 +130,7 @@ namespace Common
         /// <param name="requestObject">请求的对象</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpPostByAbsoluteUri(string absoluteUri, object requestObject, string bearerToken = "")
+        public static HttpResponseMessage HttpPostByAbsoluteUri(string absoluteUri, object requestObject = null, string bearerToken = "")
         {
             return HttpPostByAbsoluteUriAsync(absoluteUri, requestObject, bearerToken).Result;
         }
@@ -164,7 +164,7 @@ namespace Common
         /// <param name="requestObject">请求的对象</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpPutByAbsoluteUriAsync(string absoluteUri, object requestObject, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpPutByAbsoluteUriAsync(string absoluteUri, object requestObject = null, string bearerToken = "")
         {
             return GetHttpClient().AddAuthorizationHeader(bearerToken).PutAsync(absoluteUri, ObjectToByteArrayContent(requestObject).AddJsonContentType());
         }
@@ -176,7 +176,7 @@ namespace Common
         /// <param name="requestObject">请求的对象</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpPutByAbsoluteUri(string absoluteUri, object requestObject, string bearerToken = "")
+        public static HttpResponseMessage HttpPutByAbsoluteUri(string absoluteUri, object requestObject = null, string bearerToken = "")
         {
             return HttpPutByAbsoluteUriAsync(absoluteUri, requestObject, bearerToken).Result;
         }

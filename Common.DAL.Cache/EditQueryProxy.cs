@@ -36,10 +36,11 @@ namespace Common.DAL.Cache
         /// <summary>
         /// 删除
         /// </summary>
+        /// <param name="transaction"></param>
         /// <param name="ids"></param>
-        public void Delete(params long[] ids)
+        public void Delete(ITransaction transaction = null, params long[] ids)
         {
-            m_editQuery.Delete(ids);
+            m_editQuery.Delete(transaction, ids);
 
             DoAction(() =>
             {
@@ -53,20 +54,22 @@ namespace Common.DAL.Cache
         /// <summary>
         /// 插入
         /// </summary>
+        /// <param name="transaction"></param>
         /// <param name="datas"></param>
-        public void Insert(params T[] datas)
+        public void Insert(ITransaction transaction = null, params T[] datas)
         {
-            m_editQuery.Insert(datas);
+            m_editQuery.Insert(transaction, datas);
             DoAction(CacheFactory<T>.ClearConditionMemoryCache);
         }
 
         /// <summary>
         /// 合并
         /// </summary>
+        /// <param name="transaction"></param>
         /// <param name="datas"></param>
-        public void Merge(params T[] datas)
+        public void Merge(ITransaction transaction = null, params T[] datas)
         {
-            m_editQuery.Merge(datas);
+            m_editQuery.Merge(transaction, datas);
 
             DoAction(() =>
             {
@@ -82,10 +85,11 @@ namespace Common.DAL.Cache
         /// 修改
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="transaction"></param>
         /// <param name="IgnoreColumns"></param>
-        public void Update(T data, params string[] IgnoreColumns)
+        public void Update(T data, ITransaction transaction = null, params string[] IgnoreColumns)
         {
-            m_editQuery.Update(data, IgnoreColumns);
+            m_editQuery.Update(data, transaction, IgnoreColumns);
 
             DoAction(() =>
             {
@@ -101,9 +105,10 @@ namespace Common.DAL.Cache
         /// </summary>
         /// <param name="predicate"></param>
         /// <param name="updateExpression"></param>
-        public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression)
+        /// <param name="transaction"></param>
+        public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
         {
-            m_editQuery.Update(predicate, updateExpression);
+            m_editQuery.Update(predicate, updateExpression, transaction);
 
             DoAction(() =>
             {

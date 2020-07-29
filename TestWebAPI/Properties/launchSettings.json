@@ -17,7 +17,7 @@
       }
     },
     "TestWebAPI": {
-      "applicationUrl": "http://localhost:6008",
+      "applicationUrl": "http://192.168.10.56:7788",
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

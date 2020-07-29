@@ -39,7 +39,7 @@ namespace TestWebAPI
         private static void LoggingConfig(HostBuilderContext hostBuilderContext, ILoggingBuilder loggingBuilder)
         {
             loggingBuilder.ClearProviders();
-            loggingBuilder.AddConsole();
+            //loggingBuilder.AddConsole();
         }
     }
 }

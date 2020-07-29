@@ -59,7 +59,7 @@ namespace Common.Validation
                 parameters.Add($"@{m_foreignColumn}", value);
 
                 return (int)queryType.GetMethod("Count", new Type[] { typeof(string), typeof(Dictionary<string, object>) }).
-                    Invoke(searchQuery, new object[] { sql, parameters }) > 0;
+                    Invoke(searchQuery, new object[] { sql, parameters, null }) > 0;
             }
 
             throw new NotImplementedException();

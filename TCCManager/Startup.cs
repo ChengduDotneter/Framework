@@ -1,3 +1,4 @@
+using System;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -31,7 +32,7 @@ namespace TCCManager
 
             });
 
-            IMvcBuilder mvcBuilder = services.AddControllers();
+            IMvcBuilder mvcBuilder = services.AddControllers(new Type[0], new Type[0]);
 
             services.AddHttpContextAccessor();
             services.ConfigureValidation(mvcBuilder, 10);

@@ -11,7 +11,6 @@ using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Common.DAL;
 using Common.MessageQueueClient;
 using Common.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Hosting;
@@ -139,6 +138,7 @@ namespace Common.ServiceCommon
             mvcBuilder.AddApplicationPart(DynamicControllerManager.GenerateDynamicControllerToAssembly(dynamicControllerTypes));
             mvcBuilder.AddApplicationPart(typeof(HealthController).Assembly);
             serviceCollection.AddScoped<ISSOUserService, SSOUserService>();
+            serviceCollection.AddSingleton<ITccTransactionManager, TccTransactionManager>();
 
             return mvcBuilder;
         }

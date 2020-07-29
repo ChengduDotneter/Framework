@@ -126,8 +126,8 @@ namespace TestWebAPI
                 endpoints.MapControllers();
             });
 
-            ////服务发现
-            if (!env.IsDevelopment())
+            //服务发现
+            //if (!env.IsDevelopment())
                 app.RegisterConsul(lifetime, m_configuration);
         }
     }
