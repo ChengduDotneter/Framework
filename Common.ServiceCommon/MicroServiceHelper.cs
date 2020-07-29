@@ -121,7 +121,6 @@ namespace Common.ServiceCommon
         ///  通过url Post
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="httpContextAccessor"></param>
         /// <param name="url"></param>
         /// <param name="functionName"></param>
         /// <param name="displayName"></param>
