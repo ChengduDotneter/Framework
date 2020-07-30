@@ -391,7 +391,7 @@ namespace Common.DAL
                     }
                 }
 
-                m_cache.Replace(data.ID, data);
+                m_cache.Replace(data.ID, oldData, data);
             }
 
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
@@ -570,7 +570,7 @@ namespace Common.DAL
                     CacheMode = CacheMode.Replicated,
                     QueryEntities = new[] { new QueryEntity(typeof(long), typeof(T)) { Fields = queryFields, Indexes = queryIndices } },
                     SqlSchema = string.Format("\"{0}\"", ConfigManager.Configuration["IgniteService:RegionName"]),
-                    AtomicityMode = CacheAtomicityMode.Transactional
+                    AtomicityMode = CacheAtomicityMode.Atomic
                 };
             }
 

@@ -104,7 +104,7 @@ namespace Common.ServiceCommon
                     DefaultDataRegionConfiguration = new DataRegionConfiguration
                     {
                         Name = ConfigManager.Configuration["IgniteService:RegionName"],
-                        PersistenceEnabled = false
+                        PersistenceEnabled = true
                     }
                 },
 

@@ -29,7 +29,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.RPC", "Common.RPC\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Compute", "Common.Compute\Common.Compute.csproj", "{10956496-9FFA-4F04-A43F-E42A00853728}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCCManager", "TCCManager\TCCManager.csproj", "{308F06A0-1491-47E7-9FA9-EE84280928FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TCCManager", "TCCManager\TCCManager.csproj", "{308F06A0-1491-47E7-9FA9-EE84280928FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestOrder", "TestOrder\TestOrder.csproj", "{012D2806-F817-406E-AD60-FB3A11069E89}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestStorge", "TestStorge\TestStorge.csproj", "{121B9DC5-DA4C-4C9C-AB07-1AD966D08C00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +97,14 @@ Global
 		{308F06A0-1491-47E7-9FA9-EE84280928FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{308F06A0-1491-47E7-9FA9-EE84280928FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{308F06A0-1491-47E7-9FA9-EE84280928FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{012D2806-F817-406E-AD60-FB3A11069E89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{012D2806-F817-406E-AD60-FB3A11069E89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{012D2806-F817-406E-AD60-FB3A11069E89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{012D2806-F817-406E-AD60-FB3A11069E89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{121B9DC5-DA4C-4C9C-AB07-1AD966D08C00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{121B9DC5-DA4C-4C9C-AB07-1AD966D08C00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{121B9DC5-DA4C-4C9C-AB07-1AD966D08C00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{121B9DC5-DA4C-4C9C-AB07-1AD966D08C00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
