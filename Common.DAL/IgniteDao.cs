@@ -570,7 +570,7 @@ namespace Common.DAL
                     CacheMode = CacheMode.Replicated,
                     QueryEntities = new[] { new QueryEntity(typeof(long), typeof(T)) { Fields = queryFields, Indexes = queryIndices } },
                     SqlSchema = string.Format("\"{0}\"", ConfigManager.Configuration["IgniteService:RegionName"]),
-                    AtomicityMode = CacheAtomicityMode.Atomic
+                    AtomicityMode = CacheAtomicityMode.Transactional
                 };
             }
 
