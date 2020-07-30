@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Consul;
@@ -17,6 +18,11 @@ namespace Common.DAL.Transaction
         /// 默认超时时间
         /// </summary>
         private const int DEFAULT_TIME_OUT = 60 * 1000;
+
+        /// <summary>
+        /// LOCK_PREFIX
+        /// </summary>
+        private const string LOCK_PREFIX = "lock";
 
         /// <summary>
         /// TTL
@@ -54,6 +60,8 @@ namespace Common.DAL.Transaction
         {
             if (m_consulClient != null)
             {
+                string lockKey = $"{LOCK_PREFIX}/{table.Namespace}/{table.Name}";
+
                 lock (m_lockInstances)
                 {
                     if (!m_lockInstances.ContainsKey(identity))
@@ -62,13 +70,13 @@ namespace Common.DAL.Transaction
 
                 lock (m_lockInstances[identity])
                 {
-                    if (!m_lockInstances[identity].ContainsKey(table.FullName))
+                    if (!m_lockInstances[identity].ContainsKey(lockKey))
                     {
-                        LockOptions lockOptions = new LockOptions(table.FullName)
+                        LockOptions lockOptions = new LockOptions(lockKey)
                         {
                             LockTryOnce = true,
                             LockWaitTime = TimeSpan.FromMilliseconds(m_timeOut),
-                            Value = BitConverter.GetBytes(weight),
+                            Value = Encoding.UTF8.GetBytes(weight.ToString()),
                             Session = m_sessionID,
                             SessionTTL = TTL
                         };
@@ -78,7 +86,7 @@ namespace Common.DAL.Transaction
                         try
                         {
                             distributedLock.Acquire(CancellationToken.None).Wait();
-                            m_lockInstances[identity][table.FullName] = distributedLock;
+                            m_lockInstances[identity][lockKey] = distributedLock;
 
                             return true;
                         }
@@ -89,7 +97,7 @@ namespace Common.DAL.Transaction
                     }
                     else
                     {
-                        return m_lockInstances[identity][table.FullName].IsHeld;
+                        return m_lockInstances[identity][lockKey].IsHeld;
                     }
                 }
             }
@@ -146,18 +154,19 @@ namespace Common.DAL.Transaction
         {
             string timeOutString = ConfigManager.Configuration["TransactionTimeout"];
             m_timeOut = string.IsNullOrWhiteSpace(timeOutString) ? DEFAULT_TIME_OUT : Convert.ToInt32(timeOutString);
+            m_lockInstances = new Dictionary<string, IDictionary<string, IDistributedLock>>();
 
             ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
             ConfigManager.Configuration.Bind("ConsulService", serviceEntity);
 
             if (!string.IsNullOrWhiteSpace(serviceEntity.ConsulIP) && serviceEntity.ConsulPort != 0)
+            {
                 m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));
 
-            m_lockInstances = new Dictionary<string, IDictionary<string, IDistributedLock>>();
-
-            WriteResult<string> sessionRequest = m_consulClient.Session.Create(new SessionEntry()).Result;
-            m_sessionID = sessionRequest.Response;
-            m_consulClient.Session.RenewPeriodic(TTL, m_sessionID, CancellationToken.None);
+                WriteResult<string> sessionRequest = m_consulClient.Session.Create(new SessionEntry() { TTL = TTL, LockDelay = TimeSpan.FromMilliseconds(1) }).Result;
+                m_sessionID = sessionRequest.Response;
+                m_consulClient.Session.RenewPeriodic(TTL, m_sessionID, CancellationToken.None);
+            }
         }
     }
 }

@@ -131,17 +131,20 @@ namespace TestWebAPI.Controllers
     public class tccdocontroller : TransactionTCCController<TCCTestData>
     {
         private IEditQuery<TCCTestData> m_tccTestDataeditQuery;
+        private ISearchQuery<TCCTestData> m_searchQuery;
 
-        public tccdocontroller(ISearchQuery<TCCTransaction> searchQuery, IEditQuery<TCCTransaction> editQuery, IEditQuery<TCCTestData> tccTestDataeditQuery, IHttpContextAccessor httpContextAccessor, ISSOUserService ssoUserService, ITccTransactionManager tccTransactionManager) : base(searchQuery, editQuery, httpContextAccessor, ssoUserService, tccTransactionManager)
+        public tccdocontroller(IEditQuery<TCCTestData> tccTestDataeditQuery, ISearchQuery<TCCTestData> searchQuery, IHttpContextAccessor httpContextAccessor, ITccTransactionManager tccTransactionManager) : base(tccTestDataeditQuery, httpContextAccessor, tccTransactionManager)
         {
             m_tccTestDataeditQuery = tccTestDataeditQuery;
+            m_searchQuery = searchQuery;
         }
 
         protected override void DoTry(long tccID, ITransaction transaction, TCCTestData data)
         {
             data.Data = $"{data.Data}:{data.ID}, tccID:{tccID}";
             data.ID = IDGenerator.NextID();
-            m_tccTestDataeditQuery.Insert(transaction, data);
+            m_searchQuery.Count(transaction: transaction);
+            //m_tccTestDataeditQuery.Insert(transaction, data);
         }
     }
 }
