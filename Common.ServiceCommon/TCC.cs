@@ -207,6 +207,9 @@ namespace Common.ServiceCommon
             else if (tccTransaction != null)
             {
                 m_tccTransactionManager.Rollback(tccID);
+
+                string kvKey = GetKVKey(m_typeNameSpace, m_typeName, tccID);
+                m_consulClient.KV.Delete(kvKey);
             }
         }
 
@@ -224,6 +227,9 @@ namespace Common.ServiceCommon
             else if (tccTransaction != null)
             {
                 m_tccTransactionManager.Submit(tccID);
+
+                string kvKey = GetKVKey(m_typeNameSpace, m_typeName, tccID);
+                m_consulClient.KV.Delete(kvKey);
             }
             else
             {
@@ -237,7 +243,6 @@ namespace Common.ServiceCommon
 
             string kvKey = GetKVKey(typeNameSapce, typeName, tccID);
             tccTransaction = JObject.Parse(Encoding.UTF8.GetString(m_consulClient.KV.Get(kvKey).Result.Response.Value)).ToObject<TCCTransaction>();
-            m_consulClient.KV.Delete(kvKey);
 
             if (tccTransaction != null)
                 return tccTransaction.RequestIP == connectionInfo.LocalIpAddress.ToString() && tccTransaction.RequestPort == connectionInfo.LocalPort;
