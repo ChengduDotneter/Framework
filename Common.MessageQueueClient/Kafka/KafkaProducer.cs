@@ -3,43 +3,26 @@ using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
-namespace KafcaTestPro
+namespace Common.MessageQueueClient.Kafka
 {
-    /// <summary>
-    /// Kafka生产者操作接口
-    /// </summary>
-    public interface IKafkaProducer
-    {
-        /// <summary>
-        /// 同步推动消息
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="topic">主题名称</param>
-        /// <param name="data">所需推送的数据</param>
-        void Produce<T>(string topic, T data);
-
-        /// <summary>
-        /// 异步推送消息
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="topic">主题名称</param>
-        /// <param name="data">所需推送的数据</param>
-        /// <returns></returns>
-        Task ProduceAsync<T>(string topic, T data);
-    }
-
     /// <summary>
     /// Kafka生产者操作类
     /// </summary>
-    public class KafkaProducer : IKafkaProducer
+    public class KafkaProducer<T> : IMQProducer<T> where T : class, IMQData, new()
     {
         private readonly IProducer<string, string> m_kafkaProducer;
 
-        public KafkaProducer(IKafkaConfigBuilder kafkaConfigBuilder)
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public KafkaProducer()
         {
-            m_kafkaProducer = new ProducerBuilder<string, string>(kafkaConfigBuilder.GetProducerConfig()).Build();
+            m_kafkaProducer = new ProducerBuilder<string, string>(KafkaConfigBuilder.GetProducerConfig()).Build();
         }
 
+        /// <summary>
+        /// 析构函数
+        /// </summary>
         ~KafkaProducer()
         {
             m_kafkaProducer.Dispose();
@@ -48,25 +31,22 @@ namespace KafcaTestPro
         /// <summary>
         /// 同步推送消息
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="topic">主题名称</param>
-        /// <param name="data">所需推送的数据</param>
-        /// <returns></returns>
-        public void Produce<T>(string topic, T data)
+        /// <param name="mQContext">消息队列上下文</param>
+        /// <param name="message">需要推送的消息</param>
+        public void Produce(MQContext mQContext, T message)
         {
-            m_kafkaProducer.Produce(topic, ConvertDataToMessage(data));
+            m_kafkaProducer.Produce(mQContext.MessageQueueName, ConvertDataToMessage(message));
         }
 
         /// <summary>
         /// 异步推送消息
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="topic">主题名称</param>
-        /// <param name="data">所需推送的数据</param>
+        /// <param name="mQContext"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public async Task ProduceAsync<T>(string topic, T data)
+        public async Task ProduceAsync(MQContext mQContext, T message)
         {
-            await m_kafkaProducer.ProduceAsync(topic, ConvertDataToMessage(data));
+            await m_kafkaProducer.ProduceAsync(mQContext.MessageQueueName, ConvertDataToMessage(message));
         }
 
         /// <summary>
@@ -75,7 +55,7 @@ namespace KafcaTestPro
         /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
-        private Message<string, string> ConvertDataToMessage<T>(T data)
+        private Message<string, string> ConvertDataToMessage(T data)
         {
             return new Message<string, string> { Key = Guid.NewGuid().ToString(), Value = JsonConvert.SerializeObject(data) };
         }

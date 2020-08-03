@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Common.MessageQueueClient
 {
     /// <summary>
-    /// 数据推送相关接口
+    /// 生产者相关操作接口
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IMQProducer<T> where T : class, IMQData, new()
@@ -26,7 +26,7 @@ namespace Common.MessageQueueClient
     }
 
     /// <summary>
-    /// 消息订阅接口
+    /// 消费者相关操作接口
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IMQConsumer<T> where T : class, IMQData, new()
