@@ -214,8 +214,21 @@ namespace Common.ServiceCommon
 
             ParameterInfo[] parameterInfos = methodInfo.GetParameters();
 
+            IEnumerable<DynamicDisplayAttribute> dynamicDisplayAttributes = dynamicControllerType.GetCustomAttributes<DynamicDisplayAttribute>();
+
             for (int i = 0; i < parameterInfos?.Length; i++)
             {
+                IEnumerable<DynamicDisplayAttribute> parameterDynamicDisplayAttributes = dynamicDisplayAttributes?.Where(
+                    dynamicDisplayAttribute => dynamicDisplayAttribute.ParameterName == parameterInfos[i].Name);
+
+                if (parameterDynamicDisplayAttributes?.Count() > 1)
+                    throw new Exception($"{nameof(DynamicDisplayAttribute)}.{nameof(DynamicDisplayAttribute.ParameterName)}重复。");
+
+                DynamicDisplayAttribute dynamicDisplayAttribute = parameterDynamicDisplayAttributes?.FirstOrDefault();
+
+                if (dynamicDisplayAttribute != null)
+                    stringBuilder.AppendLine($" [System.ComponentModel.DataAnnotations.DisplayAttribute(Name = \"{dynamicDisplayAttribute.DisplayText}\")] ");
+
                 stringBuilder.AppendLine(" [Common.Validation.NotNullAttribute] ");
                 stringBuilder.AppendLine($" public {GetFullTypeNameByType(parameterInfos[i].ParameterType)} {JsonUtils.PropertyNameToCSharpStyle(parameterInfos[i].Name)} {{ get;set; }} ");
             }

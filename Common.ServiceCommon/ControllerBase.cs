@@ -974,4 +974,20 @@ namespace Common.ServiceCommon
         /// <param name="request3"></param>
         protected abstract void DoPut(TRequest1 request1, TRequest2 request2, TRequest3 request3);
     }
+
+    /// <summary>
+    /// 动态请求类参数验证文本特性
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+    public class DynamicDisplayAttribute : Attribute
+    {
+        public string ParameterName { get; set; }
+        public string DisplayText { get; set; }
+
+        public DynamicDisplayAttribute(string parameterName, string displayText)
+        {
+            ParameterName = parameterName;
+            DisplayText = displayText;
+        }
+    }
 }
