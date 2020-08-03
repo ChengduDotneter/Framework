@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Configuration;
@@ -23,6 +24,7 @@ namespace Common.ServiceCommon
     /// </summary>
     public static class MvcExtentions
     {
+        private const int DEFAULT_THREAD_COUNT = 200;
         private static bool m_isCodeFirst;
         private static IDictionary<Type, Func<object>> m_defaultSearchQueryProviderDic;
         private static IDictionary<Type, Func<object>> m_defaultEditQueryProviderDic;
@@ -49,6 +51,12 @@ namespace Common.ServiceCommon
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             ConfigManager.Init(hostBuilderContext.HostingEnvironment.EnvironmentName);
             m_isCodeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
+
+            if (!int.TryParse(ConfigManager.Configuration["MinThreadCount"], out int threadCount))
+                threadCount = DEFAULT_THREAD_COUNT;
+
+            ThreadPool.GetMinThreads(out int workerThreads, out int completionPortThreads);
+            ThreadPool.SetMinThreads(Math.Max(workerThreads, threadCount), Math.Max(completionPortThreads, threadCount));
 
             return hostBuilderContext;
         }

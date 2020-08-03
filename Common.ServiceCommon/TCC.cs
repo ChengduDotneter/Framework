@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using Common.DAL;
 using Common.Model;
-using Consul;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
+using StackExchange.Redis;
 
 namespace Common.ServiceCommon
 {
@@ -22,21 +20,6 @@ namespace Common.ServiceCommon
     public class TCCTransaction
     {
         /// <summary>
-        /// TCCID
-        /// </summary>
-        public long TCCID { get; set; }
-
-        /// <summary>
-        /// TCC超时
-        /// </summary>
-        public int TimeOut { get; set; }
-
-        /// <summary>
-        /// TCC取消时间
-        /// </summary>
-        public DateTime CancelTime { get; set; }
-
-        /// <summary>
         /// TCC原始请求IP
         /// </summary>
         public string RequestIP { get; set; }
@@ -45,16 +28,6 @@ namespace Common.ServiceCommon
         /// TCC原始请求端口
         /// </summary>
         public int RequestPort { get; set; }
-
-        /// <summary>
-        /// TCC取消URL
-        /// </summary>
-        public string RequestCancelUrl { get; set; }
-
-        /// <summary>
-        /// TCC提交URL
-        /// </summary>
-        public string RequestCommitlUrl { get; set; }
     }
 
     /// <summary>
@@ -70,11 +43,9 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="tccID"></param>
         /// <param name="timeOut"></param>
-        /// <param name="requestCancelUrl"></param>
-        /// <param name="requestCommitUrl"></param>
         /// <param name="data"></param>
-        [HttpPost("try/{tccID:required:long}/{timeOut:required:int}/{requestCancelUrl:required}/{requestCommitUrl:required}")]
-        public abstract void Try(long tccID, int timeOut, string requestCancelUrl, string requestCommitUrl, [FromBody] T data);
+        [HttpPost("try/{tccID:required:long}/{timeOut:required:int}")]
+        public abstract void Try(long tccID, int timeOut, [FromBody] T data);
 
         /// <summary>
         /// Cancel
@@ -104,24 +75,16 @@ namespace Common.ServiceCommon
         private IEditQuery<T> m_editQuery;
         private IHttpContextAccessor m_httpContextAccessor;
         private ITccTransactionManager m_tccTransactionManager;
-
-        private static IConsulClient m_consulClient;
-        private static string m_sessionID;
-        private readonly static TimeSpan TTL = TimeSpan.FromMilliseconds(10 * 1000);
+        private readonly static ConnectionMultiplexer m_connectionMultiplexer;
+        private readonly static IDatabase m_redisClient;
 
         static TransactionTCCController()
         {
-            ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
-            ConfigManager.Configuration.Bind("ConsulService", serviceEntity);
-
-            if (!string.IsNullOrWhiteSpace(serviceEntity.ConsulIP) && serviceEntity.ConsulPort != 0)
-            {
-                m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));
-
-                WriteResult<string> sessionRequest = m_consulClient.Session.Create(new SessionEntry() { TTL = TTL, LockDelay = TimeSpan.FromMilliseconds(1) }).Result;
-                m_sessionID = sessionRequest.Response;
-                m_consulClient.Session.RenewPeriodic(TTL, m_sessionID, CancellationToken.None);
-            }
+            ConfigurationOptions configurationOptions = new ConfigurationOptions();
+            configurationOptions.EndPoints.Add(ConfigManager.Configuration["RedisEndPoint"]);
+            configurationOptions.Password = ConfigManager.Configuration["RedisPassWord"];
+            m_connectionMultiplexer = ConnectionMultiplexer.Connect(configurationOptions);
+            m_redisClient = m_connectionMultiplexer.GetDatabase();
         }
 
         /// <summary>
@@ -147,30 +110,18 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="tccID"></param>
         /// <param name="timeOut"></param>
-        /// <param name="requestCancelUrl"></param>
-        /// <param name="requestCommitUrl"></param>
         /// <param name="data"></param>
-        public override void Try(long tccID, int timeOut, string requestCancelUrl, string requestCommitUrl, T data)
+        public override void Try(long tccID, int timeOut, T data)
         {
             ConnectionInfo connectionInfo = m_httpContextAccessor.HttpContext.Connection;
 
-            KVPair kVPair = new KVPair(GetKVKey(m_typeNameSpace, m_typeName, tccID))
+            m_redisClient.StringSet(new RedisKey(GetKVKey(m_typeNameSpace, m_typeName, tccID)), JObject.FromObject(new TCCTransaction()
             {
-                Value = Encoding.UTF8.GetBytes(JObject.FromObject(new TCCTransaction()
-                {
-                    TCCID = tccID,
-                    TimeOut = timeOut,
-                    RequestIP = connectionInfo.LocalIpAddress.ToString(),
-                    RequestPort = connectionInfo.LocalPort,
-                    CancelTime = DateTime.Now.AddMilliseconds(timeOut),
-                    RequestCancelUrl = WebUtility.UrlDecode(requestCancelUrl),
-                    RequestCommitlUrl = WebUtility.UrlDecode(requestCommitUrl)
-                }).ToString())
-            };
+                RequestIP = connectionInfo.LocalIpAddress.ToString(),
+                RequestPort = connectionInfo.LocalPort,
+            }).ToString(), TimeSpan.FromSeconds(10));
 
-            m_consulClient.KV.Put(kVPair).Wait();
-
-            ITransaction transaction = m_editQuery.BeginTransaction();
+            DAL.ITransaction transaction = m_editQuery.BeginTransaction();
 
             try
             {
@@ -191,7 +142,7 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         /// <param name="transaction"></param>
         /// <param name="data"></param>
-        protected abstract void DoTry(long tccID, ITransaction transaction, T data);
+        protected abstract void DoTry(long tccID, DAL.ITransaction transaction, T data);
 
         /// <summary>
         /// Cancel
@@ -207,9 +158,7 @@ namespace Common.ServiceCommon
             else if (tccTransaction != null)
             {
                 m_tccTransactionManager.Rollback(tccID);
-
-                string kvKey = GetKVKey(m_typeNameSpace, m_typeName, tccID);
-                m_consulClient.KV.Delete(kvKey);
+                m_redisClient.KeyDelete(new RedisKey(GetKVKey(m_typeNameSpace, m_typeName, tccID)));
             }
         }
 
@@ -227,9 +176,7 @@ namespace Common.ServiceCommon
             else if (tccTransaction != null)
             {
                 m_tccTransactionManager.Submit(tccID);
-
-                string kvKey = GetKVKey(m_typeNameSpace, m_typeName, tccID);
-                m_consulClient.KV.Delete(kvKey);
+                m_redisClient.KeyDelete(new RedisKey(GetKVKey(m_typeNameSpace, m_typeName, tccID)));
             }
             else
             {
@@ -240,9 +187,7 @@ namespace Common.ServiceCommon
         private static bool IsLocalRequest(IHttpContextAccessor httpContextAccessor, string typeNameSapce, string typeName, long tccID, out TCCTransaction tccTransaction)
         {
             ConnectionInfo connectionInfo = httpContextAccessor.HttpContext.Connection;
-
-            string kvKey = GetKVKey(typeNameSapce, typeName, tccID);
-            tccTransaction = JObject.Parse(Encoding.UTF8.GetString(m_consulClient.KV.Get(kvKey).Result.Response.Value)).ToObject<TCCTransaction>();
+            tccTransaction = JObject.Parse(m_redisClient.StringGet(GetKVKey(typeNameSapce, typeName, tccID))).ToObject<TCCTransaction>();
 
             if (tccTransaction != null)
                 return tccTransaction.RequestIP == connectionInfo.LocalIpAddress.ToString() && tccTransaction.RequestPort == connectionInfo.LocalPort;
@@ -275,7 +220,7 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         /// <param name="timeOut"></param>
         /// <param name="transaction"></param>
-        void AddTransaction(long tccID, int timeOut, ITransaction transaction);
+        void AddTransaction(long tccID, int timeOut, DAL.ITransaction transaction);
 
         /// <summary>
         /// 提交事务
@@ -294,11 +239,11 @@ namespace Common.ServiceCommon
     {
         private class TCCTransactionInstance
         {
-            public ITransaction Transaction { get; }
+            public DAL.ITransaction Transaction { get; }
             public int TimeOut { get; }
             public int StartTime { get; }
 
-            public TCCTransactionInstance(ITransaction transaction, int timeOut)
+            public TCCTransactionInstance(DAL.ITransaction transaction, int timeOut)
             {
                 Transaction = transaction;
                 TimeOut = timeOut;
@@ -319,7 +264,7 @@ namespace Common.ServiceCommon
             m_thread.Start();
         }
 
-        public void AddTransaction(long tccID, int timeOut, ITransaction transaction)
+        public void AddTransaction(long tccID, int timeOut, DAL.ITransaction transaction)
         {
             lock (m_tccTransactionInstances)
                 m_tccTransactionInstances.Add(tccID, new TCCTransactionInstance(transaction, timeOut));

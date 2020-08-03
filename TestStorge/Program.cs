@@ -34,7 +34,7 @@ namespace TestStorge
         private static void ConfigInit(HostBuilderContext hostBuilderContext, IServiceCollection services)
         {
             hostBuilderContext.ConfigInit();
-            hostBuilderContext.ConfigIgnite();
+            //hostBuilderContext.ConfigIgnite();
         }
 
         private static void LoggingConfig(HostBuilderContext hostBuilderContext, ILoggingBuilder loggingBuilder)

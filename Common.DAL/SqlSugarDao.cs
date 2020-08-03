@@ -113,26 +113,47 @@ namespace Common.DAL
 
         private static void Release(string identity)
         {
-            TransactionResourceHelper.ReleaseResourceAsync(identity);
+            TransactionResourceHelper.ReleaseResource(identity);
         }
 
         private class SqlSugarTaskScheduler : TaskScheduler, IDisposable
         {
+            private const int THREAD_TIME_SPAN = 1;
             private Thread m_thread;
             private BlockingCollection<Task> m_tasks;
             private bool m_running;
+            private CancellationTokenSource m_cancellationTokenSource;
             public SqlSugarClient SqlSugarClient { get; private set; }
 
             private void DoWork()
             {
-                SqlSugarClient = CreateConnection(m_masterConnectionString);
-                SqlSugarClient.BeginTran();
+                bool isOpen = false;
 
                 while (m_running || m_tasks.Count > 0)
                 {
-                    Task task = m_tasks.Take();
-                    TryExecuteTask(task);
+                    try
+                    {
+                        Task task = m_tasks.Take(m_cancellationTokenSource.Token);
+
+                        if (!isOpen)
+                        {
+                            SqlSugarClient = CreateConnection(m_masterConnectionString);
+                            SqlSugarClient.BeginTran();
+                            isOpen = true;
+                        }
+
+                        TryExecuteTask(task);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
                 }
+
+                m_tasks.Dispose();
+
+                if (isOpen)
+                    SqlSugarClient.Dispose();
             }
 
             protected override IEnumerable<Task> GetScheduledTasks()
@@ -152,15 +173,18 @@ namespace Common.DAL
 
             public void Dispose()
             {
-                QueueTask(Task.Factory.StartNew(() =>
-                {
-                    m_running = false;
-                    SqlSugarClient.Dispose();
-                }, CancellationToken.None, TaskCreationOptions.None, this));
+                m_running = false;
+
+                while (m_tasks.Count > 0)
+                    Thread.Sleep(THREAD_TIME_SPAN);
+
+                m_cancellationTokenSource.Cancel(false);
+                m_cancellationTokenSource.Dispose();
             }
 
             public SqlSugarTaskScheduler()
             {
+                m_cancellationTokenSource = new CancellationTokenSource();
                 m_running = true;
                 m_tasks = new BlockingCollection<Task>();
                 m_thread = new Thread(DoWork);

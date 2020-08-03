@@ -22,7 +22,7 @@ namespace TestOrder
 
         public void ConfigureServices(IServiceCollection services)
         {
-            //¿çÓòÎÊÌâ
+            //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             services.AddCors(options =>
             {
                 options.AddPolicy("any", builder =>
@@ -58,17 +58,17 @@ namespace TestOrder
             IMvcBuilder mvcBuilder = services.AddControllers(modelTypes, controllerTypes);
             services.ConfigureValidation(mvcBuilder, 10);
 
-            //services.AddQuerys(modelTypes);
+            services.AddQuerys(modelTypes);
 
-            services.AddQuerys(modelTypes,
-                (type) =>
-                {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
-                },
-                (type) =>
-                {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
-                });
+            //services.AddQuerys(modelTypes,
+            //    (type) =>
+            //    {
+            //        return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+            //    },
+            //    (type) =>
+            //    {
+            //        return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+            //    });
 
             services.AddJsonSerialize();
 
@@ -126,7 +126,7 @@ namespace TestOrder
                 endpoints.MapControllers();
             });
 
-            //·þÎñ·¢ÏÖ
+            //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             //if (!env.IsDevelopment())
             app.RegisterConsul(lifetime, m_configuration);
         }
