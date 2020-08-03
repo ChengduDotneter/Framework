@@ -49,7 +49,7 @@ namespace Common.ServiceCommon
         /// <param name="jObjectSerializeService"></param>
         /// <returns></returns>
         [HttpPost]
-        public TResponse Post([FromServices]IJObjectSerializeService jObjectSerializeService)
+        public TResponse Post([FromServices] IJObjectSerializeService jObjectSerializeService)
         {
             return DoPost(jObjectSerializeService.GetJObject());
         }
@@ -75,7 +75,7 @@ namespace Common.ServiceCommon
         /// <param name="jArraySerializeService"></param>
         /// <returns></returns>
         [HttpPost]
-        public TResponse Post([FromServices]IJArraySerializeService jArraySerializeService)
+        public TResponse Post([FromServices] IJArraySerializeService jArraySerializeService)
         {
             return DoPost(jArraySerializeService.GetJArray());
         }
@@ -188,7 +188,7 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        public PageQueryResult<TResponse> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
             Tuple<IEnumerable<TResponse>, int> tupleDatas = SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
 
@@ -261,7 +261,7 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public JObject Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        public JObject Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
             return new JObject()
             {
@@ -302,7 +302,7 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        public PageQueryResult<TResponse> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
             PageQuery<TRequest> pageQuery = pageQueryParameterService.GetQueryParameter<TRequest>();
 
@@ -391,7 +391,7 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices]IPageQueryParameterService pageQueryParameterService)
+        public PageQueryResult<TResponse> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
             PageQuery<TRequest> pageQuery = pageQueryParameterService.GetQueryParameter<TRequest>();
 
@@ -489,7 +489,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult Post([FromBody]TRequest request)
+        public IActionResult Post([FromBody] TRequest request)
         {
             request.ID = IDGenerator.NextID();
             request.CreateUserID = m_ssoUserService.GetUser().ID;
@@ -541,7 +541,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPut]
-        public virtual IActionResult Put([FromBody]TRequest request)
+        public virtual IActionResult Put([FromBody] TRequest request)
         {
             if (m_searchQuery.FilterIsDeleted().Count(item => item.ID == request.ID) > 0)
             {
@@ -974,5 +974,21 @@ namespace Common.ServiceCommon
         /// <param name="request2"></param>
         /// <param name="request3"></param>
         protected abstract void DoPut(TRequest1 request1, TRequest2 request2, TRequest3 request3);
+    }
+
+    /// <summary>
+    /// 动态请求类参数验证文本特性
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+    public class DynamicDisplayAttribute : Attribute
+    {
+        public string ParameterName { get; set; }
+        public string DisplayText { get; set; }
+
+        public DynamicDisplayAttribute(string parameterName, string displayText)
+        {
+            ParameterName = parameterName;
+            DisplayText = displayText;
+        }
     }
 }
