@@ -40,7 +40,7 @@ namespace Common.MessageQueueClient
             m_mqClientContext = new RabbitMqClientContext();
         }
 
-        private class RabbitmqDaoInstance<T> : IProducer<T>, IMQConsumer<T> where T : class, IMQData, new()
+        private class RabbitmqDaoInstance<T> : IMQProducer<T>, IMQConsumer<T> where T : class, IMQData, new()
         {
             public void Dispose()
             {
@@ -163,7 +163,7 @@ namespace Common.MessageQueueClient
             }
         }
 
-        internal static IProducer<T> DeclarePublisherContext<T>() where T : class, IMQData, new()
+        internal static IMQProducer<T> DeclarePublisherContext<T>() where T : class, IMQData, new()
         {
             if (m_mqClientContext.PublishConnection == null)
                 m_mqClientContext.PublishConnection = ConnectionFactory.CreateConnection();
