@@ -71,7 +71,6 @@ namespace Common.MessageQueueClient
         /// <param name="exchangeType"></param>
         /// <param name="routingKey"></param>
         /// <param name="listenqueue"></param>
-
         void BindingSubscribeQueue(string exchangeName, ExChangeTypeEnum exchangeType, string routingKey, string listenqueue);
 
         /// <summary>
