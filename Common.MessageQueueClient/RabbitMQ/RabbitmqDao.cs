@@ -42,7 +42,7 @@ namespace Common.MessageQueueClient
 
         private class RabbitmqDaoInstance<T> : IMQProducer<T>, IMQConsumer<T> where T : class, IMQData, new()
         {
-            public void Dispose()
+            ~RabbitmqDaoInstance()
             {
                 if (m_mqClientContext.PublishChannel != null)
                 {
@@ -158,6 +158,31 @@ namespace Common.MessageQueueClient
             }
 
             public Task<T> Consume(string channelName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Produce(MQContext mQContext, T message)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task ProduceAsync(MQContext mQContext, T message)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Consume(MQContext mQContext, Func<T, bool> callback)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Subscribe(MQContext mQContext)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void DeSubscribe()
             {
                 throw new NotImplementedException();
             }
