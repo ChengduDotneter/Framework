@@ -40,7 +40,7 @@ namespace Common.MessageQueueClient
             m_mqClientContext = new RabbitMqClientContext();
         }
 
-        private class RabbitmqDaoInstance<T> : IPublisher<T>, ISubscriber<T> where T : class, IData, new()
+        private class RabbitmqDaoInstance<T> : IProducer<T>, IMQConsumer<T> where T : class, IMQData, new()
         {
             public void Dispose()
             {
@@ -133,12 +133,12 @@ namespace Common.MessageQueueClient
                 m_mqClientContext.PublishChannel.QueueBind(listenqueue, exchangeName, routingKey);
             }
 
-            public Task PublishAsync(T message)
+            public Task ProduceAsync(T message)
             {
                 throw new NotImplementedException();
             }
 
-            public void Subscribe(string exchangeName, Action<string> callback)
+            public void Consume(string exchangeName, Action<string> callback)
             {
                 //声明为手动确认，每次只消费1条消息。
                 m_mqClientContext.SubscribeChannel.BasicQos(0, 1, false);
@@ -157,13 +157,13 @@ namespace Common.MessageQueueClient
                 m_mqClientContext.SubscribeChannel.BasicConsume(queue: exchangeName, autoAck: false, consumer: consumer);
             }
 
-            public Task<T> SubscribeAsync(string channelName)
+            public Task<T> Consume(string channelName)
             {
                 throw new NotImplementedException();
             }
         }
 
-        internal static IPublisher<T> DeclarePublisherContext<T>() where T : class, IData, new()
+        internal static IProducer<T> DeclarePublisherContext<T>() where T : class, IMQData, new()
         {
             if (m_mqClientContext.PublishConnection == null)
                 m_mqClientContext.PublishConnection = ConnectionFactory.CreateConnection();
@@ -174,7 +174,7 @@ namespace Common.MessageQueueClient
             return new RabbitmqDaoInstance<T>();
         }
 
-        internal static ISubscriber<T> DeclareSubscriberContext<T>() where T : class, IData, new()
+        internal static IMQConsumer<T> DeclareSubscriberContext<T>() where T : class, IMQData, new()
         {
             if (m_mqClientContext.SubscribeConnection == null)
                 m_mqClientContext.SubscribeConnection = ConnectionFactory.CreateConnection();

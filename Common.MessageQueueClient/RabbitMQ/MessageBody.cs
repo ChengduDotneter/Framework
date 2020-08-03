@@ -5,7 +5,7 @@ namespace Common.MessageQueueClient
     /// <summary>
     /// 对接推送/接收消息实体
     /// </summary>
-    public class MessageBody : IData
+    public class MessageBody : IMQData
     {
         /// <summary>
         /// 当前推送/接收的数据类型（表名）

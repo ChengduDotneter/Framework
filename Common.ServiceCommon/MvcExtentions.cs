@@ -223,8 +223,8 @@ namespace Common.ServiceCommon
         /// <param name="serviceCollection"></param>
         public static void AddTransfers(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddScoped(typeof(IPublisher<MessageBody>), sp => MessageQueueFactory.GetPublisherContext<MessageBody>());
-            serviceCollection.AddScoped(typeof(ISubscriber<MessageBody>), sp => MessageQueueFactory.GetSubscriberContext<MessageBody>());
+            serviceCollection.AddScoped(typeof(IProducer<MessageBody>), sp => MessageQueueFactory.GetRabbitMQProducer<MessageBody>());
+            serviceCollection.AddScoped(typeof(IMQConsumer<MessageBody>), sp => MessageQueueFactory.GetRabbitMQConsumer<MessageBody>());
         }
 
         /// <summary>
