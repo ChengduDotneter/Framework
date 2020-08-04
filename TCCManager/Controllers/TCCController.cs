@@ -48,8 +48,8 @@ namespace TCCManager.Controllers
     [ApiController]
     public class TCCController : ControllerBase
     {
-        private const int TASK_TIME_OUT = 3 * 1000;
-        private const int TCCTASK_SCHEDULER_COUNT = 70;
+        private const int TASK_TIME_OUT = 500;
+        private const int TCCTASK_SCHEDULER_COUNT = 40;
         private const string TRY = "try";
         private const string CANCEL = "cancel";
         private const string COMMIT = "commit";
@@ -62,6 +62,8 @@ namespace TCCManager.Controllers
         {
             m_httpContextAccessor = httpContextAccessor;
         }
+
+        private static Dictionary<long, CancellationTokenSource> a = new Dictionary<long, CancellationTokenSource>();
 
         [HttpPost]
         public long Post(TCCModel tccModel)
@@ -90,6 +92,20 @@ namespace TCCManager.Controllers
 
             try
             {
+                a.Add(tccModel.ID, new CancellationTokenSource());
+                Task.Factory.StartNew((state) =>
+                {
+                    try
+                    {
+                        Task.Delay(TimeSpan.FromSeconds(10), a[tccModel.ID].Token).Wait();
+                        Console.WriteLine(tccModel.ID);
+                    }
+                    catch
+                    {
+
+                    }
+                }, null, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
                 //TODO: TCC节点日志
                 foreach (TCCNodeModel tccNode in tccModel.TCCNodes)
                 {
@@ -128,6 +144,8 @@ namespace TCCManager.Controllers
                                     null,
                                     bearerToken: m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
 
+                        a[tccModel.ID].Cancel();
+
                         NodeResult nodeResult = new NodeResult() { Success = true };
 
                         if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
@@ -145,6 +163,8 @@ namespace TCCManager.Controllers
                                     $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{commitUrl}/{tccModel.ID}",
                                     null,
                                     m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
+
+                        a[tccModel.ID].Cancel();
 
                         NodeResult nodeResult = new NodeResult() { Success = true };
 

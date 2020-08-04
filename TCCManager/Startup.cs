@@ -38,6 +38,7 @@ namespace TCCManager
             services.ConfigureValidation(mvcBuilder, 10);
             services.AddJsonSerialize();
             services.AddSwagger();
+            services.AddHttpClient();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
