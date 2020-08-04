@@ -39,7 +39,7 @@ namespace Common.MessageQueueClient.Kafka
                 StatisticsIntervalMs = 60000,
                 SessionTimeoutMs = 6000,
                 //是否自动提交offset
-                EnableAutoOffsetStore = enableAutoOffsetStore,
+                EnableAutoOffsetStore = enableAutoOffsetStore
             };
 
             return consumerConfig;
