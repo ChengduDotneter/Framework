@@ -7,7 +7,7 @@
         <RootNamespace>Apache.Ignite.Linq</RootNamespace>
         <NoWarn>NU1701</NoWarn>
         <SignAssembly>true</SignAssembly>
-        <Version>1.2.33</Version>
+        <Version>2.0.0</Version>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
       <DebugType></DebugType>
