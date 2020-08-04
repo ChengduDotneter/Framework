@@ -52,7 +52,7 @@ namespace Common.Model
         /// 是否删除
         /// </summary>
         [SugarColumn(IsNullable = false, ColumnDescription = "是否删除", IndexGroupNameList = new string[] { "INDEX_ISDELETED" })]
-        [QuerySqlField]
+        [QuerySqlField(IndexGroups = new string[] { "INDEX_ISDELETED" })]
         public bool IsDeleted { set; get; }
 
         public ViewModelBase()
