@@ -1,5 +1,8 @@
 ﻿namespace Common.Log
 {
+    /// <summary>
+    /// 日志操作接口类
+    /// </summary>
     public interface ILogHelper
     {
         /// <summary>
