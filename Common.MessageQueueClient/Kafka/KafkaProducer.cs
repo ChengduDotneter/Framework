@@ -1,6 +1,5 @@
 ﻿using Confluent.Kafka;
 using Newtonsoft.Json;
-using System;
 using System.Threading.Tasks;
 
 namespace Common.MessageQueueClient.Kafka
@@ -20,10 +19,7 @@ namespace Common.MessageQueueClient.Kafka
             m_kafkaProducer = new ProducerBuilder<string, string>(KafkaConfigBuilder.GetProducerConfig()).Build();
         }
 
-        /// <summary>
-        /// 析构函数
-        /// </summary>
-        ~KafkaProducer()
+        public void Dispose()
         {
             m_kafkaProducer.Dispose();
         }
@@ -57,7 +53,7 @@ namespace Common.MessageQueueClient.Kafka
         /// <returns></returns>
         private Message<string, string> ConvertDataToMessage(T data)
         {
-            return new Message<string, string> { Key = Guid.NewGuid().ToString(), Value = JsonConvert.SerializeObject(data) };
+            return new Message<string, string> { Key = IDGenerator.NextID().ToString(), Value = JsonConvert.SerializeObject(data) };
         }
     }
 }
