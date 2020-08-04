@@ -6,7 +6,7 @@
     public interface ILogHelper
     {
         /// <summary>
-        /// 基本日志写入
+        /// 自定义日志写入
         /// </summary>
         /// <param name="message">需要写入的日志信息</param>
         void Info(string message);
@@ -21,7 +21,7 @@
         void Info(string path, string methed, string parameters, string controllerGroup);
 
         /// <summary>
-        /// 基本报错信息写入
+        /// 自定义报错信息写入
         /// </summary>
         /// <param name="message">需要写入的错误日志信息</param>
         void Error(string message);

@@ -21,7 +21,7 @@ namespace Common.Log
         /// </summary>
         [StringMaxLength(1000)]
         [SugarColumn(IsNullable = false, ColumnDescription = "日志")]
-        [QuerySqlField]
+        [QuerySqlField(NotNull = true)]
         public string Message { get; set; }
     }
 }
