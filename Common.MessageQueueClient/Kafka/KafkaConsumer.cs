@@ -24,14 +24,6 @@ namespace Common.MessageQueueClient.Kafka
         }
 
         /// <summary>
-        /// 析构函数
-        /// </summary>
-        ~KafkaConsumer()
-        {
-            m_consumer?.Dispose();
-        }
-
-        /// <summary>
         /// 订阅
         /// </summary>
         /// <param name="mQContext">消息队列上下文</param>
@@ -82,8 +74,9 @@ namespace Common.MessageQueueClient.Kafka
             return JsonConvert.DeserializeObject<T>(message.Value);
         }
 
-
-
-
+        public void Dispose()
+        {
+            m_consumer?.Dispose();
+        }
     }
 }

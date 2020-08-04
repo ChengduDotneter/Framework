@@ -42,39 +42,6 @@ namespace Common.MessageQueueClient
 
         private class RabbitmqDaoInstance<T> : IMQProducer<T>, IMQConsumer<T> where T : class, IMQData, new()
         {
-            ~RabbitmqDaoInstance()
-            {
-                if (m_mqClientContext.PublishChannel != null)
-                {
-                    if (m_mqClientContext.PublishChannel.IsOpen)
-                        m_mqClientContext.PublishChannel.Close();
-
-                    m_mqClientContext.PublishChannel.Abort();
-                    m_mqClientContext.PublishChannel.Dispose();
-                }
-
-                if (m_mqClientContext.PublishConnection != null)
-                {
-                    if (m_mqClientContext.PublishConnection.IsOpen)
-                        m_mqClientContext.PublishConnection.Close();
-                }
-
-                if (m_mqClientContext.SubscribeChannel != null)
-                {
-                    if (m_mqClientContext.SubscribeChannel.IsOpen)
-                        m_mqClientContext.SubscribeChannel.Close();
-
-                    m_mqClientContext.SubscribeChannel.Abort();
-                    m_mqClientContext.SubscribeChannel.Dispose();
-                }
-
-                if (m_mqClientContext.SubscribeConnection != null)
-                {
-                    if (m_mqClientContext.SubscribeConnection.IsOpen)
-                        m_mqClientContext.SubscribeConnection.Close();
-                }
-            }
-
             public void Publish(T message, string exchangeName, string routingKey = "")
             {
                 var properties = m_mqClientContext.PublishChannel.CreateBasicProperties();
@@ -185,6 +152,39 @@ namespace Common.MessageQueueClient
             public void DeSubscribe()
             {
                 throw new NotImplementedException();
+            }
+
+            public void Dispose()
+            {
+                if (m_mqClientContext.PublishChannel != null)
+                {
+                    if (m_mqClientContext.PublishChannel.IsOpen)
+                        m_mqClientContext.PublishChannel.Close();
+
+                    m_mqClientContext.PublishChannel.Abort();
+                    m_mqClientContext.PublishChannel.Dispose();
+                }
+
+                if (m_mqClientContext.PublishConnection != null)
+                {
+                    if (m_mqClientContext.PublishConnection.IsOpen)
+                        m_mqClientContext.PublishConnection.Close();
+                }
+
+                if (m_mqClientContext.SubscribeChannel != null)
+                {
+                    if (m_mqClientContext.SubscribeChannel.IsOpen)
+                        m_mqClientContext.SubscribeChannel.Close();
+
+                    m_mqClientContext.SubscribeChannel.Abort();
+                    m_mqClientContext.SubscribeChannel.Dispose();
+                }
+
+                if (m_mqClientContext.SubscribeConnection != null)
+                {
+                    if (m_mqClientContext.SubscribeConnection.IsOpen)
+                        m_mqClientContext.SubscribeConnection.Close();
+                }
             }
         }
 

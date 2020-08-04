@@ -7,7 +7,7 @@ namespace Common.MessageQueueClient
     /// 生产者相关操作接口
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IMQProducer<T> where T : class, IMQData, new()
+    public interface IMQProducer<T> : IDisposable where T : class, IMQData, new()
     {
         /// <summary>
         /// 推送泛型对象
@@ -29,7 +29,7 @@ namespace Common.MessageQueueClient
     /// 消费者相关操作接口
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IMQConsumer<T> where T : class, IMQData, new()
+    public interface IMQConsumer<T> : IDisposable where T : class, IMQData, new()
     {
         /// <summary>
         /// 消费
