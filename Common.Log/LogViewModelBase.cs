@@ -40,5 +40,18 @@ namespace Common.Log
         [SugarColumn(IsNullable = false, ColumnDescription = "节点类型")]
         [QuerySqlField(NotNull = true)]
         public int NodeType { get; set; }
+
+        /// <summary>
+        /// 调用堆栈
+        /// </summary>
+        [StringMaxLength(1000)]
+        [SugarColumn(IsNullable = true, ColumnDescription = "调用堆栈")]
+        [QuerySqlField]
+        public string StackTrace { get; set; }
+
+        public LogViewModelBase()
+        {
+            CreateTime = DateTime.Now;
+        }
     }
 }
