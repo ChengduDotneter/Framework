@@ -4,6 +4,6 @@
     {
         public string Sql { get; set; }
 
-        public string Sql { get; set; }
+        //public string Sql { get; set; }
     }
 }
