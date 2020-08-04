@@ -81,9 +81,5 @@ namespace Common.MessageQueueClient.Kafka
         {
             return JsonConvert.DeserializeObject<T>(message.Value);
         }
-
-
-
-
     }
 }
