@@ -28,7 +28,7 @@ namespace Common.Log
         [StringMaxLength(500)]
         [SugarColumn(IsNullable = true, ColumnDescription = "请求参数")]
         [QuerySqlField]
-        public string Parameter { get; set; }
+        public string Parameters { get; set; }
 
         /// <summary>
         /// 报错信息

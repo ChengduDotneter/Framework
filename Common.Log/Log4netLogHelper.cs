@@ -15,12 +15,14 @@ namespace Common.Log
     public class Log4netLogHelper : ILogHelper
     {
         private readonly static IDictionary<string, ILoggerRepository> m_loggerRepositorys;
+        private readonly static IDictionary<string, ILog> m_logs;
         private readonly static string m_assemblyName;
 
         static Log4netLogHelper()
         {
             m_assemblyName = Assembly.GetEntryAssembly().GetName().Name;
             m_loggerRepositorys = new Dictionary<string, ILoggerRepository>();
+            m_logs = new Dictionary<string, ILog>();
         }
 
         public void Error(string customCode, string message)
@@ -48,10 +50,10 @@ namespace Common.Log
             CreateLog("sql", "error").Error($"message: {message}{Environment.NewLine} stack_trace: {Environment.StackTrace}{Environment.NewLine} sql: {sql}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
         }
 
-        public void TCCNode(long transcationID, bool isError, string message)
+        public void TCCNode(long transcationID, bool? isError, string message)
         {
             ILog log = CreateLog("TCC", "TCC", "TCCDetails");
-            if (isError)
+            if (isError ?? false)
                 log.Error($"transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine} stack_trace: {Environment.StackTrace}");
             else log.Info($"transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine}");
         }
@@ -98,32 +100,39 @@ namespace Common.Log
 
         private static ILog DoCreateLog(ILoggerRepository loggerRepository, params string[] names)
         {
-            LevelRangeFilter infoFilter = new LevelRangeFilter();
+            string logKey = loggerRepository.Name + names[0];
 
-            infoFilter.LevelMax = Level.Error;
-            infoFilter.LevelMin = Level.Info;
-            infoFilter.ActivateOptions();
+            if (!m_logs.ContainsKey(logKey))
+            {
+                LevelRangeFilter infoFilter = new LevelRangeFilter();
 
-            string layoutFormat = "@Log Begin%newline%date%newlineThread ID：[%thread]%newline%message%newlineLog End@%newline%newline%newline%newline";
-            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", m_assemblyName);
+                infoFilter.LevelMax = Level.Error;
+                infoFilter.LevelMin = Level.Info;
+                infoFilter.ActivateOptions();
 
-            for (int i = 0; i < names.Length; i++)
-                logDir = Path.Combine(logDir, names[i]);
+                string layoutFormat = "@Log Begin%newline%date%newlineThread ID：[%thread]%newline%message%newlineLog End@%newline%newline%newline%newline";
+                string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", m_assemblyName);
 
-            RollingFileAppender fileAppender = new RollingFileAppender();
-            fileAppender.Name = $"{m_assemblyName}_{loggerRepository.Name}_{names[0]}_FileAppender";
-            fileAppender.File = logDir;
-            fileAppender.AppendToFile = true;
-            fileAppender.RollingStyle = RollingFileAppender.RollingMode.Date;
-            fileAppender.DatePattern = "_yyyy-MM-dd'.log'";
-            fileAppender.StaticLogFileName = false;
-            fileAppender.Layout = new PatternLayout(layoutFormat);
-            fileAppender.AddFilter(infoFilter);
-            fileAppender.ActivateOptions();
+                for (int i = 0; i < names.Length; i++)
+                    logDir = Path.Combine(logDir, names[i]);
 
-            BasicConfigurator.Configure(loggerRepository, fileAppender);
+                RollingFileAppender fileAppender = new RollingFileAppender();
+                fileAppender.Name = $"{m_assemblyName}_{loggerRepository.Name}_{names[0]}_FileAppender";
+                fileAppender.File = logDir;
+                fileAppender.AppendToFile = true;
+                fileAppender.RollingStyle = RollingFileAppender.RollingMode.Date;
+                fileAppender.DatePattern = "_yyyy-MM-dd'.log'";
+                fileAppender.StaticLogFileName = false;
+                fileAppender.Layout = new PatternLayout(layoutFormat);
+                fileAppender.AddFilter(infoFilter);
+                fileAppender.ActivateOptions();
 
-            return LogManager.GetLogger(loggerRepository.Name, names[0]);
+                BasicConfigurator.Configure(loggerRepository, fileAppender);
+
+                m_logs.Add(logKey, LogManager.GetLogger(loggerRepository.Name, names[0]));
+            }
+
+            return m_logs[logKey];
         }
     }
 }

@@ -52,7 +52,7 @@
         /// <param name="transcationID">TCC事务ID</param>
         /// <param name="isError">是否报错</param>
         /// <param name="message">TCC节点接口调用日志</param>
-        void TCCNode(long transcationID, bool isError, string message);
+        void TCCNode(long transcationID, bool? isError, string message);
 
         /// <summary>
         /// TCCServer日志写入

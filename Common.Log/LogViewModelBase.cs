@@ -51,6 +51,7 @@ namespace Common.Log
 
         public LogViewModelBase()
         {
+            ID = IDGenerator.NextID();
             CreateTime = DateTime.Now;
         }
     }
