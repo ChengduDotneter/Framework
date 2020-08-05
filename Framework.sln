@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestStorge", "TestStorge\Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Lock", "Common.Lock\Common.Lock.csproj", "{4815C9D2-9C06-4301-9867-F370D4CD3A9A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Log", "Common.Log\Common.Log.csproj", "{62CAAAA0-53BD-45B0-9758-4C1B3F8914A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Log", "Common.Log\Common.Log.csproj", "{62CAAAA0-53BD-45B0-9758-4C1B3F8914A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
