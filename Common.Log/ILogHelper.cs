@@ -8,8 +8,9 @@
         /// <summary>
         /// 自定义日志写入
         /// </summary>
+        /// <param name="customCode">自定义编码</param>
         /// <param name="message">需要写入的日志信息</param>
-        void Info(string message);
+        void Info(string customCode, string message);
 
         /// <summary>
         /// 接口日志写入
@@ -18,13 +19,14 @@
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
         /// <param name="controllerGroup">接口组名称</param>
-        void Info(string path, string methed, string parameters, string controllerGroup);
+        void Info(string path, string methed, string parameters, string controllerName);
 
         /// <summary>
         /// 自定义报错信息写入
         /// </summary>
+        /// <param name="customCode">自定义编码</param>
         /// <param name="message">需要写入的错误日志信息</param>
-        void Error(string message);
+        void Error(string customCode, string message);
 
         /// <summary>
         /// 接口报错日志写入
@@ -34,15 +36,15 @@
         /// <param name="parameters">请求参数</param>
         /// <param name="controllerGroup">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
-        void Error(string path, string methed, string parameters, string controllerGroup, string errorMessage);
+        void Error(string path, string methed, string parameters, string controllerName, string errorMessage);
 
         /// <summary>
-        /// Sql日志写入
+        /// Sql错误日志写入
         /// </summary>
         /// <param name="sql">Sql语句</param>
         /// <param name="parameters">Sql请求参数</param>
         /// <param name="message">Sql执行结果</param>
-        void Sql(string sql, string parameters = "", string message = "");
+        void SqlError(string sql, string message, string parameters = "");
 
         /// <summary>
         /// TCCNode日志写入

@@ -44,6 +44,6 @@ namespace Common.Log
         [StringMaxLength(100)]
         [SugarColumn(IsNullable = false, ColumnDescription = "接口组名称")]
         [QuerySqlField(NotNull = true)]
-        public string ControllerGroup { get; set; }
+        public string ControllerName { get; set; }
     }
 }

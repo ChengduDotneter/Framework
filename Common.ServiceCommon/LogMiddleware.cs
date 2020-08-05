@@ -54,7 +54,7 @@ namespace Common.ServiceCommon
             }
         }
 
-        private const int MAX_JSON_LOG_SIZE = 1024 * 6; //6k
+        private const int MAX_JSON_LOG_SIZE = 1024 * 30; //30k
         private static IDictionary<ControllerLogKey, ILog> m_controllerLogs;
         private RequestDelegate m_next;
         private bool m_logSearchAction;
@@ -103,7 +103,6 @@ namespace Common.ServiceCommon
             {
                 GetControllerLog(controllerActionDescriptor.ControllerName, controllerActionDescriptor.ActionName).Info(parameterInfo);
             }
-
             try
             {
                 await m_next(httpContext);
