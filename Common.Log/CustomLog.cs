@@ -20,5 +20,13 @@ namespace Common.Log
         [SugarColumn(IsNullable = false, ColumnDescription = "日志")]
         [QuerySqlField(NotNull = true)]
         public string Message { get; set; }
+
+        /// <summary>
+        /// 自定义日志编码
+        /// </summary>
+        [StringMaxLength(50)]
+        [SugarColumn(IsNullable = false, ColumnDescription = "日志")]
+        [QuerySqlField(NotNull = true)]
+        public string CustomCode { get; set; }
     }
 }
