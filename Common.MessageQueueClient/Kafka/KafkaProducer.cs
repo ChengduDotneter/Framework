@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using Newtonsoft.Json;
+using System;
 using System.Threading.Tasks;
 
 namespace Common.MessageQueueClient.Kafka
@@ -17,11 +18,13 @@ namespace Common.MessageQueueClient.Kafka
         public KafkaProducer()
         {
             m_kafkaProducer = new ProducerBuilder<string, string>(KafkaConfigBuilder.GetProducerConfig()).Build();
+
+            AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
 
         public void Dispose()
         {
-            m_kafkaProducer.Dispose();
+            m_kafkaProducer?.Dispose();
         }
 
         /// <summary>

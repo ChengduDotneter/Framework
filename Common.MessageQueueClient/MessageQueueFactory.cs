@@ -36,6 +36,7 @@ namespace Common.MessageQueueClient
         {
             return new KafkaProducer<T>();
         }
+
         /// <summary>
         /// 获取Kafka消费者
         /// </summary>

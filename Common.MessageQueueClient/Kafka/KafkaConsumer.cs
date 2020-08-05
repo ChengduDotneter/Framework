@@ -21,6 +21,8 @@ namespace Common.MessageQueueClient.Kafka
         {
             m_enableAutoOffsetStore = enableAutoOffsetStore;
             m_consumer = new ConsumerBuilder<string, string>(KafkaConfigBuilder.GetConsumerConfig(groupId, m_enableAutoOffsetStore)).Build();
+
+            AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
 
         /// <summary>
