@@ -12,6 +12,8 @@ namespace Common.Log
             static KafkaInstance()
             {
                 m_mQProducer = MessageQueueFactory.GetKafkaProducer<T>();
+
+                AppDomain.CurrentDomain.ProcessExit += (sender, e) => { m_mQProducer.Dispose(); };
             }
 
             public static IMQProducer<T> GetMQProducer()
@@ -25,7 +27,7 @@ namespace Common.Log
             return KafkaInstance<T>.GetMQProducer();
         }
 
-        public void Error(string path, string methed, string parameters, string controllerName, string errorMessage)
+        public void Error(string path, string methed, string parameters, string controllerName, string errorMessage, int statusCode)
         {
             GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog), null),
                     new ErrorLog
@@ -37,7 +39,8 @@ namespace Common.Log
                         ErrorMessage = errorMessage,
                         Methed = methed,
                         Parameters = parameters,
-                        Path = path
+                        Path = path,
+                        StatusCode = statusCode
                     });
         }
 

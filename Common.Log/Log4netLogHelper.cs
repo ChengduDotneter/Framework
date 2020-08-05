@@ -25,24 +25,24 @@ namespace Common.Log
             m_logs = new Dictionary<string, ILog>();
         }
 
-        public void Error(string path, string methed, string parameters, string controllerName, string errorMessage)
+        public void Error(string path, string methed, string parameters, string controllerName, string errorMessage, int statusCode)
         {
-            CreateLog("controller", controllerName, methed).Error($"Erro {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} errorMessage: {Environment.NewLine}{errorMessage} stackTrace:{Environment.NewLine}{Environment.StackTrace}");
+            CreateLog("Controller", controllerName, methed).Error($"Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{Environment.StackTrace}");
         }
 
         public void Info(string customCode, string message)
         {
-            CreateLog("custom", "info", customCode).Info(message);
+            CreateLog("Custom", "info", customCode).Info(message);
         }
 
         public void Info(string path, string methed, string parameters, string controllerName)
         {
-            CreateLog("controller", controllerName, methed).Info($"path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
+            CreateLog("Controller", controllerName, methed).Info($"path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
         }
 
         public void SqlError(string sql, string message, string parameters = "")
         {
-            CreateLog("sql", "error").Error($"message: {message}{Environment.NewLine} stack_trace: {Environment.StackTrace}{Environment.NewLine} sql: {sql}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
+            CreateLog("Sql", "error").Error($"message: {message}{Environment.NewLine} stack_trace: {Environment.StackTrace}{Environment.NewLine} sql: {sql}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
         }
 
         public void TCCNode(long transcationID, bool? isError, string message)

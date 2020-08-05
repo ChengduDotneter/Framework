@@ -29,7 +29,8 @@
         /// <param name="parameters">请求参数</param>
         /// <param name="controllerGroup">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
-        void Error(string path, string methed, string parameters, string controllerName, string errorMessage);
+        /// <param name="statusCode">接口状态编码</param>
+        void Error(string path, string methed, string parameters, string controllerName, string errorMessage, int statusCode);
 
         /// <summary>
         /// Sql错误日志写入

@@ -76,8 +76,6 @@ namespace TestWebAPI
 
             services.AddSwagger();
 
-            services.AddKafkaLogHelper();
-
             //services.AddLog4NetLogHelper();
 
             //System.Threading.Tasks.Task.Factory.StartNew(() =>

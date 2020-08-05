@@ -47,5 +47,12 @@ namespace Common.Log
         [SugarColumn(IsNullable = false, ColumnDescription = "接口组名称")]
         [QuerySqlField(NotNull = true)]
         public string ControllerName { get; set; }
+
+        /// <summary>
+        /// 接口状态编码
+        /// </summary>
+        [SugarColumn(IsNullable = false, ColumnDescription = "接口状态编码")]
+        [QuerySqlField(NotNull = true)]
+        public int StatusCode { get; set; }
     }
 }
