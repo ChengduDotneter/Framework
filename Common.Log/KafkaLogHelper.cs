@@ -13,23 +13,6 @@ namespace Common.Log
             m_producers = new Dictionary<string, object>();
         }
 
-        public void Error(string customCode, string message)
-        {
-            using (IMQProducer<CustomLog> producer = MessageQueueFactory.GetKafkaProducer<CustomLog>())
-            {
-                producer.ProduceAsync(new MQContext(nameof(CustomLog), null),
-                    new CustomLog
-                    {
-                        CustomCode = customCode,
-                        IsError = true,
-                        Message = message,
-                        Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
-                        NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                        StackTrace = Environment.StackTrace
-                    });
-            }
-        }
-
         public void Error(string path, string methed, string parameters, string controllerName, string errorMessage)
         {
             using (IMQProducer<ErrorLog> producer = MessageQueueFactory.GetKafkaProducer<ErrorLog>())

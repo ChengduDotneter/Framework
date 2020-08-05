@@ -22,13 +22,6 @@
         void Info(string path, string methed, string parameters, string controllerName);
 
         /// <summary>
-        /// 自定义报错信息写入
-        /// </summary>
-        /// <param name="customCode">自定义编码</param>
-        /// <param name="message">需要写入的错误日志信息</param>
-        void Error(string customCode, string message);
-
-        /// <summary>
         /// 接口报错日志写入
         /// </summary>
         /// <param name="path">接口路径</param>

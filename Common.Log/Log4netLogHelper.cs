@@ -25,11 +25,6 @@ namespace Common.Log
             m_logs = new Dictionary<string, ILog>();
         }
 
-        public void Error(string customCode, string message)
-        {
-            CreateLog("custom", "error", customCode).Error(message);
-        }
-
         public void Error(string path, string methed, string parameters, string controllerName, string errorMessage)
         {
             CreateLog("controller", controllerName, methed).Error($"Erro {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} errorMessage: {Environment.NewLine}{errorMessage} stackTrace:{Environment.NewLine}{Environment.StackTrace}");

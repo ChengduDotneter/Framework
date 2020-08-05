@@ -7,13 +7,6 @@ namespace Common.Log
     public class CustomLog : LogViewModelBase
     {
         /// <summary>
-        /// 是否错误日志
-        /// </summary>
-        [SugarColumn(IsNullable = false, ColumnDescription = "是否错误日志")]
-        [QuerySqlField(NotNull = true)]
-        public bool IsError { get; set; }
-
-        /// <summary>
         /// 日志
         /// </summary>
         [StringMaxLength(1000)]
