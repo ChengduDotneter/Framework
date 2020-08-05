@@ -13,11 +13,19 @@ namespace Common.Log
             m_producers = new Dictionary<string, object>();
         }
 
+        private IMQProducer<T> GetKafkaInstance<T>() where T : class, IMQData, new()
+        {
+            if (!m_producers.ContainsKey(nameof(T)))
+                m_producers.Add(nameof(T), MessageQueueFactory.GetKafkaProducer<T>());
+
+            return (IMQProducer<T>)m_producers[nameof(T)];
+        }
+
+
+
         public void Error(string path, string methed, string parameters, string controllerName, string errorMessage)
         {
-            using (IMQProducer<ErrorLog> producer = MessageQueueFactory.GetKafkaProducer<ErrorLog>())
-            {
-                producer.ProduceAsync(new MQContext(nameof(ErrorLog), null),
+            GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog), null),
                     new ErrorLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -29,14 +37,11 @@ namespace Common.Log
                         Parameters = parameters,
                         Path = path
                     });
-            }
         }
 
         public void Info(string customCode, string message)
         {
-            using (IMQProducer<CustomLog> producer = MessageQueueFactory.GetKafkaProducer<CustomLog>())
-            {
-                producer.ProduceAsync(new MQContext(nameof(CustomLog), null),
+            GetKafkaInstance<CustomLog>().ProduceAsync(new MQContext(nameof(CustomLog), null),
                     new CustomLog
                     {
                         CustomCode = customCode,
@@ -45,14 +50,11 @@ namespace Common.Log
                         NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
                         StackTrace = Environment.StackTrace
                     });
-            }
         }
 
         public void Info(string path, string methed, string parameters, string controllerName)
         {
-            using (IMQProducer<InfoLog> producer = MessageQueueFactory.GetKafkaProducer<InfoLog>())
-            {
-                producer.ProduceAsync(new MQContext(nameof(InfoLog), null),
+            GetKafkaInstance<InfoLog>().ProduceAsync(new MQContext(nameof(InfoLog), null),
                     new InfoLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -63,14 +65,11 @@ namespace Common.Log
                         Parameters = parameters,
                         Path = path
                     });
-            }
         }
 
         public void SqlError(string sql, string message, string parameters = "")
         {
-            using (IMQProducer<SqlErrorLog> producer = MessageQueueFactory.GetKafkaProducer<SqlErrorLog>())
-            {
-                producer.ProduceAsync(new MQContext(nameof(SqlErrorLog), null),
+            GetKafkaInstance<SqlErrorLog>().ProduceAsync(new MQContext(nameof(SqlErrorLog), null),
                     new SqlErrorLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -80,14 +79,11 @@ namespace Common.Log
                         Message = message,
                         Parameters = parameters
                     });
-            }
         }
 
         public void TCCNode(long transcationID, bool? isError, string message)
         {
-            using (IMQProducer<TCCNodeLog> producer = MessageQueueFactory.GetKafkaProducer<TCCNodeLog>())
-            {
-                producer.ProduceAsync(new MQContext(nameof(TCCNodeLog), null),
+            GetKafkaInstance<TCCNodeLog>().ProduceAsync(new MQContext(nameof(TCCNodeLog), null),
                     new TCCNodeLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -97,14 +93,11 @@ namespace Common.Log
                         IsError = isError,
                         TranscationID = transcationID
                     });
-            }
         }
 
         public void TCCServer(long transcationID, string message)
         {
-            using (IMQProducer<TCCServerLog> producer = MessageQueueFactory.GetKafkaProducer<TCCServerLog>())
-            {
-                producer.ProduceAsync(new MQContext(nameof(TCCServerLog), null),
+            GetKafkaInstance<TCCServerLog>().ProduceAsync(new MQContext(nameof(TCCServerLog), null),
                     new TCCServerLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -113,7 +106,6 @@ namespace Common.Log
                         Message = message,
                         TranscationID = transcationID
                     });
-            }
         }
     }
 }
