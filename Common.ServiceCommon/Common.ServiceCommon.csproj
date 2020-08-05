@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Common.DAL.Cache\Common.DAL.Cache.csproj" />
     <ProjectReference Include="..\Common.DAL\Common.DAL.csproj" />
+    <ProjectReference Include="..\Common.Log\Common.Log.csproj" />
     <ProjectReference Include="..\Common.MessageQueueClient\Common.MessageQueueClient.csproj" />
     <ProjectReference Include="..\Common.Model\Common.Model.csproj" />
     <ProjectReference Include="..\Common.DAL.Transaction\Common.DAL.Transaction.csproj" />

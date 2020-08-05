@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Common.Log
 {
+    [IgnoreBuildController(true, true, true, true, true)]
     public class TCCNodeLog : LogViewModelBase
     {
         /// <summary>

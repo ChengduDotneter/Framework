@@ -1,27 +1,29 @@
 ﻿using Common.MessageQueueClient;
 using System;
-using System.Collections.Generic;
 
 namespace Common.Log
 {
     public class KafkaLogHelper : ILogHelper
     {
-        private static readonly IDictionary<string, object> m_producers;
-
-        static KafkaLogHelper()
+        private class KafkaInstance<T> where T : class, IMQData, new()
         {
-            m_producers = new Dictionary<string, object>();
+            private static readonly IMQProducer<T> m_mQProducer;
+
+            static KafkaInstance()
+            {
+                m_mQProducer = MessageQueueFactory.GetKafkaProducer<T>();
+            }
+
+            public static IMQProducer<T> GetMQProducer()
+            {
+                return m_mQProducer;
+            }
         }
 
         private IMQProducer<T> GetKafkaInstance<T>() where T : class, IMQData, new()
         {
-            if (!m_producers.ContainsKey(nameof(T)))
-                m_producers.Add(nameof(T), MessageQueueFactory.GetKafkaProducer<T>());
-
-            return (IMQProducer<T>)m_producers[nameof(T)];
+            return KafkaInstance<T>.GetMQProducer();
         }
-
-
 
         public void Error(string path, string methed, string parameters, string controllerName, string errorMessage)
         {

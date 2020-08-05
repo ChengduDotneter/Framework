@@ -1,9 +1,11 @@
 ﻿using Apache.Ignite.Core.Cache.Configuration;
+using Common.Model;
 using Common.Validation;
 using SqlSugar;
 
 namespace Common.Log
 {
+    [IgnoreBuildController(true, true, true, true, true)]
     public class ErrorLog : LogViewModelBase
     {
         /// <summary>

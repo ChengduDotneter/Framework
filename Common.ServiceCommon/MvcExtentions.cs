@@ -10,6 +10,7 @@ using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Common.DAL;
+using Common.Log;
 using Common.MessageQueueClient;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -247,7 +248,24 @@ namespace Common.ServiceCommon
 
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
+        }
 
+        /// <summary>
+        /// 日志Kafka接口依赖注入
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        public static void AddKafkaLogHelper(this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<ILogHelper, KafkaLogHelper>();
+        }
+
+        /// <summary>
+        /// 日志Kafka接口依赖注入
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        public static void AddLog4NetLogHelper(this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<ILogHelper, Log4netLogHelper>();
         }
     }
 }

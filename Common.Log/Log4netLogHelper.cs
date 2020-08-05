@@ -99,32 +99,38 @@ namespace Common.Log
 
             if (!m_logs.ContainsKey(logKey))
             {
-                LevelRangeFilter infoFilter = new LevelRangeFilter();
+                lock (m_logs)
+                {
+                    if (!m_logs.ContainsKey(logKey))
+                    {
+                        LevelRangeFilter infoFilter = new LevelRangeFilter();
 
-                infoFilter.LevelMax = Level.Error;
-                infoFilter.LevelMin = Level.Info;
-                infoFilter.ActivateOptions();
+                        infoFilter.LevelMax = Level.Error;
+                        infoFilter.LevelMin = Level.Info;
+                        infoFilter.ActivateOptions();
 
-                string layoutFormat = "@Log Begin%newline%date%newlineThread ID：[%thread]%newline%message%newlineLog End@%newline%newline%newline%newline";
-                string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", m_assemblyName);
+                        string layoutFormat = "@Log Begin%newline%date%newlineThread ID：[%thread]%newline%message%newlineLog End@%newline%newline%newline%newline";
+                        string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", m_assemblyName);
 
-                for (int i = 0; i < names.Length; i++)
-                    logDir = Path.Combine(logDir, names[i]);
+                        for (int i = 0; i < names.Length; i++)
+                            logDir = Path.Combine(logDir, names[i]);
 
-                RollingFileAppender fileAppender = new RollingFileAppender();
-                fileAppender.Name = $"{m_assemblyName}_{loggerRepository.Name}_{names[0]}_FileAppender";
-                fileAppender.File = logDir;
-                fileAppender.AppendToFile = true;
-                fileAppender.RollingStyle = RollingFileAppender.RollingMode.Date;
-                fileAppender.DatePattern = "_yyyy-MM-dd'.log'";
-                fileAppender.StaticLogFileName = false;
-                fileAppender.Layout = new PatternLayout(layoutFormat);
-                fileAppender.AddFilter(infoFilter);
-                fileAppender.ActivateOptions();
+                        RollingFileAppender fileAppender = new RollingFileAppender();
+                        fileAppender.Name = $"{m_assemblyName}_{loggerRepository.Name}_{names[0]}_FileAppender";
+                        fileAppender.File = logDir;
+                        fileAppender.AppendToFile = true;
+                        fileAppender.RollingStyle = RollingFileAppender.RollingMode.Date;
+                        fileAppender.DatePattern = "_yyyy-MM-dd'.log'";
+                        fileAppender.StaticLogFileName = false;
+                        fileAppender.Layout = new PatternLayout(layoutFormat);
+                        fileAppender.AddFilter(infoFilter);
+                        fileAppender.ActivateOptions();
 
-                BasicConfigurator.Configure(loggerRepository, fileAppender);
+                        BasicConfigurator.Configure(loggerRepository, fileAppender);
 
-                m_logs.Add(logKey, LogManager.GetLogger(loggerRepository.Name, names[0]));
+                        m_logs.Add(logKey, LogManager.GetLogger(loggerRepository.Name, names[0]));
+                    }
+                }
             }
 
             return m_logs[logKey];

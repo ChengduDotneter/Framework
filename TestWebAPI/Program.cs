@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Common.Log;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Hosting;
@@ -11,50 +12,16 @@ namespace TestWebAPI
 {
     public class Program
     {
+        private static IServiceProvider m_serviceProvider;
+
         public static void Main(string[] args)
         {
-
-            new Thread(() =>
-            {
-                ILogHelper logHelper = new KafkaLogHelper();
-                logHelper.Info("123", Guid.NewGuid().ToString());
-            })
-            {
-                IsBackground = true
-            }.Start();
-
-
-            new Thread(() =>
-            {
-                ILogHelper logHelper = new KafkaLogHelper();
-                logHelper.Info("123", "path", Guid.NewGuid().ToString(), "testcontroller");
-            })
-            {
-                IsBackground = true
-            }.Start();
-
-            new Thread(() =>
-            {
-                ILogHelper logHelper = new KafkaLogHelper();
-                logHelper.Error("123", "path", Guid.NewGuid().ToString(), "testcontroller","message");
-            })
-            {
-                IsBackground = true
-            }.Start();
-
-
-
-
-
-
-
-
-
-
-
-
             IHostBuilder hostBuilder = CreateHostBuilder(args);
             IHost host = hostBuilder.Build();
+
+            m_serviceProvider = host.Services;
+            m_serviceProvider.CreateScope();
+
             host.Run();
         }
 
