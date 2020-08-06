@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Common.Log
 {
@@ -25,37 +26,50 @@ namespace Common.Log
             m_logs = new Dictionary<string, ILog>();
         }
 
-        public void Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
+        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
         {
-            CreateLog("Controller", controllerName, methed).Error($"Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{Environment.StackTrace}");
+            await Task.Factory.StartNew(() =>
+                CreateLog("Controller", controllerName, methed).Error($"Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{Environment.StackTrace}")
+            );
         }
 
-        public void Info(string customCode, string message)
+        public async Task Info(string customCode, string message)
         {
-            CreateLog("Custom", "info", customCode).Info(message);
+            await Task.Factory.StartNew(() =>
+                CreateLog("Custom", "info", customCode).Info(message)
+            );
         }
 
-        public void Info(string controllerName, string methed, string path, string parameters)
+        public async Task Info(string controllerName, string methed, string path, string parameters)
         {
-            CreateLog("Controller", controllerName, methed).Info($"path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
+            await Task.Factory.StartNew(() =>
+                CreateLog("Controller", controllerName, methed).Info($"path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}")
+            );
         }
 
-        public void SqlError(string sql, string message, string parameters = "")
+        public async Task SqlError(string sql, string message, string parameters = "")
         {
-            CreateLog("Sql", "error").Error($"message: {message}{Environment.NewLine} stack_trace: {Environment.StackTrace}{Environment.NewLine} sql: {sql}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
+            await Task.Factory.StartNew(() =>
+                CreateLog("Sql", "error").Error($"message: {message}{Environment.NewLine} stack_trace: {Environment.StackTrace}{Environment.NewLine} sql: {sql}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}")
+            );
         }
 
-        public void TCCNode(long transcationID, bool? isError, string message)
+        public async Task TCCNode(long transcationID, bool? isError, string message)
         {
-            ILog log = CreateLog("TCC", "TCC", "TCCDetails");
-            if (isError ?? false)
-                log.Error($"transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine} stack_trace: {Environment.StackTrace}");
-            else log.Info($"transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine}");
+            await Task.Factory.StartNew(() =>
+            {
+                ILog log = CreateLog("TCC", "TCC", "TCCDetails");
+                if (isError ?? false)
+                    log.Error($"transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine} stack_trace: {Environment.StackTrace}");
+                else log.Info($"transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine}");
+            });
         }
 
-        public void TCCServer(long transcationID, string message)
+        public async Task TCCServer(long transcationID, string message)
         {
-            CreateLog("TCC", "TCC", "TCCTransactions").Info($"transcationID: {transcationID}{Environment.NewLine} message:{message}");
+            await Task.Factory.StartNew(() =>
+                CreateLog("TCC", "TCC", "TCCTransactions").Info($"transcationID: {transcationID}{Environment.NewLine} message:{message}")
+            );
         }
 
         /// <summary>

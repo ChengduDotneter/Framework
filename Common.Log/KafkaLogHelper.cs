@@ -1,5 +1,6 @@
 ﻿using Common.MessageQueueClient;
 using System;
+using System.Threading.Tasks;
 
 namespace Common.Log
 {
@@ -27,9 +28,9 @@ namespace Common.Log
             return KafkaInstance<T>.GetMQProducer();
         }
 
-        public void Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
+        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
         {
-            GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog), null),
+            await GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog), null),
                     new ErrorLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -44,9 +45,9 @@ namespace Common.Log
                     });
         }
 
-        public void Info(string customCode, string message)
+        public async Task Info(string customCode, string message)
         {
-            GetKafkaInstance<CustomLog>().ProduceAsync(new MQContext(nameof(CustomLog), null),
+            await GetKafkaInstance<CustomLog>().ProduceAsync(new MQContext(nameof(CustomLog), null),
                     new CustomLog
                     {
                         CustomCode = customCode,
@@ -57,9 +58,9 @@ namespace Common.Log
                     });
         }
 
-        public void Info(string controllerName, string methed, string path, string parameters)
+        public async Task Info(string controllerName, string methed, string path, string parameters)
         {
-            GetKafkaInstance<InfoLog>().ProduceAsync(new MQContext(nameof(InfoLog), null),
+            await GetKafkaInstance<InfoLog>().ProduceAsync(new MQContext(nameof(InfoLog), null),
                     new InfoLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -72,9 +73,9 @@ namespace Common.Log
                     });
         }
 
-        public void SqlError(string sql, string message, string parameters = "")
+        public async Task SqlError(string sql, string message, string parameters = "")
         {
-            GetKafkaInstance<SqlErrorLog>().ProduceAsync(new MQContext(nameof(SqlErrorLog), null),
+            await GetKafkaInstance<SqlErrorLog>().ProduceAsync(new MQContext(nameof(SqlErrorLog), null),
                     new SqlErrorLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -86,23 +87,23 @@ namespace Common.Log
                     });
         }
 
-        public void TCCNode(long transcationID, bool? isError, string message)
+        public async Task TCCNode(long transcationID, bool? isError, string message)
         {
-            GetKafkaInstance<TCCNodeLog>().ProduceAsync(new MQContext(nameof(TCCNodeLog), null),
-                    new TCCNodeLog
-                    {
-                        Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
-                        NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                        StackTrace = Environment.StackTrace,
-                        Message = message,
-                        IsError = isError,
-                        TranscationID = transcationID
-                    });
+            await GetKafkaInstance<TCCNodeLog>().ProduceAsync(new MQContext(nameof(TCCNodeLog), null),
+                     new TCCNodeLog
+                     {
+                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
+                         NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
+                         StackTrace = Environment.StackTrace,
+                         Message = message,
+                         IsError = isError,
+                         TranscationID = transcationID
+                     });
         }
 
-        public void TCCServer(long transcationID, string message)
+        public async Task TCCServer(long transcationID, string message)
         {
-            GetKafkaInstance<TCCServerLog>().ProduceAsync(new MQContext(nameof(TCCServerLog), null),
+            await GetKafkaInstance<TCCServerLog>().ProduceAsync(new MQContext(nameof(TCCServerLog), null),
                     new TCCServerLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
