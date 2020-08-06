@@ -35,12 +35,13 @@ namespace TestWebAPI
         private static void ConfigInit(HostBuilderContext hostBuilderContext, IServiceCollection services)
         {
             hostBuilderContext.ConfigInit();
+            //hostBuilderContext.ConfigIgnite();
         }
 
         private static void LoggingConfig(HostBuilderContext hostBuilderContext, ILoggingBuilder loggingBuilder)
         {
             loggingBuilder.ClearProviders();
-            //loggingBuilder.AddConsole();
+            loggingBuilder.AddConsole();
         }
     }
 }

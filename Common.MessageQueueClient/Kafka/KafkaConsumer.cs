@@ -11,6 +11,8 @@ namespace Common.MessageQueueClient.Kafka
     {
         private readonly IConsumer<string, string> m_consumer;
         private readonly bool m_enableAutoOffsetStore;
+        private string m_subscribeMessageQueueName;
+
 
         /// <summary>
         /// 构造函数
@@ -32,7 +34,9 @@ namespace Common.MessageQueueClient.Kafka
         public void Subscribe(MQContext mQContext)
         {
             if (!KafkaAdminClient.IsTopicExisted(mQContext.MessageQueueName, out _))
-                throw new Exception("不存在Topic主题");
+                KafkaAdminClient.CreateTopic(mQContext.MessageQueueName);
+
+            m_subscribeMessageQueueName = mQContext.MessageQueueName;
 
             m_consumer.Subscribe(mQContext.MessageQueueName);
         }
@@ -42,6 +46,8 @@ namespace Common.MessageQueueClient.Kafka
         /// </summary>
         public void DeSubscribe()
         {
+            m_subscribeMessageQueueName = string.Empty;
+
             m_consumer.Unsubscribe();
         }
 
@@ -54,6 +60,9 @@ namespace Common.MessageQueueClient.Kafka
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
+                    throw new Exception("该消费者未订阅任何队列，请先订阅队列");
+
                 ConsumeResult<string, string> consumeResult = m_consumer.Consume();
 
                 if (callback?.Invoke(ConvertMessageToData(consumeResult.Message)) ?? false && !m_enableAutoOffsetStore)
