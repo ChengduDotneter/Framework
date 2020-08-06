@@ -12,8 +12,6 @@ namespace Common.MessageQueueClient.Kafka
         private readonly IConsumer<string, string> m_consumer;
         private readonly bool m_enableAutoOffsetStore;
 
-        private const long MAX_TIME_OUT_SECOND = 1000 * 5;//5s超时
-
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -56,7 +54,7 @@ namespace Common.MessageQueueClient.Kafka
         {
             try
             {
-                ConsumeResult<string, string> consumeResult = m_consumer.Consume(TimeSpan.FromSeconds(MAX_TIME_OUT_SECOND));
+                ConsumeResult<string, string> consumeResult = m_consumer.Consume(TimeSpan.FromSeconds());
 
                 if (callback?.Invoke(ConvertMessageToData(consumeResult.Message)) ?? false && !m_enableAutoOffsetStore)
                     m_consumer.Commit(new[] { consumeResult.TopicPartitionOffset });
