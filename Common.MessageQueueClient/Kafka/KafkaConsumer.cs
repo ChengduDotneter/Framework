@@ -33,9 +33,6 @@ namespace Common.MessageQueueClient.Kafka
         /// <param name="mQContext">消息队列上下文</param>
         public void Subscribe(MQContext mQContext)
         {
-            if (!KafkaAdminClient.IsTopicExisted(mQContext.MessageQueueName, out _))
-                KafkaAdminClient.CreateTopic(mQContext.MessageQueueName);
-
             m_subscribeMessageQueueName = mQContext.MessageQueueName;
 
             m_consumer.Subscribe(mQContext.MessageQueueName);
