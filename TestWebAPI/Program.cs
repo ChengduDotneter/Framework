@@ -1,3 +1,4 @@
+using Common.Log;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,10 +9,18 @@ namespace TestWebAPI
 {
     public class Program
     {
+        private static ILogHelper logHelper = LogHelperFactory.GetKafkaLogHelper();
         public static void Main(string[] args)
         {
             IHostBuilder hostBuilder = CreateHostBuilder(args);
             IHost host = hostBuilder.Build();
+
+            logHelper.Info("123", "123");
+            logHelper.Info("123", "123", "123", "123");
+            logHelper.Error("123", "123", 200, "123", "123", "123");
+            logHelper.SqlError("123", "123", "123");
+            logHelper.TCCNode(123, true, "123");
+            logHelper.TCCServer(123, "123");
 
             host.Run();
         }
