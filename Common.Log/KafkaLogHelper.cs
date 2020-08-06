@@ -27,7 +27,7 @@ namespace Common.Log
             return KafkaInstance<T>.GetMQProducer();
         }
 
-        public void Error(string path, string methed, string parameters, string controllerName, string errorMessage, int statusCode)
+        public void Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
         {
             GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog), null),
                     new ErrorLog
@@ -57,7 +57,7 @@ namespace Common.Log
                     });
         }
 
-        public void Info(string path, string methed, string parameters, string controllerName)
+        public void Info(string controllerName, string methed, string path, string parameters)
         {
             GetKafkaInstance<InfoLog>().ProduceAsync(new MQContext(nameof(InfoLog), null),
                     new InfoLog

@@ -19,7 +19,7 @@
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
         /// <param name="controllerGroup">接口组名称</param>
-        void Info(string path, string methed, string parameters, string controllerName);
+        void Info(string controllerName, string methed, string path, string parameters);
 
         /// <summary>
         /// 接口报错日志写入
@@ -30,7 +30,7 @@
         /// <param name="controllerGroup">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
         /// <param name="statusCode">接口状态编码</param>
-        void Error(string path, string methed, string parameters, string controllerName, string errorMessage, int statusCode);
+        void Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters);
 
         /// <summary>
         /// Sql错误日志写入

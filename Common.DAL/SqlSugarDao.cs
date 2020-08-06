@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Common.DAL.Transaction;
+using Common.Log;
+using Microsoft.Extensions.Configuration;
+using SqlSugar;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -7,10 +11,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Common.DAL.Transaction;
-using log4net;
-using Microsoft.Extensions.Configuration;
-using SqlSugar;
 
 namespace Common.DAL
 {
@@ -19,7 +19,7 @@ namespace Common.DAL
         private static readonly string m_masterConnectionString;
         private static readonly string m_slaveConnectionString;
         private static readonly object m_lockThis;
-        private static readonly ILog m_log;
+        private static readonly ILogHelper m_logHelper;
         private static bool m_initTables;
         private static DbType m_dbType;
 
@@ -27,7 +27,7 @@ namespace Common.DAL
         {
             m_dbType = (DbType)Enum.Parse(typeof(DbType), ConfigManager.Configuration.GetSection("DbType").Value);
             m_lockThis = new object();
-            m_log = LogHelper.CreateLog("sql", "error");
+            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
             m_masterConnectionString = ConfigManager.Configuration.GetConnectionString("MasterConnection");
             m_slaveConnectionString = ConfigManager.Configuration.GetConnectionString("SalveConnection");
         }
@@ -51,7 +51,7 @@ namespace Common.DAL
 
             sqlSugarClient.Aop.OnError = (sqlSugarException) =>
             {
-                m_log.Error($"message: {sqlSugarException.Message}{Environment.NewLine}stack_trace: {sqlSugarException.StackTrace}{Environment.NewLine}{GetSqlLog(sqlSugarException.Sql, (SugarParameter[])sqlSugarException.Parametres)}");
+                m_logHelper.SqlError(sqlSugarException.Sql, sqlSugarException.Message, GetParametersLog((SugarParameter[])sqlSugarException.Parametres));
             };
 
             return sqlSugarClient;
@@ -62,7 +62,12 @@ namespace Common.DAL
             return string.Format("sql: {1}{0}parameter: {0}{2}",
                                  Environment.NewLine,
                                  sql,
-                                 string.Join(Environment.NewLine, sugarParameters.Select(sugarParameter => $"{sugarParameter.ParameterName}: {sugarParameter.Value}")));
+                                 GetParametersLog(sugarParameters));
+        }
+
+        private static string GetParametersLog(SugarParameter[] sugarParameters)
+        {
+            return string.Join(Environment.NewLine, sugarParameters.Select(sugarParameter => $"{sugarParameter.ParameterName}: {sugarParameter.Value}"));
         }
 
         private static void InitTables()
@@ -755,17 +760,12 @@ namespace Common.DAL
 
             private static SqlSugar.OrderByType GetOrderByType(OrderByType orderByType)
             {
-                switch (orderByType)
+                return orderByType switch
                 {
-                    case OrderByType.Asc:
-                        return SqlSugar.OrderByType.Asc;
-
-                    case OrderByType.Desc:
-                        return SqlSugar.OrderByType.Desc;
-
-                    default:
-                        throw new Exception();
-                }
+                    OrderByType.Asc => SqlSugar.OrderByType.Asc,
+                    OrderByType.Desc => SqlSugar.OrderByType.Desc,
+                    _ => throw new NotSupportedException(),
+                };
             }
 
             public ITransaction BeginTransaction(int weight = 0)

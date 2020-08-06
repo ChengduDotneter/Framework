@@ -25,7 +25,7 @@ namespace Common.Log
             m_logs = new Dictionary<string, ILog>();
         }
 
-        public void Error(string path, string methed, string parameters, string controllerName, string errorMessage, int statusCode)
+        public void Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
         {
             CreateLog("Controller", controllerName, methed).Error($"Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{Environment.StackTrace}");
         }
@@ -35,7 +35,7 @@ namespace Common.Log
             CreateLog("Custom", "info", customCode).Info(message);
         }
 
-        public void Info(string path, string methed, string parameters, string controllerName)
+        public void Info(string controllerName, string methed, string path, string parameters)
         {
             CreateLog("Controller", controllerName, methed).Info($"path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
         }
