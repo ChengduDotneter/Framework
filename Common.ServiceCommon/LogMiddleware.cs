@@ -1,4 +1,4 @@
-﻿using log4net;
+﻿using Common.Log;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Routing;
@@ -17,55 +17,18 @@ namespace Common.ServiceCommon
     /// </summary>
     public class LogMiddleware
     {
-        private class ControllerLogKey
-        {
-            public string ControllerName { get; set; }
-            public string ActionName { get; set; }
-
-            public ControllerLogKey(string controllerName, string actionName)
-            {
-                ControllerName = controllerName;
-                ActionName = actionName;
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (obj is ControllerLogKey controllerLogKey)
-                    return controllerLogKey == this;
-
-                return false;
-            }
-
-            public override int GetHashCode()
-            {
-                return ControllerName.GetHashCode() ^ ActionName.GetHashCode();
-            }
-
-            public static bool operator ==(ControllerLogKey a, ControllerLogKey b)
-            {
-                return a.ControllerName == b.ControllerName &&
-                       a.ActionName == b.ActionName;
-            }
-
-            public static bool operator !=(ControllerLogKey a, ControllerLogKey b)
-            {
-                return a.ControllerName != b.ControllerName ||
-                       a.ActionName != b.ActionName;
-            }
-        }
-
-        private const int MAX_JSON_LOG_SIZE = 1024 * 6; //6k
-        private static IDictionary<ControllerLogKey, ILog> m_controllerLogs;
-        private RequestDelegate m_next;
-        private bool m_logSearchAction;
+        private const int MAX_JSON_LOG_SIZE = 1024 * 30; //30k
+        private readonly static ILogHelper m_logHelper;
+        private readonly RequestDelegate m_next;
+        private readonly bool m_logSearchAction;
 
         static LogMiddleware()
         {
-            m_controllerLogs = new Dictionary<ControllerLogKey, ILog>();
+            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
         }
 
         /// <summary>
-        /// 日志中间件
+        /// 日志中间件构造函数
         /// </summary>
         /// <param name="logSearchAction"></param>
         /// <param name="next"></param>
@@ -76,7 +39,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        ///
+        /// 日志中间件管道操作
         /// </summary>
         /// <param name="httpContext">HttpContext</param>
         /// <returns></returns>
@@ -101,45 +64,26 @@ namespace Common.ServiceCommon
                (httpMethodMetadata.HttpMethods.Count == 1 &&
                 httpMethodMetadata.HttpMethods[0] != "Get")))
             {
-                GetControllerLog(controllerActionDescriptor.ControllerName, controllerActionDescriptor.ActionName).Info(parameterInfo);
+                m_logHelper.Info(controllerActionDescriptor.ControllerName, httpContext.Request.Method, controllerActionDescriptor.ActionName, parameterInfo);
             }
-
             try
             {
                 await m_next(httpContext);
             }
             catch (DealException exception)
             {
-                string error = $"parameter_info: {parameterInfo}{Environment.NewLine}{Environment.NewLine}exception_message: {Environment.NewLine}{ExceptionHelper.GetMessage(exception)}{Environment.NewLine}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(exception)}";
-                GetControllerLog(controllerActionDescriptor.ControllerName, controllerActionDescriptor.ActionName).Error(error);
-
                 httpContext.Response.StatusCode = StatusCodes.Status402PaymentRequired;
                 await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, ExceptionHelper.GetMessage(exception), Encoding.UTF8);
+
+                m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo);
             }
             catch (Exception exception)
             {
-                string error = $"parameter_info: {parameterInfo}{Environment.NewLine}{Environment.NewLine}exception_message: {Environment.NewLine}{ExceptionHelper.GetMessage(exception)}{Environment.NewLine}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(exception)}";
-                GetControllerLog(controllerActionDescriptor.ControllerName, controllerActionDescriptor.ActionName).Error(error);
-
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, "内部异常", Encoding.UTF8);
+
+                m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo);
             }
-        }
-
-        private static ILog GetControllerLog(string controllerName, string actionName)
-        {
-            ControllerLogKey controllerLogKey = new ControllerLogKey(controllerName, actionName);
-
-            if (!m_controllerLogs.ContainsKey(controllerLogKey))
-            {
-                lock (m_controllerLogs)
-                {
-                    if (!m_controllerLogs.ContainsKey(controllerLogKey))
-                        m_controllerLogs.Add(controllerLogKey, LogHelper.CreateLog("controller", controllerName, actionName));
-                }
-            }
-
-            return m_controllerLogs[controllerLogKey];
         }
 
         private static async Task<string> GetCallParameter(HttpContext httpContext)

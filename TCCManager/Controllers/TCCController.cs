@@ -1,4 +1,11 @@
-﻿using System;
+﻿using Common;
+using Common.Log;
+using Common.Model;
+using Common.Validation;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,13 +14,6 @@ using System.Net.Http;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Common;
-using Common.Model;
-using Common.Validation;
-using log4net;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 
 namespace TCCManager.Controllers
 {
@@ -54,8 +54,7 @@ namespace TCCManager.Controllers
         private const string CANCEL = "cancel";
         private const string COMMIT = "commit";
         private readonly static int MIN_TIMEOUT;
-        private readonly static ILog m_transactionsLog;
-        private readonly static ILog m_detailsLog;
+        private readonly static ILogHelper m_logHelper;
         private readonly static BlockingCollection<TCCTaskScheduler> m_tccTaskSchedulers;
         private IHttpContextAccessor m_httpContextAccessor;
 
@@ -87,7 +86,7 @@ namespace TCCManager.Controllers
             IList<Task<NodeResult>> cancelTasks = new List<Task<NodeResult>>();
             IList<Task<NodeResult>> commitTasks = new List<Task<NodeResult>>();
 
-            m_transactionsLog.Info($"启动TCC事务，ID：{tccModel.ID}");
+            m_logHelper.TCCServer(tccModel.ID, "启动TCC事务");
 
             try
             {
@@ -178,7 +177,7 @@ namespace TCCManager.Controllers
                     string errorText = $"{tccModel.ID}请求失败{Environment.NewLine}{string.Join(Environment.NewLine, errorNodeResults.Select(errorNodeResult => errorNodeResult.ErrorMessage))}";
 
                     //TODO: 监控中心日志
-                    m_detailsLog.Error(errorText);
+                    m_logHelper.TCCNode(tccModel.ID, false, errorText);
                     throw new DealException(errorText);
                 }
 
@@ -194,7 +193,7 @@ namespace TCCManager.Controllers
                     string errorText = $"{tccModel.ID}请求失败{Environment.NewLine}{string.Join(Environment.NewLine, errorNodeResults.Select(errorNodeResult => errorNodeResult.ErrorMessage))}";
 
                     //TODO: 监控中心日志
-                    m_detailsLog.Error(errorText);
+                    m_logHelper.TCCNode(tccModel.ID, false, errorText);
                     throw new DealException(errorText);
                 }
 
@@ -232,8 +231,7 @@ namespace TCCManager.Controllers
 
         static TCCController()
         {
-            m_transactionsLog = LogHelper.CreateLog("TCC", "TCC", "TCCTransactions");
-            m_detailsLog = LogHelper.CreateLog("TCC", "TCC", "TCCDetails");
+            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
             MIN_TIMEOUT = Convert.ToInt32(ConfigManager.Configuration["MinTimeOut"]);
             m_tccTaskSchedulers = new BlockingCollection<TCCTaskScheduler>();
 

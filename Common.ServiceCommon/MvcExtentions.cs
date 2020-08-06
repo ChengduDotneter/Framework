@@ -10,6 +10,7 @@ using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Common.DAL;
+using Common.Log;
 using Common.MessageQueueClient;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -247,7 +248,6 @@ namespace Common.ServiceCommon
 
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
-
         }
     }
 }

@@ -76,6 +76,8 @@ namespace TestWebAPI
 
             services.AddSwagger();
 
+            //services.AddLog4NetLogHelper();
+
             //System.Threading.Tasks.Task.Factory.StartNew(() =>
             //{
             //    var task = ETLHelper.Transform(
