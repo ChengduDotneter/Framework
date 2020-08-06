@@ -54,7 +54,7 @@ namespace Common.MessageQueueClient.Kafka
         {
             try
             {
-                ConsumeResult<string, string> consumeResult = m_consumer.Consume(TimeSpan.FromSeconds());
+                ConsumeResult<string, string> consumeResult = m_consumer.Consume();
 
                 if (callback?.Invoke(ConvertMessageToData(consumeResult.Message)) ?? false && !m_enableAutoOffsetStore)
                     m_consumer.Commit(new[] { consumeResult.TopicPartitionOffset });
