@@ -15,12 +15,12 @@ namespace TestWebAPI
             IHostBuilder hostBuilder = CreateHostBuilder(args);
             IHost host = hostBuilder.Build();
 
-            logHelper.Info("123", "123");
-            logHelper.Info("123", "123", "123", "123");
-            logHelper.Error("123", "123", 200, "123", "123", "123");
-            logHelper.SqlError("123", "123", "123");
-            logHelper.TCCNode(123, true, "123");
-            logHelper.TCCServer(123, "123");
+            //logHelper.Info("123", "123");
+            //logHelper.Info("123", "123", "123", "123");
+            //logHelper.Error("123", "123", 200, "123", "123", "123");
+            //logHelper.SqlError("123", "123", "123");
+            //logHelper.TCCNode(123, true, "123");
+            //logHelper.TCCServer(123, "123");
 
             host.Run();
         }
@@ -50,7 +50,7 @@ namespace TestWebAPI
         private static void LoggingConfig(HostBuilderContext hostBuilderContext, ILoggingBuilder loggingBuilder)
         {
             loggingBuilder.ClearProviders();
-            loggingBuilder.AddConsole();
+            //loggingBuilder.AddConsole();
         }
     }
 }
