@@ -25,11 +25,6 @@ namespace Common.Log
         /// </summary>
         public int NodeType { get; set; }
 
-        /// <summary>
-        /// 调用堆栈
-        /// </summary>
-        public string StackTrace { get; set; }
-
         public LogViewModelBase()
         {
             ID = IDGenerator.NextID();

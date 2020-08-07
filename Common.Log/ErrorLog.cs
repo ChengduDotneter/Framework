@@ -31,5 +31,10 @@
         /// 接口状态编码
         /// </summary>
         public int StatusCode { get; set; }
+
+        /// <summary>
+        /// 调用堆栈
+        /// </summary>
+        public string StackTrace { get; set; }
     }
 }
