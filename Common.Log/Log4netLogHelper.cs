@@ -26,37 +26,37 @@ namespace Common.Log
             m_logs = new Dictionary<string, ILog>();
         }
 
-        public Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
+        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
         {
-            return Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
                 CreateLog("Controller", controllerName, methed).Error($"Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{Environment.StackTrace}")
             );
         }
 
-        public Task Info(string customCode, string message)
+        public async Task Info(string customCode, string message)
         {
-            return Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
                 CreateLog("Custom", "info", customCode).Info(message)
             );
         }
 
-        public Task Info(string controllerName, string methed, string path, string parameters)
+        public async Task Info(string controllerName, string methed, string path, string parameters)
         {
-            return Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
                 CreateLog("Controller", controllerName, methed).Info($"path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}")
             );
         }
 
-        public Task SqlError(string sql, string message, string parameters = "")
+        public async Task SqlError(string sql, string message, string parameters = "")
         {
-            return Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
                 CreateLog("Sql", "error").Error($"message: {message}{Environment.NewLine} stack_trace: {Environment.StackTrace}{Environment.NewLine} sql: {sql}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}")
             );
         }
 
-        public Task TCCNode(long transcationID, bool? isError, string message)
+        public async Task TCCNode(long transcationID, bool? isError, string message)
         {
-            return Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
             {
                 ILog log = CreateLog("TCC", "TCC", "TCCDetails");
                 if (isError ?? false)
@@ -65,9 +65,9 @@ namespace Common.Log
             });
         }
 
-        public Task TCCServer(long transcationID, string message)
+        public async Task TCCServer(long transcationID, string message)
         {
-            return Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
                 CreateLog("TCC", "TCC", "TCCTransactions").Info($"transcationID: {transcationID}{Environment.NewLine} message:{message}")
             );
         }
