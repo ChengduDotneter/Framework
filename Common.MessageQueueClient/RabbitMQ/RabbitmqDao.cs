@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Common.MessageQueueClient
@@ -53,7 +53,7 @@ namespace Common.MessageQueueClient
                     routingKey: routingKey,
                     mandatory: false,
                     basicProperties: properties,
-                    body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message))
+                    body: Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message))
                 );
             }
 

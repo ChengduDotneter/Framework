@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Common.ServiceCommon
@@ -96,7 +96,7 @@ namespace Common.ServiceCommon
             context.HttpContext.Response.StatusCode = StatusCode ?? StatusCodes.Status400BadRequest;
 
             if (Value != null)
-                context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(Value)).Wait();
+                context.HttpContext.Response.WriteAsync(JsonSerializer.Serialize(Value)).Wait();
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Common.ServiceCommon
                 context.HttpContext.Response.StatusCode = StatusCode ?? StatusCodes.Status400BadRequest;
 
                 if (Value != null)
-                    context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(Value)).Wait();
+                    context.HttpContext.Response.WriteAsync(JsonSerializer.Serialize(Value)).Wait();
             });
         }
     }

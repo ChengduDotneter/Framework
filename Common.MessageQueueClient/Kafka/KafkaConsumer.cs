@@ -1,6 +1,6 @@
 ﻿using Confluent.Kafka;
-using Newtonsoft.Json;
 using System;
+using System.Text.Json;
 
 namespace Common.MessageQueueClient.Kafka
 {
@@ -78,7 +78,7 @@ namespace Common.MessageQueueClient.Kafka
         /// <returns></returns>
         private T ConvertMessageToData(Message<string, string> message)
         {
-            return JsonConvert.DeserializeObject<T>(message.Value);
+            return JsonSerializer.Deserialize<T>(message.Value);
         }
 
         public void Dispose()

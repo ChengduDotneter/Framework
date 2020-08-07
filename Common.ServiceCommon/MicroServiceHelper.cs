@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using Common;
+using System.Text.Json;
 
 namespace Common.ServiceCommon
 {
@@ -63,7 +62,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public static T SendMicroServicePost<T>(IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
         {
-            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sendText)));
+            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sendText)));
 
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
@@ -85,7 +84,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public static bool SendMicroServicePost(IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
         {
-            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sendText)));
+            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sendText)));
 
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
