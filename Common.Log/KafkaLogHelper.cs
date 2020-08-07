@@ -54,7 +54,6 @@ namespace Common.Log
                         Message = message,
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
                         NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                        StackTrace = Environment.StackTrace
                     });
         }
 
@@ -65,7 +64,6 @@ namespace Common.Log
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
                         NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                        StackTrace = Environment.StackTrace,
                         ControllerName = controllerName,
                         Methed = methed,
                         Parameters = parameters,
@@ -80,10 +78,10 @@ namespace Common.Log
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
                         NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                        StackTrace = Environment.StackTrace,
                         Sql = sql,
                         Message = message,
-                        Parameters = parameters
+                        Parameters = parameters,
+                        StackTrace = Environment.StackTrace,
                     });
         }
 
@@ -94,7 +92,6 @@ namespace Common.Log
                      {
                          Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
                          NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                         StackTrace = Environment.StackTrace,
                          Message = message,
                          IsError = isError,
                          TranscationID = transcationID
@@ -108,7 +105,6 @@ namespace Common.Log
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
                         NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                        StackTrace = Environment.StackTrace,
                         Message = message,
                         TranscationID = transcationID
                     });
