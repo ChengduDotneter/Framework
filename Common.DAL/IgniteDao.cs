@@ -570,7 +570,8 @@ namespace Common.DAL
                     CacheMode = GetCacheModeByConfig(),
                     QueryEntities = new[] { new QueryEntity(typeof(long), typeof(T)) { Fields = queryFields, Indexes = queryIndices } },
                     SqlSchema = string.Format("\"{0}\"", ConfigManager.Configuration["IgniteService:RegionName"]),
-                    AtomicityMode = CacheAtomicityMode.Transactional
+                    AtomicityMode = CacheAtomicityMode.Transactional,
+                    Backups = Convert.ToInt32(ConfigManager.Configuration["IgniteService:Backups"])
                 };
             }
 

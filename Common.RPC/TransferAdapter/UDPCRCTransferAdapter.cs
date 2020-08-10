@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using Common.Log;
+using log4net;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -46,13 +47,13 @@ namespace Common.RPC.TransferAdapter
         private UdpClient m_udp;
 
 #if OUTPUT_LOG
-        private static ILog m_log;
+        private static readonly ILogHelper m_logHelper;
 #endif
 
         static UDPCRCTransferAdapter()
         {
 #if OUTPUT_LOG
-            m_log = LogHelper.CreateLog("Transfer", "UDP");
+            m_logHelper = LogHelperFactory.GetLog4netLogHelper();
 #endif
         }
 
@@ -144,7 +145,7 @@ namespace Common.RPC.TransferAdapter
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                                 {
 #if OUTPUT_LOG
-                                    m_log.Error($"send error session_id: {sessionID}{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
+                                    m_logHelper.Info("Transfer_UDP", $"send error session_id: {sessionID}{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
                                 }
                             }
@@ -232,7 +233,7 @@ namespace Common.RPC.TransferAdapter
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
 #if OUTPUT_LOG
-                    m_log.Error($"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
+                    m_logHelper.Info("Transfer_UDP", $"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
                 }
             }

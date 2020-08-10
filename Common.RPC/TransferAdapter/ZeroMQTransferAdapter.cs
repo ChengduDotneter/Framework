@@ -50,7 +50,7 @@ namespace Common.RPC.TransferAdapter
         static ZeroMQTransferAdapter()
         {
 #if OUTPUT_LOG
-            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
+            m_logHelper = LogHelperFactory.GetLog4netLogHelper();
 #endif
         }
 

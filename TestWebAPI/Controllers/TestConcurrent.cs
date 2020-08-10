@@ -44,31 +44,7 @@ namespace TestWebAPI.Controllers
 
         protected override void DoPost(long id, ConcurrentModel concurrentModel)
         {
-            using (ITransaction transaction = m_editQuery.FilterIsDeleted().BeginTransaction(20))
-            {
-                try
-                {
-                    if (m_searchQuery.FilterIsDeleted().Count(item => item.UserAccount == concurrentModel.UserAccount, transaction) == 0)
-                    {
-                        int time = Environment.TickCount;
-
-                        IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search(transaction: transaction);
-
-                        m_editQuery.FilterIsDeleted().Insert(transaction, concurrentModel);
-
-                        transaction.Submit();
-                    }
-                    else
-                    {
-                        throw new DealException("账号已存在");
-                    }
-                }
-                catch (Exception)
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }
+            m_editQuery.FilterIsDeleted().Insert(null, concurrentModel);
         }
     }
     [ApiController]
@@ -83,6 +59,8 @@ namespace TestWebAPI.Controllers
 
         protected override ConcurrentModel DoGet(long id)
         {
+            var count = m_searchQuery.Count();
+
             string sql = "SELECT * FROM ConcurrentModel WHERE ";
 
             return MapperModelHelper<ConcurrentModel>.ReadModel(m_searchQuery.Query(sql)).FirstOrDefault();
