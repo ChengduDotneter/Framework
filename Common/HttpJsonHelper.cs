@@ -1,7 +1,7 @@
+using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Common
@@ -240,7 +240,7 @@ namespace Common
         public static async Task<T> GetResponseAsync<T>(HttpResponseMessage response)
         {
             if (response.IsSuccessStatusCode)
-                return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+                return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
             else if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.PaymentRequired)
                 throw new DealException(await response.Content.ReadAsStringAsync());
             else
@@ -265,7 +265,7 @@ namespace Common
         /// <returns></returns>
         public static HttpContent ObjectToByteArrayContent(object requestObject)
         {
-            return new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(requestObject)));
+            return new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(requestObject)));
         }
     }
 }

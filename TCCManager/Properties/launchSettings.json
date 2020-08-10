@@ -19,17 +19,12 @@
     },
     "TCCManager": {
       "commandName": "Project",
-<<<<<<< HEAD
       "launchBrowser": true,
       "launchUrl": "swagger/index.html",
-=======
-      //"launchBrowser": true,
-      //"launchUrl": "weatherforecast",
->>>>>>> fb02d29... 优化TCC，解决TCC死锁卡顿
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://192.168.10.56:10003"
+      "applicationUrl": "http://192.168.10.69:10003"
     }
   }
 }
