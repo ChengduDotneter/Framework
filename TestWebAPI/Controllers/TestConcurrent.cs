@@ -1,13 +1,17 @@
-﻿using Apache.Ignite.Core.Cache.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Apache.Ignite.Core.Cache.Configuration;
 using Common;
 using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
+using Common.Validation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SqlSugar;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace TestWebAPI.Controllers
 {
@@ -104,6 +108,54 @@ namespace TestWebAPI.Controllers
                     throw;
                 }
             }
+        }
+    }
+
+    public class TCCTestData : ViewModelBase
+    {
+        [SugarColumn(IsNullable = false, Length = 10)]
+        [NotNull]
+        [StringMaxLength(100)]
+        public string Data { get; set; }
+    }
+
+    [Route("abc")]
+    [ApiController]
+    public class CCC : ControllerBase
+    {
+        private ISearchQuery<TCCTestData> m_searchQuery;
+
+        public CCC(ISearchQuery<TCCTestData> searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
+
+        [HttpGet]
+        public async Task<TCCTestData> Get()
+        {
+            return (await m_searchQuery.SearchAsync(count: 1)).FirstOrDefault();
+        }
+    }
+
+    [Route("tccdo")]
+    public class tccdocontroller : TransactionTCCController<TCCTestData>
+    {
+        private IEditQuery<TCCTestData> m_tccTestDataeditQuery;
+        private ISearchQuery<TCCTestData> m_searchQuery;
+
+        public tccdocontroller(IEditQuery<TCCTestData> tccTestDataeditQuery, ISearchQuery<TCCTestData> searchQuery, IHttpClientFactory httpContextFactory, IHttpContextAccessor httpContextAccessor, ITccTransactionManager tccTransactionManager) : base(tccTestDataeditQuery, httpContextFactory, httpContextAccessor, tccTransactionManager)
+        {
+            m_tccTestDataeditQuery = tccTestDataeditQuery;
+            m_searchQuery = searchQuery;
+        }
+
+        protected override async Task DoTry(long tccID, ITransaction transaction, TCCTestData data)
+        {
+            data.Data = $"{data.Data}:{data.ID}, tccID:{tccID}";
+            data.ID = IDGenerator.NextID();
+            //m_searchQuery.Count(transaction: transaction);
+            await m_tccTestDataeditQuery.InsertAsync(transaction, data);
+            //await Task.Delay(1000);
         }
     }
 }

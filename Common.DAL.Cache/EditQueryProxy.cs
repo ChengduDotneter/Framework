@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Common.DAL.Cache
 {
@@ -34,6 +35,15 @@ namespace Common.DAL.Cache
         }
 
         /// <summary>
+        /// 开启事务
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
+        {
+            return new TransactionProxy(await m_editQuery.BeginTransactionAsync(weight));
+        }
+
+        /// <summary>
         /// 删除
         /// </summary>
         /// <param name="transaction"></param>
@@ -52,6 +62,24 @@ namespace Common.DAL.Cache
         }
 
         /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="ids"></param>
+        public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
+        {
+            await m_editQuery.DeleteAsync(transaction, ids);
+
+            DoAction(() =>
+            {
+                for (int i = 0; i < ids.Length; i++)
+                    m_keyMemoryCache.Remove(ids[i]);
+
+                CacheFactory<T>.ClearConditionMemoryCache();
+            });
+        }
+
+        /// <summary>
         /// 插入
         /// </summary>
         /// <param name="transaction"></param>
@@ -59,6 +87,17 @@ namespace Common.DAL.Cache
         public void Insert(ITransaction transaction = null, params T[] datas)
         {
             m_editQuery.Insert(transaction, datas);
+            DoAction(CacheFactory<T>.ClearConditionMemoryCache);
+        }
+
+        /// <summary>
+        /// 插入
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="datas"></param>
+        public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
+        {
+            await m_editQuery.InsertAsync(transaction, datas);
             DoAction(CacheFactory<T>.ClearConditionMemoryCache);
         }
 
@@ -82,14 +121,52 @@ namespace Common.DAL.Cache
         }
 
         /// <summary>
+        /// 合并
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="datas"></param>
+        public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
+        {
+            await m_editQuery.MergeAsync(transaction, datas);
+
+            DoAction(() =>
+            {
+                for (int i = 0; i < datas.Length; i++)
+                    if (m_keyMemoryCache.TryGetValue(datas[i], out T _))
+                        m_keyMemoryCache.Set(datas[i].ID, datas[i]);
+
+                CacheFactory<T>.ClearConditionMemoryCache();
+            });
+        }
+
+        /// <summary>
         /// 修改
         /// </summary>
         /// <param name="data"></param>
         /// <param name="transaction"></param>
-        /// <param name="IgnoreColumns"></param>
-        public void Update(T data, ITransaction transaction = null, params string[] IgnoreColumns)
+        /// <param name="ignoreColumns"></param>
+        public void Update(T data, ITransaction transaction = null, params string[] ignoreColumns)
         {
-            m_editQuery.Update(data, transaction, IgnoreColumns);
+            m_editQuery.Update(data, transaction, ignoreColumns);
+
+            DoAction(() =>
+            {
+                if (m_keyMemoryCache.TryGetValue(data.ID, out T _))
+                    m_keyMemoryCache.Set(data.ID, data);
+
+                CacheFactory<T>.ClearConditionMemoryCache();
+            });
+        }
+
+        /// <summary>
+        /// 修改
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="transaction"></param>
+        /// <param name="ignoreColumns"></param>
+        public async Task UpdateAsync(T data, ITransaction transaction = null, params string[] ignoreColumns)
+        {
+            await m_editQuery.UpdateAsync(data, transaction, ignoreColumns);
 
             DoAction(() =>
             {
@@ -109,6 +186,23 @@ namespace Common.DAL.Cache
         public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
         {
             m_editQuery.Update(predicate, updateExpression, transaction);
+
+            DoAction(() =>
+            {
+                CacheFactory<T>.ClearKeyMemoryCache();
+                CacheFactory<T>.ClearConditionMemoryCache();
+            });
+        }
+
+        /// <summary>
+        /// 修改
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="updateExpression"></param>
+        /// <param name="transaction"></param>
+        public async Task UpdateAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
+        {
+            await m_editQuery.UpdateAsync(predicate, updateExpression, transaction);
 
             DoAction(() =>
             {

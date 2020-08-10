@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using Common.DAL;
 using Common.Model;
 using Microsoft.AspNetCore.Http;
@@ -45,21 +46,21 @@ namespace Common.ServiceCommon
         /// <param name="timeOut"></param>
         /// <param name="data"></param>
         [HttpPost("try/{tccID:required:long}/{timeOut:required:int}")]
-        public abstract void Try(long tccID, int timeOut, [FromBody] T data);
+        public abstract Task Try(long tccID, int timeOut, [FromBody] T data);
 
         /// <summary>
         /// Cancel
         /// </summary>
         /// <param name="tccID"></param>
         [HttpPost("cancel/{tccID:required:long}")]
-        public abstract void Cancel(long tccID);
+        public abstract Task Cancel(long tccID);
 
         /// <summary>
         /// Commit
         /// </summary>
         /// <param name="tccID"></param>
         [HttpPost("commit/{tccID:required:long}")]
-        public abstract void Commit(long tccID);
+        public abstract Task Commit(long tccID);
     }
 
     /// <summary>
@@ -73,6 +74,7 @@ namespace Common.ServiceCommon
         private string m_typeNameSpace;
         private string m_typeName;
         private IEditQuery<T> m_editQuery;
+        private IHttpClientFactory m_httpClientFactory;
         private IHttpContextAccessor m_httpContextAccessor;
         private ITccTransactionManager m_tccTransactionManager;
         private readonly static ConnectionMultiplexer m_connectionMultiplexer;
@@ -91,14 +93,17 @@ namespace Common.ServiceCommon
         /// 构造函数
         /// </summary>
         /// <param name="editQuery"></param>
+        /// <param name="httpClientFactory"></param>
         /// <param name="httpContextAccessor"></param>
         /// <param name="tccTransactionManager"></param>
         protected TransactionTCCController(
             IEditQuery<T> editQuery,
+            IHttpClientFactory httpClientFactory,
             IHttpContextAccessor httpContextAccessor,
             ITccTransactionManager tccTransactionManager)
         {
             m_editQuery = editQuery;
+            m_httpClientFactory = httpClientFactory;
             m_httpContextAccessor = httpContextAccessor;
             m_tccTransactionManager = tccTransactionManager;
             m_typeNameSpace = GetType().Namespace;
@@ -111,21 +116,21 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         /// <param name="timeOut"></param>
         /// <param name="data"></param>
-        public override void Try(long tccID, int timeOut, T data)
+        public override async Task Try(long tccID, int timeOut, T data)
         {
             ConnectionInfo connectionInfo = m_httpContextAccessor.HttpContext.Connection;
 
-            m_redisClient.StringSet(new RedisKey(GetKVKey(m_typeNameSpace, m_typeName, tccID)), JObject.FromObject(new TCCTransaction()
+            await m_redisClient.StringSetAsync(new RedisKey(GetKVKey(m_typeNameSpace, m_typeName, tccID)), JObject.FromObject(new TCCTransaction()
             {
                 RequestIP = connectionInfo.LocalIpAddress.ToString(),
                 RequestPort = connectionInfo.LocalPort,
             }).ToString(), TimeSpan.FromSeconds(10));
 
-            DAL.ITransaction transaction = m_editQuery.BeginTransaction();
+            DAL.ITransaction transaction = await m_editQuery.BeginTransactionAsync();
 
             try
             {
-                DoTry(tccID, transaction, data);
+                await DoTry(tccID, transaction, data);
                 m_tccTransactionManager.AddTransaction(tccID, timeOut, transaction);
             }
             catch (Exception exception)
@@ -142,18 +147,20 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         /// <param name="transaction"></param>
         /// <param name="data"></param>
-        protected abstract void DoTry(long tccID, DAL.ITransaction transaction, T data);
+        protected abstract Task DoTry(long tccID, DAL.ITransaction transaction, T data);
 
         /// <summary>
         /// Cancel
         /// </summary>
         /// <param name="tccID"></param>
-        public override void Cancel(long tccID)
+        public override async Task Cancel(long tccID)
         {
-            if (!IsLocalRequest(m_httpContextAccessor, m_typeNameSpace, m_typeName, tccID, out TCCTransaction tccTransaction) && tccTransaction != null)
+            (bool isLocal, TCCTransaction tccTransaction) = await IsLocalRequest(m_httpContextAccessor, m_typeNameSpace, m_typeName, tccID);
+
+            if (!isLocal && tccTransaction != null)
             {
                 RouteValueDictionary routeValues = m_httpContextAccessor.HttpContext.Request.RouteValues;
-                Post(tccTransaction.RequestIP, tccTransaction.RequestPort, $"{routeValues["controller"]}/{ routeValues["action"]}/{routeValues["tccID"]}", m_httpContextAccessor);
+                await Post(tccTransaction.RequestIP, tccTransaction.RequestPort, $"{routeValues["controller"]}/{ routeValues["action"]}/{routeValues["tccID"]}", m_httpClientFactory, m_httpContextAccessor);
             }
             else if (tccTransaction != null)
             {
@@ -166,12 +173,14 @@ namespace Common.ServiceCommon
         /// Commit
         /// </summary>
         /// <param name="tccID"></param>
-        public override void Commit(long tccID)
+        public override async Task Commit(long tccID)
         {
-            if (!IsLocalRequest(m_httpContextAccessor, m_typeNameSpace, m_typeName, tccID, out TCCTransaction tccTransaction) && tccTransaction != null)
+            (bool isLocal, TCCTransaction tccTransaction) = await IsLocalRequest(m_httpContextAccessor, m_typeNameSpace, m_typeName, tccID);
+
+            if (!isLocal && tccTransaction != null)
             {
                 RouteValueDictionary routeValues = m_httpContextAccessor.HttpContext.Request.RouteValues;
-                Post(tccTransaction.RequestIP, tccTransaction.RequestPort, $"{routeValues["controller"]}/{ routeValues["action"]}/{routeValues["tccID"]}", m_httpContextAccessor);
+                await Post(tccTransaction.RequestIP, tccTransaction.RequestPort, $"{routeValues["controller"]}/{ routeValues["action"]}/{routeValues["tccID"]}", m_httpClientFactory, m_httpContextAccessor);
             }
             else if (tccTransaction != null)
             {
@@ -184,20 +193,23 @@ namespace Common.ServiceCommon
             }
         }
 
-        private static bool IsLocalRequest(IHttpContextAccessor httpContextAccessor, string typeNameSapce, string typeName, long tccID, out TCCTransaction tccTransaction)
+        private static async Task<Tuple<bool, TCCTransaction>> IsLocalRequest(IHttpContextAccessor httpContextAccessor, string typeNameSapce, string typeName, long tccID)
         {
+            TCCTransaction tccTransaction = null;
+            string value = await m_redisClient.StringGetAsync(GetKVKey(typeNameSapce, typeName, tccID));
+
+            if (string.IsNullOrWhiteSpace(value))
+                return Tuple.Create(false, tccTransaction);
+
             ConnectionInfo connectionInfo = httpContextAccessor.HttpContext.Connection;
-            tccTransaction = JObject.Parse(m_redisClient.StringGet(GetKVKey(typeNameSapce, typeName, tccID))).ToObject<TCCTransaction>();
+            tccTransaction = JObject.Parse(value).ToObject<TCCTransaction>();
 
-            if (tccTransaction != null)
-                return tccTransaction.RequestIP == connectionInfo.LocalIpAddress.ToString() && tccTransaction.RequestPort == connectionInfo.LocalPort;
-
-            return false;
+            return Tuple.Create(tccTransaction.RequestIP == connectionInfo.LocalIpAddress.ToString() && tccTransaction.RequestPort == connectionInfo.LocalPort, tccTransaction);
         }
 
-        private static void Post(string ip, int port, string url, IHttpContextAccessor httpContextAccessor)
+        private static async Task Post(string ip, int port, string url, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
-            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPostByAbsoluteUri($"http://{ip}:{port}/{url}", httpContextAccessor.HttpContext?.Request.Headers["Authorization"]);
+            HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpPostByAbsoluteUriAsync(httpClientFactory, $"http://{ip}:{port}/{url}", httpContextAccessor.HttpContext?.Request.Headers["Authorization"]);
 
             if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                 throw new DealException(httpResponseMessage.Content.ReadAsStringAsync().Result);

@@ -43,9 +43,9 @@ namespace Common.DAL.Transaction
         /// <param name="identity">事务线程ID</param>
         /// <param name="weight">事务权重</param>
         // <returns></returns>
-        public static Task<bool> ApplayResourceAsync(Type table, string identity, int weight)
+        public static async Task<bool> ApplayResourceAsync(Type table, string identity, int weight)
         {
-            return Task.Factory.StartNew(() => { return ApplayResource(table, identity, weight); });
+            return await m_lock.AcquireAsync(table.FullName, identity, weight, m_timeOut);
         }
 
         /// <summary>
@@ -58,12 +58,12 @@ namespace Common.DAL.Transaction
         }
 
         /// <summary>
-        /// 释放事务资源，异步
+        /// 释放事务资源
         /// </summary>
         /// <param name="identity">事务线程ID</param>
-        public static Task ReleaseResourceAsync(string identity)
+        public static async Task ReleaseResourceAsync(string identity)
         {
-            return Task.Factory.StartNew(() => { ReleaseResource(identity); });
+            await m_lock.ReleaseAsync(identity);
         }
 
         /// <summary>

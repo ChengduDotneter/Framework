@@ -981,9 +981,21 @@ namespace Common.ServiceCommon
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
     public class DynamicDisplayAttribute : Attribute
     {
+        /// <summary>
+        /// 参数名称
+        /// </summary>
         public string ParameterName { get; set; }
+
+        /// <summary>
+        /// 显示内容
+        /// </summary>
         public string DisplayText { get; set; }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="parameterName">参数名称</param>
+        /// <param name="displayText">显示内容</param>
         public DynamicDisplayAttribute(string parameterName, string displayText)
         {
             ParameterName = parameterName;

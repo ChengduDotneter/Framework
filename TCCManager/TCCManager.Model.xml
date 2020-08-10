@@ -4,5 +4,120 @@
         <name>TCCManager</name>
     </assembly>
     <members>
+        <member name="T:TCCManager.Controllers.TCCModel">
+            <summary>
+            TCCModel
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.TCCModel.ID">
+            <summary>
+            ID
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.TCCModel.TimeOut">
+            <summary>
+            TimeOut
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.TCCModel.DeadLockFlag">
+            <summary>
+            DeadLockFlag
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.TCCModel.TCCNodes">
+            <summary>
+            TccNodes
+            </summary>
+        </member>
+        <member name="T:TCCManager.Controllers.TCCNodeModel">
+            <summary>
+            TCCNodeModel
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.TCCNodeModel.Url">
+            <summary>
+            Url
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.TCCNodeModel.TryUrl">
+            <summary>
+            TryUrl
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.TCCNodeModel.CancelUrl">
+            <summary>
+            CancelUrl
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.TCCNodeModel.CommitUrl">
+            <summary>
+            CommitUrl
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.TCCNodeModel.TryContent">
+            <summary>
+            TryContent
+            </summary>
+        </member>
+        <member name="T:TCCManager.Controllers.NodeResult">
+            <summary>
+            NodeResult
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.NodeResult.Success">
+            <summary>
+            Success
+            </summary>
+        </member>
+        <member name="P:TCCManager.Controllers.NodeResult.ErrorMessage">
+            <summary>
+            ErrorMessage
+            </summary>
+        </member>
+        <member name="T:TCCManager.Controllers.TCCController">
+            <summary>
+            TCCController
+            </summary>
+        </member>
+        <member name="M:TCCManager.Controllers.TCCController.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,System.Net.Http.IHttpClientFactory,Common.Lock.ILock)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="httpContextAccessor"></param>
+            <param name="httpClientFactory"></param>
+            <param name="lock"></param>
+        </member>
+        <member name="M:TCCManager.Controllers.TCCController.Post(TCCManager.Controllers.TCCModel)">
+            <summary>
+            Post
+            </summary>
+            <param name="tccModel"></param>
+            <returns></returns>
+        </member>
+        <member name="T:TCCManager.Startup">
+            <summary>
+            Startup
+            </summary>
+        </member>
+        <member name="M:TCCManager.Startup.#ctor(Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="configuration"></param>
+        </member>
+        <member name="M:TCCManager.Startup.ConfigureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            配置服务
+            </summary>
+            <param name="services"></param>
+        </member>
+        <member name="M:TCCManager.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IWebHostEnvironment,Microsoft.Extensions.Hosting.IHostApplicationLifetime)">
+            <summary>
+            配置管道
+            </summary>
+            <param name="app"></param>
+            <param name="env"></param>
+            <param name="lifetime"></param>
+        </member>
     </members>
 </doc>
