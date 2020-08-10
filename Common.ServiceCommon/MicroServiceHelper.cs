@@ -55,16 +55,18 @@ namespace Common.ServiceCommon
         /// 微服务Post
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="microServiceName">微服务名称</param>
         /// <param name="functionName">接口名</param>
         /// <param name="sendText">参数</param>
         /// <returns></returns>
-        public static T SendMicroServicePost<T>(IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
+        public static T SendMicroServicePost<T>(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
         {
             ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sendText)));
 
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
+                                httpClientFactory,
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
                                 httpContent,
@@ -77,16 +79,18 @@ namespace Common.ServiceCommon
         /// <summary>
         /// 微服务Post
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="microServiceName">微服务名称</param>
         /// <param name="functionName">接口名</param>
         /// <param name="sendText">参数</param>
         /// <returns></returns>
-        public static bool SendMicroServicePost(IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
+        public static bool SendMicroServicePost(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
         {
             ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sendText)));
 
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
+                                httpClientFactory,
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
                                 httpContent,
@@ -99,14 +103,16 @@ namespace Common.ServiceCommon
         /// <summary>
         /// 微服务Get，通过ID
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="microServiceName">微服务名称</param>
         /// <param name="functionName">接口名</param>
         /// <param name="parameter">ID值</param>
         /// <returns></returns>
-        public static JObject MicroServiceGetByID(IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, string parameter)
+        public static JObject MicroServiceGetByID(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, string parameter)
         {
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpGet(
+                                httpClientFactory,
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}/{parameter}",
                                 httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
@@ -117,14 +123,16 @@ namespace Common.ServiceCommon
         /// <summary>
         /// 微服务Get，通过条件
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="microServiceName">微服务名称</param>
         /// <param name="functionName">接口名</param>
         /// <param name="parameter">参数</param>
         /// <returns></returns>
-        public static JObject MicroServiceGetByCondition(IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, string parameter)
+        public static JObject MicroServiceGetByCondition(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, string parameter)
         {
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpGet(
+                                httpClientFactory,
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}?{parameter}",
                                 httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);

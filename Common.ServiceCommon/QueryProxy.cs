@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Common.ServiceCommon
 {
@@ -55,6 +56,9 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// QueryProxyHelper
+    /// </summary>
     internal static class QueryProxyHelper
     {
         public static Expression<Func<T, bool>> GetIsDeletedCondition<T>(Expression<Func<T, bool>> predicate)
@@ -133,6 +137,17 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 根据id获取实体
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<T> GetAsync(long id, ITransaction transaction = null)
+        {
+            return await m_searchQuery.GetAsync(id, transaction);
+        }
+
+        /// <summary>
         /// 根据linq查询条件获取查询条数
         /// </summary>
         /// <param name="predicate"></param>
@@ -141,6 +156,17 @@ namespace Common.ServiceCommon
         public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
         {
             return m_searchQuery.Count(predicate, transaction);
+        }
+
+        /// <summary>
+        /// 根据linq查询条件获取查询条数
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
+        {
+            return await m_searchQuery.CountAsync(predicate, transaction);
         }
 
         /// <summary>
@@ -153,6 +179,18 @@ namespace Common.ServiceCommon
         public int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
         {
             return m_searchQuery.Count(queryWhere, parameters, transaction);
+        }
+
+        /// <summary>
+        /// 根据sql查询条件获取查询条数
+        /// </summary>
+        /// <param name="queryWhere"></param>
+        /// <param name="parameters"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<int> CountAsync(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
+        {
+            return await m_searchQuery.CountAsync(queryWhere, parameters, transaction);
         }
 
         /// <summary>
@@ -181,6 +219,31 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 根据Linq查询条件获取查询结果列表
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
+                                                      IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                                      int startIndex = 0,
+                                                      int count = int.MaxValue,
+                                                      ITransaction transaction = null)
+        {
+            IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
+
+            if (queryOrderBies != null)
+                queryOrderBies = queryOrderBies.Concat(orderByIDDesc);
+            else
+                queryOrderBies = orderByIDDesc;
+
+            return await m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count, transaction);
+        }
+
+        /// <summary>
         /// 根据sql查询条件获取查询结果列表
         /// </summary>
         /// <param name="queryWhere"></param>
@@ -200,6 +263,25 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 根据sql查询条件获取查询结果列表
+        /// </summary>
+        /// <param name="queryWhere"></param>
+        /// <param name="parameters"></param>
+        /// <param name="orderByFields"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<T>> SearchAsync(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+        {
+            return await m_searchQuery.SearchAsync(queryWhere, parameters,
+                                                   string.IsNullOrEmpty(orderByFields) ? ORDER_BY_ID_DESC : $"{orderByFields},{ORDER_BY_ID_DESC}",
+                                                   startIndex,
+                                                   count,
+                                                   transaction);
+        }
+
+        /// <summary>
         /// 两表Linq联查时获取查询条数
         /// </summary>
         /// <typeparam name="TJoinTable"></typeparam>
@@ -213,6 +295,22 @@ namespace Common.ServiceCommon
             where TJoinTable : class, IEntity, new()
         {
             return m_searchQuery.Count(joinCondition, predicate, transaction);
+        }
+
+        /// <summary>
+        /// 两表Linq联查时获取查询条数
+        /// </summary>
+        /// <typeparam name="TJoinTable"></typeparam>
+        /// <param name="joinCondition"></param>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<int> CountAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                                     Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                     ITransaction transaction = null)
+            where TJoinTable : class, IEntity, new()
+        {
+            return await m_searchQuery.CountAsync(joinCondition, predicate, transaction);
         }
 
         /// <summary>
@@ -249,6 +347,39 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 两表Linq联查时获取查询结果
+        /// </summary>
+        /// <typeparam name="TJoinTable"></typeparam>
+        /// <param name="joinCondition"></param>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<JoinResult<T, TJoinTable>>> SearchAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                                                                         Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                                                         IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
+                                                                         int startIndex = 0,
+                                                                         int count = int.MaxValue,
+                                                                         ITransaction transaction = null)
+            where TJoinTable : class, IEntity, new()
+        {
+            IEnumerable<QueryOrderBy<T, TJoinTable>> orderByIDDesc = new[]
+            {
+                new QueryOrderBy<T, TJoinTable>((left, right) => left.ID, OrderByType.Desc),
+                new QueryOrderBy<T, TJoinTable>((left, right) => right.ID, OrderByType.Desc)
+            };
+
+            if (queryOrderBies != null)
+                queryOrderBies = queryOrderBies.Concat(orderByIDDesc);
+            else
+                queryOrderBies = orderByIDDesc;
+
+            return await m_searchQuery.SearchAsync(joinCondition, predicate, queryOrderBies, startIndex, count, transaction);
+        }
+
+        /// <summary>
         /// 根据sql查询数据
         /// </summary>
         /// <param name="sql"></param>
@@ -258,6 +389,18 @@ namespace Common.ServiceCommon
         public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
         {
             return m_searchQuery.Query(sql, parameters, transaction);
+        }
+
+        /// <summary>
+        /// 根据sql查询数据
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="parameters"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<IDictionary<string, object>>> QueryAsync(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
+        {
+            return await m_searchQuery.QueryAsync(sql, parameters, transaction);
         }
 
         /// <summary>
@@ -289,6 +432,18 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<T> GetAsync(long id, ITransaction transaction = null)
+        {
+            T data = await m_searchQuery.GetAsync(id, transaction);
+            return !data?.IsDeleted ?? false ? data : null;
+        }
+
+        /// <summary>
         /// 通过Lambda表达式获取Count
         /// </summary>
         /// <param name="predicate">Lambda表达式</param>
@@ -297,6 +452,17 @@ namespace Common.ServiceCommon
         public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
         {
             return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(predicate), transaction);
+        }
+
+        /// <summary>
+        /// 通过Lambda表达式获取Count
+        /// </summary>
+        /// <param name="predicate">Lambda表达式</param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
+        {
+            return await m_searchQuery.CountAsync(QueryProxyHelper.GetIsDeletedCondition(predicate), transaction);
         }
 
         /// <summary>
@@ -309,6 +475,18 @@ namespace Common.ServiceCommon
         public int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
         {
             return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters, transaction);
+        }
+
+        /// <summary>
+        /// 通过Sql语句获取Count
+        /// </summary>
+        /// <param name="queryWhere">sql语句</param>
+        /// <param name="parameters">查询条件值</param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<int> CountAsync(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
+        {
+            return await m_searchQuery.CountAsync(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters, transaction);
         }
 
         /// <summary>
@@ -330,6 +508,24 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// Lambda表达式分页查询
+        /// </summary>
+        /// <param name="predicate">Lambda表达式</param>
+        /// <param name="queryOrderBies">排序方式</param>
+        /// <param name="startIndex">开始位置</param>
+        /// <param name="count">结果总数</param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
+                                                      IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                                      int startIndex = 0,
+                                                      int count = int.MaxValue,
+                                                      ITransaction transaction = null)
+        {
+            return await m_searchQuery.SearchAsync(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, transaction);
+        }
+
+        /// <summary>
         /// Sql语句分页查询
         /// </summary>
         /// <param name="queryWhere">Sql语句</param>
@@ -345,6 +541,21 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// Sql语句分页查询
+        /// </summary>
+        /// <param name="queryWhere">Sql语句</param>
+        /// <param name="parameters">查询条件值</param>
+        /// <param name="orderByFields">排序方式</param>
+        /// <param name="startIndex">开始位置</param>
+        /// <param name="count">结果总数</param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<T>> SearchAsync(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+        {
+            return await m_searchQuery.SearchAsync(QueryProxyHelper.GetIsDeletedCondition(queryWhere), parameters, orderByFields, startIndex, count, transaction);
+        }
+
+        /// <summary>
         /// 自定义Sql查询
         /// </summary>
         /// <param name="sql">sql语句</param>
@@ -354,6 +565,18 @@ namespace Common.ServiceCommon
         public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
         {
             return m_searchQuery.Query(sql, parameters, transaction);
+        }
+
+        /// <summary>
+        /// 自定义Sql查询
+        /// </summary>
+        /// <param name="sql">sql语句</param>
+        /// <param name="parameters">查询条件值</param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<IDictionary<string, object>>> QueryAsync(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
+        {
+            return await m_searchQuery.QueryAsync(sql, parameters, transaction);
         }
 
         /// <summary>
@@ -370,6 +593,22 @@ namespace Common.ServiceCommon
                 where TJoinTable : class, IEntity, new()
         {
             return m_searchQuery.Count(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate), transaction);
+        }
+
+        /// <summary>
+        /// 关联表Count
+        /// </summary>
+        /// <typeparam name="TJoinTable">关联表实体</typeparam>
+        /// <param name="joinCondition">关联查询条件</param>
+        /// <param name="predicate">Lambda表达式</param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<int> CountAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                                     Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                     ITransaction transaction = null)
+                where TJoinTable : class, IEntity, new()
+        {
+            return await m_searchQuery.CountAsync(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate), transaction);
         }
 
         /// <summary>
@@ -392,6 +631,28 @@ namespace Common.ServiceCommon
             where TJoinTable : class, IEntity, new()
         {
             return m_searchQuery.Search(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate), queryOrderBies, startIndex, count, transaction);
+        }
+
+        /// <summary>
+        /// 关联表分页查询
+        /// </summary>
+        /// <typeparam name="TJoinTable">关联表实体</typeparam>
+        /// <param name="joinCondition">关联查询条件</param>
+        /// <param name="predicate">Lambda表达式</param>
+        /// <param name="queryOrderBies">拍讯方式</param>
+        /// <param name="startIndex">开始位置</param>
+        /// <param name="count">结果总数</param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<JoinResult<T, TJoinTable>>> SearchAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                                                                                  Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                                                                  IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
+                                                                                  int startIndex = 0,
+                                                                                  int count = int.MaxValue,
+                                                                                  ITransaction transaction = null)
+            where TJoinTable : class, IEntity, new()
+        {
+            return await m_searchQuery.SearchAsync(joinCondition, QueryProxyHelper.GetJoinIsDeletedCondition(predicate), queryOrderBies, startIndex, count, transaction);
         }
 
         /// <summary>
@@ -420,6 +681,15 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 开始事务
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
+        {
+            return await m_editQuery.BeginTransactionAsync(weight);
+        }
+
+        /// <summary>
         /// 逻辑删除
         /// </summary>
         /// <param name="transaction"></param>
@@ -427,6 +697,16 @@ namespace Common.ServiceCommon
         public void Delete(ITransaction transaction = null, params long[] ids)
         {
             m_editQuery.Update(item => ids.Contains(item.ID), item => item.IsDeleted == true, transaction);
+        }
+
+        /// <summary>
+        /// 逻辑删除
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="ids"></param>
+        public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
+        {
+            await m_editQuery.UpdateAsync(item => ids.Contains(item.ID), item => item.IsDeleted == true, transaction);
         }
 
         /// <summary>
@@ -440,6 +720,16 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 新增
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="datas"></param>
+        public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
+        {
+            await m_editQuery.InsertAsync(transaction, datas);
+        }
+
+        /// <summary>
         /// 新增或更新
         /// </summary>
         /// <param name="transaction"></param>
@@ -447,6 +737,16 @@ namespace Common.ServiceCommon
         public void Merge(ITransaction transaction = null, params T[] datas)
         {
             m_editQuery.Merge(transaction, datas);
+        }
+
+        /// <summary>
+        /// 新增或更新
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="datas"></param>
+        public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
+        {
+            await m_editQuery.MergeAsync(transaction, datas);
         }
 
         /// <summary>
@@ -461,6 +761,17 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 通过实体类更新
+        /// </summary>
+        /// <param name="data">实体类</param>
+        /// <param name="transaction"></param>
+        /// <param name="ignoreColumns">忽略行</param>
+        public async Task UpdateAsync(T data, ITransaction transaction = null, params string[] ignoreColumns)
+        {
+            await m_editQuery.UpdateAsync(data, transaction, ignoreColumns);
+        }
+
+        /// <summary>
         /// 通过Lambda表达式更新
         /// </summary>
         /// <param name="predicate">匹配体Lambda表达式</param>
@@ -469,6 +780,17 @@ namespace Common.ServiceCommon
         public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
         {
             m_editQuery.Update(predicate, updateExpression, transaction);
+        }
+
+        /// <summary>
+        /// 通过Lambda表达式更新
+        /// </summary>
+        /// <param name="predicate">匹配体Lambda表达式</param>
+        /// <param name="updateExpression">更新体Lambda表达式</param>
+        /// <param name="transaction"></param>
+        public async Task UpdateAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
+        {
+            await m_editQuery.UpdateAsync(predicate, updateExpression, transaction);
         }
 
         /// <summary>

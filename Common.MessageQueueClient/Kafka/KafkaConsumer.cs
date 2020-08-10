@@ -81,6 +81,9 @@ namespace Common.MessageQueueClient.Kafka
             return JsonSerializer.Deserialize<T>(message.Value);
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
         public void Dispose()
         {
             m_consumer?.Dispose();

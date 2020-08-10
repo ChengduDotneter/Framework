@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Common.DAL
 {
@@ -18,11 +19,25 @@ namespace Common.DAL
         void Insert(ITransaction transaction = null, params T[] datas);
 
         /// <summary>
+        /// 新增
+        /// </summary>
+        /// <param name="transaction">执行的事务</param>
+        /// <param name="datas"></param>
+        Task InsertAsync(ITransaction transaction = null, params T[] datas);
+
+        /// <summary>
         /// 合并
         /// </summary>
         /// <param name="transaction">执行的事务</param>
         /// <param name="datas"></param>
         void Merge(ITransaction transaction = null, params T[] datas);
+
+        /// <summary>
+        /// 合并
+        /// </summary>
+        /// <param name="transaction">执行的事务</param>
+        /// <param name="datas"></param>
+        Task MergeAsync(ITransaction transaction = null, params T[] datas);
 
         /// <summary>
         /// 修改
@@ -35,10 +50,26 @@ namespace Common.DAL
         /// <summary>
         /// 修改
         /// </summary>
+        /// <param name="data"></param>
+        /// <param name="transaction">执行的事务</param>
+        /// <param name="ignoreColumns"></param>
+        Task UpdateAsync(T data, ITransaction transaction = null, params string[] ignoreColumns);
+
+        /// <summary>
+        /// 修改
+        /// </summary>
         /// <param name="predicate"></param>
         /// <param name="updateExpression"></param>
         /// <param name="transaction">执行的事务</param>
         void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null);
+
+        /// <summary>
+        /// 修改
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="updateExpression"></param>
+        /// <param name="transaction">执行的事务</param>
+        Task UpdateAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null);
 
         /// <summary>
         /// 删除
@@ -48,11 +79,23 @@ namespace Common.DAL
         void Delete(ITransaction transaction = null, params long[] ids);
 
         /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="transaction">执行的事务</param>
+        /// <param name="ids"></param>
+        Task DeleteAsync(ITransaction transaction = null, params long[] ids);
+
+        /// <summary>
         /// 开启事务
         /// </summary>
         /// <param name="weight">事务权重</param>
-        /// <remarks>注意：启动事务后，在事务未释放前不允许使用异步任务，否则会造成数据混乱</remarks>
         ITransaction BeginTransaction(int weight = 0);
+
+        /// <summary>
+        /// 开启事务
+        /// </summary>
+        /// <param name="weight">事务权重</param>
+        Task<ITransaction> BeginTransactionAsync(int weight = 0);
     }
 
     /// <summary>
@@ -70,12 +113,28 @@ namespace Common.DAL
         T Get(long id, ITransaction transaction = null);
 
         /// <summary>
+        /// 根据ID查询
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<T> GetAsync(long id, ITransaction transaction = null);
+
+        /// <summary>
         /// 根据Linq筛选条件查询条数
         /// </summary>
         /// <param name="predicate"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
         int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null);
+
+        /// <summary>
+        /// 根据Linq筛选条件查询条数
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null);
 
         /// <summary>
         /// 根据Sql筛选条件查询条数
@@ -87,6 +146,15 @@ namespace Common.DAL
         int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null);
 
         /// <summary>
+        /// 根据Sql筛选条件查询条数
+        /// </summary>
+        /// <param name="queryWhere"></param>
+        /// <param name="parameters"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<int> CountAsync(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null);
+
+        /// <summary>
         /// 根据SQL查询，用于复合查询
         /// </summary>
         /// <param name="sql"></param>
@@ -94,6 +162,15 @@ namespace Common.DAL
         /// <param name="transaction"></param>
         /// <returns></returns>
         IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null);
+
+        /// <summary>
+        /// 根据SQL查询，用于复合查询
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="parameters"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<IEnumerable<IDictionary<string, object>>> QueryAsync(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null);
 
         /// <summary>
         /// 根据Linq筛选条件查询
@@ -105,6 +182,21 @@ namespace Common.DAL
         /// <param name="transaction"></param>
         /// <returns></returns>
         IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
+                              IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                              int startIndex = 0,
+                              int count = int.MaxValue,
+                              ITransaction transaction = null);
+
+        /// <summary>
+        /// 根据Linq筛选条件查询
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
                               IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                               int startIndex = 0,
                               int count = int.MaxValue,
@@ -128,6 +220,23 @@ namespace Common.DAL
                               ITransaction transaction = null);
 
         /// <summary>
+        /// 根据SQL筛选条件查询
+        /// </summary>
+        /// <param name="queryWhere"></param>
+        /// <param name="parameters"></param>
+        /// <param name="orderByFields"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<IEnumerable<T>> SearchAsync(string queryWhere,
+                              Dictionary<string, object> parameters = null,
+                              string orderByFields = null,
+                              int startIndex = 0,
+                              int count = int.MaxValue,
+                              ITransaction transaction = null);
+
+        /// <summary>
         /// 根据Linq筛选条件两表联查条数
         /// </summary>
         /// <typeparam name="TJoinTable"></typeparam>
@@ -136,6 +245,19 @@ namespace Common.DAL
         /// <param name="transaction"></param>
         /// <returns></returns>
         int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                              Expression<Func<T, TJoinTable, bool>> predicate = null,
+                              ITransaction transaction = null)
+            where TJoinTable : class, IEntity, new();
+
+        /// <summary>
+        /// 根据Linq筛选条件两表联查条数
+        /// </summary>
+        /// <typeparam name="TJoinTable"></typeparam>
+        /// <param name="joinCondition"></param>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<int> CountAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                               Expression<Func<T, TJoinTable, bool>> predicate = null,
                               ITransaction transaction = null)
             where TJoinTable : class, IEntity, new();
@@ -158,6 +280,25 @@ namespace Common.DAL
                                                                   int count = int.MaxValue,
                                                                   ITransaction transaction = null)
             where TJoinTable : class, IEntity, new();
+
+        /// <summary>
+        /// 根据Linq筛选条件两表联查数据
+        /// </summary>
+        /// <typeparam name="TJoinTable"></typeparam>
+        /// <param name="joinCondition"></param>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<IEnumerable<JoinResult<T, TJoinTable>>> SearchAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                                                                  Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                                                  IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
+                                                                  int startIndex = 0,
+                                                                  int count = int.MaxValue,
+                                                                  ITransaction transaction = null)
+            where TJoinTable : class, IEntity, new();
     }
 
     /// <summary>
@@ -169,7 +310,7 @@ namespace Common.DAL
         /// 上下文
         /// </summary>
         /// <returns></returns>
-        object Context();
+        object Context { get; }
 
         /// <summary>
         /// 提交
@@ -177,9 +318,19 @@ namespace Common.DAL
         void Submit();
 
         /// <summary>
+        /// 提交
+        /// </summary>
+        Task SubmitAsync();
+
+        /// <summary>
         /// 回滚
         /// </summary>
         void Rollback();
+
+        /// <summary>
+        /// 回滚
+        /// </summary>
+        Task RollbackAsync();
     }
 
     /// <summary>

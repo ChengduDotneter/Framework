@@ -129,7 +129,7 @@ namespace TestWebAPI
             });
 
             //服务发现
-            if (!env.IsDevelopment())
+            //if (!env.IsDevelopment())
                 app.RegisterConsul(lifetime, m_configuration);
         }
     }

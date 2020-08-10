@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Common.DAL
 {
@@ -32,9 +33,27 @@ namespace Common.DAL
             }
         }
 
-        private static void Release(string identity)
+        private static async Task ApplyAsync<TResource>(ITransaction transaction) where TResource : class, IEntity
         {
-            TransactionResourceHelper.ReleaseResourceAsync(identity);
+            IgniteITransaction igniteITransaction = transaction as IgniteITransaction;
+
+            if (igniteITransaction != null)
+            {
+                Type table = typeof(TResource);
+
+                if (!igniteITransaction.TransactionTables.Contains(table))
+                {
+                    if (await TransactionResourceHelper.ApplayResourceAsync(table, igniteITransaction.Identity, igniteITransaction.Weight))
+                        igniteITransaction.TransactionTables.Add(table);
+                    else
+                        throw new DealException($"申请事务资源{table.FullName}失败。");
+                }
+            }
+        }
+
+        private static async void Release(string identity)
+        {
+            await TransactionResourceHelper.ReleaseResourceAsync(identity);
         }
 
         private class IgniteITransaction : ITransaction
@@ -52,10 +71,7 @@ namespace Common.DAL
                 TransactionTables = new HashSet<Type>();
             }
 
-            public object Context()
-            {
-                return m_transaction;
-            }
+            public object Context { get { return m_transaction; } }
 
             public void Dispose()
             {
@@ -68,9 +84,19 @@ namespace Common.DAL
                 m_transaction.Rollback();
             }
 
+            public async Task RollbackAsync()
+            {
+                await m_transaction.RollbackAsync();
+            }
+
             public void Submit()
             {
                 m_transaction.Commit();
+            }
+
+            public async Task SubmitAsync()
+            {
+                await m_transaction.CommitAsync();
             }
         }
 
@@ -132,6 +158,37 @@ namespace Common.DAL
                     yield return m_createDataExpressionCreator.Invoke(data);
             }
 
+            public async Task<IEnumerable<JoinResult<TTable, TJoinTable>>> SearchAsync(IQueryable<ICacheEntry<long, TTable>> tableQuery,
+                                                                                  IQueryable<ICacheEntry<long, TJoinTable>> joinQuery,
+                                                                                  Expression<Func<ICacheEntry<long, TTable>, long>> leftJoinExpression,
+                                                                                  Expression<Func<ICacheEntry<long, TJoinTable>, long>> rightJoinExpression,
+                                                                                  Expression<Func<TTable, TJoinTable, bool>> predicate,
+                                                                                  IEnumerable<QueryOrderBy<TTable, TJoinTable>> queryOrderBies,
+                                                                                  int startIndex,
+                                                                                  int count)
+            {
+                var query = tableQuery.Join(joinQuery, leftJoinExpression, rightJoinExpression, (left, right) => new { left, right });
+                object result = m_queryableExpressionCreator.Invoke(query, predicate ?? m_defaultWhereExpression);
+
+                if (queryOrderBies != null)
+                {
+                    foreach (QueryOrderBy<TTable, TJoinTable> queryOrderBy in queryOrderBies)
+                    {
+                        if (queryOrderBy.OrderByType == OrderByType.Asc)
+                            result = m_orderByAscExpressionCeator.Invoke(result, queryOrderBy.Expression);
+                        else
+                            result = m_orderByDescExpressionCeator.Invoke(result, queryOrderBy.Expression);
+                    }
+                }
+
+                IQueryable<object> queryable = (IQueryable<object>)result;
+                queryable = queryable.Skip(startIndex).Take(count);
+
+                OutpuSql(((ICacheQueryable)queryable).GetFieldsQuery());
+
+                return await Task.FromResult(queryable.Select(item => m_createDataExpressionCreator.Invoke(item)));
+            }
+
             public int Count(IQueryable<ICacheEntry<long, TTable>> tableQuery,
                              IQueryable<ICacheEntry<long, TJoinTable>> joinQuery,
                              Expression<Func<ICacheEntry<long, TTable>, long>> leftJoinExpression,
@@ -140,6 +197,16 @@ namespace Common.DAL
             {
                 var query = tableQuery.Join(joinQuery, leftJoinExpression, rightJoinExpression, (left, right) => new { left, right });
                 return m_countExpressionCreator.Invoke(query, predicate ?? m_defaultWhereExpression);
+            }
+
+            public async Task<int> CountAsync(IQueryable<ICacheEntry<long, TTable>> tableQuery,
+                             IQueryable<ICacheEntry<long, TJoinTable>> joinQuery,
+                             Expression<Func<ICacheEntry<long, TTable>, long>> leftJoinExpression,
+                             Expression<Func<ICacheEntry<long, TJoinTable>, long>> rightJoinExpression,
+                             Expression<Func<TTable, TJoinTable, bool>> predicate)
+            {
+                var query = tableQuery.Join(joinQuery, leftJoinExpression, rightJoinExpression, (left, right) => new { left, right });
+                return await Task.FromResult(m_countExpressionCreator.Invoke(query, predicate ?? m_defaultWhereExpression));
             }
 
             static IgniteJoinQuery()
@@ -229,6 +296,11 @@ namespace Common.DAL
                 return new IgniteITransaction(m_cache.Ignite, weight);
             }
 
+            public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
+            {
+                return await Task.FromResult(new IgniteITransaction(m_cache.Ignite, weight));
+            }
+
             public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
             {
                 Apply<T>(transaction);
@@ -237,6 +309,16 @@ namespace Common.DAL
                     return m_cache.AsCacheQueryable().Count(ConvertExpression(predicate));
                 else
                     return m_cache.AsCacheQueryable().Count();
+            }
+
+            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
+            {
+                await ApplyAsync<T>(transaction);
+
+                if (predicate != null)
+                    return await Task.FromResult(m_cache.AsCacheQueryable().Count(ConvertExpression(predicate)));
+                else
+                    return await Task.FromResult(m_cache.AsCacheQueryable().Count());
             }
 
             public int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
@@ -268,10 +350,45 @@ namespace Common.DAL
                 return Convert.ToInt32(data?[0]);
             }
 
+            public async Task<int> CountAsync(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
+            {
+                await ApplyAsync<T>(transaction);
+
+                object[] args = new object[parameters?.Count ?? 0];
+                int index = 0;
+
+                if (parameters != null)
+                {
+                    foreach (KeyValuePair<string, object> item in parameters)
+                    {
+                        queryWhere = queryWhere.Replace(item.Key, SQL_PARAMETER_KEYWORD);
+                        args[index++] = item.Value;
+                    }
+                }
+
+                SqlFieldsQuery sqlFieldsQuery;
+
+                if (args.Length > 0)
+                    sqlFieldsQuery = new SqlFieldsQuery($"SELECT COUNT(*) FROM {typeof(T).Name} WHERE {queryWhere}", args);
+                else
+                    sqlFieldsQuery = new SqlFieldsQuery($"SELECT COUNT(*) FROM {typeof(T).Name} WHERE {queryWhere}");
+
+                OutpuSql(sqlFieldsQuery);
+
+                IList<object> data = await Task.FromResult(m_cache.Query(sqlFieldsQuery).FirstOrDefault());
+                return Convert.ToInt32(data?[0]);
+            }
+
             public void Delete(ITransaction transaction = null, params long[] ids)
             {
                 Apply<T>(transaction);
                 m_cache.RemoveAll(ids);
+            }
+
+            public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
+            {
+                await ApplyAsync<T>(transaction);
+                await m_cache.RemoveAllAsync(ids);
             }
 
             public T Get(long id, ITransaction transaction = null)
@@ -284,10 +401,28 @@ namespace Common.DAL
                     return null;
             }
 
+            public async Task<T> GetAsync(long id, ITransaction transaction = null)
+            {
+                await ApplyAsync<T>(transaction);
+
+                CacheResult<T> result = await m_cache.TryGetAsync(id);
+
+                if (result.Success)
+                    return result.Value;
+                else
+                    return null;
+            }
+
             public void Insert(ITransaction transaction = null, params T[] datas)
             {
                 Apply<T>(transaction);
                 m_cache.PutAll(datas.Select(data => new KeyValuePair<long, T>(data.ID, data)));
+            }
+
+            public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
+            {
+                await ApplyAsync<T>(transaction);
+                await m_cache.PutAllAsync(datas.Select(data => new KeyValuePair<long, T>(data.ID, data)));
             }
 
             //TODO: Marge存在操作错误
@@ -297,6 +432,19 @@ namespace Common.DAL
 
                 for (int i = 0; i < datas.Length; i++)
                     m_cache.Put(datas[i].ID, datas[i]);
+            }
+
+            //TODO: Marge存在操作错误
+            public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
+            {
+                await ApplyAsync<T>(transaction);
+
+                Task[] tasks = new Task[datas.Length];
+
+                for (int i = 0; i < datas.Length; i++)
+                    tasks[i] = m_cache.PutAsync(datas[i].ID, datas[i]);
+
+                await Task.WhenAll(tasks);
             }
 
             public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
@@ -331,6 +479,34 @@ namespace Common.DAL
                     datas.Add(item.Value);
 
                 return datas;
+            }
+
+            public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
+                                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                                          int startIndex = 0,
+                                                          int count = int.MaxValue,
+                                                          ITransaction transaction = null)
+            {
+                await ApplyAsync<T>(transaction);
+
+                IQueryable<ICacheEntry<long, T>> query = m_cache.AsCacheQueryable();
+
+                if (predicate != null)
+                    query = query.Where(ConvertExpression(predicate));
+
+                if (queryOrderBies != null)
+                {
+                    foreach (QueryOrderBy<T> queryOrdery in queryOrderBies)
+                    {
+                        if (queryOrdery.OrderByType == OrderByType.Asc)
+                            query = query.OrderBy(ConvertExpression(queryOrdery.Expression));
+                        else
+                            query = query.OrderByDescending(ConvertExpression(queryOrdery.Expression));
+                    }
+                }
+
+                OutpuSql(((ICacheQueryable)query).GetFieldsQuery());
+                return (await Task.FromResult(query.Skip(startIndex).Take(count))).Select(item => item.Value);
             }
 
             public IEnumerable<T> Search(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
@@ -369,6 +545,42 @@ namespace Common.DAL
                 return fieldsQueryCursor.Select(row => ConvertData(fieldsQueryCursor, row));
             }
 
+            public async Task<IEnumerable<T>> SearchAsync(string queryWhere, Dictionary<string, object> parameters = null, string orderByFields = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+            {
+                await ApplyAsync<T>(transaction);
+
+                object[] args = new object[parameters?.Count ?? 0];
+                int index = 0;
+
+                if (parameters != null)
+                {
+                    foreach (KeyValuePair<string, object> item in parameters)
+                    {
+                        queryWhere = queryWhere.Replace(item.Key, SQL_PARAMETER_KEYWORD);
+                        args[index++] = item.Value;
+                    }
+                }
+
+                string sql = string.Format("SELECT * FROM {0} {1} {2} LIMIT {4} OFFSET {3}",
+                                           typeof(T).Name,
+                                           string.IsNullOrWhiteSpace(queryWhere) ? string.Empty : string.Format("WHERE {0}", queryWhere),
+                                           string.IsNullOrWhiteSpace(orderByFields) ? string.Empty : string.Format("ORDER BY {0}", orderByFields),
+                                           startIndex,
+                                           count);
+
+                SqlFieldsQuery sqlFieldsQuery = null;
+
+                if (args.Length > 0)
+                    sqlFieldsQuery = new SqlFieldsQuery(sql, args);
+                else
+                    sqlFieldsQuery = new SqlFieldsQuery(sql);
+
+                OutpuSql(sqlFieldsQuery);
+
+                IFieldsQueryCursor fieldsQueryCursor = m_cache.Query(sqlFieldsQuery);
+                return await Task.FromResult(fieldsQueryCursor.Select(row => ConvertData(fieldsQueryCursor, row)));
+            }
+
             public void Update(T data, ITransaction transaction = null, params string[] ignoreColumns)
             {
                 Apply<T>(transaction);
@@ -394,6 +606,31 @@ namespace Common.DAL
                 m_cache.Replace(data.ID, oldData, data);
             }
 
+            public async Task UpdateAsync(T data, ITransaction transaction = null, params string[] ignoreColumns)
+            {
+                await ApplyAsync<T>(transaction);
+
+                T oldData = m_cache.Get(data.ID);
+
+                if (oldData == null)
+                    return;
+
+                if (ignoreColumns != null)
+                {
+                    for (int i = 0; i < ignoreColumns.Length; i++)
+                    {
+                        PropertyInfo propertyInfo = typeof(T).GetProperty(ignoreColumns[i]);
+
+                        if (propertyInfo == null || !propertyInfo.CanWrite)
+                            continue;
+
+                        propertyInfo.SetValue(data, propertyInfo.GetValue(oldData));
+                    }
+                }
+
+                await m_cache.ReplaceAsync(data.ID, oldData, data);
+            }
+
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
             {
                 Apply<T>(transaction);
@@ -406,6 +643,24 @@ namespace Common.DAL
                     if (updateHandler(entity.Value))
                         m_cache.Replace(entity.Key, entity.Value);
                 }
+            }
+
+            public async Task UpdateAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
+            {
+                await ApplyAsync<T>(transaction);
+
+                Func<T, bool> updateHandler = updateExpression.ReplaceAssign().Compile();
+
+                IList<Task> tasks = new List<Task>();
+
+                foreach (ICacheEntry<long, T> entity in m_cache.AsCacheQueryable().Where(ConvertExpression(predicate)))
+                {
+                    //TODO: 可能会出现字段覆盖，需要改成SQL实现
+                    if (updateHandler(entity.Value))
+                        tasks.Add(m_cache.ReplaceAsync(entity.Key, entity.Value));
+                }
+
+                await Task.WhenAll(tasks);
             }
 
             public IEnumerable<JoinResult<T, TJoinTable>> Search<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
@@ -429,6 +684,26 @@ namespace Common.DAL
                                                                    count);
             }
 
+            public async Task<IEnumerable<JoinResult<T, TJoinTable>>> SearchAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                                                                             Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                                                             IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
+                                                                             int startIndex = 0,
+                                                                             int count = int.MaxValue,
+                                                                             ITransaction transaction = null)
+                where TJoinTable : class, IEntity, new()
+            {
+                await Task.WhenAll(ApplyAsync<T>(transaction), ApplyAsync<TJoinTable>(transaction));
+
+                return await new IgniteJoinQuery<T, TJoinTable>().SearchAsync(m_cache.AsCacheQueryable(),
+                                                                   m_cache.Ignite.GetOrCreateCache<long, TJoinTable>(IgniteDaoInstance<TJoinTable>.CacheConfiguration).AsCacheQueryable(),
+                                                                   ConvertExpression(joinCondition.LeftJoinExpression),
+                                                                   ConvertExpression(joinCondition.RightJoinExression),
+                                                                   predicate,
+                                                                   queryOrderBies,
+                                                                   startIndex,
+                                                                   count);
+            }
+
             public int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                          Expression<Func<T, TJoinTable, bool>> predicate = null,
                                          ITransaction transaction = null)
@@ -438,6 +713,20 @@ namespace Common.DAL
                 Apply<TJoinTable>(transaction);
 
                 return new IgniteJoinQuery<T, TJoinTable>().Count(m_cache.AsCacheQueryable(),
+                                                                  m_cache.Ignite.GetOrCreateCache<long, TJoinTable>(IgniteDaoInstance<TJoinTable>.CacheConfiguration).AsCacheQueryable(),
+                                                                  ConvertExpression(joinCondition.LeftJoinExpression),
+                                                                  ConvertExpression(joinCondition.RightJoinExression),
+                                                                  predicate);
+            }
+
+            public async Task<int> CountAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                                         Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                         ITransaction transaction = null)
+                where TJoinTable : class, IEntity, new()
+            {
+                await Task.WhenAll(ApplyAsync<T>(transaction), ApplyAsync<TJoinTable>(transaction));
+
+                return await new IgniteJoinQuery<T, TJoinTable>().CountAsync(m_cache.AsCacheQueryable(),
                                                                   m_cache.Ignite.GetOrCreateCache<long, TJoinTable>(IgniteDaoInstance<TJoinTable>.CacheConfiguration).AsCacheQueryable(),
                                                                   ConvertExpression(joinCondition.LeftJoinExpression),
                                                                   ConvertExpression(joinCondition.RightJoinExression),
@@ -472,6 +761,32 @@ namespace Common.DAL
                 }
 
                 return datas;
+            }
+
+            public async Task<IEnumerable<IDictionary<string, object>>> QueryAsync(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
+            {
+                await ApplyAsync<T>(transaction);
+
+                SqlFieldsQuery sqlFieldsQuery;
+
+                if (parameters == null || parameters.Count == 0)
+                    sqlFieldsQuery = new SqlFieldsQuery(sql);
+                else
+                    sqlFieldsQuery = new SqlFieldsQuery(PreperSql(sql, parameters), parameters.Values.ToArray());
+
+                OutpuSql(sqlFieldsQuery);
+
+                IFieldsQueryCursor fieldsQueryCursor = m_cache.Query(sqlFieldsQuery);
+
+                return await Task.FromResult(fieldsQueryCursor.Select(row =>
+                {
+                    IDictionary<string, object> data = new Dictionary<string, object>();
+
+                    for (int i = 0; i < fieldsQueryCursor.FieldNames.Count; i++)
+                        data.Add(fieldsQueryCursor.FieldNames[i].ToUpper(), row[i]);
+
+                    return data;
+                }));
             }
 
             private static T ConvertData(IFieldsQueryCursor fieldsQueryCursor, IList<object> row)

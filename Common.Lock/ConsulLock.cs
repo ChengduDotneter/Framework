@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Consul;
 using Microsoft.Extensions.Configuration;
 
@@ -28,7 +30,7 @@ namespace Common.Lock
             /// <summary>
             /// 锁集合
             /// </summary>
-            public IDictionary<string, IDistributedLock> Locks { get; }
+            public ConcurrentDictionary<string, IDistributedLock> Locks { get; }
 
             /// <summary>
             /// CancellationTokenSource
@@ -38,7 +40,7 @@ namespace Common.Lock
             public LockInstance(IConsulClient consulClient)
             {
                 m_consulClient = consulClient;
-                Locks = new Dictionary<string, IDistributedLock>();
+                Locks = new ConcurrentDictionary<string, IDistributedLock>();
                 WriteResult<string> sessionRequest = m_consulClient.Session.Create(new SessionEntry() { TTL = TTL, LockDelay = TimeSpan.FromMilliseconds(1) }).Result;
                 SessionID = sessionRequest.Response;
                 CancellationTokenSource = new CancellationTokenSource();
@@ -66,7 +68,7 @@ namespace Common.Lock
         /// <summary>
         /// Lock集合
         /// </summary>
-        private readonly static IDictionary<string, LockInstance> m_lockInstances;
+        private readonly static ConcurrentDictionary<string, LockInstance> m_lockInstances;
 
         /// <summary>
         /// Consul
@@ -75,7 +77,7 @@ namespace Common.Lock
 
         static ConsulLock()
         {
-            m_lockInstances = new Dictionary<string, LockInstance>();
+            m_lockInstances = new ConcurrentDictionary<string, LockInstance>();
             ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
             ConfigManager.Configuration.Bind("ConsulService", serviceEntity);
 
@@ -88,74 +90,120 @@ namespace Common.Lock
         bool ILock.Acquire(string key, string identity, int weight, int timeOut)
         {
             string lockKey = $"{LOCK_PREFIX}/{key}";
-            LockInstance lockInstance;
 
-            lock (m_lockInstances)
+            if (!m_lockInstances.ContainsKey(identity))
+                m_lockInstances.TryAdd(identity, new LockInstance(m_consulClient));
+
+            LockInstance lockInstance = m_lockInstances[identity];
+
+            if (!lockInstance.Locks.ContainsKey(lockKey))
             {
-                if (!m_lockInstances.ContainsKey(identity))
+                LockOptions lockOptions = new LockOptions(lockKey)
                 {
-                    lockInstance = new LockInstance(m_consulClient);
-                    m_lockInstances.Add(identity, lockInstance);
+                    LockTryOnce = true,
+                    LockWaitTime = TimeSpan.FromMilliseconds(timeOut),
+                    Value = Encoding.UTF8.GetBytes(weight.ToString()),
+                    Session = lockInstance.SessionID,
+                    SessionTTL = TTL
+                };
+
+                IDistributedLock distributedLock = m_consulClient.CreateLock(lockOptions);
+
+                try
+                {
+                    distributedLock.Acquire(CancellationToken.None).Wait();
+
+                    lock (lockInstance.Locks)
+                        m_lockInstances[identity].Locks.TryAdd(lockKey, distributedLock);
+
+                    return true;
                 }
-                else
+                catch
                 {
-                    lockInstance = m_lockInstances[identity];
+                    return false;
                 }
             }
-
-            lock (lockInstance)
+            else
             {
-                if (!lockInstance.Locks.ContainsKey(lockKey))
+                return m_lockInstances[identity].Locks[lockKey].IsHeld;
+            }
+        }
+
+        async Task<bool> ILock.AcquireAsync(string key, string identity, int weight, int timeOut)
+        {
+            string lockKey = $"{LOCK_PREFIX}/{key}";
+
+            if (!m_lockInstances.ContainsKey(identity))
+                m_lockInstances.TryAdd(identity, new LockInstance(m_consulClient));
+
+            LockInstance lockInstance = m_lockInstances[identity];
+
+            if (!lockInstance.Locks.ContainsKey(lockKey))
+            {
+                LockOptions lockOptions = new LockOptions(lockKey)
                 {
-                    LockOptions lockOptions = new LockOptions(lockKey)
-                    {
-                        LockTryOnce = true,
-                        LockWaitTime = TimeSpan.FromMilliseconds(timeOut),
-                        Value = Encoding.UTF8.GetBytes(weight.ToString()),
-                        Session = lockInstance.SessionID,
-                        SessionTTL = TTL
-                    };
+                    LockTryOnce = true,
+                    LockWaitTime = TimeSpan.FromMilliseconds(timeOut),
+                    Value = Encoding.UTF8.GetBytes(weight.ToString()),
+                    Session = lockInstance.SessionID,
+                    SessionTTL = TTL
+                };
 
-                    IDistributedLock distributedLock = m_consulClient.CreateLock(lockOptions);
+                IDistributedLock distributedLock = m_consulClient.CreateLock(lockOptions);
 
-                    try
-                    {
-                        distributedLock.Acquire(CancellationToken.None).Wait();
-                        m_lockInstances[identity].Locks[lockKey] = distributedLock;
-
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                }
-                else
+                try
                 {
-                    return m_lockInstances[identity].Locks[lockKey].IsHeld;
+                    await distributedLock.Acquire(CancellationToken.None);
+
+                    lock (lockInstance.Locks)
+                        m_lockInstances[identity].Locks.TryAdd(lockKey, distributedLock);
+
+                    return true;
                 }
+                catch
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return m_lockInstances[identity].Locks[lockKey].IsHeld;
             }
         }
 
         void ILock.Release(string identity)
         {
-            if (!m_lockInstances.ContainsKey(identity))
+            if (!m_lockInstances.TryGetValue(identity, out LockInstance lockInstance))
                 return;
 
-            LockInstance lockInstance;
             IDistributedLock[] distributedLocks;
 
-            lock (m_lockInstances)
-            {
-                lockInstance = m_lockInstances[identity];
-                m_lockInstances.Remove(identity);
-            }
-
-            lock (lockInstance)
+            lock (lockInstance.Locks)
                 distributedLocks = lockInstance.Locks.Values.ToArray();
 
             for (int i = 0; i < distributedLocks.Length; i++)
                 distributedLocks[i].Release().Wait();
+
+            lock (lockInstance)
+                lockInstance.Dispose();
+        }
+
+        async Task ILock.ReleaseAsync(string identity)
+        {
+            if (!m_lockInstances.TryGetValue(identity, out LockInstance lockInstance))
+                return;
+
+            IDistributedLock[] distributedLocks;
+
+            lock (lockInstance.Locks)
+                distributedLocks = lockInstance.Locks.Values.ToArray();
+
+            IList<Task> tasks = new List<Task>();
+
+            for (int i = 0; i < distributedLocks.Length; i++)
+                tasks.Add(distributedLocks[i].Release());
+
+            await Task.WhenAll(tasks);
 
             lock (lockInstance)
                 lockInstance.Dispose();

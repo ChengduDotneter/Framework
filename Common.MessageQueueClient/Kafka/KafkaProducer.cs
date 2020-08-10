@@ -22,6 +22,9 @@ namespace Common.MessageQueueClient.Kafka
             AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
         public void Dispose()
         {
             m_kafkaProducer?.Dispose();
@@ -51,7 +54,6 @@ namespace Common.MessageQueueClient.Kafka
         /// <summary>
         /// 根据传入对象转换为Kafka所需传输对象Message
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
         private Message<string, string> ConvertDataToMessage(T data)

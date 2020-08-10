@@ -1,112 +1,148 @@
-﻿using Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using Common;
+using Common.Lock;
 using Common.Log;
 using Common.Model;
 using Common.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace TCCManager.Controllers
 {
+    /// <summary>
+    /// TCCModel
+    /// </summary>
     public class TCCModel
     {
+        /// <summary>
+        /// ID
+        /// </summary>
         public long ID { get; set; }
+
+        /// <summary>
+        /// TimeOut
+        /// </summary>
         public int TimeOut { get; set; }
 
+        /// <summary>
+        /// DeadLockFlag
+        /// </summary>
+        public string DeadLockFlag { get; set; }
+
+        /// <summary>
+        /// TccNodes
+        /// </summary>
         [NotNull]
         public IEnumerable<TCCNodeModel> TCCNodes { get; set; }
     }
 
+    /// <summary>
+    /// TCCNodeModel
+    /// </summary>
     public class TCCNodeModel
     {
+        /// <summary>
+        /// Url
+        /// </summary>
         public string Url { get; set; }
+
+        /// <summary>
+        /// TryUrl
+        /// </summary>
         public string TryUrl { get; set; }
+
+        /// <summary>
+        /// CancelUrl
+        /// </summary>
         public string CancelUrl { get; set; }
+
+        /// <summary>
+        /// CommitUrl
+        /// </summary>
         public string CommitUrl { get; set; }
 
+        /// <summary>
+        /// TryContent
+        /// </summary>
         [NotNull]
         [JsonConverter(typeof(JObjectConverter))]
         public JObject TryContent { get; set; }
     }
 
+    /// <summary>
+    /// NodeResult
+    /// </summary>
     public class NodeResult
     {
+        /// <summary>
+        /// Success
+        /// </summary>
         public bool Success { get; set; }
+
+        /// <summary>
+        /// ErrorMessage
+        /// </summary>
         public string ErrorMessage { get; set; }
     }
 
+    /// <summary>
+    /// TCCController
+    /// </summary>
     [Route("tcc")]
     [ApiController]
     public class TCCController : ControllerBase
     {
-        private const int TASK_TIME_OUT = 500;
-        private const int TCCTASK_SCHEDULER_COUNT = 40;
         private const string TRY = "try";
         private const string CANCEL = "cancel";
         private const string COMMIT = "commit";
         private readonly static int MIN_TIMEOUT;
         private readonly static ILogHelper m_logHelper;
-        private readonly static BlockingCollection<TCCTaskScheduler> m_tccTaskSchedulers;
         private IHttpContextAccessor m_httpContextAccessor;
+        private IHttpClientFactory m_httpClientFactory;
+        private ILock m_lock;
 
-        public TCCController(IHttpContextAccessor httpContextAccessor)
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="httpContextAccessor"></param>
+        /// <param name="httpClientFactory"></param>
+        /// <param name="lock"></param>
+        public TCCController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, ILock @lock)
         {
             m_httpContextAccessor = httpContextAccessor;
+            m_httpClientFactory = httpClientFactory;
+            m_lock = @lock;
         }
 
-        private static Dictionary<long, CancellationTokenSource> a = new Dictionary<long, CancellationTokenSource>();
-
+        /// <summary>
+        /// Post
+        /// </summary>
+        /// <param name="tccModel"></param>
+        /// <returns></returns>
         [HttpPost]
-        public long Post(TCCModel tccModel)
+        public async Task<long> Post(TCCModel tccModel)
         {
-            TCCTaskScheduler tccTaskScheduler;
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(TASK_TIME_OUT));
-
-            try
-            {
-                tccTaskScheduler = m_tccTaskSchedulers.Take(cancellationTokenSource.Token);
-            }
-            catch
-            {
-                throw new DealException("TCC事务繁忙，请稍后再试。");
-            }
-
             tccModel.TimeOut = Math.Max(tccModel.TimeOut, MIN_TIMEOUT);
             tccModel.ID = IDGenerator.NextID();
 
-            IEnumerable<NodeResult> errorNodeResults;
-            IList<Task<NodeResult>> tryTasks = new List<Task<NodeResult>>();
-            IList<Task<NodeResult>> cancelTasks = new List<Task<NodeResult>>();
-            IList<Task<NodeResult>> commitTasks = new List<Task<NodeResult>>();
+            await m_lock.AcquireAsync(tccModel.DeadLockFlag, tccModel.ID.ToString(), 0, tccModel.TimeOut);
 
-            m_logHelper.TCCServer(tccModel.ID, "启动TCC事务");
+            IEnumerable<NodeResult> errorNodeResults;
+            IList<Func<Task<NodeResult>>> tryTasks = new List<Func<Task<NodeResult>>>();
+            IList<Func<Task<NodeResult>>> cancelTasks = new List<Func<Task<NodeResult>>>();
+            IList<Func<Task<NodeResult>>> commitTasks = new List<Func<Task<NodeResult>>>();
+
+            await m_logHelper.TCCServer(tccModel.ID, "启动TCC事务");
 
             try
             {
-                a.Add(tccModel.ID, new CancellationTokenSource());
-                Task.Factory.StartNew((state) =>
-                {
-                    try
-                    {
-                        Task.Delay(TimeSpan.FromSeconds(10), a[tccModel.ID].Token).Wait();
-                        Console.WriteLine(tccModel.ID);
-                    }
-                    catch
-                    {
-
-                    }
-                }, null, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-
-                //TODO: TCC节点日志
                 foreach (TCCNodeModel tccNode in tccModel.TCCNodes)
                 {
                     if (string.IsNullOrWhiteSpace(tccNode.Url) &&
@@ -119,9 +155,10 @@ namespace TCCManager.Controllers
                     string cancelUrl = string.IsNullOrWhiteSpace(tccNode.CancelUrl) ? GetCancelUrl(tccNode.Url) : tccNode.CancelUrl;
                     string commitUrl = string.IsNullOrWhiteSpace(tccNode.CommitUrl) ? GetCommitUrl(tccNode.Url) : tccNode.CommitUrl;
 
-                    tryTasks.Add(new Task<NodeResult>(() =>
+                    tryTasks.Add(async () =>
                     {
-                        HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPostByAbsoluteUri(
+                        HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpPostByAbsoluteUriAsync(
+                                    m_httpClientFactory,
                                     $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{tryUrl}/{tccModel.ID}/{tccModel.TimeOut}",
                                     tccNode.TryContent,
                                     m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
@@ -131,89 +168,68 @@ namespace TCCManager.Controllers
                         if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                         {
                             nodeResult.Success = false;
-                            nodeResult.ErrorMessage = $"{tryUrl} Try失败{Environment.NewLine}详细信息：{httpResponseMessage.Content.ReadAsStringAsync().Result}{Environment.NewLine}Data：{tccNode.TryContent}。";
+                            nodeResult.ErrorMessage = $"{tryUrl} Try失败{Environment.NewLine}详细信息：{await httpResponseMessage.Content.ReadAsStringAsync()}{Environment.NewLine}Data：{tccNode.TryContent}。";
                         }
 
                         return nodeResult;
-                    }));
+                    });
 
-                    cancelTasks.Add(new Task<NodeResult>(() =>
+                    cancelTasks.Add(async () =>
                     {
-                        HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPostByAbsoluteUri(
+                        HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpPostByAbsoluteUriAsync(
+                                    m_httpClientFactory,
                                     $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{cancelUrl}/{tccModel.ID}",
                                     null,
                                     bearerToken: m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
 
-                        a[tccModel.ID].Cancel();
-
                         NodeResult nodeResult = new NodeResult() { Success = true };
 
                         if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                         {
                             nodeResult.Success = false;
-                            nodeResult.ErrorMessage = $"{cancelUrl} Cancel失败{Environment.NewLine}详细信息：{httpResponseMessage.Content.ReadAsStringAsync().Result}。";
+                            nodeResult.ErrorMessage = $"{cancelUrl} Cancel失败{Environment.NewLine}详细信息：{await httpResponseMessage.Content.ReadAsStringAsync()}。";
                         }
 
                         return nodeResult;
-                    }));
+                    });
 
-                    commitTasks.Add(new Task<NodeResult>(() =>
+                    commitTasks.Add(async () =>
                     {
-                        HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPostByAbsoluteUri(
+                        HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpPostByAbsoluteUriAsync(
+                                    m_httpClientFactory,
                                     $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{commitUrl}/{tccModel.ID}",
                                     null,
                                     m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
 
-                        a[tccModel.ID].Cancel();
-
                         NodeResult nodeResult = new NodeResult() { Success = true };
 
                         if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                         {
                             nodeResult.Success = false;
-                            nodeResult.ErrorMessage = $"{commitUrl} Commit失败{Environment.NewLine}详细信息：{httpResponseMessage.Content.ReadAsStringAsync().Result}。";
+                            nodeResult.ErrorMessage = $"{commitUrl} Commit失败{Environment.NewLine}详细信息：{await httpResponseMessage.Content.ReadAsStringAsync()}。";
                         }
 
                         return nodeResult;
-                    }));
+                    });
                 }
 
-                tryTasks.ForEach(tryTask => tryTask.Start(tccTaskScheduler));
-                errorNodeResults = Task.Factory.ContinueWhenAll(tryTasks.ToArray(),
-                                                                       GetErrorResult,
-                                                                       CancellationToken.None,
-                                                                       TaskContinuationOptions.None,
-                                                                       tccTaskScheduler).Result;
+                errorNodeResults = await await Task.Factory.ContinueWhenAll(tryTasks.Select(tryTask => Task.Factory.StartNew(tryTask, TaskCreationOptions.LongRunning)).ToArray(), GetErrorResult);
 
                 if (errorNodeResults != null && errorNodeResults.Count() > 0)
                 {
-                    cancelTasks.ForEach(cancelTask => cancelTask.Start(tccTaskScheduler));
-                    errorNodeResults = errorNodeResults.Concat(Task.Factory.ContinueWhenAll(cancelTasks.ToArray(),
-                                                                                                   GetErrorResult,
-                                                                                                   CancellationToken.None,
-                                                                                                   TaskContinuationOptions.None,
-                                                                                                   tccTaskScheduler).Result);
+                    errorNodeResults = errorNodeResults.Concat(await await Task.Factory.ContinueWhenAll(cancelTasks.Select(cancelTask => Task.Factory.StartNew(cancelTask, TaskCreationOptions.LongRunning)).ToArray(), GetErrorResult));
 
                     string errorText = $"{tccModel.ID}请求失败{Environment.NewLine}{string.Join(Environment.NewLine, errorNodeResults.Select(errorNodeResult => errorNodeResult.ErrorMessage))}";
-
-                    //TODO: 监控中心日志
-                    m_logHelper.TCCNode(tccModel.ID, false, errorText);
+                    await m_logHelper.TCCNode(tccModel.ID, false, errorText);
                     throw new DealException(errorText);
                 }
 
-                commitTasks.ForEach(commitTask => commitTask.Start(tccTaskScheduler));
-                errorNodeResults = Task.Factory.ContinueWhenAll(commitTasks.ToArray(),
-                                                                      GetErrorResult,
-                                                                      CancellationToken.None,
-                                                                      TaskContinuationOptions.None,
-                                                                      tccTaskScheduler).Result;
+                errorNodeResults = await await Task.Factory.ContinueWhenAll(commitTasks.Select(commitTask => Task.Factory.StartNew(commitTask, TaskCreationOptions.LongRunning)).ToArray(), GetErrorResult);
 
                 if (errorNodeResults != null && errorNodeResults.Count() > 0)
                 {
                     string errorText = $"{tccModel.ID}请求失败{Environment.NewLine}{string.Join(Environment.NewLine, errorNodeResults.Select(errorNodeResult => errorNodeResult.ErrorMessage))}";
-
-                    //TODO: 监控中心日志
-                    m_logHelper.TCCNode(tccModel.ID, false, errorText);
+                    await m_logHelper.TCCNode(tccModel.ID, false, errorText);
                     throw new DealException(errorText);
                 }
 
@@ -225,13 +241,14 @@ namespace TCCManager.Controllers
             }
             finally
             {
-                m_tccTaskSchedulers.Add(tccTaskScheduler);
+                await m_lock.ReleaseAsync(tccModel.ID.ToString());
             }
         }
 
-        private static IEnumerable<NodeResult> GetErrorResult(IEnumerable<Task<NodeResult>> tasks)
+        private static async Task<IEnumerable<NodeResult>> GetErrorResult(IEnumerable<Task<Task<NodeResult>>> tasks)
         {
-            return tasks.Where(task => !task.Result.Success).Select(task => task.Result);
+            NodeResult[] nodeResults = await Task.WhenAll(tasks.Select(task => task.Result));
+            return nodeResults.Where(nodeResult => !nodeResult.Success);
         }
 
         private static string GetTryUrl(string url)
@@ -253,62 +270,6 @@ namespace TCCManager.Controllers
         {
             m_logHelper = LogHelperFactory.GetKafkaLogHelper();
             MIN_TIMEOUT = Convert.ToInt32(ConfigManager.Configuration["MinTimeOut"]);
-            m_tccTaskSchedulers = new BlockingCollection<TCCTaskScheduler>();
-
-            for (int i = 0; i < TCCTASK_SCHEDULER_COUNT; i++)
-                m_tccTaskSchedulers.Add(new TCCTaskScheduler(i));
-        }
-    }
-
-    internal class TCCTaskScheduler : TaskScheduler
-    {
-        private BlockingCollection<Task> m_tasks;
-        private Thread m_thread;
-        private CancellationTokenSource m_cancellationTokenSource;
-
-        public int TaskSchedulerID { get; }
-
-        private void DoWork()
-        {
-            while (true)
-            {
-                try
-                {
-                    Task task = m_tasks.Take(m_cancellationTokenSource.Token);
-                    TryExecuteTask(task);
-                }
-                catch
-                {
-                    continue;
-                }
-            }
-        }
-
-        public TCCTaskScheduler(int taskSchedulerID)
-        {
-            TaskSchedulerID = taskSchedulerID;
-            m_cancellationTokenSource = new CancellationTokenSource();
-            m_tasks = new BlockingCollection<Task>();
-
-            m_thread = new Thread(DoWork);
-            m_thread.IsBackground = true;
-            m_thread.Name = $"TCC_THREAD_{taskSchedulerID}";
-            m_thread.Start();
-        }
-
-        protected override IEnumerable<Task> GetScheduledTasks()
-        {
-            return m_tasks;
-        }
-
-        protected override void QueueTask(Task task)
-        {
-            m_tasks.Add(task);
-        }
-
-        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
-        {
-            return false;
         }
     }
 }

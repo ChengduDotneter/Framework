@@ -39,8 +39,9 @@ namespace Common.ServiceCommon
         /// 配置初始化
         /// </summary>
         /// <param name="hostBuilderContext"></param>
+        /// <param name="serviceCollection"></param>
         /// <returns></returns>
-        public static HostBuilderContext ConfigInit(this HostBuilderContext hostBuilderContext)
+        public static HostBuilderContext ConfigInit(this HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection)
         {
 #if DEBUG
             hostBuilderContext.HostingEnvironment.EnvironmentName = "Development";
@@ -51,6 +52,8 @@ namespace Common.ServiceCommon
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             ConfigManager.Init(hostBuilderContext.HostingEnvironment.EnvironmentName);
             m_isCodeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
+
+            serviceCollection.AddHttpClient();
 
             if (!int.TryParse(ConfigManager.Configuration["MinThreadCount"], out int threadCount))
                 threadCount = DEFAULT_THREAD_COUNT;

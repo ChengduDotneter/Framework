@@ -33,7 +33,7 @@ namespace TestStorge
 
         private static void ConfigInit(HostBuilderContext hostBuilderContext, IServiceCollection services)
         {
-            hostBuilderContext.ConfigInit();
+            hostBuilderContext.ConfigInit(services);
             //hostBuilderContext.ConfigIgnite();
         }
 

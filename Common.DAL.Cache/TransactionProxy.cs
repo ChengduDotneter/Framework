@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Common.DAL.Cache
 {
@@ -55,10 +56,7 @@ namespace Common.DAL.Cache
         /// 上下文
         /// </summary>
         /// <returns></returns>
-        public object Context()
-        {
-            return m_transaction.Context();
-        }
+        public object Context { get { return m_transaction.Context; } }
 
         /// <summary>
         /// 回收
@@ -79,11 +77,35 @@ namespace Common.DAL.Cache
         }
 
         /// <summary>
+        /// 回滚
+        /// </summary>
+        public async Task RollbackAsync()
+        {
+            await m_transaction.RollbackAsync();
+        }
+
+        /// <summary>
         /// 提交
         /// </summary>
         public void Submit()
         {
             m_transaction.Submit();
+
+            while (!m_actions.IsEmpty)
+            {
+                if (!m_actions.TryDequeue(out Action action))
+                    Thread.Sleep(THREAD_TIME_SPAN);
+                else
+                    action.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// 提交
+        /// </summary>
+        public async Task SubmitAsync()
+        {
+            await m_transaction.SubmitAsync();
 
             while (!m_actions.IsEmpty)
             {

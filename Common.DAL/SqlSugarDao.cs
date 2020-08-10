@@ -91,7 +91,7 @@ namespace Common.DAL
             }
         }
 
-        private static void Apply<TResource>(ITransaction transaction, out bool inTransaction) where TResource : class, IEntity
+        private static bool Apply<TResource>(ITransaction transaction) where TResource : class, IEntity
         {
             if (transaction != null && !(transaction is SqlSugarTranscation))
                 throw new DealException("错误的事务对象。");
@@ -104,21 +104,42 @@ namespace Common.DAL
 
                 if (!sqlSugarTrtanscation.TransactionTables.Contains(table))
                 {
-                    bool status = TransactionResourceHelper.ApplayResource(table, sqlSugarTrtanscation.Identity, sqlSugarTrtanscation.Weight);
-
-                    if (status)
+                    if (TransactionResourceHelper.ApplayResource(table, sqlSugarTrtanscation.Identity, sqlSugarTrtanscation.Weight))
                         sqlSugarTrtanscation.TransactionTables.Add(table);
                     else
                         throw new DealException($"申请事务资源{table.FullName}失败。");
                 }
             }
 
-            inTransaction = sqlSugarTrtanscation != null;
+            return sqlSugarTrtanscation != null;
         }
 
-        private static void Release(string identity)
+        private static async Task<bool> ApplyAsync<TResource>(ITransaction transaction) where TResource : class, IEntity
         {
-            TransactionResourceHelper.ReleaseResource(identity);
+            if (transaction != null && !(transaction is SqlSugarTranscation))
+                throw new DealException("错误的事务对象。");
+
+            SqlSugarTranscation sqlSugarTrtanscation = transaction as SqlSugarTranscation;
+
+            if (sqlSugarTrtanscation != null)
+            {
+                Type table = typeof(TResource);
+
+                if (!sqlSugarTrtanscation.TransactionTables.Contains(table))
+                {
+                    if (await TransactionResourceHelper.ApplayResourceAsync(table, sqlSugarTrtanscation.Identity, sqlSugarTrtanscation.Weight))
+                        sqlSugarTrtanscation.TransactionTables.Add(table);
+                    else
+                        throw new DealException($"申请事务资源{table.FullName}失败。");
+                }
+            }
+
+            return sqlSugarTrtanscation != null;
+        }
+
+        private static async void Release(string identity)
+        {
+            await TransactionResourceHelper.ReleaseResourceAsync(identity);
         }
 
         private class SqlSugarTaskScheduler : TaskScheduler, IDisposable
@@ -168,7 +189,8 @@ namespace Common.DAL
 
             protected override void QueueTask(Task task)
             {
-                m_tasks.Add(task);
+                if (m_running)
+                    m_tasks.Add(task);
             }
 
             protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
@@ -232,7 +254,7 @@ namespace Common.DAL
         {
             public void Delete(ITransaction transaction = null, params long[] ids)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (ids.Length == 0)
                     return;
@@ -262,9 +284,41 @@ namespace Common.DAL
                 }
             }
 
+            public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (ids.Length == 0)
+                    return;
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        await sqlSugarClient.Deleteable<T>(ids).ExecuteCommandAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    await await sqlSugarTranscation.Do(async () =>
+                    {
+                        await sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Deleteable<T>(ids).ExecuteCommandAsync();
+                    });
+                }
+            }
+
             public void Insert(ITransaction transaction = null, params T[] datas)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (datas.Length == 0)
                     return;
@@ -294,9 +348,41 @@ namespace Common.DAL
                 }
             }
 
+            public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (datas.Length == 0)
+                    return;
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        await sqlSugarClient.Insertable(datas).ExecuteCommandAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    await await sqlSugarTranscation.Do(async () =>
+                    {
+                        await sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Insertable(datas).ExecuteCommandAsync();
+                    });
+                }
+            }
+
             public void Merge(ITransaction transaction = null, params T[] datas)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (datas.Length == 0)
                     return;
@@ -326,9 +412,41 @@ namespace Common.DAL
                 }
             }
 
+            public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (datas.Length == 0)
+                    return;
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        await sqlSugarClient.Saveable(new List<T>(datas)).ExecuteCommandAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    await await sqlSugarTranscation.Do(async () =>
+                    {
+                        await sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Saveable(new List<T>(datas)).ExecuteCommandAsync();
+                    });
+                }
+            }
+
             public void Update(T data, ITransaction transaction = null, params string[] ignoreColumns)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (data == null)
                     return;
@@ -358,9 +476,41 @@ namespace Common.DAL
                 }
             }
 
+            public async Task UpdateAsync(T data, ITransaction transaction = null, params string[] ignoreColumns)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (data == null)
+                    return;
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        await sqlSugarClient.Updateable(data).IgnoreColumns(ignoreColumns).ExecuteCommandAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    await await sqlSugarTranscation.Do(async () =>
+                    {
+                        await sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Updateable(data).IgnoreColumns(ignoreColumns).ExecuteCommandAsync();
+                    });
+                }
+            }
+
             public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
@@ -386,16 +536,51 @@ namespace Common.DAL
                     sqlSugarTranscation.Do(() =>
                     {
                         sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Updateable<T>()
-                                                                .Where(predicate)
-                                                                .SetColumns(updateExpression)
-                                                                .ExecuteCommand();
+                                                                 .Where(predicate)
+                                                                 .SetColumns(updateExpression)
+                                                                 .ExecuteCommand();
                     }).Wait();
+                }
+            }
+
+            public async Task UpdateAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_masterConnectionString);
+
+                    try
+                    {
+                        await sqlSugarClient.Updateable<T>()
+                                      .Where(predicate)
+                                      .SetColumns(updateExpression)
+                                      .ExecuteCommandAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    await await sqlSugarTranscation.Do(async () =>
+                    {
+                        await sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Updateable<T>()
+                                                                 .Where(predicate)
+                                                                 .SetColumns(updateExpression)
+                                                                 .ExecuteCommandAsync();
+                    });
                 }
             }
 
             public int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
@@ -433,12 +618,55 @@ namespace Common.DAL
 
                         return query.Count();
                     }).Result;
+                }
+            }
+
+            public async Task<int> CountAsync(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+
+                        if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else if (!string.IsNullOrWhiteSpace(queryWhere))
+                            query.Where(queryWhere);
+
+                        return await query.CountAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return await await sqlSugarTranscation.Do(async () =>
+                    {
+                        ISugarQueryable<T> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>();
+
+                        if (!string.IsNullOrWhiteSpace(queryWhere) && parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else if (!string.IsNullOrWhiteSpace(queryWhere))
+                            query.Where(queryWhere);
+
+                        return await query.CountAsync();
+                    });
                 }
             }
 
             public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
@@ -475,9 +703,48 @@ namespace Common.DAL
                 }
             }
 
+            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+
+                        if (predicate != null)
+                            query = query.Where(predicate);
+
+                        return await query.CountAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return await await sqlSugarTranscation.Do(async () =>
+                    {
+                        ISugarQueryable<T> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>();
+
+                        if (predicate != null)
+                            query = query.Where(predicate);
+
+                        return await query.CountAsync();
+                    });
+                }
+            }
+
             public T Get(long id, ITransaction transaction = null)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
@@ -504,13 +771,42 @@ namespace Common.DAL
                 }
             }
 
+            public async Task<T> GetAsync(long id, ITransaction transaction = null)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        return await sqlSugarClient.Queryable<T>().InSingleAsync(id);
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return await await sqlSugarTranscation.Do(async () =>
+                    {
+                        return await sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>().InSingleAsync(id);
+                    });
+                }
+            }
+
             public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                          int startIndex = 0,
                                          int count = int.MaxValue,
                                          ITransaction transaction = null)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
@@ -555,6 +851,57 @@ namespace Common.DAL
                 }
             }
 
+            public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
+                                         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue,
+                                         ITransaction transaction = null)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+
+                        if (predicate != null)
+                            query = query.Where(predicate);
+
+                        if (queryOrderBies != null)
+                            foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                                query = query.OrderBy(queryOrderBy.Expression, GetOrderByType(queryOrderBy.OrderByType));
+
+                        return await query.Skip(startIndex).Take(count).ToListAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return await await sqlSugarTranscation.Do(async () =>
+                    {
+                        ISugarQueryable<T> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>();
+
+                        if (predicate != null)
+                            query = query.Where(predicate);
+
+                        if (queryOrderBies != null)
+                            foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                                query = query.OrderBy(queryOrderBy.Expression, GetOrderByType(queryOrderBy.OrderByType));
+
+                        return await query.Skip(startIndex).Take(count).ToListAsync();
+                    });
+                }
+            }
+
             public IEnumerable<JoinResult<T, TJoinTable>> Search<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                                                              Expression<Func<T, TJoinTable, bool>> predicate = null,
                                                                              IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
@@ -563,8 +910,8 @@ namespace Common.DAL
                                                                              ITransaction transaction = null)
                 where TJoinTable : class, IEntity, new()
             {
-                Apply<T>(transaction, out bool inTransaction);
-                Apply<TJoinTable>(transaction, out bool _);
+                bool inTransaction = Apply<T>(transaction) &&
+                                     Apply<TJoinTable>(transaction);
 
                 if (!inTransaction)
                 {
@@ -612,13 +959,69 @@ namespace Common.DAL
                 }
             }
 
+            public async Task<IEnumerable<JoinResult<T, TJoinTable>>> SearchAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                                                                             Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                                                             IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
+                                                                             int startIndex = 0,
+                                                                             int count = int.MaxValue,
+                                                                             ITransaction transaction = null)
+                where TJoinTable : class, IEntity, new()
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction) &&
+                                     await ApplyAsync<TJoinTable>(transaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(
+                                    SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
+
+                        if (predicate != null)
+                            query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+
+                        if (queryOrderBies != null)
+                            foreach (QueryOrderBy<T, TJoinTable> queryOrderBy in queryOrderBies)
+                                query = query.OrderBy(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(queryOrderBy.Expression), GetOrderByType(queryOrderBy.OrderByType));
+
+                        return (await query.Select((tleft, tright) => new { tleft, tright }).Skip(startIndex).Take(count).ToListAsync()).Select(item => new JoinResult<T, TJoinTable>(item.tleft, item.tright));
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return await await sqlSugarTranscation.Do(async () =>
+                    {
+                        ISugarQueryable<T, TJoinTable> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable(
+                                       SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
+
+                        if (predicate != null)
+                            query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+
+                        if (queryOrderBies != null)
+                            foreach (QueryOrderBy<T, TJoinTable> queryOrderBy in queryOrderBies)
+                                query = query.OrderBy(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(queryOrderBy.Expression), GetOrderByType(queryOrderBy.OrderByType));
+
+                        return (await query.Select((tleft, tright) => new { tleft, tright }).Skip(startIndex).Take(count).ToListAsync()).Select(item => new JoinResult<T, TJoinTable>(item.tleft, item.tright));
+                    });
+                }
+            }
+
             public int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
                                          Expression<Func<T, TJoinTable, bool>> predicate = null,
                                          ITransaction transaction = null)
                 where TJoinTable : class, IEntity, new()
             {
-                Apply<T>(transaction, out bool inTransaction);
-                Apply<TJoinTable>(transaction, out bool _);
+                bool inTransaction = Apply<T>(transaction) &&
+                                     Apply<TJoinTable>(transaction);
 
                 if (!inTransaction)
                 {
@@ -655,6 +1058,49 @@ namespace Common.DAL
                 }
             }
 
+            public async Task<int> CountAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
+                                         Expression<Func<T, TJoinTable, bool>> predicate = null,
+                                         ITransaction transaction = null)
+                where TJoinTable : class, IEntity, new()
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction) &&
+                                     await ApplyAsync<TJoinTable>(transaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        ISugarQueryable<T, TJoinTable> query = sqlSugarClient.Queryable(SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
+
+                        if (predicate != null)
+                            query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+
+                        return await query.CountAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return await await sqlSugarTranscation.Do(async () =>
+                    {
+                        ISugarQueryable<T, TJoinTable> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable(SqlSugarJoinQuery<T, TJoinTable>.ConvertJoinExpression(joinCondition.LeftJoinExpression, joinCondition.RightJoinExression));
+
+                        if (predicate != null)
+                            query = query.Where(SqlSugarJoinQuery<T, TJoinTable>.ConvertExpression(predicate));
+
+                        return await query.CountAsync();
+                    });
+                }
+            }
+
             public IEnumerable<T> Search(string queryWhere,
                                          Dictionary<string, object> parameters = null,
                                          string orderByFields = null,
@@ -662,7 +1108,7 @@ namespace Common.DAL
                                          int count = int.MaxValue,
                                          ITransaction transaction = null)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
@@ -709,9 +1155,63 @@ namespace Common.DAL
                 }
             }
 
+            public async Task<IEnumerable<T>> SearchAsync(string queryWhere,
+                                         Dictionary<string, object> parameters = null,
+                                         string orderByFields = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue,
+                                         ITransaction transaction = null)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        ISugarQueryable<T> query = sqlSugarClient.Queryable<T>();
+
+                        if (parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else
+                            query.Where(queryWhere);
+
+                        if (!string.IsNullOrWhiteSpace(orderByFields))
+                            query.OrderBy(orderByFields);
+
+                        return await query.Skip(startIndex).Take(count).ToListAsync();
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return await await sqlSugarTranscation.Do(async () =>
+                    {
+                        ISugarQueryable<T> query = sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Queryable<T>();
+
+                        if (parameters != null)
+                            query.Where(queryWhere, parameters);
+                        else
+                            query.Where(queryWhere);
+
+                        if (!string.IsNullOrWhiteSpace(orderByFields))
+                            query.OrderBy(orderByFields);
+
+                        return await query.Skip(startIndex).Take(count).ToListAsync();
+                    });
+                }
+            }
+
             public IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
             {
-                Apply<T>(transaction, out bool inTransaction);
+                bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
@@ -758,6 +1258,65 @@ namespace Common.DAL
                 }
             }
 
+            public async Task<IEnumerable<IDictionary<string, object>>> QueryAsync(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (!inTransaction)
+                {
+                    SqlSugarClient sqlSugarClient = CreateConnection(m_slaveConnectionString);
+
+                    try
+                    {
+                        IEnumerable<IDictionary<string, object>> datas = await sqlSugarClient.Ado.SqlQueryAsync<ExpandoObject>(sql, parameters);
+
+                        return datas.Select(data =>
+                        {
+                            IDictionary<string, object> result = new Dictionary<string, object>();
+
+                            foreach (KeyValuePair<string, object> item in data)
+                                result.Add(item.Key.ToUpper(), item.Value);
+
+                            return result;
+                        });
+                    }
+                    finally
+                    {
+                        if (sqlSugarClient != null)
+                            sqlSugarClient.Dispose();
+                    }
+                }
+                else
+                {
+                    SqlSugarTranscation sqlSugarTranscation = (SqlSugarTranscation)transaction;
+
+                    return await await sqlSugarTranscation.Do(async () =>
+                    {
+                        IEnumerable<IDictionary<string, object>> datas = await sqlSugarTranscation.SqlSugarTaskScheduler.SqlSugarClient.Ado.SqlQueryAsync<ExpandoObject>(sql, parameters);
+
+                        return datas.Select(data =>
+                        {
+                            IDictionary<string, object> result = new Dictionary<string, object>();
+
+                            foreach (KeyValuePair<string, object> item in data)
+                                result.Add(item.Key.ToUpper(), item.Value);
+
+                            return result;
+                        });
+                    });
+                }
+            }
+
+            public ITransaction BeginTransaction(int weight = 0)
+            {
+                return new SqlSugarTranscation(weight);
+            }
+
+            public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
+            {
+                return await Task.FromResult(new SqlSugarTranscation(weight));
+            }
+
             private static SqlSugar.OrderByType GetOrderByType(OrderByType orderByType)
             {
                 return orderByType switch
@@ -766,11 +1325,6 @@ namespace Common.DAL
                     OrderByType.Desc => SqlSugar.OrderByType.Desc,
                     _ => throw new NotSupportedException(),
                 };
-            }
-
-            public ITransaction BeginTransaction(int weight = 0)
-            {
-                return new SqlSugarTranscation(weight);
             }
         }
 
@@ -783,17 +1337,14 @@ namespace Common.DAL
             public int Weight { get; }
             public SqlSugarTaskScheduler SqlSugarTaskScheduler { get; }
 
+            public object Context { get { return SqlSugarTaskScheduler; } }
+
             public SqlSugarTranscation(int weight)
             {
                 Identity = Guid.NewGuid().ToString("D");
                 Weight = weight;
                 TransactionTables = new HashSet<Type>();
                 SqlSugarTaskScheduler = new SqlSugarTaskScheduler();
-            }
-
-            public object Context()
-            {
-                return SqlSugarTaskScheduler;
             }
 
             public void Dispose()
@@ -807,9 +1358,19 @@ namespace Common.DAL
                 Do(() => { SqlSugarTaskScheduler.SqlSugarClient.RollbackTran(); }).Wait();
             }
 
+            public async Task RollbackAsync()
+            {
+                await Do(() => { SqlSugarTaskScheduler.SqlSugarClient.RollbackTran(); });
+            }
+
             public void Submit()
             {
                 Do(() => { SqlSugarTaskScheduler.SqlSugarClient.CommitTran(); }).Wait();
+            }
+
+            public async Task SubmitAsync()
+            {
+                await Do(() => { SqlSugarTaskScheduler.SqlSugarClient.CommitTran(); });
             }
 
             public async Task<T> Do<T>(Func<T> func)

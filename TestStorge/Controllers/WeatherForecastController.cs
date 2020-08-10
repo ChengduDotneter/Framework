@@ -9,6 +9,8 @@ using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace TestStorge.Controllers
 {
@@ -20,19 +22,20 @@ namespace TestStorge.Controllers
 
         public TCCStorgeController(
             IEditQuery<StockInfoCousme> editQuery,
+            IHttpClientFactory httpClientFactory,
             IHttpContextAccessor httpContextAccessor,
             ITccTransactionManager tccTransactionManager,
             ISearchQuery<StockInfo> stockInfoSearchQuery,
-            IEditQuery<StockInfo> stockInfoEditQuery) : base(editQuery, httpContextAccessor, tccTransactionManager)
+            IEditQuery<StockInfo> stockInfoEditQuery) : base(editQuery, httpClientFactory, httpContextAccessor, tccTransactionManager)
         {
             m_stockInfoSearchQuery = stockInfoSearchQuery;
             m_stockInfoEditQuery = stockInfoEditQuery;
         }
 
-        protected override void DoTry(long tccID, ITransaction transaction, StockInfoCousme data)
+        protected override async Task DoTry(long tccID, ITransaction transaction, StockInfoCousme data)
         {
             IEnumerable<string> commodityNames = data.StockInfos.Select(item => item.CommodityName);
-            IEnumerable<StockInfo> currentStockInfos = m_stockInfoSearchQuery.FilterIsDeleted().Search(item => commodityNames.Contains(item.CommodityName), transaction: transaction);
+            IEnumerable<StockInfo> currentStockInfos = await m_stockInfoSearchQuery.FilterIsDeleted().SearchAsync(item => commodityNames.Contains(item.CommodityName), transaction: transaction);
 
             foreach (StockInfo stockInfo in data.StockInfos)
             {
@@ -47,7 +50,7 @@ namespace TestStorge.Controllers
                 currentStock.Number -= stockInfo.Number;
             }
 
-            m_stockInfoEditQuery.FilterIsDeleted().Merge(transaction, currentStockInfos.ToArray());
+            await m_stockInfoEditQuery.FilterIsDeleted().MergeAsync(transaction, currentStockInfos.ToArray());
         }
     }
 

@@ -34,7 +34,7 @@ namespace Common.DAL.ETL
                     Transform(etlTable, pageSize, sourceSearchQueryFactory, destEditQueryFactory);
                     complatedTables.Add(etlTable);
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
 
             return etlTask;
         }

@@ -1,4 +1,5 @@
 using System;
+using Common.Lock;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,15 +9,26 @@ using Microsoft.Extensions.Hosting;
 
 namespace TCCManager
 {
+    /// <summary>
+    /// Startup
+    /// </summary>
     public class Startup
     {
         private IConfiguration m_configuration;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="configuration"></param>
         public Startup(IConfiguration configuration)
         {
             m_configuration = configuration;
         }
 
+        /// <summary>
+        /// 配置服务
+        /// </summary>
+        /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
             //解决跨域问题
@@ -34,13 +46,19 @@ namespace TCCManager
 
             IMvcBuilder mvcBuilder = services.AddControllers(new Type[0], new Type[0]);
 
+            services.AddSingleton((sp) => LockFactory.GetRedisLock());
             services.AddHttpContextAccessor();
             services.ConfigureValidation(mvcBuilder, 10);
             services.AddJsonSerialize();
             services.AddSwagger();
-            services.AddHttpClient();
         }
 
+        /// <summary>
+        /// 配置管道
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="env"></param>
+        /// <param name="lifetime"></param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
         {
             if (env.IsDevelopment())
@@ -64,8 +82,8 @@ namespace TCCManager
             });
 
             //注册服务发现
-            if (!env.IsDevelopment())
-                app.RegisterConsul(lifetime, m_configuration);
+            //if (!env.IsDevelopment())
+            app.RegisterConsul(lifetime, m_configuration);
         }
     }
 }
