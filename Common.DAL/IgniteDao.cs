@@ -1,14 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Cache;
 using Apache.Ignite.Core.Cache.Configuration;
 using Apache.Ignite.Core.Cache.Query;
 using Apache.Ignite.Linq;
 using Common.DAL.Transaction;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Common.DAL
 {
@@ -567,11 +567,37 @@ namespace Common.DAL
                 {
                     Name = typeof(T).Name,
                     //TODO: ignite平衡算法
-                    CacheMode = CacheMode.Replicated,
+                    CacheMode = GetCacheModeByConfig(),
                     QueryEntities = new[] { new QueryEntity(typeof(long), typeof(T)) { Fields = queryFields, Indexes = queryIndices } },
                     SqlSchema = string.Format("\"{0}\"", ConfigManager.Configuration["IgniteService:RegionName"]),
                     AtomicityMode = CacheAtomicityMode.Transactional
                 };
+            }
+
+            /// <summary>
+            /// 根据配置文件获取缓存模式 Local 本地缓存 Replicated 复制模式 Partitioned 分区模式
+            /// </summary>
+            /// <returns></returns>
+            private static CacheMode GetCacheModeByConfig()
+            {
+                string cacheModelConfig = ConfigManager.Configuration["IgniteService:CacheMode"];
+
+                if (!string.IsNullOrWhiteSpace(cacheModelConfig))
+                {
+                    switch (cacheModelConfig.ToUpper())
+                    {
+                        case "LOCAL":
+                            return CacheMode.Local;
+                        case "REPLICATED":
+                            return CacheMode.Replicated;
+                        case "PARTITIONED":
+                            return CacheMode.Partitioned;
+                        default:
+                            break;
+                    }
+                }
+
+                return CacheMode.Replicated;
             }
 
             private static Type GetFieldType(Type propertyType)

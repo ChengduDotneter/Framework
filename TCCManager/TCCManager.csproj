@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>TCCManager.Model.xml</DocumentationFile>
+  </PropertyGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">
