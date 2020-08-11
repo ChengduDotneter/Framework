@@ -45,6 +45,18 @@ namespace Common.Log
                     });
         }
 
+        public async Task Error(string customCode, string message)
+        {
+            await GetKafkaInstance<CustomErrorLog>().ProduceAsync(new MQContext(nameof(CustomErrorLog), null),
+                    new CustomErrorLog
+                    {
+                        CustomCode = customCode,
+                        Message = message,
+                        Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
+                        NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
+                    });
+        }
+
         public async Task Info(string customCode, string message)
         {
             await GetKafkaInstance<CustomLog>().ProduceAsync(new MQContext(nameof(CustomLog), null),
@@ -109,5 +121,6 @@ namespace Common.Log
                         TranscationID = transcationID
                     });
         }
+
     }
 }

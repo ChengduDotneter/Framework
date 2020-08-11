@@ -24,6 +24,13 @@ namespace Common.Log
         Task Info(string controllerName, string methed, string path, string parameters);
 
         /// <summary>
+        /// 自定义报错日志写入
+        /// </summary>
+        /// <param name="customCode">自定义编码</param>
+        /// <param name="message">需要写入的日志信息</param>
+        Task Error(string customCode, string message);
+
+        /// <summary>
         /// 接口报错日志写入
         /// </summary>
         /// <param name="path">接口路径</param>
