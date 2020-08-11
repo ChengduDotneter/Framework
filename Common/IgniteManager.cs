@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Apache.Ignite.Core;
+﻿using Apache.Ignite.Core;
 using Apache.Ignite.Core.Cluster;
-using Apache.Ignite.Core.Events;
+using System;
+using System.Collections.Generic;
 
 namespace Common
 {

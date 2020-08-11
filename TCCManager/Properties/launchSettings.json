@@ -20,11 +20,11 @@
     "TCCManager": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "weatherforecast",
+      "launchUrl": "swagger/index.html",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://127.0.0.1:10003"
+      "applicationUrl": "http://192.168.10.69:10003"
     }
   }
 }

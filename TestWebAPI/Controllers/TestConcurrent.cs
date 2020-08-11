@@ -1,4 +1,9 @@
-﻿using Apache.Ignite.Core.Cache.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Apache.Ignite.Core.Cache.Configuration;
 using Common;
 using Common.DAL;
 using Common.Model;
@@ -6,11 +11,7 @@ using Common.ServiceCommon;
 using Common.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 using SqlSugar;
-using System;
-using System.Collections.Generic;
-using System.Threading;
 
 namespace TestWebAPI.Controllers
 {
@@ -31,7 +32,6 @@ namespace TestWebAPI.Controllers
     {
         private readonly ISearchQuery<ConcurrentModel> m_searchQuery;
         private readonly IEditQuery<ConcurrentModel> m_editQuery;
-        private readonly ISSOUserService m_ssoUserService;
         private readonly ISearchQuery<WarehouseInfo> m_warehouseInfoSearchQuery;
 
 
@@ -44,36 +44,30 @@ namespace TestWebAPI.Controllers
             m_editQuery = editQuery;
             m_searchQuery = searchQuery;
             m_warehouseInfoSearchQuery = warehouseInfoSearchQuery;
-            m_ssoUserService = ssoUserService;
         }
 
         protected override void DoPost(long id, ConcurrentModel concurrentModel)
         {
-            using (ITransaction transaction = m_editQuery.FilterIsDeleted().BeginTransaction(20))
-            {
-                try
-                {
-                    if (m_searchQuery.FilterIsDeleted().Count(item => item.UserAccount == concurrentModel.UserAccount, transaction) == 0)
-                    {
-                        int time = Environment.TickCount;
+            m_editQuery.FilterIsDeleted().Insert(null, concurrentModel);
+        }
+    }
+    [ApiController]
+    [Route("tt")]
+    public class testController : GenericGetController<ConcurrentModel>
+    {
+        private readonly ISearchQuery<ConcurrentModel> m_searchQuery;
+        public testController(ISearchQuery<ConcurrentModel> searchQuery) : base(searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
 
-                        IEnumerable<WarehouseInfo> warehouseInfos = m_warehouseInfoSearchQuery.FilterIsDeleted().Search(transaction: transaction);
+        protected override ConcurrentModel DoGet(long id)
+        {
+            var count = m_searchQuery.Count();
 
-                        m_editQuery.FilterIsDeleted().Insert(transaction, concurrentModel);
+            string sql = "SELECT * FROM ConcurrentModel WHERE ";
 
-                        transaction.Submit();
-                    }
-                    else
-                    {
-                        throw new DealException("账号已存在");
-                    }
-                }
-                catch (Exception)
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }
+            return MapperModelHelper<ConcurrentModel>.ReadModel(m_searchQuery.Query(sql)).FirstOrDefault();
         }
     }
 
@@ -98,8 +92,6 @@ namespace TestWebAPI.Controllers
 
         protected override void DoPost(long id, WarehouseInfo warehouseInfo)
         {
-            long time = Environment.TickCount64;
-
             using (ITransaction transaction = m_warehouseInfoEditQuery.FilterIsDeleted().BeginTransaction(10))
             {
                 try
@@ -127,24 +119,43 @@ namespace TestWebAPI.Controllers
         public string Data { get; set; }
     }
 
+    [Route("abc")]
+    [ApiController]
+    public class CCC : ControllerBase
+    {
+        private ISearchQuery<TCCTestData> m_searchQuery;
+
+        public CCC(ISearchQuery<TCCTestData> searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
+
+        [HttpGet]
+        public async Task<TCCTestData> Get()
+        {
+            return (await m_searchQuery.SearchAsync(count: 1)).FirstOrDefault();
+        }
+    }
+
     [Route("tccdo")]
     public class tccdocontroller : TransactionTCCController<TCCTestData>
     {
         private IEditQuery<TCCTestData> m_tccTestDataeditQuery;
         private ISearchQuery<TCCTestData> m_searchQuery;
 
-        public tccdocontroller(IEditQuery<TCCTestData> tccTestDataeditQuery, ISearchQuery<TCCTestData> searchQuery, IHttpContextAccessor httpContextAccessor, ITccTransactionManager tccTransactionManager) : base(tccTestDataeditQuery, httpContextAccessor, tccTransactionManager)
+        public tccdocontroller(IEditQuery<TCCTestData> tccTestDataeditQuery, ISearchQuery<TCCTestData> searchQuery, IHttpClientFactory httpContextFactory, IHttpContextAccessor httpContextAccessor, ITccTransactionManager tccTransactionManager) : base(tccTestDataeditQuery, httpContextFactory, httpContextAccessor, tccTransactionManager)
         {
             m_tccTestDataeditQuery = tccTestDataeditQuery;
             m_searchQuery = searchQuery;
         }
 
-        protected override void DoTry(long tccID, ITransaction transaction, TCCTestData data)
+        protected override async Task DoTry(long tccID, ITransaction transaction, TCCTestData data)
         {
             data.Data = $"{data.Data}:{data.ID}, tccID:{tccID}";
             data.ID = IDGenerator.NextID();
-            m_searchQuery.Count(transaction: transaction);
-            //m_tccTestDataeditQuery.Insert(transaction, data);
+            //m_searchQuery.Count(transaction: transaction);
+            await m_tccTestDataeditQuery.InsertAsync(transaction, data);
+            //await Task.Delay(1000);
         }
     }
 }

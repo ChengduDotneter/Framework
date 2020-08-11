@@ -58,23 +58,25 @@ namespace TestWebAPI
             IMvcBuilder mvcBuilder = services.AddControllers(modelTypes, controllerTypes);
             services.ConfigureValidation(mvcBuilder, 10);
 
-            services.AddQuerys(modelTypes);
+            //services.AddQuerys(modelTypes);
 
-            //services.AddQuerys(modelTypes,
-            //    (type) =>
-            //    {
-            //        return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
-            //    },
-            //    (type) =>
-            //    {
-            //        return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
-            //    });
+            services.AddQuerys(modelTypes,
+                (type) =>
+                {
+                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+                },
+                (type) =>
+                {
+                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
+                });
 
             services.AddJsonSerialize();
 
             services.AddTransfers();
 
             services.AddSwagger();
+
+            //services.AddLog4NetLogHelper();
 
             //System.Threading.Tasks.Task.Factory.StartNew(() =>
             //{
@@ -127,7 +129,7 @@ namespace TestWebAPI
             });
 
             //服务发现
-            if (!env.IsDevelopment())
+            //if (!env.IsDevelopment())
                 app.RegisterConsul(lifetime, m_configuration);
         }
     }

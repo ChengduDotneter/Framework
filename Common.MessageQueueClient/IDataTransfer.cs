@@ -32,7 +32,7 @@ namespace Common.MessageQueueClient
     public interface IMQConsumer<T> : IDisposable where T : class, IMQData, new()
     {
         /// <summary>
-        /// 消费
+        /// 同步消费
         /// </summary>
         /// <param name="mQContext">队列上下文</param>
         /// <param name="callback"></param>

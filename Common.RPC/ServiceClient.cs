@@ -1,6 +1,6 @@
-﻿using Common.RPC.BufferSerializer;
+﻿using Common.Log;
+using Common.RPC.BufferSerializer;
 using Common.RPC.TransferAdapter;
-using log4net;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -81,13 +81,13 @@ namespace Common.RPC
         private ConcurrentDictionary<byte, Action<SessionContext, IRPCData>> m_recieveHandlers;
 
 #if OUTPUT_LOG
-        private static ILog m_log;
+        private static ILogHelper m_logHelper;
 #endif
 
         static ServiceClient()
         {
 #if OUTPUT_LOG
-            m_log = LogHelper.CreateLog("RPC");
+            m_logHelper = LogHelperFactory.GetLog4netLogHelper();
 #endif
         }
         /// <summary>
@@ -177,7 +177,7 @@ namespace Common.RPC
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
 #if OUTPUT_LOG
-                    m_log.Error($"serialize error, message_id: {sendingData.Data.MessageID}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");
+                    m_logHelper.Info("RPC", $"serialize error, message_id: {sendingData.Data.MessageID}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");
 #endif
                 }
             }
@@ -199,7 +199,7 @@ namespace Common.RPC
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
 #if OUTPUT_LOG
-                    m_log.Error($"process error, message_id: {BitConverter.ToInt32(recieveData.Buffer, 0)}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");
+                    m_logHelper.Info("RPC", $"process error, message_id: {BitConverter.ToInt32(recieveData.Buffer, 0)}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");
 #endif
                 }
             }

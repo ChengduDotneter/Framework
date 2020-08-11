@@ -1,4 +1,4 @@
-﻿using log4net;
+﻿using Common.Log;
 using NetMQ;
 using NetMQ.Sockets;
 using System;
@@ -26,7 +26,7 @@ namespace Common.RPC.TransferAdapter
         private BlockingCollection<SendData> m_sendDatas;
         private string m_identity;
 #if OUTPUT_LOG
-        private static ILog m_log;
+        private static ILogHelper m_logHelper;
 #endif
 
         private class SendData
@@ -50,7 +50,7 @@ namespace Common.RPC.TransferAdapter
         static ZeroMQTransferAdapter()
         {
 #if OUTPUT_LOG
-            m_log = LogHelper.CreateLog("Transfer", "ZeroMQ");
+            m_logHelper = LogHelperFactory.GetLog4netLogHelper();
 #endif
         }
 
@@ -229,7 +229,7 @@ namespace Common.RPC.TransferAdapter
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
 #if OUTPUT_LOG
-                    m_log.Error($"send error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
+                    m_logHelper.Info("Transfer_ZeroMQ", $"send error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
                 }
             }
@@ -285,7 +285,7 @@ namespace Common.RPC.TransferAdapter
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                         {
 #if OUTPUT_LOG
-                            m_log.Error($"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
+                            m_logHelper.Info("Transfer_ZeroMQ", $"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
                         }
                     }

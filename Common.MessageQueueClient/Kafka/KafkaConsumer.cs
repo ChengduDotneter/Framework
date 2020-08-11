@@ -1,6 +1,6 @@
 ﻿using Confluent.Kafka;
-using Newtonsoft.Json;
 using System;
+using System.Text.Json;
 
 namespace Common.MessageQueueClient.Kafka
 {
@@ -11,6 +11,8 @@ namespace Common.MessageQueueClient.Kafka
     {
         private readonly IConsumer<string, string> m_consumer;
         private readonly bool m_enableAutoOffsetStore;
+        private string m_subscribeMessageQueueName;
+
 
         /// <summary>
         /// 构造函数
@@ -21,6 +23,8 @@ namespace Common.MessageQueueClient.Kafka
         {
             m_enableAutoOffsetStore = enableAutoOffsetStore;
             m_consumer = new ConsumerBuilder<string, string>(KafkaConfigBuilder.GetConsumerConfig(groupId, m_enableAutoOffsetStore)).Build();
+
+            AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
 
         /// <summary>
@@ -29,8 +33,7 @@ namespace Common.MessageQueueClient.Kafka
         /// <param name="mQContext">消息队列上下文</param>
         public void Subscribe(MQContext mQContext)
         {
-            if (!KafkaAdminClient.IsTopicExisted(mQContext.MessageQueueName, out _))
-                throw new Exception("不存在Topic主题");
+            m_subscribeMessageQueueName = mQContext.MessageQueueName;
 
             m_consumer.Subscribe(mQContext.MessageQueueName);
         }
@@ -40,6 +43,8 @@ namespace Common.MessageQueueClient.Kafka
         /// </summary>
         public void DeSubscribe()
         {
+            m_subscribeMessageQueueName = string.Empty;
+
             m_consumer.Unsubscribe();
         }
 
@@ -52,6 +57,9 @@ namespace Common.MessageQueueClient.Kafka
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
+                    throw new Exception("该消费者未订阅任何队列，请先订阅队列");
+
                 ConsumeResult<string, string> consumeResult = m_consumer.Consume();
 
                 if (callback?.Invoke(ConvertMessageToData(consumeResult.Message)) ?? false && !m_enableAutoOffsetStore)
@@ -66,14 +74,16 @@ namespace Common.MessageQueueClient.Kafka
         /// <summary>
         /// 根据泛型将Message反序列化为相应对象
         /// </summary>
-        /// <typeparam name="T">需要反序列化的类型</typeparam>
         /// <param name="message">数据类型</param>
         /// <returns></returns>
         private T ConvertMessageToData(Message<string, string> message)
         {
-            return JsonConvert.DeserializeObject<T>(message.Value);
+            return JsonSerializer.Deserialize<T>(message.Value);
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
         public void Dispose()
         {
             m_consumer?.Dispose();

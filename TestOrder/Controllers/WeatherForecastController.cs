@@ -9,6 +9,8 @@ using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace TestOrder.Controllers
 {
@@ -21,16 +23,17 @@ namespace TestOrder.Controllers
 
         public TCCOrderController(
             IEditQuery<OrderInfo> orderEditQuery,
+            IHttpClientFactory httpClientFactory,
             IHttpContextAccessor httpContextAccessor,
             ITccTransactionManager tccTransactionManager,
-            ISearchQuery<OrderInfo> orderSearchQuery, IEditQuery<OrderCommodity> orderCommodityEditQuery) : base(orderEditQuery, httpContextAccessor, tccTransactionManager)
+            ISearchQuery<OrderInfo> orderSearchQuery, IEditQuery<OrderCommodity> orderCommodityEditQuery) : base(orderEditQuery, httpClientFactory, httpContextAccessor, tccTransactionManager)
         {
             m_orderSearchQuery = orderSearchQuery;
             m_orderEditQuery = orderEditQuery;
             m_orderCommodityEditQuery = orderCommodityEditQuery;
         }
 
-        protected override void DoTry(long tccID, ITransaction transaction, OrderInfo order)
+        protected override async Task DoTry(long tccID, ITransaction transaction, OrderInfo order)
         {
             order.ID = IDGenerator.NextID();
             order.OrderNo = IDGenerator.NextID().ToString();
@@ -38,10 +41,10 @@ namespace TestOrder.Controllers
             order.CreateTime = DateTime.Now;
             order.CreateUserID = -9999;
 
-            if (m_orderSearchQuery.FilterIsDeleted().Count(item => item.OrderNo == order.OrderNo && item.ID != order.ID, transaction: transaction) > 0)
+            if (await m_orderSearchQuery.FilterIsDeleted().CountAsync(item => item.OrderNo == order.OrderNo && item.ID != order.ID, transaction: transaction) > 0)
                 throw new DealException("订单已存在");
 
-            m_orderEditQuery.FilterIsDeleted().Insert(transaction, order);
+            await m_orderEditQuery.FilterIsDeleted().InsertAsync(transaction, order);
 
             foreach (OrderCommodity orderCommodity in order.OrderCommodities)
             {
@@ -52,7 +55,7 @@ namespace TestOrder.Controllers
                 orderCommodity.OrderID = order.ID;
             }
 
-            m_orderCommodityEditQuery.FilterIsDeleted().Insert(transaction, order.OrderCommodities.ToArray());
+            await m_orderCommodityEditQuery.FilterIsDeleted().InsertAsync(transaction, order.OrderCommodities.ToArray());
         }
     }
 

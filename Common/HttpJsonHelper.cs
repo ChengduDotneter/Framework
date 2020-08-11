@@ -14,205 +14,221 @@ namespace Common
         /// <summary>
         /// post异步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="url">请求基地址</param>
         /// <param name="action">请求方法</param>
         /// <param name="content">请求Body</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpPostAsync(string url, string action, HttpContent content, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpPostAsync(IHttpClientFactory httpClientFactory, string url, string action, HttpContent content, string bearerToken = "")
         {
-            return GetHttpClient(url).AddAuthorizationHeader(bearerToken).PostAsync(action, content.AddJsonContentType());
+            HttpClient httpClient = httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(url);
+
+            return httpClient.AddAuthorizationHeader(bearerToken).PostAsync(action, content.AddJsonContentType());
         }
 
         /// <summary>
         /// Post同步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="url">请求基地址</param>
         /// <param name="action">请求方法</param>
         /// <param name="content">请求Body</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpPost(string url, string action, HttpContent content, string bearerToken = "")
+        public static HttpResponseMessage HttpPost(IHttpClientFactory httpClientFactory, string url, string action, HttpContent content, string bearerToken = "")
         {
-            return HttpPostAsync(url, action, content, bearerToken).Result;
+            return HttpPostAsync(httpClientFactory, url, action, content, bearerToken).Result;
         }
 
         /// <summary>
         /// get异步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="url">请求基地址</param>
         /// <param name="action">请求方法</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpGetAsync(string url, string action, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpGetAsync(IHttpClientFactory httpClientFactory, string url, string action, string bearerToken = "")
         {
-            return GetHttpClient(url).AddAuthorizationHeader(bearerToken).GetAsync(action);
+            HttpClient httpClient = httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(url);
+
+            return httpClient.AddAuthorizationHeader(bearerToken).GetAsync(action);
         }
 
         /// <summary>
         /// get同步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="url">请求基地址</param>
         /// <param name="action">请求方法</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpGet(string url, string action, string bearerToken = "")
+        public static HttpResponseMessage HttpGet(IHttpClientFactory httpClientFactory, string url, string action, string bearerToken = "")
         {
-            return HttpGetAsync(url, action, bearerToken).Result;
+            return HttpGetAsync(httpClientFactory, url, action, bearerToken).Result;
         }
 
         /// <summary>
         /// put异步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="url">请求基地址</param>
         /// <param name="action">请求方法</param>
         /// <param name="content">请求Body</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpPutAsync(string url, string action, HttpContent content, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpPutAsync(IHttpClientFactory httpClientFactory, string url, string action, HttpContent content, string bearerToken = "")
         {
-            return GetHttpClient(url).AddAuthorizationHeader(bearerToken).PutAsync(action, content.AddJsonContentType());
+            HttpClient httpClient = httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(url);
+
+            return httpClient.AddAuthorizationHeader(bearerToken).PutAsync(action, content.AddJsonContentType());
         }
 
         /// <summary>
         /// put同步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="url">请求基地址</param>
         /// <param name="action">请求方法</param>
         /// <param name="content">请求Body</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpPut(string url, string action, HttpContent content, string bearerToken = "")
+        public static HttpResponseMessage HttpPut(IHttpClientFactory httpClientFactory, string url, string action, HttpContent content, string bearerToken = "")
         {
-            return HttpPutAsync(url, action, content, bearerToken).Result;
+            return HttpPutAsync(httpClientFactory, url, action, content, bearerToken).Result;
         }
 
         /// <summary>
         /// delete异步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="url">请求基地址</param>
         /// <param name="action">请求方法</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpDeleteAsync(string url, string action, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpDeleteAsync(IHttpClientFactory httpClientFactory, string url, string action, string bearerToken = "")
         {
-            return GetHttpClient(url).AddAuthorizationHeader(bearerToken).DeleteAsync(action);
+            HttpClient httpClient = httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(url);
+
+            return httpClient.AddAuthorizationHeader(bearerToken).DeleteAsync(action);
         }
 
         /// <summary>
         /// delete同步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="url">请求基地址</param>
         /// <param name="action">请求方法</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpDelete(string url, string action, string bearerToken = "")
+        public static HttpResponseMessage HttpDelete(IHttpClientFactory httpClientFactory, string url, string action, string bearerToken = "")
         {
-            return HttpDeleteAsync(url, action, bearerToken).Result;
+            return HttpDeleteAsync(httpClientFactory, url, action, bearerToken).Result;
         }
 
         /// <summary>
         /// post绝对路径异步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="absoluteUri">请求绝对路径</param>
         /// <param name="requestObject">请求的对象</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpPostByAbsoluteUriAsync(string absoluteUri, object requestObject = null, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpPostByAbsoluteUriAsync(IHttpClientFactory httpClientFactory, string absoluteUri, object requestObject = null, string bearerToken = "")
         {
-            return GetHttpClient().AddAuthorizationHeader(bearerToken).PostAsync(absoluteUri, ObjectToByteArrayContent(requestObject).AddJsonContentType());
+            return httpClientFactory.CreateClient().AddAuthorizationHeader(bearerToken).PostAsync(absoluteUri, ObjectToByteArrayContent(requestObject).AddJsonContentType());
         }
 
         /// <summary>
         /// Post绝对路径同步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="absoluteUri">请求绝对路径</param>
         /// <param name="requestObject">请求的对象</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpPostByAbsoluteUri(string absoluteUri, object requestObject = null, string bearerToken = "")
+        public static HttpResponseMessage HttpPostByAbsoluteUri(IHttpClientFactory httpClientFactory, string absoluteUri, object requestObject = null, string bearerToken = "")
         {
-            return HttpPostByAbsoluteUriAsync(absoluteUri, requestObject, bearerToken).Result;
+            return HttpPostByAbsoluteUriAsync(httpClientFactory, absoluteUri, requestObject, bearerToken).Result;
         }
 
         /// <summary>
         /// get绝对路径异步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="absoluteUri">请求绝对路径</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpGetByAbsoluteUriAsync(string absoluteUri, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpGetByAbsoluteUriAsync(IHttpClientFactory httpClientFactory, string absoluteUri, string bearerToken = "")
         {
-            return GetHttpClient().AddAuthorizationHeader(bearerToken).GetAsync(absoluteUri);
+            return httpClientFactory.CreateClient().AddAuthorizationHeader(bearerToken).GetAsync(absoluteUri);
         }
 
         /// <summary>
         /// get绝对路径同步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="absoluteUri">请求绝对路径</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpGetByAbsoluteUri(string absoluteUri, string bearerToken = "")
+        public static HttpResponseMessage HttpGetByAbsoluteUri(IHttpClientFactory httpClientFactory, string absoluteUri, string bearerToken = "")
         {
-            return HttpGetByAbsoluteUriAsync(absoluteUri, bearerToken).Result;
+            return HttpGetByAbsoluteUriAsync(httpClientFactory, absoluteUri, bearerToken).Result;
         }
 
         /// <summary>
         /// put绝对路径异步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="absoluteUri">请求绝对路径</param>
         /// <param name="requestObject">请求的对象</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpPutByAbsoluteUriAsync(string absoluteUri, object requestObject = null, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpPutByAbsoluteUriAsync(IHttpClientFactory httpClientFactory, string absoluteUri, object requestObject = null, string bearerToken = "")
         {
-            return GetHttpClient().AddAuthorizationHeader(bearerToken).PutAsync(absoluteUri, ObjectToByteArrayContent(requestObject).AddJsonContentType());
+            return httpClientFactory.CreateClient().AddAuthorizationHeader(bearerToken).PutAsync(absoluteUri, ObjectToByteArrayContent(requestObject).AddJsonContentType());
         }
 
         /// <summary>
         /// put绝对路径同步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="absoluteUri">请求绝对路径</param>
         /// <param name="requestObject">请求的对象</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpPutByAbsoluteUri(string absoluteUri, object requestObject = null, string bearerToken = "")
+        public static HttpResponseMessage HttpPutByAbsoluteUri(IHttpClientFactory httpClientFactory, string absoluteUri, object requestObject = null, string bearerToken = "")
         {
-            return HttpPutByAbsoluteUriAsync(absoluteUri, requestObject, bearerToken).Result;
+            return HttpPutByAbsoluteUriAsync(httpClientFactory, absoluteUri, requestObject, bearerToken).Result;
         }
 
         /// <summary>
         /// delete绝对路径异步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="absoluteUri">请求绝对路径</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> HttpDeleteByAbsoluteUriAsync(string absoluteUri, string bearerToken = "")
+        public static Task<HttpResponseMessage> HttpDeleteByAbsoluteUriAsync(IHttpClientFactory httpClientFactory, string absoluteUri, string bearerToken = "")
         {
-            return GetHttpClient().AddAuthorizationHeader(bearerToken).DeleteAsync(absoluteUri);
+            return httpClientFactory.CreateClient().AddAuthorizationHeader(bearerToken).DeleteAsync(absoluteUri);
         }
 
         /// <summary>
         /// delete绝对路径同步请求
         /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="absoluteUri">请求绝对路径</param>
         /// <param name="bearerToken">Bearer验证，如不用Bearer认证则不传</param>
         /// <returns></returns>
-        public static HttpResponseMessage HttpDeleteByAbsoluteUri(string absoluteUri, string bearerToken = "")
+        public static HttpResponseMessage HttpDeleteByAbsoluteUri(IHttpClientFactory httpClientFactory, string absoluteUri, string bearerToken = "")
         {
-            return HttpDeleteByAbsoluteUriAsync(absoluteUri, bearerToken).Result;
-        }
-
-        private static HttpClient GetHttpClient(string url)
-        {
-            HttpClient httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(url);
-            return httpClient;
-        }
-
-        private static HttpClient GetHttpClient()
-        {
-            return new HttpClient();
+            return HttpDeleteByAbsoluteUriAsync(httpClientFactory, absoluteUri, bearerToken).Result;
         }
 
         /// <summary>
@@ -249,6 +265,7 @@ namespace Common
         /// <returns></returns>
         public static HttpContent ObjectToByteArrayContent(object requestObject)
         {
+            //TODO:暂时还原为Newtonsoft.Json，System.Text.Json 存在JObject JArray序列化不支持情况
             return new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(requestObject)));
         }
     }

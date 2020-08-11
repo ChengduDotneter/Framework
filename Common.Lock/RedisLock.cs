@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using StackExchange.Redis;
 
 namespace Common.Lock
@@ -10,25 +12,57 @@ namespace Common.Lock
     {
         private class LockInstance
         {
+            private CancellationTokenSource m_cancellationTokenSource;
             public RedisValue Token { get; }
             public ISet<RedisKey> Locks { get; }
+            public bool Running { get; private set; }
 
             public LockInstance(string identity)
             {
+                m_cancellationTokenSource = new CancellationTokenSource();
                 Token = new RedisValue(identity);
                 Locks = new HashSet<RedisKey>();
+                Running = true;
+
+                Task.Factory.StartNew(async () =>
+                {
+                    while (Running)
+                    {
+                        try
+                        {
+                            RedisKey[] redisKeys = Locks.ToArray();
+                            Task[] tasks = new Task[redisKeys.Length];
+
+                            for (int i = 0; i < redisKeys.Length; i++)
+                                tasks[i] = m_redisClient.LockExtendAsync(redisKeys[i], Token, TTL);
+
+                            await Task.WhenAll(tasks);
+                            await Task.Delay((int)TTL.TotalMilliseconds / 2, m_cancellationTokenSource.Token);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
+                }, TaskCreationOptions.LongRunning);
+            }
+
+            public void Close()
+            {
+                Running = false;
+                m_cancellationTokenSource.Cancel(false);
             }
         }
 
         /// <summary>
         /// Lock集合
         /// </summary>
-        private readonly static IDictionary<string, LockInstance> m_lockInstances;
+        private readonly static ConcurrentDictionary<string, LockInstance> m_lockInstances;
 
         /// <summary>
         /// TTL
         /// </summary>
-        private readonly static TimeSpan TTL = TimeSpan.FromMilliseconds(2 * 1000);
+        private readonly static TimeSpan TTL = TimeSpan.FromMilliseconds(4 * 1000);
 
         /// <summary>
         /// 连接工具
@@ -47,7 +81,7 @@ namespace Common.Lock
 
         static RedisLock()
         {
-            m_lockInstances = new Dictionary<string, LockInstance>();
+            m_lockInstances = new ConcurrentDictionary<string, LockInstance>();
 
             ConfigurationOptions configurationOptions = new ConfigurationOptions();
             configurationOptions.EndPoints.Add(ConfigManager.Configuration["RedisEndPoint"]);
@@ -60,75 +94,111 @@ namespace Common.Lock
 
         bool ILock.Acquire(string key, string identity, int weight, int timeOut)
         {
-            LockInstance lockInstance;
+            if (!m_lockInstances.ContainsKey(identity))
+                m_lockInstances.TryAdd(identity, new LockInstance(identity));
 
-            lock (m_lockInstances)
+            LockInstance lockInstance = m_lockInstances[identity];
+
+            try
             {
-                if (!m_lockInstances.ContainsKey(identity))
-                    m_lockInstances.Add(identity, new LockInstance(identity));
+                RedisKey redisKey = new RedisKey(key);
+                int time = Environment.TickCount;
 
-                lockInstance = m_lockInstances[identity];
-            }
-
-            lock (lockInstance)
-            {
-                if (!lockInstance.Locks.Contains(key))
+                while (!m_redisClient.LockTake(redisKey, lockInstance.Token, TTL))
                 {
-                    try
-                    {
-                        RedisKey redisKey = new RedisKey(key);
-                        int time = Environment.TickCount;
-
-                        while (!m_redisClient.LockTake(redisKey, lockInstance.Token, TTL))
-                        {
-                            if (Environment.TickCount - time > timeOut)
-                                return false;
-                            else
-                                Thread.Sleep(THREAD_TIME_SPAN);
-                        }
-
-                        lockInstance.Locks.Add(redisKey);
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
+                    if (Environment.TickCount - time > timeOut)
                         return false;
-                    }
+                    else
+                        Thread.Sleep(THREAD_TIME_SPAN);
                 }
-                else
+
+                lock (lockInstance.Locks)
+                    lockInstance.Locks.Add(redisKey);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        static Dictionary<string, string> sds = new Dictionary<string, string>();
+
+        async Task<bool> ILock.AcquireAsync(string key, string identity, int weight, int timeOut)
+        {
+            if (!m_lockInstances.ContainsKey(identity))
+                m_lockInstances.TryAdd(identity, new LockInstance(identity));
+
+            lock (sds)
+                if (!sds.ContainsKey(key))
+                    sds.Add(key, string.Empty);
+
+            LockInstance lockInstance = m_lockInstances[identity];
+
+            try
+            {
+                RedisKey redisKey = new RedisKey(key);
+                int time = Environment.TickCount;
+
+                lock (sds)
+                    if (sds[key] == identity)
+                        return true;
+
+                while (!await m_redisClient.LockTakeAsync(redisKey, lockInstance.Token, TTL))
                 {
-                    return true;
+                    if (Environment.TickCount - time > timeOut)
+                        return false;
+                    else
+                        await Task.Delay(THREAD_TIME_SPAN);
                 }
+
+                lockInstance.Locks.Add(redisKey);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
         void ILock.Release(string identity)
         {
-            if (!m_lockInstances.ContainsKey(identity))
+            if (!m_lockInstances.TryGetValue(identity, out LockInstance lockInstance))
                 return;
 
-            try
+            lockInstance.Close();
+
+            Task.Factory.StartNew(() =>
             {
-                LockInstance lockInstance;
-                RedisKey[] locks;
+                while (!m_lockInstances.TryRemove(identity, out _))
+                    Thread.Sleep(THREAD_TIME_SPAN);
+            });
 
-                lock (m_lockInstances)
-                {
-                    lockInstance = m_lockInstances[identity];
-                    m_lockInstances.Remove(identity);
-                }
+            RedisKey[] locks = lockInstance.Locks.ToArray();
 
-                lock (lockInstance)
-                    locks = lockInstance.Locks.ToArray();
+            for (int i = 0; i < locks.Length; i++)
+                m_redisClient.LockRelease(locks[i], lockInstance.Token);
+        }
 
-                for (int i = 0; i < locks.Length; i++)
-                    m_redisClient.LockRelease(locks[i], lockInstance.Token);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+        async Task ILock.ReleaseAsync(string identity)
+        {
+            if (!m_lockInstances.TryGetValue(identity, out LockInstance lockInstance))
+                return;
+
+            lockInstance.Close();
+
+            RedisKey[] locks = lockInstance.Locks.ToArray();
+
+            IList<Task> tasks = new List<Task>();
+
+            for (int i = 0; i < locks.Length; i++)
+                tasks.Add(m_redisClient.LockReleaseAsync(locks[i], lockInstance.Token));
+
+            await Task.WhenAll(tasks);
+
+            while (!m_lockInstances.TryRemove(identity, out _))
+                await Task.Delay(THREAD_TIME_SPAN);
         }
     }
 }

@@ -40,6 +40,7 @@ namespace Common.MessageQueueClient.Kafka
                 SessionTimeoutMs = 6000,
                 //是否自动提交offset
                 EnableAutoOffsetStore = enableAutoOffsetStore,
+                AllowAutoCreateTopics = true
             };
 
             return consumerConfig;
@@ -58,7 +59,7 @@ namespace Common.MessageQueueClient.Kafka
                 //是否开启生产者幂等性
                 EnableIdempotence = true,
                 //生产者提交消息延时时间 单位 毫秒
-                LingerMs = 10,
+                LingerMs = 10
             };
 
             return producerConfig;

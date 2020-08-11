@@ -17,7 +17,11 @@
       }
     },
     "TestWebAPI": {
-      "applicationUrl": "http://127.0.0.1:7788",
+<<<<<<< HEAD
+      "applicationUrl": "http://localhost:7788",
+=======
+      "applicationUrl": "http://192.168.10.56:7788",
+>>>>>>> fb02d29... 优化TCC，解决TCC死锁卡顿
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

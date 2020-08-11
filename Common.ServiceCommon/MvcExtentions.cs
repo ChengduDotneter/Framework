@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using System.Threading;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Configuration;
@@ -15,6 +9,12 @@ using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Hosting;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 
 namespace Common.ServiceCommon
@@ -39,8 +39,9 @@ namespace Common.ServiceCommon
         /// 配置初始化
         /// </summary>
         /// <param name="hostBuilderContext"></param>
+        /// <param name="serviceCollection"></param>
         /// <returns></returns>
-        public static HostBuilderContext ConfigInit(this HostBuilderContext hostBuilderContext)
+        public static HostBuilderContext ConfigInit(this HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection)
         {
 #if DEBUG
             hostBuilderContext.HostingEnvironment.EnvironmentName = "Development";
@@ -51,6 +52,8 @@ namespace Common.ServiceCommon
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             ConfigManager.Init(hostBuilderContext.HostingEnvironment.EnvironmentName);
             m_isCodeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
+
+            serviceCollection.AddHttpClient();
 
             if (!int.TryParse(ConfigManager.Configuration["MinThreadCount"], out int threadCount))
                 threadCount = DEFAULT_THREAD_COUNT;
@@ -247,7 +250,6 @@ namespace Common.ServiceCommon
 
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
-
         }
     }
 }

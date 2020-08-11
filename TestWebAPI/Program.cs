@@ -1,5 +1,4 @@
-using System;
-using System.Threading;
+using Common.Log;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +9,7 @@ namespace TestWebAPI
 {
     public class Program
     {
+        private static ILogHelper logHelper = LogHelperFactory.GetKafkaLogHelper();
         public static void Main(string[] args)
         {
             //Common.ConfigManager.Init("Production");
@@ -30,6 +30,8 @@ namespace TestWebAPI
             //            if (@lock.Acquire(key, identity, 0, 10000))
             //            {
             //                //Thread.Sleep(2);
+
+            //                Thread.Sleep(4000);
 
             //                count++;
 
@@ -55,7 +57,8 @@ namespace TestWebAPI
             //    {
             //        System.Threading.Thread.Sleep(1000);
 
-            //        System.Console.WriteLine(count * 1000f / (Environment.TickCount - time));
+            //        //System.Console.WriteLine(count * 1000f / (Environment.TickCount - time));
+            //        Console.WriteLine(count);
             //        //count = 0;
             //        //time = Environment.TickCount;
             //    }
@@ -84,6 +87,14 @@ namespace TestWebAPI
 
             IHostBuilder hostBuilder = CreateHostBuilder(args);
             IHost host = hostBuilder.Build();
+
+            //logHelper.Info("123", "123");
+            //logHelper.Info("123", "123", "123", "123");
+            //logHelper.Error("123", "123", 200, "123", "123", "123");
+            //logHelper.SqlError("123", "123", "123");
+            //logHelper.TCCNode(123, true, "123");
+            //logHelper.TCCServer(123, "123");
+
             host.Run();
         }
 
@@ -105,13 +116,14 @@ namespace TestWebAPI
 
         private static void ConfigInit(HostBuilderContext hostBuilderContext, IServiceCollection services)
         {
-            hostBuilderContext.ConfigInit();
+            //hostBuilderContext.ConfigIgnite();
+            hostBuilderContext.ConfigInit(services);
         }
 
         private static void LoggingConfig(HostBuilderContext hostBuilderContext, ILoggingBuilder loggingBuilder)
         {
             loggingBuilder.ClearProviders();
-            //loggingBuilder.AddConsole();
+            loggingBuilder.AddConsole();
         }
     }
 }
