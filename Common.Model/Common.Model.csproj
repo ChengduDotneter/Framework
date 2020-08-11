@@ -41,7 +41,6 @@
     <None Remove="WareHouse\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="sqlSugarCore" Version="5.0.0.14" />
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 

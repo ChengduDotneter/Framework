@@ -235,7 +235,7 @@ namespace TCCManager.Controllers
 
                 return tccModel.ID;
             }
-            catch(Exception ex)
+            catch
             {
                 throw;
             }
