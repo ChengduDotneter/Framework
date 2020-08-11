@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 
 namespace Common.ServiceCommon
 {
@@ -24,7 +23,6 @@ namespace Common.ServiceCommon
 
         private static bool ReturnEntity(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
-
             if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
                 return true;
 
@@ -63,7 +61,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public static T SendMicroServicePost<T>(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
         {
-            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sendText)));
+            HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);
 
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
                                 httpClientFactory,
@@ -87,7 +85,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public static bool SendMicroServicePost(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
         {
-            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(sendText)));
+            HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);
 
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
                                 httpClientFactory,
@@ -138,6 +136,53 @@ namespace Common.ServiceCommon
                                 httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
 
             return ReturnEntity<JObject>(microServiceName, httpResponseMessage);
+        }
+    }
+
+    public class PHPMicroServiceHelper
+    {
+        private static T ReturnEntity<T>(string microServiceName, HttpResponseMessage httpResponseMessage)
+        {
+            if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
+                return CheckReturn<T>(microServiceName, httpResponseMessage);
+
+            throw new DealException($"{microServiceName}接口调用失败");
+        }
+
+        private static T CheckReturn<T>(string microServiceName, HttpResponseMessage httpResponseMessage)
+        {
+            JObject jObject = JsonConvert.DeserializeObject<JObject>(httpResponseMessage.Content.ReadAsStringAsync().Result);
+
+            if (JTokenHelper.GetIntValue(jObject["code"]) != 200)
+                throw new DealException($"{microServiceName}接口调用失败,原因:{JTokenHelper.GetStringValue(jObject["msg"])}");
+            else
+                return JsonConvert.DeserializeObject<T>(JTokenHelper.GetStringValue(jObject["data"]));
+        }
+
+        public static T MicroServiceGetByCondition<T>(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string parameter)
+        {
+            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpGet(
+                                httpClientFactory,
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
+                                $"{ConfigManager.Configuration[microServiceName]}?{parameter}",
+                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
+
+            return ReturnEntity<T>(microServiceName, httpResponseMessage);
+        }
+
+        public static T SendMicroServicePost<T>(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, object sendText)
+        {
+            HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);
+
+            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
+                                httpClientFactory,
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
+                                $"{ConfigManager.Configuration[microServiceName]}",
+                                httpContent,
+                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                );
+
+            return ReturnEntity<T>(microServiceName, httpResponseMessage);
         }
     }
 }
