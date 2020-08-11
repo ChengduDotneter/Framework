@@ -178,6 +178,10 @@ namespace Common
         /// DataTable导出到Excel的MemoryStream
         /// </summary>
         /// <param name="dtSource">源DataTable</param>
+        /// <summary>
+        /// DataTable导出到Excel的MemoryStream
+        /// </summary>
+        /// <param name="dtSource">源DataTable</param>
         public static MemoryStream Export(DataTable dtSource)
         {
             IWorkbook workbook = new XSSFWorkbook();
@@ -212,7 +216,7 @@ namespace Common
             {
                 #region 新建表，填充表头，填充列头，样式
 
-                if (rowIndex == EXCEL03_MaxRow || rowIndex == 0)
+                if (rowIndex == 65535 || rowIndex == 0)
                 {
                     if (rowIndex != 0)
                     {
@@ -221,23 +225,20 @@ namespace Common
 
                     #region 列头及样式
 
+                    IRow headerRow = sheet.CreateRow(0);
+                    ICellStyle headStyle = workbook.CreateCellStyle();
+                    headStyle.Alignment = HorizontalAlignment.Center;
+                    IFont font = workbook.CreateFont();
+                    font.FontHeightInPoints = 10;
+                    font.Boldweight = 700;
+                    headStyle.SetFont(font);
+                    foreach (DataColumn column in dtSource.Columns)
                     {
-                        IRow headerRow = sheet.CreateRow(0);
-                        ICellStyle headStyle = workbook.CreateCellStyle();
-                        headStyle.Alignment = HorizontalAlignment.Center;
+                        headerRow.CreateCell(column.Ordinal).SetCellValue(column.ColumnName);
+                        headerRow.GetCell(column.Ordinal).CellStyle = headStyle;
 
-                        IFont font = workbook.CreateFont();
-                        font.FontHeightInPoints = 10;
-                        font.Boldweight = 700;
-                        headStyle.SetFont(font);
-                        foreach (DataColumn column in dtSource.Columns)
-                        {
-                            headerRow.CreateCell(column.Ordinal).SetCellValue(column.ColumnName);
-                            headerRow.GetCell(column.Ordinal).CellStyle = headStyle;
-
-                            //设置列宽
-                            sheet.SetColumnWidth(column.Ordinal, (arrColWidth[column.Ordinal] + 1) * 256);
-                        }
+                        //设置列宽
+                        sheet.SetColumnWidth(column.Ordinal, (arrColWidth[column.Ordinal] + 1) * 256);
                     }
 
                     #endregion 列头及样式
@@ -265,15 +266,9 @@ namespace Common
 
                 rowIndex++;
             }
-            using (MemoryStream ms = new MemoryStream())
-            {
-                workbook.Write(ms);
-                ms.Flush();
-                ms.Position = 0;
-
-                workbook.Dispose();
-                return ms;
-            }
+            MemoryStream ms = new MemoryStream();
+            workbook.Write(ms);
+            return ms;
         }
 
         /// <summary>
