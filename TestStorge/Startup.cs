@@ -72,8 +72,6 @@ namespace TestStorge
 
             services.AddJsonSerialize();
 
-            services.AddTransfers();
-
             services.AddSwagger();
 
             //System.Threading.Tasks.Task.Factory.StartNew(() =>

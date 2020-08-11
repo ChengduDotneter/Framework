@@ -72,8 +72,6 @@ namespace TestWebAPI
 
             services.AddJsonSerialize();
 
-            services.AddTransfers();
-
             services.AddSwagger();
 
             //services.AddLog4NetLogHelper();

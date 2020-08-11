@@ -221,16 +221,6 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// RBMQ相关接口依赖注册
-        /// </summary>
-        /// <param name="serviceCollection"></param>
-        public static void AddTransfers(this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddScoped(typeof(IMQProducer<MessageBody>), sp => MessageQueueFactory.GetRabbitMQProducer<MessageBody>());
-            serviceCollection.AddScoped(typeof(IMQConsumer<MessageBody>), sp => MessageQueueFactory.GetRabbitMQConsumer<MessageBody>());
-        }
-
-        /// <summary>
         /// 并行计算任务工厂依赖注入
         /// </summary>
         /// <param name="serviceCollection"></param>

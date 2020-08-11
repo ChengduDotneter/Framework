@@ -1,4 +1,5 @@
 ﻿using Common.MessageQueueClient.Kafka;
+using Common.MessageQueueClient.RabbitMQ;
 
 namespace Common.MessageQueueClient
 {
@@ -14,7 +15,7 @@ namespace Common.MessageQueueClient
         /// <returns></returns>
         public static IMQProducer<T> GetRabbitMQProducer<T>() where T : class, IMQData, new()
         {
-            return RabbitmqDao.DeclarePublisherContext<T>();
+            return new RabbitmqProducer<T>();
         }
 
         /// <summary>
@@ -24,7 +25,7 @@ namespace Common.MessageQueueClient
         /// <returns></returns>
         public static IMQConsumer<T> GetRabbitMQConsumer<T>() where T : class, IMQData, new()
         {
-            return RabbitmqDao.DeclareSubscriberContext<T>();
+            return new RabbitmqConsumer<T>();
         }
 
         /// <summary>
