@@ -33,6 +33,14 @@ namespace Common.Log
             );
         }
 
+
+        public async Task Error(string customCode, string message)
+        {
+            await Task.Factory.StartNew(() =>
+               CreateLog("Custom", "Error", customCode).Info(message)
+           );
+        }
+
         public async Task Info(string customCode, string message)
         {
             await Task.Factory.StartNew(() =>
@@ -149,5 +157,6 @@ namespace Common.Log
 
             return m_logs[logKey];
         }
+
     }
 }

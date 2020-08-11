@@ -8,6 +8,10 @@
     <Version>2.0.9</Version>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>Common.Log.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Common.MessageQueueClient\Common.MessageQueueClient.csproj" />
   </ItemGroup>
