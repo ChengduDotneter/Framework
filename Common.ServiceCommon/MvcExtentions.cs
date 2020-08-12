@@ -4,7 +4,6 @@ using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
 using Common.DAL;
-using Common.MessageQueueClient;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,14 +39,22 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="hostBuilderContext"></param>
         /// <param name="serviceCollection"></param>
+        /// <param name="environmentName"></param>
         /// <returns></returns>
-        public static HostBuilderContext ConfigInit(this HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection)
+        public static HostBuilderContext ConfigInit(this HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection, string environmentName = null)
         {
+            if (string.IsNullOrWhiteSpace(environmentName))
+            {
 #if DEBUG
-            hostBuilderContext.HostingEnvironment.EnvironmentName = "Development";
+                hostBuilderContext.HostingEnvironment.EnvironmentName = EnvironmentName.Development;
 # elif RELEASE
-            hostBuilderContext.HostingEnvironment.EnvironmentName = "Production";
+                hostBuilderContext.HostingEnvironment.EnvironmentName = EnvironmentName.Production;
 #endif
+            }
+            else
+            {
+                hostBuilderContext.HostingEnvironment.EnvironmentName = environmentName;
+            }
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             ConfigManager.Init(hostBuilderContext.HostingEnvironment.EnvironmentName);

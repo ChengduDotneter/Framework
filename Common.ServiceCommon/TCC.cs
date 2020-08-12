@@ -36,7 +36,7 @@ namespace Common.ServiceCommon
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [ApiController]
-    public abstract class TCCController<T> : ControllerBase
+    public abstract class TCCController<T, Request> : ControllerBase
         where T : ViewModelBase, new()
     {
         /// <summary>
@@ -46,7 +46,7 @@ namespace Common.ServiceCommon
         /// <param name="timeOut"></param>
         /// <param name="data"></param>
         [HttpPost("try/{tccID:required:long}/{timeOut:required:int}")]
-        public abstract Task Try(long tccID, int timeOut, [FromBody] T data);
+        public abstract Task Try(long tccID, int timeOut, [FromBody] Request data);
 
         /// <summary>
         /// Cancel
@@ -67,13 +67,13 @@ namespace Common.ServiceCommon
     /// 事务型TCCController
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class TransactionTCCController<T> : TCCController<T>
-        where T : ViewModelBase, new()
+    public abstract class TransactionTCCController<TLock,Request> : TCCController<TLock, Request>
+        where TLock : ViewModelBase, new()
     {
         private const string TRANSACTION_PREFIX = "transaction";
         private string m_typeNameSpace;
         private string m_typeName;
-        private IEditQuery<T> m_editQuery;
+        private IEditQuery<TLock> m_editQuery;
         private IHttpClientFactory m_httpClientFactory;
         private IHttpContextAccessor m_httpContextAccessor;
         private ITccTransactionManager m_tccTransactionManager;
@@ -97,7 +97,7 @@ namespace Common.ServiceCommon
         /// <param name="httpContextAccessor"></param>
         /// <param name="tccTransactionManager"></param>
         protected TransactionTCCController(
-            IEditQuery<T> editQuery,
+            IEditQuery<TLock> editQuery,
             IHttpClientFactory httpClientFactory,
             IHttpContextAccessor httpContextAccessor,
             ITccTransactionManager tccTransactionManager)
@@ -116,7 +116,7 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         /// <param name="timeOut"></param>
         /// <param name="data"></param>
-        public override async Task Try(long tccID, int timeOut, T data)
+        public override async Task Try(long tccID, int timeOut, Request data)
         {
             ConnectionInfo connectionInfo = m_httpContextAccessor.HttpContext.Connection;
 
@@ -147,7 +147,7 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         /// <param name="transaction"></param>
         /// <param name="data"></param>
-        protected abstract Task DoTry(long tccID, DAL.ITransaction transaction, T data);
+        protected abstract Task DoTry(long tccID, DAL.ITransaction transaction, Request data);
 
         /// <summary>
         /// Cancel
