@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace TestOrder.Controllers
 {
     [Route("order")]
-    public class TCCOrderController : TransactionTCCController<OrderInfo>
+    public class TCCOrderController : TransactionTCCController<OrderInfo, OrderInfo>
     {
         public readonly ISearchQuery<OrderInfo> m_orderSearchQuery;
         public readonly IEditQuery<OrderInfo> m_orderEditQuery;

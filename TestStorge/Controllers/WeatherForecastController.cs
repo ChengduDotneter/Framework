@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace TestStorge.Controllers
 {
     [Route("tccstorge")]
-    public class TCCStorgeController : TransactionTCCController<StockInfoCousme>
+    public class TCCStorgeController : TransactionTCCController<StockInfoCousme, StockInfoCousme>
     {
         private readonly ISearchQuery<StockInfo> m_stockInfoSearchQuery;
         private readonly IEditQuery<StockInfo> m_stockInfoEditQuery;
