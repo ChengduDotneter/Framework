@@ -7,7 +7,7 @@ using Common.DAL;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Orleans.Hosting;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -46,9 +46,9 @@ namespace Common.ServiceCommon
             if (string.IsNullOrWhiteSpace(environmentName))
             {
 #if DEBUG
-                hostBuilderContext.HostingEnvironment.EnvironmentName = EnvironmentName.Development;
+                hostBuilderContext.HostingEnvironment.EnvironmentName = Environments.Development;
 # elif RELEASE
-                hostBuilderContext.HostingEnvironment.EnvironmentName = EnvironmentName.Production;
+                hostBuilderContext.HostingEnvironment.EnvironmentName = Environments.Production;
 #endif
             }
             else
