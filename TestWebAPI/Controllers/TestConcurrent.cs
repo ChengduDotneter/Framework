@@ -138,7 +138,7 @@ namespace TestWebAPI.Controllers
     }
 
     [Route("tccdo")]
-    public class tccdocontroller : TransactionTCCController<TCCTestData>
+    public class tccdocontroller : TransactionTCCController<TCCTestData, TCCTestData>
     {
         private IEditQuery<TCCTestData> m_tccTestDataeditQuery;
         private ISearchQuery<TCCTestData> m_searchQuery;
