@@ -89,10 +89,17 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <returns>JSON字符串</returns>
         private string ConvertDataToMessage(T message)
         {
-            if (message == null)
-                return null;
+            try
+            {
+                if (message == null)
+                    return null;
 
-            return JsonConvert.SerializeObject(message);
+                return JsonConvert.SerializeObject(message);
+            }
+            catch
+            {
+                return message.ToString();
+            }
         }
 
         /// <summary>
