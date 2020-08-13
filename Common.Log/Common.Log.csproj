@@ -12,6 +12,10 @@
     <DocumentationFile>Common.Log.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>Common.Log.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Common.MessageQueueClient\Common.MessageQueueClient.csproj" />
   </ItemGroup>

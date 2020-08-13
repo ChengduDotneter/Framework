@@ -20,7 +20,7 @@ namespace Common.Log
         /// <param name="path">接口路径</param>
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
-        /// <param name="controllerGroup">接口组名称</param>
+        /// <param name="controllerName">接口组名称</param>
         Task Info(string controllerName, string methed, string path, string parameters);
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Common.Log
         /// <param name="path">接口路径</param>
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
-        /// <param name="controllerGroup">接口组名称</param>
+        /// <param name="controllerName">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
         /// <param name="statusCode">接口状态编码</param>
         Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters);

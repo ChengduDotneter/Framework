@@ -43,8 +43,8 @@ namespace Common.MessageQueueClient.Kafka
         /// <summary>
         /// 异步推送消息
         /// </summary>
-        /// <param name="mQContext"></param>
-        /// <param name="message"></param>
+        /// <param name="mQContext">消息队列上下文</param>
+        /// <param name="message">需要推送的消息</param>
         /// <returns></returns>
         public async Task ProduceAsync(MQContext mQContext, T message)
         {
@@ -54,7 +54,7 @@ namespace Common.MessageQueueClient.Kafka
         /// <summary>
         /// 根据传入对象转换为Kafka所需传输对象Message
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">需要转换的数据</param>
         /// <returns></returns>
         private Message<string, string> ConvertDataToMessage(T data)
         {

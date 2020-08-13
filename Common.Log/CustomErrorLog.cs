@@ -1,7 +1,8 @@
-﻿using Common.MessageQueueClient;
-
-namespace Common.Log
+﻿namespace Common.Log
 {
+    /// <summary>
+    /// 用户自定义错误日志实体类
+    /// </summary>
     public class CustomErrorLog : LogViewModelBase
     {
         /// <summary>

@@ -119,7 +119,7 @@ namespace Common.MessageQueueClient.Kafka
         /// <summary>
         /// 根据Topic名称获取Kafka相关元数据
         /// </summary>
-        /// <param name="topic"></param>
+        /// <param name="topic">主题名称</param>
         /// <returns></returns>
         private static Metadata GetMetaDataByTopic(string topic)
         {

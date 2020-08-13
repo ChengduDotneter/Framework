@@ -1,5 +1,8 @@
 ﻿namespace Common.Log
 {
+    /// <summary>
+    /// Sql错误日志实体类
+    /// </summary>
     public class SqlErrorLog : LogViewModelBase
     {
         /// <summary>

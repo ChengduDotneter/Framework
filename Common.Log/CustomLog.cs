@@ -1,5 +1,8 @@
 ﻿namespace Common.Log
 {
+    /// <summary>
+    /// 用户自定义日志实体类
+    /// </summary>
     public class CustomLog : LogViewModelBase
     {
         /// <summary>

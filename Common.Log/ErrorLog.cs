@@ -1,5 +1,8 @@
 ﻿namespace Common.Log
 {
+    /// <summary>
+    /// 接口错误日志实体类
+    /// </summary>
     public class ErrorLog : LogViewModelBase
     {
         /// <summary>

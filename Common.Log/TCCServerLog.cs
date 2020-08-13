@@ -1,5 +1,8 @@
 ﻿namespace Common.Log
 {
+    /// <summary>
+    /// TCC服务日志实体类
+    /// </summary>
     public class TCCServerLog : LogViewModelBase
     {
         /// <summary>

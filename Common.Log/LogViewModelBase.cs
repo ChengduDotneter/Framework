@@ -3,6 +3,9 @@ using System;
 
 namespace Common.Log
 {
+    /// <summary>
+    /// 日志接口基类
+    /// </summary>
     public abstract class LogViewModelBase : IMQData
     {
         /// <summary>
@@ -25,6 +28,9 @@ namespace Common.Log
         /// </summary>
         public int NodeType { get; set; }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         public LogViewModelBase()
         {
             ID = IDGenerator.NextID();
