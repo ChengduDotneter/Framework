@@ -30,7 +30,7 @@ namespace Common.Log
 
         public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
         {
-            await GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog), null),
+            await GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog)),
                     new ErrorLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -47,7 +47,7 @@ namespace Common.Log
 
         public async Task Error(string customCode, string message)
         {
-            await GetKafkaInstance<CustomErrorLog>().ProduceAsync(new MQContext(nameof(CustomErrorLog), null),
+            await GetKafkaInstance<CustomErrorLog>().ProduceAsync(new MQContext(nameof(CustomErrorLog)),
                     new CustomErrorLog
                     {
                         CustomCode = customCode,
@@ -59,7 +59,7 @@ namespace Common.Log
 
         public async Task Info(string customCode, string message)
         {
-            await GetKafkaInstance<CustomLog>().ProduceAsync(new MQContext(nameof(CustomLog), null),
+            await GetKafkaInstance<CustomLog>().ProduceAsync(new MQContext(nameof(CustomLog)),
                     new CustomLog
                     {
                         CustomCode = customCode,
@@ -71,7 +71,7 @@ namespace Common.Log
 
         public async Task Info(string controllerName, string methed, string path, string parameters)
         {
-            await GetKafkaInstance<InfoLog>().ProduceAsync(new MQContext(nameof(InfoLog), null),
+            await GetKafkaInstance<InfoLog>().ProduceAsync(new MQContext(nameof(InfoLog)),
                     new InfoLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -85,7 +85,7 @@ namespace Common.Log
 
         public async Task SqlError(string sql, string message, string parameters = "")
         {
-            await GetKafkaInstance<SqlErrorLog>().ProduceAsync(new MQContext(nameof(SqlErrorLog), null),
+            await GetKafkaInstance<SqlErrorLog>().ProduceAsync(new MQContext(nameof(SqlErrorLog)),
                     new SqlErrorLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -99,7 +99,7 @@ namespace Common.Log
 
         public async Task TCCNode(long transcationID, bool? isError, string message)
         {
-            await GetKafkaInstance<TCCNodeLog>().ProduceAsync(new MQContext(nameof(TCCNodeLog), null),
+            await GetKafkaInstance<TCCNodeLog>().ProduceAsync(new MQContext(nameof(TCCNodeLog)),
                      new TCCNodeLog
                      {
                          Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -112,7 +112,7 @@ namespace Common.Log
 
         public async Task TCCServer(long transcationID, string message)
         {
-            await GetKafkaInstance<TCCServerLog>().ProduceAsync(new MQContext(nameof(TCCServerLog), null),
+            await GetKafkaInstance<TCCServerLog>().ProduceAsync(new MQContext(nameof(TCCServerLog)),
                     new TCCServerLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
