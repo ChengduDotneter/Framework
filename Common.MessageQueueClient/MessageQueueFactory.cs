@@ -1,5 +1,6 @@
 ﻿using Common.MessageQueueClient.Kafka;
 using Common.MessageQueueClient.RabbitMQ;
+using System.Collections.Generic;
 
 namespace Common.MessageQueueClient
 {
@@ -13,9 +14,9 @@ namespace Common.MessageQueueClient
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IMQProducer<T> GetRabbitMQProducer<T>() where T : class, IMQData, new()
+        public static IMQProducer<T> GetRabbitMQProducer<T>(IEnumerable<string> queueNames, string routingKey, ExChangeTypeEnum exChangeTypeEnum) where T : class, IMQData, new()
         {
-            return new RabbitmqProducer<T>();
+            return new RabbitmqProducer<T>(queueNames, routingKey, exChangeTypeEnum);
         }
 
         /// <summary>
@@ -23,9 +24,9 @@ namespace Common.MessageQueueClient
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IMQConsumer<T> GetRabbitMQConsumer<T>() where T : class, IMQData, new()
+        public static IMQConsumer<T> GetRabbitMQConsumer<T>(string queueName, string routingKey, ExChangeTypeEnum exChangeTypeEnum) where T : class, IMQData, new()
         {
-            return new RabbitmqConsumer<T>();
+            return new RabbitmqConsumer<T>(queueName, routingKey, exChangeTypeEnum);
         }
 
         /// <summary>

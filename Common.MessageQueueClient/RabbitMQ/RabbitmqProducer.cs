@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,6 +12,9 @@ namespace Common.MessageQueueClient.RabbitMQ
         private static IConnectionFactory m_connectionFactory;
         private static IConnection m_connection;
         private static IModel m_channel;
+        private IEnumerable<string> m_queueNames;
+        private string m_routingKey;
+        private ExChangeTypeEnum m_exChangeTypeEnum;
 
         /// <summary>
         /// 静态构造函数 新建RabbitMQ服务连接器
@@ -32,7 +36,7 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <summary>
         /// 构造函数
         /// </summary>
-        public RabbitmqProducer()
+        public RabbitmqProducer(IEnumerable<string> queueNames, string routingKey, ExChangeTypeEnum exChangeTypeEnum)
         {
             if (m_connectionFactory == null)
                 m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
@@ -42,6 +46,10 @@ namespace Common.MessageQueueClient.RabbitMQ
 
             if (m_channel == null)
                 m_channel = m_connection.CreateModel();
+
+            m_queueNames = queueNames;
+            m_routingKey = routingKey;
+            m_exChangeTypeEnum = exChangeTypeEnum;
 
             AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
@@ -116,15 +124,11 @@ namespace Common.MessageQueueClient.RabbitMQ
 
                 properties.Persistent = true;
 
-                RabbitmqHelper.BindingQueues(
-                    mQContext.MessageQueueName,
-                    ((RabbitmqParameters)mQContext.Context).ExchangeType.Value, m_channel,
-                    ((RabbitmqParameters)mQContext.Context).RoutingKey,
-                    ((RabbitmqParameters)mQContext.Context).QueueNames);
+                RabbitmqHelper.BindingQueues(mQContext.MessageQueueName, m_exChangeTypeEnum, m_channel, m_routingKey, m_queueNames);
 
                 m_channel.BasicPublish(
                     exchange: mQContext.MessageQueueName,
-                    routingKey: ((RabbitmqParameters)mQContext.Context).RoutingKey,
+                    routingKey: m_routingKey,
                     mandatory: false,
                     basicProperties: properties,
                     body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));

@@ -2,6 +2,8 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Common.MessageQueueClient.RabbitMQ
@@ -12,6 +14,9 @@ namespace Common.MessageQueueClient.RabbitMQ
         private static IConnection m_connection;
         private static IModel m_channel;
         private static bool m_isGetMessage;
+        private string m_queueName;
+        private string m_routingKey;
+        private ExChangeTypeEnum m_exChangeTypeEnum;
 
         static RabbitmqConsumer()
         {
@@ -27,7 +32,7 @@ namespace Common.MessageQueueClient.RabbitMQ
             }
         }
 
-        public RabbitmqConsumer()
+        public RabbitmqConsumer(string queueName, string routingKey, ExChangeTypeEnum exChangeTypeEnum)
         {
             if (m_connectionFactory == null)
                 m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
@@ -37,6 +42,10 @@ namespace Common.MessageQueueClient.RabbitMQ
 
             if (m_channel == null)
                 m_channel = m_connection.CreateModel();
+
+            m_queueName = queueName;
+            m_routingKey = routingKey;
+            m_exChangeTypeEnum = exChangeTypeEnum;
 
             AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
@@ -81,9 +90,9 @@ namespace Common.MessageQueueClient.RabbitMQ
         {
             RabbitmqHelper.BindingQueues(
                    mQContext.MessageQueueName,
-                   ((RabbitmqParameters)mQContext.Context).ExchangeType.Value, m_channel,
-                   ((RabbitmqParameters)mQContext.Context).RoutingKey,
-                   ((RabbitmqParameters)mQContext.Context).QueueNames);
+                   m_exChangeTypeEnum, m_channel,
+                   m_routingKey,
+                   new List<string>() { m_queueName });
 
             m_isGetMessage = true;
         }
