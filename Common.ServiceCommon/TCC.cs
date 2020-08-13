@@ -80,7 +80,6 @@ namespace Common.ServiceCommon
         private ITccTransactionManager m_tccTransactionManager;
         private readonly static ConnectionMultiplexer m_connectionMultiplexer;
         private readonly static IDatabase m_redisClient;
-        public Action SubmitSuccessed;
 
         static TransactionTCCController()
         {
@@ -188,8 +187,6 @@ namespace Common.ServiceCommon
             {
                 m_tccTransactionManager.Submit(tccID);
                 m_redisClient.KeyDelete(new RedisKey(GetKVKey(m_typeNameSpace, m_typeName, tccID)));
-
-                SubmitSuccessed?.Invoke();
             }
             else
             {
