@@ -66,7 +66,8 @@ namespace Common.ServiceCommon
     /// <summary>
     /// 事务型TCCController
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TLock">开启事务的viewmodel</typeparam>
+    /// <typeparam name="Request">请求参数</typeparam>
     public abstract class TransactionTCCController<TLock,Request> : TCCController<TLock, Request>
         where TLock : ViewModelBase, new()
     {
@@ -79,6 +80,7 @@ namespace Common.ServiceCommon
         private ITccTransactionManager m_tccTransactionManager;
         private readonly static ConnectionMultiplexer m_connectionMultiplexer;
         private readonly static IDatabase m_redisClient;
+        public Action SubmitSuccessed;
 
         static TransactionTCCController()
         {
@@ -186,13 +188,15 @@ namespace Common.ServiceCommon
             {
                 m_tccTransactionManager.Submit(tccID);
                 m_redisClient.KeyDelete(new RedisKey(GetKVKey(m_typeNameSpace, m_typeName, tccID)));
+
+                SubmitSuccessed?.Invoke();
             }
             else
             {
                 throw new DealException($"未找到ID为：{tccID}的TCC事务。");
             }
         }
-
+       
         private static async Task<Tuple<bool, TCCTransaction>> IsLocalRequest(IHttpContextAccessor httpContextAccessor, string typeNameSapce, string typeName, long tccID)
         {
             TCCTransaction tccTransaction = null;
