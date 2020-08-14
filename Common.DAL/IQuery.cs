@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -44,32 +45,30 @@ namespace Common.DAL
         /// </summary>
         /// <param name="data"></param>
         /// <param name="transaction">执行的事务</param>
-        /// <param name="ignoreColumns"></param>
-        void Update(T data, ITransaction transaction = null, params string[] ignoreColumns);
+        void Update(T data, ITransaction transaction = null);
 
         /// <summary>
         /// 修改
         /// </summary>
         /// <param name="data"></param>
         /// <param name="transaction">执行的事务</param>
-        /// <param name="ignoreColumns"></param>
-        Task UpdateAsync(T data, ITransaction transaction = null, params string[] ignoreColumns);
+        Task UpdateAsync(T data, ITransaction transaction = null);
 
         /// <summary>
         /// 修改
         /// </summary>
         /// <param name="predicate"></param>
-        /// <param name="updateExpression"></param>
+        /// <param name="upateDictionary"></param>
         /// <param name="transaction">执行的事务</param>
-        void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null);
+        void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null);
 
         /// <summary>
         /// 修改
         /// </summary>
         /// <param name="predicate"></param>
-        /// <param name="updateExpression"></param>
+        /// <param name="upateDictionary"></param>
         /// <param name="transaction">执行的事务</param>
-        Task UpdateAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null);
+        Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null);
 
         /// <summary>
         /// 删除
@@ -137,42 +136,6 @@ namespace Common.DAL
         Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null);
 
         /// <summary>
-        /// 根据Sql筛选条件查询条数
-        /// </summary>
-        /// <param name="queryWhere"></param>
-        /// <param name="parameters"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        int Count(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null);
-
-        /// <summary>
-        /// 根据Sql筛选条件查询条数
-        /// </summary>
-        /// <param name="queryWhere"></param>
-        /// <param name="parameters"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        Task<int> CountAsync(string queryWhere, Dictionary<string, object> parameters = null, ITransaction transaction = null);
-
-        /// <summary>
-        /// 根据SQL查询，用于复合查询
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="parameters"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        IEnumerable<IDictionary<string, object>> Query(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null);
-
-        /// <summary>
-        /// 根据SQL查询，用于复合查询
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="parameters"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        Task<IEnumerable<IDictionary<string, object>>> QueryAsync(string sql, Dictionary<string, object> parameters = null, ITransaction transaction = null);
-
-        /// <summary>
         /// 根据Linq筛选条件查询
         /// </summary>
         /// <param name="predicate"></param>
@@ -203,102 +166,62 @@ namespace Common.DAL
                               ITransaction transaction = null);
 
         /// <summary>
-        /// 根据SQL筛选条件查询
+        /// 根据Linq筛选条件两表联查条数
         /// </summary>
-        /// <param name="queryWhere"></param>
-        /// <param name="parameters"></param>
-        /// <param name="orderByFields"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="query"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        IEnumerable<T> Search(string queryWhere,
-                              Dictionary<string, object> parameters = null,
-                              string orderByFields = null,
-                              int startIndex = 0,
-                              int count = int.MaxValue,
-                              ITransaction transaction = null);
-
-        /// <summary>
-        /// 根据SQL筛选条件查询
-        /// </summary>
-        /// <param name="queryWhere"></param>
-        /// <param name="parameters"></param>
-        /// <param name="orderByFields"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        Task<IEnumerable<T>> SearchAsync(string queryWhere,
-                              Dictionary<string, object> parameters = null,
-                              string orderByFields = null,
-                              int startIndex = 0,
-                              int count = int.MaxValue,
-                              ITransaction transaction = null);
+        int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null);
 
         /// <summary>
         /// 根据Linq筛选条件两表联查条数
         /// </summary>
-        /// <typeparam name="TJoinTable"></typeparam>
-        /// <param name="joinCondition"></param>
-        /// <param name="predicate"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="query"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        int Count<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
-                              Expression<Func<T, TJoinTable, bool>> predicate = null,
-                              ITransaction transaction = null)
-            where TJoinTable : class, IEntity, new();
-
-        /// <summary>
-        /// 根据Linq筛选条件两表联查条数
-        /// </summary>
-        /// <typeparam name="TJoinTable"></typeparam>
-        /// <param name="joinCondition"></param>
-        /// <param name="predicate"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        Task<int> CountAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
-                              Expression<Func<T, TJoinTable, bool>> predicate = null,
-                              ITransaction transaction = null)
-            where TJoinTable : class, IEntity, new();
+        Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null);
 
         /// <summary>
         /// 根据Linq筛选条件两表联查数据
         /// </summary>
-        /// <typeparam name="TJoinTable"></typeparam>
-        /// <param name="joinCondition"></param>
-        /// <param name="predicate"></param>
-        /// <param name="queryOrderBies"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="query"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        IEnumerable<JoinResult<T, TJoinTable>> Search<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
-                                                                  Expression<Func<T, TJoinTable, bool>> predicate = null,
-                                                                  IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
-                                                                  int startIndex = 0,
-                                                                  int count = int.MaxValue,
-                                                                  ITransaction transaction = null)
-            where TJoinTable : class, IEntity, new();
+        IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null);
 
         /// <summary>
         /// 根据Linq筛选条件两表联查数据
         /// </summary>
-        /// <typeparam name="TJoinTable"></typeparam>
-        /// <param name="joinCondition"></param>
-        /// <param name="predicate"></param>
-        /// <param name="queryOrderBies"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="query"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<IEnumerable<JoinResult<T, TJoinTable>>> SearchAsync<TJoinTable>(JoinCondition<T, TJoinTable> joinCondition,
-                                                                  Expression<Func<T, TJoinTable, bool>> predicate = null,
-                                                                  IEnumerable<QueryOrderBy<T, TJoinTable>> queryOrderBies = null,
-                                                                  int startIndex = 0,
-                                                                  int count = int.MaxValue,
-                                                                  ITransaction transaction = null)
-            where TJoinTable : class, IEntity, new();
+        Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null);
+
+        /// <summary>
+        /// 获取Linq查询接口
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        IQueryable<TResult> GetQueryable<TResult>(ITransaction transaction = null)
+            where TResult : class, IEntity, new();
+
+        /// <summary>
+        /// 获取Linq查询接口
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<IQueryable<TResult>> GetQueryableAsync<TResult>(ITransaction transaction = null)
+             where TResult : class, IEntity, new();
     }
 
     /// <summary>
@@ -358,93 +281,6 @@ namespace Common.DAL
         {
             Expression = expression;
             OrderByType = orderByType;
-        }
-    }
-
-    /// <summary>
-    /// 两表查询排序类
-    /// </summary>
-    /// <typeparam name="TLeft"></typeparam>
-    /// <typeparam name="TRight"></typeparam>
-    public class QueryOrderBy<TLeft, TRight>
-    {
-        /// <summary>
-        /// 排序Linq
-        /// </summary>
-        public Expression<Func<TLeft, TRight, object>> Expression { get; }
-
-        /// <summary>
-        /// 排序方式
-        /// </summary>
-        public OrderByType OrderByType { get; }
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <param name="orderByType"></param>
-        public QueryOrderBy(Expression<Func<TLeft, TRight, object>> expression, OrderByType orderByType = OrderByType.Asc)
-        {
-            Expression = expression;
-            OrderByType = orderByType;
-        }
-    }
-
-    /// <summary>
-    /// 两表联查条件类
-    /// </summary>
-    /// <typeparam name="TLeft"></typeparam>
-    /// <typeparam name="TRight"></typeparam>
-    public class JoinCondition<TLeft, TRight>
-    {
-        /// <summary>
-        /// 左表查询条件Linq
-        /// </summary>
-        public Expression<Func<TLeft, long>> LeftJoinExpression { get; }
-
-        /// <summary>
-        /// 右表查询条件Linq
-        /// </summary>
-        public Expression<Func<TRight, long>> RightJoinExression { get; }
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="leftJoinExpression"></param>
-        /// <param name="rightJoinExression"></param>
-        public JoinCondition(Expression<Func<TLeft, long>> leftJoinExpression, Expression<Func<TRight, long>> rightJoinExression)
-        {
-            LeftJoinExpression = leftJoinExpression;
-            RightJoinExression = rightJoinExression;
-        }
-    }
-
-    /// <summary>
-    /// 两表联查结果类
-    /// </summary>
-    /// <typeparam name="TLeft"></typeparam>
-    /// <typeparam name="TRight"></typeparam>
-    public class JoinResult<TLeft, TRight>
-    {
-        /// <summary>
-        /// 左表查询结果
-        /// </summary>
-        public TLeft Left { get; }
-
-        /// <summary>
-        /// 右表查询结果
-        /// </summary>
-        public TRight Right { get; }
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        public JoinResult(TLeft left, TRight right)
-        {
-            Left = left;
-            Right = right;
         }
     }
 

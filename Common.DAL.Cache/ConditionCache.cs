@@ -30,9 +30,11 @@ namespace Common.DAL.Cache
         /// <returns></returns>
         public IEnumerable<T> Get(string condition)
         {
+            //TODO: 需要重新实现
+
             if (!m_memoryCache.TryGetValue(condition, out IEnumerable<T> result))
             {
-                result = m_searchQuery.Search(condition);
+                //result = m_searchQuery.Search(condition);
                 m_memoryCache.Set(condition, result);
             }
 

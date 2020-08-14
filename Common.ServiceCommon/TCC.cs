@@ -61,6 +61,14 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         [HttpPost("commit/{tccID:required:long}")]
         public abstract Task Commit(long tccID);
+
+        /// <summary>
+        /// TCC完成后的回调方法
+        /// </summary>
+        /// <param name="tccID">TCCID</param>
+        /// <param name="successed">是否成功</param>
+        /// <returns></returns>
+        protected virtual void End(long tccID, bool successed) { }
     }
 
     /// <summary>
@@ -168,6 +176,11 @@ namespace Common.ServiceCommon
                 m_tccTransactionManager.Rollback(tccID);
                 m_redisClient.KeyDelete(new RedisKey(GetKVKey(m_typeNameSpace, m_typeName, tccID)));
             }
+
+            ThreadPool.QueueUserWorkItem((state) =>
+            {
+                End((long)((object[])state)[0], (bool)((object[])state)[1]);
+            }, new object[] { tccID, false });
         }
 
         /// <summary>
@@ -192,6 +205,11 @@ namespace Common.ServiceCommon
             {
                 throw new DealException($"未找到ID为：{tccID}的TCC事务。");
             }
+
+            ThreadPool.QueueUserWorkItem((state) =>
+            {
+                End((long)((object[])state)[0], (bool)((object[])state)[1]);
+            }, new object[] { tccID, true });
         }
        
         private static async Task<Tuple<bool, TCCTransaction>> IsLocalRequest(IHttpContextAccessor httpContextAccessor, string typeNameSapce, string typeName, long tccID)

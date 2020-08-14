@@ -202,7 +202,7 @@ namespace Common.ServiceCommon
                 if (searchQueryProvider == null)
                 {
                     m_defaultSearchQueryProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
-                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchSqlSugarQuery)).MakeGenericMethod(modelType),
+                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchLinq2DBQuery)).MakeGenericMethod(modelType),
                                            Expression.Constant(m_isCodeFirst, typeof(bool)))).Compile());
 
                     serviceCollection.AddScoped(searchQueryType, sp => m_defaultSearchQueryProviderDic[modelType].Invoke());
@@ -215,7 +215,7 @@ namespace Common.ServiceCommon
                 if (editQueryProvider == null)
                 {
                     m_defaultEditQueryProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
-                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditSqlSugarQuery)).MakeGenericMethod(modelType),
+                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditLinq2DBQuery)).MakeGenericMethod(modelType),
                                            Expression.Constant(m_isCodeFirst, typeof(bool)))).Compile());
 
                     serviceCollection.AddScoped(editQueryType, sp => m_defaultEditQueryProviderDic[modelType].Invoke());

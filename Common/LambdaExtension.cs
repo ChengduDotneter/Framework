@@ -133,23 +133,23 @@ namespace Common
         /// <typeparam name="TChangeParameter">转换后的参数类型</typeparam>
         /// <typeparam name="TResult">表达式返回值类型</typeparam>
         /// <param name="expression">原表达式</param>
-        /// <param name="aChangeParameterExpression">转换参数A的表达式</param>
-        /// <param name="bChangeParameterExpression">转换参数B的表达式</param>
+        /// <param name="aParameterChangeHandler">转换参数A的表达式的委托</param>
+        /// <param name="bParameterChangeHandler">转换参数B的表达式的委托</param>
         /// <param name="aParameterName">参数A名称</param>
         /// <param name="bParameterName">参数B名称</param>
         /// <returns>转换参数后的表达式</returns>
-        public static Expression<Func<TChangeParameter, TResult>> SingleChangeParameter<TAOrignParameter, TBOrignParameter, TChangeParameter, TResult>
+        public static Expression<Func<TChangeParameter, TResult>> ExpressionSingleChangeParameter<TAOrignParameter, TBOrignParameter, TChangeParameter, TResult>
             (this Expression<Func<TAOrignParameter, TBOrignParameter, TResult>> expression,
-             Expression<Func<TChangeParameter, TAOrignParameter>> aChangeParameterExpression,
-             Expression<Func<TChangeParameter, TBOrignParameter>> bChangeParameterExpression,
+             Func<ParameterExpression, Expression> aParameterChangeHandler,
+             Func<ParameterExpression, Expression> bParameterChangeHandler,
              string aParameterName,
              string bParameterName)
         {
             ParameterExpression changeParameter = Expression.Parameter(typeof(TChangeParameter), "item");
 
             return Expression.Lambda<Func<TChangeParameter, TResult>>
-                (new ParameterChanger<TAOrignParameter, TBOrignParameter, TChangeParameter, TResult>().
-                ChangeParameter(expression.Body, changeParameter, aChangeParameterExpression, bChangeParameterExpression, aParameterName, bParameterName),
+                (new ExpressionParameterChanger<TAOrignParameter, TBOrignParameter, TChangeParameter, TResult>().
+                ChangeParameter(expression.Body, changeParameter, aParameterChangeHandler, bParameterChangeHandler, aParameterName, bParameterName),
                 changeParameter);
         }
 
@@ -231,7 +231,6 @@ namespace Common
         protected override Expression VisitBinary(BinaryExpression node)
         {
             m_binaryExpression = Expression.Assign(node.Left, node.Right);
-
             return base.VisitBinary(node);
         }
     }
@@ -396,17 +395,17 @@ namespace Common
     /// <summary>
     /// 参数转换访问器
     /// </summary>
-    internal class ParameterChanger<TAOrignParameter, TBOrignParameter, TChangeParameter, TResult> : ExpressionVisitor
+    internal class ExpressionParameterChanger<TAOrignParameter, TBOrignParameter, TChangeParameter, TResult> : ExpressionVisitor
     {
         private ParameterExpression m_parameterExpression;
-        private IDictionary<string, Expression> m_changeParameterExpressions;
+        private IDictionary<string, Func<ParameterExpression, Expression>> m_changeParameterExpressions;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public ParameterChanger()
+        public ExpressionParameterChanger()
         {
-            m_changeParameterExpressions = new Dictionary<string, Expression>();
+            m_changeParameterExpressions = new Dictionary<string, Func<ParameterExpression, Expression>>();
         }
 
         /// <summary>
@@ -416,7 +415,7 @@ namespace Common
         /// <returns></returns>
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            return Expression.Invoke(m_changeParameterExpressions[node.Name], m_parameterExpression);
+            return m_changeParameterExpressions[node.Name](m_parameterExpression);
         }
 
         /// <summary>
@@ -435,21 +434,21 @@ namespace Common
         /// </summary>
         /// <param name="body"></param>
         /// <param name="changeParameter"></param>
-        /// <param name="aChangeParameterExpression"></param>
-        /// <param name="bChangeParameterExpression"></param>
+        /// <param name="aParameterChangeHandler"></param>
+        /// <param name="bParameterChangeHandler"></param>
         /// <param name="aParameterName"></param>
         /// <param name="bParameterName"></param>
         /// <returns></returns>
         internal Expression ChangeParameter(Expression body,
                                             ParameterExpression changeParameter,
-                                            Expression<Func<TChangeParameter, TAOrignParameter>> aChangeParameterExpression,
-                                            Expression<Func<TChangeParameter, TBOrignParameter>> bChangeParameterExpression,
+                                            Func<ParameterExpression, Expression> aParameterChangeHandler,
+                                            Func<ParameterExpression, Expression> bParameterChangeHandler,
                                             string aParameterName,
                                             string bParameterName)
         {
             m_parameterExpression = changeParameter;
-            m_changeParameterExpressions.Add(aParameterName, aChangeParameterExpression);
-            m_changeParameterExpressions.Add(bParameterName, bChangeParameterExpression);
+            m_changeParameterExpressions.Add(aParameterName, aParameterChangeHandler);
+            m_changeParameterExpressions.Add(bParameterName, bParameterChangeHandler);
 
             return Visit(body);
         }

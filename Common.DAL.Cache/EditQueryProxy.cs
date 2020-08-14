@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -144,10 +145,9 @@ namespace Common.DAL.Cache
         /// </summary>
         /// <param name="data"></param>
         /// <param name="transaction"></param>
-        /// <param name="ignoreColumns"></param>
-        public void Update(T data, ITransaction transaction = null, params string[] ignoreColumns)
+        public void Update(T data, ITransaction transaction = null)
         {
-            m_editQuery.Update(data, transaction, ignoreColumns);
+            m_editQuery.Update(data, transaction);
 
             DoAction(() =>
             {
@@ -163,10 +163,9 @@ namespace Common.DAL.Cache
         /// </summary>
         /// <param name="data"></param>
         /// <param name="transaction"></param>
-        /// <param name="ignoreColumns"></param>
-        public async Task UpdateAsync(T data, ITransaction transaction = null, params string[] ignoreColumns)
+        public async Task UpdateAsync(T data, ITransaction transaction = null)
         {
-            await m_editQuery.UpdateAsync(data, transaction, ignoreColumns);
+            await m_editQuery.UpdateAsync(data, transaction);
 
             DoAction(() =>
             {
@@ -181,11 +180,11 @@ namespace Common.DAL.Cache
         /// 修改
         /// </summary>
         /// <param name="predicate"></param>
-        /// <param name="updateExpression"></param>
+        /// <param name="upateDictionary"></param>
         /// <param name="transaction"></param>
-        public void Update(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
+        public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
         {
-            m_editQuery.Update(predicate, updateExpression, transaction);
+            m_editQuery.Update(predicate, upateDictionary, transaction);
 
             DoAction(() =>
             {
@@ -198,11 +197,11 @@ namespace Common.DAL.Cache
         /// 修改
         /// </summary>
         /// <param name="predicate"></param>
-        /// <param name="updateExpression"></param>
+        /// <param name="upateDictionary"></param>
         /// <param name="transaction"></param>
-        public async Task UpdateAsync(Expression<Func<T, bool>> predicate, Expression<Func<T, bool>> updateExpression, ITransaction transaction = null)
+        public async Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
         {
-            await m_editQuery.UpdateAsync(predicate, updateExpression, transaction);
+            await m_editQuery.UpdateAsync(predicate, upateDictionary, transaction);
 
             DoAction(() =>
             {

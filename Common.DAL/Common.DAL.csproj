@@ -18,12 +18,14 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="sqlSugarCore" Version="5.0.0.15" />
+    <PackageReference Include="MongoDB.Driver" Version="2.11.0" />
+    <PackageReference Include="Apache.Ignite.Linq" Version="2.8.1" />
+    <PackageReference Include="linq2db" Version="3.0.1" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Apache.Ignite.Linq\Apache.Ignite.Linq.csproj" />
     <ProjectReference Include="..\Common.Log\Common.Log.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Common.DAL.Transaction\Common.DAL.Transaction.csproj" />

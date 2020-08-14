@@ -501,8 +501,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         protected virtual void DoPut(TRequest request)
         {
-            IgnoreColumnAttribute ignoreColumnAttribute = typeof(TRequest).GetCustomAttribute<IgnoreColumnAttribute>();
-            m_editQuery.FilterIsDeleted().Update(request, ignoreColumns: ignoreColumnAttribute?.IgnoreColumns);
+            m_editQuery.FilterIsDeleted().Update(request);
         }
 
         /// <summary>

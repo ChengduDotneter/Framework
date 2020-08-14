@@ -51,25 +51,8 @@ namespace TestWebAPI.Controllers
             m_editQuery.FilterIsDeleted().Insert(null, concurrentModel);
         }
     }
-    [ApiController]
-    [Route("tt")]
-    public class testController : GenericGetController<ConcurrentModel>
-    {
-        private readonly ISearchQuery<ConcurrentModel> m_searchQuery;
-        public testController(ISearchQuery<ConcurrentModel> searchQuery) : base(searchQuery)
-        {
-            m_searchQuery = searchQuery;
-        }
 
-        protected override ConcurrentModel DoGet(long id)
-        {
-            var count = m_searchQuery.Count();
 
-            string sql = "SELECT * FROM ConcurrentModel WHERE ";
-
-            return MapperModelHelper<ConcurrentModel>.ReadModel(m_searchQuery.Query(sql)).FirstOrDefault();
-        }
-    }
 
 
     [Route("testconcurrent2")]

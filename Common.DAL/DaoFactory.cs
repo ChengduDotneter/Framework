@@ -6,45 +6,45 @@
     public static class DaoFactory
     {
         /// <summary>
-        /// 获取SlaveDatabase的sqlsugar操作实体
+        /// 获取查询的MongoDB操作实体
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static ISearchQuery<T> GetSearchMongoDBQuery<T>() where T : class, IEntity, new()
+        {
+            return MongoDBDao.GetMongoDBSearchQuery<T>();
+        }
+
+        /// <summary>
+        /// 获取修改的MongoDB操作实体
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IEditQuery<T> GetEditMongoDBQuery<T>() where T : class, IEntity, new()
+        {
+            return MongoDBDao.GetMongoDBEditQuery<T>();
+        }
+
+        /// <summary>
+        /// 获取查询的Linq2DB操作实体
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="codeFirst"></param>
         /// <returns></returns>
-        public static ISearchQuery<T> GetSearchSqlSugarQuery<T>(bool codeFirst) where T : class, IEntity, new()
+        public static ISearchQuery<T> GetSearchLinq2DBQuery<T>(bool codeFirst) where T : class, IEntity, new()
         {
-            return SqlSugarDao.GetSlaveDatabase<T>(codeFirst);
+            return Linq2DBDao.GetLinq2DBSearchQuery<T>(codeFirst);
         }
 
         /// <summary>
-        /// 获取MasterDatabase的sqlsugar操作实体
+        /// 获取修改的Linq2DB操作实体
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="codeFirst"></param>
         /// <returns></returns>
-        public static IEditQuery<T> GetEditSqlSugarQuery<T>(bool codeFirst) where T : class, IEntity, new()
+        public static IEditQuery<T> GetEditLinq2DBQuery<T>(bool codeFirst) where T : class, IEntity, new()
         {
-            return SqlSugarDao.GetMasterDatabase<T>(codeFirst);
-        }
-
-        /// <summary>
-        /// 获取查询的Ignite操作实体
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public static ISearchQuery<T> GetSearchIgniteQuery<T>() where T : class, IEntity, new()
-        {
-            return IgniteDao.GetIgniteSearchQuery<T>();
-        }
-
-        /// <summary>
-        /// 获取修改的Ignite操作实体
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public static IEditQuery<T> GetEditIgniteQuery<T>() where T : class, IEntity, new()
-        {
-            return IgniteDao.GetIgniteEditQuery<T>();
+            return Linq2DBDao.GetLinq2DBEditQuery<T>(codeFirst);
         }
     }
 }
