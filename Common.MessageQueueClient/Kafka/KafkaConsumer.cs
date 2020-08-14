@@ -13,7 +13,6 @@ namespace Common.MessageQueueClient.Kafka
         private readonly bool m_enableAutoOffsetStore;
         private string m_subscribeMessageQueueName;
 
-
         /// <summary>
         /// 构造函数
         /// </summary>
