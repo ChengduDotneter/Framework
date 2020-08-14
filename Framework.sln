@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apache.Ignite.Linq", "Apache.Ignite.Linq\Apache.Ignite.Linq.csproj", "{E53F0851-A7E7-4ACB-9E3F-B14753354934}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{66C7B06B-EBD3-4C9B-A797-98D3D81A1B1D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.DAL", "Common.DAL\Common.DAL.csproj", "{3DF998BE-70C4-4E9F-94BA-D76DBBEB0193}"
@@ -45,10 +43,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E53F0851-A7E7-4ACB-9E3F-B14753354934}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E53F0851-A7E7-4ACB-9E3F-B14753354934}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E53F0851-A7E7-4ACB-9E3F-B14753354934}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E53F0851-A7E7-4ACB-9E3F-B14753354934}.Release|Any CPU.Build.0 = Release|Any CPU
 		{66C7B06B-EBD3-4C9B-A797-98D3D81A1B1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{66C7B06B-EBD3-4C9B-A797-98D3D81A1B1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66C7B06B-EBD3-4C9B-A797-98D3D81A1B1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
