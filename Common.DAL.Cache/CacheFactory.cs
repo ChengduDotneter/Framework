@@ -13,8 +13,8 @@ namespace Common.DAL.Cache
         private const double CACHE_COMPACTION_PERCENTAGE = 0.2;
         private static MemoryCache m_keyMemoryCache;
         private static MemoryCache m_conditionMemoryCache;
-        private static object m_lockKeyMemoryCache;
-        private static object m_lockConditionMemoryCache;
+        private static readonly object m_lockKeyMemoryCache;
+        private static readonly object m_lockConditionMemoryCache;
 
         static CacheFactory()
         {

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace Common.MessageQueueClient.RabbitMQ
 {
+    /// <summary>
+    /// RabbitMq相关操作类
+    /// </summary>
     public static class RabbitmqHelper
     {
         /// <summary>
@@ -27,6 +30,10 @@ namespace Common.MessageQueueClient.RabbitMQ
             }
         }
 
+        /// <summary>
+        /// 创建连接工厂
+        /// </summary>
+        /// <returns></returns>
         public static ConnectionFactory CreateConnectionFactory()
         {
             return new ConnectionFactory()

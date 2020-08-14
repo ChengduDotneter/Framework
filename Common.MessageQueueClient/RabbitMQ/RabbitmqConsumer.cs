@@ -3,11 +3,14 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Common.MessageQueueClient.RabbitMQ
 {
+    /// <summary>
+    /// RabbitMq消费者操作类
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class RabbitmqConsumer<T> : IMQConsumer<T> where T : class, IMQData, new()
     {
         private static IConnectionFactory m_connectionFactory;
@@ -32,6 +35,12 @@ namespace Common.MessageQueueClient.RabbitMQ
             }
         }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="queueName">队列名</param>
+        /// <param name="routingKey">路由关键字</param>
+        /// <param name="exChangeTypeEnum">数据分发模式</param>
         public RabbitmqConsumer(string queueName, string routingKey, ExChangeTypeEnum exChangeTypeEnum)
         {
             if (m_connectionFactory == null)
@@ -50,6 +59,11 @@ namespace Common.MessageQueueClient.RabbitMQ
             AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
 
+        /// <summary>
+        /// 消费
+        /// </summary>
+        /// <param name="mQContext">MQ上下文</param>
+        /// <param name="callback">消费回调</param>
         public void Consume(MQContext mQContext, Func<T, bool> callback)
         {
             if (m_isGetMessage)
@@ -72,11 +86,17 @@ namespace Common.MessageQueueClient.RabbitMQ
             }
         }
 
+        /// <summary>
+        /// 取消订阅
+        /// </summary>
         public void DeSubscribe()
         {
             m_isGetMessage = false;
         }
 
+        /// <summary>
+        /// 释放
+        /// </summary>
         public void Dispose()
         {
             if (m_channel != null)
@@ -86,6 +106,10 @@ namespace Common.MessageQueueClient.RabbitMQ
                 m_connection.Dispose();
         }
 
+        /// <summary>
+        /// 订阅
+        /// </summary>
+        /// <param name="mQContext"></param>
         public void Subscribe(MQContext mQContext)
         {
             RabbitmqHelper.BindingQueues(

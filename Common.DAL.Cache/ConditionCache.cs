@@ -10,8 +10,8 @@ namespace Common.DAL.Cache
     public class ConditionCache<T> : IConditionCache<T>
         where T : class, IEntity, new()
     {
-        private ISearchQuery<T> m_searchQuery;
-        private MemoryCache m_memoryCache;
+        private readonly ISearchQuery<T> m_searchQuery;
+        private readonly MemoryCache m_memoryCache;
 
         /// <summary>
         /// 构造方法

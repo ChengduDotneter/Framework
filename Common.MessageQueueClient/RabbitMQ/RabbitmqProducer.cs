@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace Common.MessageQueueClient.RabbitMQ
 {
+    /// <summary>
+    /// RabbitMq生产者操作类
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class RabbitmqProducer<T> : IMQProducer<T> where T : class, IMQData, new()
     {
         private static IConnectionFactory m_connectionFactory;
