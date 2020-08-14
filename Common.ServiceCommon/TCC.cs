@@ -35,6 +35,7 @@ namespace Common.ServiceCommon
     /// TCCController
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    /// <typeparam name="Request"></typeparam>
     [ApiController]
     public abstract class TCCController<T, Request> : ControllerBase
         where T : ViewModelBase, new()
@@ -249,15 +250,45 @@ namespace Common.ServiceCommon
         void Rollback(long tccID);
     }
 
+    /// <summary>
+    /// TCC通知工厂
+    /// </summary>
     public interface ITccNotifyFactory
     {
+        /// <summary>
+        /// 注册TCC通知
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tccNotify"></param>
         void RegisterNotify<T>(ITccNotify<T> tccNotify);
+
+        /// <summary>
+        /// 反注册TCC通知
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tccNotify"></param>
         void UnRegisterNotify<T>(ITccNotify<T> tccNotify);
+
+        /// <summary>
+        /// 获取TCC通知实例
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         ITccNotify<T> GetNotify<T>();
     }
 
+    /// <summary>
+    /// TCC通知
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface ITccNotify<T>
     {
+        /// <summary>
+        /// 通知
+        /// </summary>
+        /// <param name="tccID"></param>
+        /// <param name="successed"></param>
+        /// <param name="data"></param>
         void Notify(long tccID, bool successed, T data);
     }
 
