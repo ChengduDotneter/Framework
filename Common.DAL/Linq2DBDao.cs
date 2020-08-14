@@ -16,7 +16,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Common.DAL
 {
-    public static class Linq2DBDao
+    internal static class Linq2DBDao
     {
         private const int GET_DATACONNECTION_THREAD_TIME_SPAN = 1;
         private const int DEFAULT_CONNECTION_COUNT = 10;
@@ -37,11 +37,13 @@ namespace Common.DAL
             masterLinqToDbConnectionOptionsBuilder.WithTraceLevel(TraceLevel.Verbose);
             slaveLinqToDbConnectionOptionsBuilder.WithTraceLevel(TraceLevel.Verbose);
 
-            //masterLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
-            //{
-            //    Console.WriteLine("master " + traceInfo.SqlText);
-            //});
+            //TODO: 日志
+            masterLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
+            {
+                Console.WriteLine("master " + traceInfo.SqlText);
+            });
 
+            //TODO: 日志
             slaveLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
             {
                 Console.WriteLine(traceInfo.DataConnection.GetHashCode());

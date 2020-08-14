@@ -178,10 +178,6 @@ namespace Common
         /// DataTable导出到Excel的MemoryStream
         /// </summary>
         /// <param name="dtSource">源DataTable</param>
-        /// <summary>
-        /// DataTable导出到Excel的MemoryStream
-        /// </summary>
-        /// <param name="dtSource">源DataTable</param>
         public static MemoryStream Export(DataTable dtSource)
         {
             IWorkbook workbook = new XSSFWorkbook();

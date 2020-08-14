@@ -9,7 +9,8 @@ using MongoDB.Driver.Linq;
 
 namespace Common.DAL
 {
-    public static class MongoDBDao
+    //TODO: 日志
+    internal static class MongoDBDao
     {
         private static MongoClient m_mongoClient;
         private static IMongoDatabase m_mongoDatabase;
