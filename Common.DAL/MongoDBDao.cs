@@ -415,7 +415,7 @@ namespace Common.DAL
 
         static MongoDBDao()
         {
-            m_mongoClient = new MongoClient($"mongodb://{ConfigManager.Configuration["MongoDBService:EndPoint"]}/?replicaSet=rs0");
+            m_mongoClient = new MongoClient($"mongodb://{ConfigManager.Configuration["MongoDBService:EndPoint"]}");
             m_mongoDatabase = m_mongoClient.GetDatabase(ConfigManager.Configuration["MongoDBService:Database"]);
         }
     }
