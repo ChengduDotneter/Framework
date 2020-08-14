@@ -132,13 +132,15 @@ namespace TestWebAPI.Controllers
             m_searchQuery = searchQuery;
         }
 
-        protected override async Task DoTry(long tccID, ITransaction transaction, TCCTestData data)
+        protected override async Task<object> DoTry(long tccID, ITransaction transaction, TCCTestData data)
         {
             data.Data = $"{data.Data}:{data.ID}, tccID:{tccID}";
             data.ID = IDGenerator.NextID();
             //m_searchQuery.Count(transaction: transaction);
             await m_tccTestDataeditQuery.InsertAsync(transaction, data);
             //await Task.Delay(1000);
+
+            return data;
         }
     }
 }

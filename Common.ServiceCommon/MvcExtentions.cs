@@ -18,6 +18,10 @@ using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 
 namespace Common.ServiceCommon
 {
+    //TODO: Cache
+    //TODO: 动态Controller Sql实现
+    //TODO: TCC返回值乱码
+
     /// <summary>
     /// MVC扩展类
     /// </summary>
@@ -156,6 +160,7 @@ namespace Common.ServiceCommon
             mvcBuilder.AddApplicationPart(DynamicControllerManager.GenerateDynamicControllerToAssembly(dynamicControllerTypes));
             mvcBuilder.AddApplicationPart(typeof(HealthController).Assembly);
             serviceCollection.AddScoped<ISSOUserService, SSOUserService>();
+            serviceCollection.AddSingleton<ITccNotifyFactory, TccNotifyFactory>();
             serviceCollection.AddSingleton<ITccTransactionManager, TccTransactionManager>();
 
             return mvcBuilder;

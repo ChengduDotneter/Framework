@@ -61,14 +61,6 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         [HttpPost("commit/{tccID:required:long}")]
         public abstract Task Commit(long tccID);
-
-        /// <summary>
-        /// TCC完成后的回调方法
-        /// </summary>
-        /// <param name="tccID">TCCID</param>
-        /// <param name="successed">是否成功</param>
-        /// <returns></returns>
-        protected virtual void End(long tccID, bool successed) { }
     }
 
     /// <summary>
@@ -76,7 +68,7 @@ namespace Common.ServiceCommon
     /// </summary>
     /// <typeparam name="TLock">开启事务的viewmodel</typeparam>
     /// <typeparam name="Request">请求参数</typeparam>
-    public abstract class TransactionTCCController<TLock,Request> : TCCController<TLock, Request>
+    public abstract class TransactionTCCController<TLock, Request> : TCCController<TLock, Request>
         where TLock : ViewModelBase, new()
     {
         private const string TRANSACTION_PREFIX = "transaction";
@@ -139,8 +131,8 @@ namespace Common.ServiceCommon
 
             try
             {
-                await DoTry(tccID, transaction, data);
-                m_tccTransactionManager.AddTransaction(tccID, timeOut, transaction);
+                object endData = await DoTry(tccID, transaction, data);
+                m_tccTransactionManager.AddTransaction(tccID, timeOut, transaction, endData);
             }
             catch (Exception exception)
             {
@@ -156,7 +148,7 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         /// <param name="transaction"></param>
         /// <param name="data"></param>
-        protected abstract Task DoTry(long tccID, DAL.ITransaction transaction, Request data);
+        protected abstract Task<object> DoTry(long tccID, DAL.ITransaction transaction, Request data);
 
         /// <summary>
         /// Cancel
@@ -176,11 +168,6 @@ namespace Common.ServiceCommon
                 m_tccTransactionManager.Rollback(tccID);
                 m_redisClient.KeyDelete(new RedisKey(GetKVKey(m_typeNameSpace, m_typeName, tccID)));
             }
-
-            ThreadPool.QueueUserWorkItem((state) =>
-            {
-                End((long)((object[])state)[0], (bool)((object[])state)[1]);
-            }, new object[] { tccID, false });
         }
 
         /// <summary>
@@ -205,13 +192,8 @@ namespace Common.ServiceCommon
             {
                 throw new DealException($"未找到ID为：{tccID}的TCC事务。");
             }
-
-            ThreadPool.QueueUserWorkItem((state) =>
-            {
-                End((long)((object[])state)[0], (bool)((object[])state)[1]);
-            }, new object[] { tccID, true });
         }
-       
+
         private static async Task<Tuple<bool, TCCTransaction>> IsLocalRequest(IHttpContextAccessor httpContextAccessor, string typeNameSapce, string typeName, long tccID)
         {
             TCCTransaction tccTransaction = null;
@@ -251,7 +233,8 @@ namespace Common.ServiceCommon
         /// <param name="tccID"></param>
         /// <param name="timeOut"></param>
         /// <param name="transaction"></param>
-        void AddTransaction(long tccID, int timeOut, DAL.ITransaction transaction);
+        /// <param name="data"></param>
+        void AddTransaction(long tccID, int timeOut, DAL.ITransaction transaction, object data);
 
         /// <summary>
         /// 提交事务
@@ -266,6 +249,66 @@ namespace Common.ServiceCommon
         void Rollback(long tccID);
     }
 
+    public interface ITccNotifyFactory
+    {
+        void RegisterNotify<T>(ITccNotify<T> tccNotify);
+        void UnRegisterNotify<T>(ITccNotify<T> tccNotify);
+        ITccNotify<T> GetNotify<T>();
+    }
+
+    public interface ITccNotify<T>
+    {
+        void Notify(long tccID, bool successed, T data);
+    }
+
+    internal class TccNotifyFactory : ITccNotifyFactory
+    {
+        private IDictionary<Type, object> m_notifys;
+
+        public ITccNotify<T> GetNotify<T>()
+        {
+            Type type = typeof(T);
+
+            lock (m_notifys)
+            {
+                if (m_notifys.ContainsKey(type))
+                    return (ITccNotify<T>)m_notifys[type];
+                else
+                    return null;
+            }
+        }
+
+        public void RegisterNotify<T>(ITccNotify<T> tccNotify)
+        {
+            Type type = typeof(T);
+
+            if (!m_notifys.ContainsKey(type))
+            {
+                lock (m_notifys)
+                {
+                    if (!m_notifys.ContainsKey(type))
+                        m_notifys.Add(type, tccNotify);
+                }
+            }
+        }
+
+        public void UnRegisterNotify<T>(ITccNotify<T> tccNotify)
+        {
+            Type type = typeof(T);
+
+            lock (m_notifys)
+            {
+                if (m_notifys.ContainsKey(type) && m_notifys[type] == tccNotify)
+                    m_notifys.Remove(type);
+            }
+        }
+
+        public TccNotifyFactory()
+        {
+            m_notifys = new Dictionary<Type, object>();
+        }
+    }
+
     internal class TccTransactionManager : ITccTransactionManager
     {
         private class TCCTransactionInstance
@@ -273,21 +316,25 @@ namespace Common.ServiceCommon
             public DAL.ITransaction Transaction { get; }
             public int TimeOut { get; }
             public int StartTime { get; }
+            public object Data { get; }
 
-            public TCCTransactionInstance(DAL.ITransaction transaction, int timeOut)
+            public TCCTransactionInstance(DAL.ITransaction transaction, int timeOut, object data)
             {
                 Transaction = transaction;
                 TimeOut = timeOut;
                 StartTime = Environment.TickCount;
+                Data = data;
             }
         }
 
         private const int THREAD_TIME_SPAN = 100;
         private IDictionary<long, TCCTransactionInstance> m_tccTransactionInstances;
+        private ITccNotifyFactory m_tccNotifyFactory;
         private Thread m_thread;
 
-        public TccTransactionManager()
+        public TccTransactionManager(ITccNotifyFactory tccNotifyFactory)
         {
+            m_tccNotifyFactory = tccNotifyFactory;
             m_tccTransactionInstances = new Dictionary<long, TCCTransactionInstance>();
             m_thread = new Thread(DoClear);
             m_thread.IsBackground = true;
@@ -295,10 +342,10 @@ namespace Common.ServiceCommon
             m_thread.Start();
         }
 
-        public void AddTransaction(long tccID, int timeOut, DAL.ITransaction transaction)
+        public void AddTransaction(long tccID, int timeOut, DAL.ITransaction transaction, object data)
         {
             lock (m_tccTransactionInstances)
-                m_tccTransactionInstances.Add(tccID, new TCCTransactionInstance(transaction, timeOut));
+                m_tccTransactionInstances.Add(tccID, new TCCTransactionInstance(transaction, timeOut, data));
         }
 
         public void Rollback(long tccID)
@@ -319,6 +366,7 @@ namespace Common.ServiceCommon
                 try
                 {
                     tccTransactionInstance.Transaction.Rollback();
+                    End(tccID, false, tccTransactionInstance.Data);
                 }
                 finally
                 {
@@ -348,6 +396,7 @@ namespace Common.ServiceCommon
                 try
                 {
                     tccTransactionInstance.Transaction.Submit();
+                    End(tccID, true, tccTransactionInstance.Data);
                 }
                 finally
                 {
@@ -387,6 +436,7 @@ namespace Common.ServiceCommon
                             try
                             {
                                 tccTransactionInstance.Transaction.Rollback();
+                                End(tccIDs[i], false, tccTransactionInstance.Data);
                             }
                             finally
                             {
@@ -401,6 +451,18 @@ namespace Common.ServiceCommon
 
                 Thread.Sleep(THREAD_TIME_SPAN);
             }
+        }
+
+        private void End(long tccID, bool successed, object data)
+        {
+            ThreadPool.QueueUserWorkItem((state) =>
+            {
+                object tccNotify = typeof(ITccNotifyFactory).GetMethod(nameof(ITccNotifyFactory.GetNotify)).MakeGenericMethod(data.GetType()).Invoke(m_tccNotifyFactory, null);
+
+                if (tccNotify != null)
+                    typeof(ITccNotify<>).MakeGenericType(data.GetType()).GetMethod("Notify").Invoke(tccNotify, (object[])state);
+
+            }, new object[] { tccID, successed, data });
         }
     }
 }

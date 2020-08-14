@@ -33,7 +33,7 @@ namespace TestOrder.Controllers
             m_orderCommodityEditQuery = orderCommodityEditQuery;
         }
 
-        protected override async Task DoTry(long tccID, ITransaction transaction, OrderInfo order)
+        protected override async Task<object> DoTry(long tccID, ITransaction transaction, OrderInfo order)
         {
             order.ID = IDGenerator.NextID();
             order.OrderNo = IDGenerator.NextID().ToString();
@@ -56,6 +56,7 @@ namespace TestOrder.Controllers
             }
 
             await m_orderCommodityEditQuery.FilterIsDeleted().InsertAsync(transaction, order.OrderCommodities.ToArray());
+            return order;
         }
     }
 

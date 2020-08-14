@@ -32,7 +32,7 @@ namespace TestStorge.Controllers
             m_stockInfoEditQuery = stockInfoEditQuery;
         }
 
-        protected override async Task DoTry(long tccID, ITransaction transaction, StockInfoCousme data)
+        protected override async Task<object> DoTry(long tccID, ITransaction transaction, StockInfoCousme data)
         {
             IEnumerable<string> commodityNames = data.StockInfos.Select(item => item.CommodityName);
             IEnumerable<StockInfo> currentStockInfos = await m_stockInfoSearchQuery.FilterIsDeleted().SearchAsync(item => commodityNames.Contains(item.CommodityName), transaction: transaction);
@@ -51,6 +51,7 @@ namespace TestStorge.Controllers
             }
 
             await m_stockInfoEditQuery.FilterIsDeleted().MergeAsync(transaction, currentStockInfos.ToArray());
+            return data;
         }
     }
 

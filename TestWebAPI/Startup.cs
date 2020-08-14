@@ -8,9 +8,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
+using TestWebAPI.Controllers;
 
 namespace TestWebAPI
 {
+    internal class TestTCCNotify : ITccNotify<TCCTestData>
+    {
+        public void Notify(long tccID, bool successed, TCCTestData data)
+        {
+            Console.WriteLine(data.Data);
+        }
+    }
+
     public class Startup
     {
         private IConfiguration m_configuration;
@@ -58,17 +67,17 @@ namespace TestWebAPI
             IMvcBuilder mvcBuilder = services.AddControllers(modelTypes, controllerTypes);
             services.ConfigureValidation(mvcBuilder, 10);
 
-            //services.AddQuerys(modelTypes);
+            services.AddQuerys(modelTypes);
 
-            services.AddQuerys(modelTypes,
-                (type) =>
-                {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchLinq2DBQuery)).MakeGenericMethod(type).Invoke(null, null);
-                },
-                (type) =>
-                {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditLinq2DBQuery)).MakeGenericMethod(type).Invoke(null, null);
-                });
+            //services.AddQuerys(modelTypes,
+            //    (type) =>
+            //    {
+            //        return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
+            //    },
+            //    (type) =>
+            //    {
+            //        return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
+            //    });
 
             services.AddJsonSerialize();
 
@@ -106,6 +115,8 @@ namespace TestWebAPI
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
         {
+            app.ApplicationServices.GetService<ITccNotifyFactory>().RegisterNotify(new TestTCCNotify());
+
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
 
@@ -128,7 +139,7 @@ namespace TestWebAPI
 
             //服务发现
             //if (!env.IsDevelopment())
-                app.RegisterConsul(lifetime, m_configuration);
+            app.RegisterConsul(lifetime, m_configuration);
         }
     }
 }
