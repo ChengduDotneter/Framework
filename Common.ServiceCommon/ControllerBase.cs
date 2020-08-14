@@ -10,33 +10,6 @@ using System.Reflection;
 namespace Common.ServiceCommon
 {
     /// <summary>
-    /// ServiceToService 批量查询接口基类
-    /// </summary>
-    /// <typeparam name="TRequest">请求实体泛型</typeparam>
-    /// <typeparam name="TResponse">返回实体泛型</typeparam>
-    [ApiController]
-    public abstract class BatchGenericSearchController<TRequest, TResponse> : ControllerBase
-    {
-        /// <summary>
-        /// Get
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public TResponse Get(TRequest request)
-        {
-            return SearchDatas(request);
-        }
-
-        /// <summary>
-        /// 获取结果
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        protected abstract TResponse SearchDatas(TRequest request);
-    }
-
-    /// <summary>
     /// Service中无相应的实体接受请求参数时使用且请求参数为JObject的接口基类
     /// </summary>
     /// <typeparam name="TResponse"></typeparam>
@@ -92,7 +65,7 @@ namespace Common.ServiceCommon
     /// 根据ID查询自定义结果的接口基类
     /// </summary>
     /// <typeparam name="TResponse">返回实体泛型</typeparam>
-    public abstract class BatchGenericGetController<TResponse> : ControllerBase
+    public abstract class CustomGetController<TResponse> : ControllerBase
     {
         /// <summary>
         /// Get
@@ -116,6 +89,30 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         /// <returns></returns>
         protected abstract TResponse DoGet(long id);
+    }
+
+    /// <summary>
+    /// 无查询条件的Get请求接口基类
+    /// </summary>
+    /// <typeparam name="TResponse">返回实体参数</typeparam>
+    [ApiController]
+    public abstract class CustomGetWithoutParameterController<TResponse> : ControllerBase
+    {
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public TResponse Get()
+        {
+            return SearchDatas();
+        }
+
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <returns></returns>
+        protected abstract TResponse SearchDatas();
     }
 
     /// <summary>
@@ -162,6 +159,33 @@ namespace Common.ServiceCommon
         {
             m_searchQuery = searchQuery;
         }
+    }
+
+    /// <summary>
+    /// ServiceToService 批量查询接口基类
+    /// </summary>
+    /// <typeparam name="TRequest">请求实体泛型</typeparam>
+    /// <typeparam name="TResponse">返回实体泛型</typeparam>
+    [ApiController]
+    public abstract class BatchGenericSearchController<TRequest, TResponse> : ControllerBase
+    {
+        /// <summary>
+        /// Get
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public TResponse Get(TRequest request)
+        {
+            return SearchDatas(request);
+        }
+
+        /// <summary>
+        /// 获取结果
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        protected abstract TResponse SearchDatas(TRequest request);
     }
 
     /// <summary>
@@ -282,89 +306,6 @@ namespace Common.ServiceCommon
         /// <param name="datas"></param>
         /// <returns></returns>
         protected abstract JArray SearchDatas(PageQuery<TRequest> datas);
-    }
-
-    /// <summary>
-    /// 该接口基类即将过时
-    /// </summary>
-    /// <typeparam name="TRequest"></typeparam>
-    /// <typeparam name="TResponse"></typeparam>
-    [Obsolete("该接口基类即将过期")]
-    [ApiController]
-    public abstract class GenericSearchWithQueryController<TRequest, TResponse> : ControllerBase
-        where TRequest : ViewModelBase, new()
-        where TResponse : ViewModelBase, new()
-    {
-        /// <summary>
-        /// Get请求入口
-        /// </summary>
-        /// <param name="pageQueryParameterService"></param>
-        /// <returns></returns>
-        [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
-        {
-            PageQuery<TRequest> pageQuery = pageQueryParameterService.GetQueryParameter<TRequest>();
-
-            return new PageQueryResult<TResponse>()
-            {
-                TotalCount = GetCount(pageQuery),
-                Datas = PreperDatas(DoSearch(pageQuery))
-            };
-        }
-
-        /// <summary>
-        /// 结果数据处理
-        /// </summary>
-        /// <param name="datas"></param>
-        /// <returns></returns>
-        protected virtual IEnumerable<TResponse> PreperDatas(IEnumerable<TResponse> datas)
-        {
-            return datas;
-        }
-
-        /// <summary>
-        /// 数据查询
-        /// </summary>
-        /// <param name="pageQuery"></param>
-        /// <returns></returns>
-        protected virtual IEnumerable<TResponse> DoSearch(PageQuery<TRequest> pageQuery)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// 获取数量
-        /// </summary>
-        /// <param name="pageQuery"></param>
-        /// <returns></returns>
-        protected virtual int GetCount(PageQuery<TRequest> pageQuery)
-        {
-            return 0;
-        }
-    }
-
-    /// <summary>
-    /// 无查询条件的Get请求接口街垒
-    /// </summary>
-    /// <typeparam name="TResponse">返回实体参数</typeparam>
-    [ApiController]
-    public abstract class BatchGenericSearchController<TResponse> : ControllerBase
-    {
-        /// <summary>
-        /// Get
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        public TResponse Get()
-        {
-            return SearchDatas();
-        }
-
-        /// <summary>
-        /// 获取结果
-        /// </summary>
-        /// <returns></returns>
-        protected abstract TResponse SearchDatas();
     }
 
     /// <summary>
