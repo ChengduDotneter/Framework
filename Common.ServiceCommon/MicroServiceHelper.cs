@@ -139,8 +139,18 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// 对接php接口调用方式
+    /// </summary>
     public class PHPMicroServiceHelper
     {
+        /// <summary>
+        /// 结果验证
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="microServiceName"></param>
+        /// <param name="httpResponseMessage"></param>
+        /// <returns></returns>
         private static T ReturnEntity<T>(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
             if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
@@ -149,6 +159,13 @@ namespace Common.ServiceCommon
             throw new DealException($"{microServiceName}接口调用失败");
         }
 
+        /// <summary>
+        /// 检测返回结果是否有效
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="microServiceName"></param>
+        /// <param name="httpResponseMessage"></param>
+        /// <returns></returns>
         private static T CheckReturn<T>(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
             JObject jObject = JsonConvert.DeserializeObject<JObject>(httpResponseMessage.Content.ReadAsStringAsync().Result);
@@ -162,6 +179,15 @@ namespace Common.ServiceCommon
             else return JsonConvert.DeserializeObject<T>(jObject["data"].ToString());
         }
 
+        /// <summary>
+        /// get方式调用
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="httpClientFactory"></param>
+        /// <param name="httpContextAccessor"></param>
+        /// <param name="microServiceName"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         public static T MicroServiceGetByCondition<T>(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string parameter)
         {
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpGet(
@@ -173,6 +199,15 @@ namespace Common.ServiceCommon
             return ReturnEntity<T>(microServiceName, httpResponseMessage);
         }
 
+        /// <summary>
+        /// post方式调用
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="httpClientFactory"></param>
+        /// <param name="httpContextAccessor"></param>
+        /// <param name="microServiceName"></param>
+        /// <param name="sendText"></param>
+        /// <returns></returns>
         public static T SendMicroServicePost<T>(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, object sendText)
         {
             HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);
