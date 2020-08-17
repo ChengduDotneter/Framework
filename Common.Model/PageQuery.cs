@@ -29,17 +29,4 @@ namespace Common.Model
             GetLinqFunctionName = getLinqFunctionName;
         }
     }
-
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class LinqJoinTableSearchAttribute : Attribute
-    {
-        public Type SearchType { get; }
-        public string GetLinqJoinTableSearchFunctionName { get; }
-
-        public LinqJoinTableSearchAttribute(Type searchType, string getLinqJoinTableSearchFunctionName)
-        {
-            SearchType = searchType;
-            GetLinqJoinTableSearchFunctionName = getLinqJoinTableSearchFunctionName;
-        }
-    }
 }
