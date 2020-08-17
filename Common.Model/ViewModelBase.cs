@@ -1,7 +1,4 @@
-﻿using Apache.Ignite.Core.Cache.Configuration;
-using Common.DAL;
-using Common.Validation;
-using SqlSugar;
+﻿using Common.DAL;
 using System;
 using System.Text.Json.Serialization;
 
@@ -12,47 +9,39 @@ namespace Common.Model
         /// <summary>
         /// 主键ID
         /// </summary>
-        [SugarColumn(IsNullable = false, IsPrimaryKey = true, ColumnDescription = "主键ID")]
-        [QuerySqlField(IsIndexed = true, NotNull = true)]
+        [LinqToDB.Mapping.PrimaryKey, LinqToDB.Mapping.NotNull]
         [JsonConverter(typeof(ObjectIdConverter))]
-        [NotNull]
+        [Validation.NotNull]
         public long ID { get; set; }
 
         /// <summary>
         /// 创建时间
         /// </summary>
-        [SugarColumn(IsNullable = false, IsOnlyIgnoreUpdate = true, ColumnDescription = "创建时间")]
-        [QuerySqlField(NotNull = true)]
+        [LinqToDB.Mapping.NotNull]
         public DateTime CreateTime { set; get; }
 
         /// <summary>
         /// 创建人ID
         /// </summary>
-        [SugarColumn(IsNullable = false, IsOnlyIgnoreUpdate = true, ColumnDescription = "创建人ID")]
-        [QuerySqlField(NotNull = true)]
+        [LinqToDB.Mapping.NotNull]
         [JsonConverter(typeof(ObjectIdConverter))]
         public long CreateUserID { set; get; }
 
         /// <summary>
         /// 修改时间
         /// </summary>
-        [SugarColumn(IsNullable = true, ColumnDescription = "修改时间")]
-        [QuerySqlField]
         public DateTime? UpdateTime { set; get; }
 
         /// <summary>
         /// 修改人ID
         /// </summary>
-        [SugarColumn(IsNullable = true, ColumnDescription = "修改人ID")]
-        [QuerySqlField]
         [JsonConverter(typeof(ObjectIdNullableConverter))]
         public long? UpdateUserID { set; get; }
 
         /// <summary>
         /// 是否删除
         /// </summary>
-        [SugarColumn(IsNullable = false, ColumnDescription = "是否删除", IndexGroupNameList = new string[] { "INDEX_ISDELETED" })]
-        [QuerySqlField(IndexGroups = new string[] { "INDEX_ISDELETED" })]
+        [LinqToDB.Mapping.NotNull]
         public bool IsDeleted { set; get; }
 
         public ViewModelBase()

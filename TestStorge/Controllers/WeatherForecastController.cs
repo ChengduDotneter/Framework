@@ -5,7 +5,6 @@ using Common.Model;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,17 +56,14 @@ namespace TestStorge.Controllers
 
     public class StockInfoCousme : ViewModelBase
     {
-        [SugarColumn(IsIgnore = true)]
         public IEnumerable<StockInfo> StockInfos { get; set; }
     }
 
     public class StockInfo : ViewModelBase
     {
-        [SugarColumn(Length = 150, IsNullable = false, ColumnDescription = "商品名称")]
         [QuerySqlField]
         public string CommodityName { get; set; }
 
-        [SugarColumn(DecimalDigits = 5, Length = 18, IsNullable = false, ColumnDescription = "数量")]
         [QuerySqlField]
         public decimal? Number { get; set; }
     }
