@@ -210,9 +210,9 @@ namespace Common.DAL
                 for (int i = 0; i < datas.Length; i++)
                 {
                     if (!inTransaction)
-                        m_mongoCollection.FindOneAndReplace(Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i]);
+                        m_mongoCollection.FindOneAndReplace(Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i], new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
                     else
-                        m_mongoCollection.FindOneAndReplace(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i]);
+                        m_mongoCollection.FindOneAndReplace(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i], new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
                 }
             }
 
@@ -225,9 +225,9 @@ namespace Common.DAL
                 for (int i = 0; i < datas.Length; i++)
                 {
                     if (!inTransaction)
-                        tasks[i] = m_mongoCollection.FindOneAndReplaceAsync(Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i]);
+                        tasks[i] = m_mongoCollection.FindOneAndReplaceAsync(Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i], new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
                     else
-                        tasks[i] = m_mongoCollection.FindOneAndReplaceAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i]);
+                        tasks[i] = m_mongoCollection.FindOneAndReplaceAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i], new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
                 }
 
                 await Task.WhenAll(tasks);

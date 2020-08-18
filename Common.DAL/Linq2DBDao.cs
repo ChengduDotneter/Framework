@@ -267,7 +267,7 @@ namespace Common.DAL
 
                     try
                     {
-                        return dataConnection.GetTable<T>().Count(predicate);
+                        return dataConnection.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
                     }
                     finally
                     {
@@ -276,7 +276,7 @@ namespace Common.DAL
                 }
                 else
                 {
-                    return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Count(predicate);
+                    return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
                 }
             }
 
@@ -305,7 +305,7 @@ namespace Common.DAL
 
                     try
                     {
-                        return await dataConnection.GetTable<T>().CountAsync(predicate);
+                        return await dataConnection.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
                     }
                     finally
                     {
@@ -314,7 +314,7 @@ namespace Common.DAL
                 }
                 else
                 {
-                    return await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().CountAsync(predicate);
+                    return await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
                 }
             }
 

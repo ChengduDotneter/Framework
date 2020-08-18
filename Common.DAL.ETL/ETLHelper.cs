@@ -60,7 +60,7 @@ namespace Common.DAL.ETL
 
             Type predicateType = typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(etlTable.TableType, typeof(bool)));
             Type queryOrderBiesType = typeof(IEnumerable<>).MakeGenericType(typeof(QueryOrderBy<>).MakeGenericType(etlTable.TableType));
-            etlTable.DataCount = (int)searchQueryType.GetMethod("Count", new Type[] { predicateType }).Invoke(searchQuery, new object[] { null, null });
+            etlTable.DataCount = (int)searchQueryType.GetMethod("Count", new Type[] { predicateType, typeof(ITransaction) }).Invoke(searchQuery, new object[] { null, null });
             IList<object> preperInsertDatas = new List<object>();
 
             while (etlTable.ComplatedCount < etlTable.DataCount)
@@ -69,7 +69,7 @@ namespace Common.DAL.ETL
                 int size = residueCount < pageSize ? residueCount : pageSize;
                 preperInsertDatas.Clear();
 
-                IEnumerable<object> query = (IEnumerable<object>)searchQueryType.GetMethod("Search", new Type[] { predicateType, queryOrderBiesType, typeof(int), typeof(int) }).Invoke(searchQuery, new object[] { null, null, etlTable.ComplatedCount, size, null });
+                IEnumerable<object> query = (IEnumerable<object>)searchQueryType.GetMethod("Search", new Type[] { predicateType, queryOrderBiesType, typeof(int), typeof(int), typeof(ITransaction) }).Invoke(searchQuery, new object[] { null, null, etlTable.ComplatedCount, size, null });
 
                 foreach (object data in query)
                     preperInsertDatas.Add(data);

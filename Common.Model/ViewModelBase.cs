@@ -17,13 +17,13 @@ namespace Common.Model
         /// <summary>
         /// 创建时间
         /// </summary>
-        [LinqToDB.Mapping.NotNull]
+        [LinqToDB.Mapping.NotNull, LinqToDB.Mapping.SkipValuesOnUpdate]
         public DateTime CreateTime { set; get; }
 
         /// <summary>
         /// 创建人ID
         /// </summary>
-        [LinqToDB.Mapping.NotNull]
+        [LinqToDB.Mapping.NotNull, LinqToDB.Mapping.SkipValuesOnUpdate]
         [JsonConverter(typeof(ObjectIdConverter))]
         public long CreateUserID { set; get; }
 
