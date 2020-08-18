@@ -203,14 +203,13 @@ namespace Common
             try
             {
                 if (Enum.IsDefined(typeof(T), jToken.ToObject<int>()))
-                {
                     return (T)Enum.ToObject(typeof(T), jToken.ToObject<int>());
-                }
-                return default;
+                else
+                    throw new DealException("不受支持的枚举类型");
             }
             catch
             {
-                return default;
+                throw new DealException("不受支持的枚举类型");
             }
         }
     }
