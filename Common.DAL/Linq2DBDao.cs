@@ -90,7 +90,8 @@ namespace Common.DAL
 
         private static void DisposeConnection(DataConnection dataConnection)
         {
-            m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
+            if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
+                m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
         }
 
         public static ISearchQuery<T> GetLinq2DBSearchQuery<T>(bool codeFirst)
@@ -292,6 +293,8 @@ namespace Common.DAL
                 {
                     if (!inTransaction && query is ITable<T> table && table.DataContext is DataConnection dataConnection)
                         DisposeConnection(dataConnection);
+                    else if (!inTransaction && query is IExpressionQuery expressionQuery && expressionQuery.DataContext is DataConnection expressionQueryDataConnection)
+                        DisposeConnection(expressionQueryDataConnection);
                 }
             }
 
@@ -330,6 +333,8 @@ namespace Common.DAL
                 {
                     if (!inTransaction && query is ITable<T> table && table.DataContext is DataConnection dataConnection)
                         DisposeConnection(dataConnection);
+                    else if (!inTransaction && query is IExpressionQuery expressionQuery && expressionQuery.DataContext is DataConnection expressionQueryDataConnection)
+                        DisposeConnection(expressionQueryDataConnection);
                 }
             }
 
@@ -599,6 +604,8 @@ namespace Common.DAL
                 {
                     if (!inTransaction && query is ITable<T> table && table.DataContext is DataConnection dataConnection)
                         DisposeConnection(dataConnection);
+                    else if (!inTransaction && query is IExpressionQuery expressionQuery && expressionQuery.DataContext is DataConnection expressionQueryDataConnection)
+                        DisposeConnection(expressionQueryDataConnection);
                 }
             }
 
@@ -689,6 +696,8 @@ namespace Common.DAL
                 {
                     if (!inTransaction && query is ITable<T> table && table.DataContext is DataConnection dataConnection)
                         DisposeConnection(dataConnection);
+                    else if (!inTransaction && query is IExpressionQuery expressionQuery && expressionQuery.DataContext is DataConnection expressionQueryDataConnection)
+                        DisposeConnection(expressionQueryDataConnection);
                 }
             }
 
