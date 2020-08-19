@@ -1,7 +1,6 @@
 ﻿using Common;
 using Common.Model;
 using Common.Validation;
-using MicroService.StorageService.Model.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -78,7 +77,6 @@ namespace MicroService.StorageService.Model
         /// </summary>
         [Display(Name = "仓库动态Dll名称")]
         [StringMaxLength(100)]
-        [ForeignKey(typeof(AdapterDllSetting), nameof(AdapterDllSetting.DllPath))]
         public string WarehouseDllName { get; set; }
 
         /// <summary>
@@ -91,8 +89,8 @@ namespace MicroService.StorageService.Model
         /// <summary>
         /// 固定参数列表
         /// </summary>
-        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
-        public IEnumerable<WareHouseParameter> WareHouseParameters { get; set; }
+        //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+        //public IEnumerable<WareHouseParameter> WareHouseParameters { get; set; }
 
         private static Func<WarehouseInfo, Expression<Func<WarehouseInfo, bool>>> GetSearchLinq()
         {
@@ -118,5 +116,16 @@ namespace MicroService.StorageService.Model
                 return linq;
             };
         }
+    }
+
+    public class WareHouseParameter : ViewModelBase
+    {
+        public string Data { get; set; }
+    }
+
+    public enum ExamineTypeEnum
+    {
+        A,
+        B
     }
 }

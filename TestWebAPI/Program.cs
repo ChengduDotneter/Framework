@@ -11,6 +11,7 @@ using Common.DAL;
 using Common.Log;
 using Common.ServiceCommon;
 using LinqToDB.Mapping;
+using MicroService.StorageService.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -207,13 +208,23 @@ namespace TestWebAPI
 
 
 
+            ISearchQuery<StockInfo> asearch = DaoFactory.GetSearchMongoDBQuery<StockInfo>();
+            ISearchQuery<WarehouseInfo> bsearch = DaoFactory.GetSearchMongoDBQuery<WarehouseInfo>();
+            ISearchQuery<SupplierCommodity> csearch = DaoFactory.GetSearchMongoDBQuery<SupplierCommodity>();
 
+            var a = asearch.GetQueryable<StockInfo>();
+            var b = bsearch.GetQueryable<WarehouseInfo>();
+            var c = csearch.GetQueryable<SupplierCommodity>();
 
-
-
-
-
-
+            var query = from adata in a
+                        join bdata in b on adata.WarehouseID.Value equals bdata.ID
+                        join cdata in c on adata.SupplierCommodityID.Value equals cdata.ID into am
+                        from cdata in am.DefaultIfEmpty()
+                            //select new { a = adata, b = bdata, c = cdata } into res
+                        select adata.ID;
+                        //where !res.a.IsDeleted && res.b.IsDeleted && res.c == null ? true : !res.c.IsDeleted
+                        //select new { aid = res.a.ID, bid = res.b.ID, cid = res.c.ID };
+            var m = query.ToList();
 
 
 

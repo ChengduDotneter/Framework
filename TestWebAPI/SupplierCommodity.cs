@@ -2,7 +2,6 @@
 using Common.DAL;
 using Common.Model;
 using Common.Validation;
-using MicroService.StorageService.Model.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -142,8 +141,8 @@ namespace MicroService.StorageService.Model
         /// <summary>
         /// 关联库存实体
         /// </summary>
-        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
-        public IEnumerable<StockInfo> StockInfos { get; set; }
+        //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+        //public IEnumerable<StockInfo> StockInfos { get; set; }
 
         /// <summary>
         /// 市场价
@@ -240,5 +239,11 @@ namespace MicroService.StorageService.Model
         /// 国际条码
         /// </summary>
         public bool? IsConnectSku { get; set; }
+    }
+
+    public enum SaleTypeEnum
+    {
+        A,
+        B
     }
 }

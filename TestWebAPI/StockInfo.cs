@@ -1,7 +1,6 @@
 ﻿using Common.DAL;
 using Common.Model;
 using Common.Validation;
-using MicroService.StorageService.Model.Enums;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
@@ -27,14 +26,14 @@ namespace MicroService.StorageService.Model
         /// <summary>
         /// 关联仓库实体
         /// </summary>
-        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
-        public WarehouseInfo Warehouse { get; set; }
+        //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+        //public WarehouseInfo Warehouse { get; set; }
 
         /// <summary>
         /// 关联商品实体
         /// </summary>
-        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
-        public SupplierCommodity SupplierCommodity { get; set; }
+        //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+        //public SupplierCommodity SupplierCommodity { get; set; }
 
         /// <summary>
         /// 库存商品ID
@@ -64,8 +63,20 @@ namespace MicroService.StorageService.Model
         /// <summary>
         /// 库存规格列表
         /// </summary>
-        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
-        public IEnumerable<StockSpecification> StockSpecifications { get; set; }
+        //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+        //public IEnumerable<StockSpecification> StockSpecifications { get; set; }
+
+        public static StockInfo Build(StockInfo stockInfo)
+        {
+            return null;
+        }
+    }
+
+    [IgnoreBuildController(ignoreGet: true, ignoreDelete: true, ignorePost: true, ignorePut: true, ignoreSearch: true)]
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
+    public class StockSpecification : ViewModelBase
+    {
+        public string Data { get; set; }
     }
 
     /// <summary>
@@ -121,5 +132,11 @@ namespace MicroService.StorageService.Model
         /// 供应商
         /// </summary>
         public long? SupplierID { get; set; }
+    }
+
+    public enum WarehouseTypeEnum
+    {
+        A,
+        B
     }
 }
