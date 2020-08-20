@@ -24,7 +24,6 @@ namespace Common.ServiceCommon
 
         private static bool ReturnEntity(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
-
             if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
                 return true;
 
@@ -94,6 +93,49 @@ namespace Common.ServiceCommon
                                 );
 
             return ReturnEntity(microServiceName, httpResponseMessage);
+        }
+
+        /// <summary>
+        /// 微服务Put
+        /// </summary>
+        /// <param name="httpContextAccessor">IHttpContextAccessor</param>
+        /// <param name="microServiceName">微服务名称</param>
+        /// <param name="functionName">接口名</param>
+        /// <param name="sendText">参数</param>
+        /// <returns></returns>
+        public static bool SendMicroServicePut(IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
+        {
+            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sendText)));
+
+            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPut(
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
+                                $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
+                                httpContent,
+                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                );
+
+            return ReturnEntity(microServiceName, httpResponseMessage);
+        }
+
+        /// <summary>
+        ///  通过url Post
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="functionName"></param>
+        /// <param name="displayName"></param>
+        /// <param name="sendText"></param>
+        /// <returns></returns>
+        public static T SendByUrlPost<T>(string url, string functionName, string displayName, object sendText)
+        {
+            ByteArrayContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sendText)));
+
+            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
+                                $"{url}",
+                                $"{functionName}",
+                                httpContent);
+
+            return ReturnEntity<T>(displayName, httpResponseMessage);
         }
 
         /// <summary>
