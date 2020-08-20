@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.RPC", "Common.RPC\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceManager", "ResourceManager\ResourceManager.csproj", "{72E59763-455C-494E-98D6-253A4A7245CA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Compute", "Common.Compute\Common.Compute.csproj", "{7FFC9EA9-DA0A-4519-9E9B-3FE071E9EC64}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{72E59763-455C-494E-98D6-253A4A7245CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72E59763-455C-494E-98D6-253A4A7245CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72E59763-455C-494E-98D6-253A4A7245CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FFC9EA9-DA0A-4519-9E9B-3FE071E9EC64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FFC9EA9-DA0A-4519-9E9B-3FE071E9EC64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FFC9EA9-DA0A-4519-9E9B-3FE071E9EC64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FFC9EA9-DA0A-4519-9E9B-3FE071E9EC64}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
