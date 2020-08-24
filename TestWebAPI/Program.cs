@@ -205,6 +205,51 @@ namespace TestWebAPI
 
 
 
+            MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection("Server=192.168.10.211;Database=commodity_fix;User=sa;Password=hgl@2020;");
+            conn.Open();
+
+            MySql.Data.MySqlClient.MySqlCommand mySqlCommand = new MySql.Data.MySqlClient.MySqlCommand();
+            mySqlCommand.CommandText = "select * from orign_commodity_hn where BarCode like '%【%'";
+            mySqlCommand.Connection = conn;
+
+            MySql.Data.MySqlClient.MySqlConnection conn1 = new MySql.Data.MySqlClient.MySqlConnection("Server=192.168.10.211;Database=commodity_fix;User=sa;Password=hgl@2020;");
+            conn1.Open();
+
+
+            var reader = mySqlCommand.ExecuteReader();
+
+            while (reader.Read())
+            {
+                string name = reader["barcode"].ToString();
+                string value = name;
+
+                while (true)
+                {
+                    int start = value.IndexOf("【");
+
+                    if (start > -1)
+                    {
+                        int end = value.IndexOf("】");
+
+                        if (end > -1)
+                        {
+                            string yd = value.Substring(start, end - start + 1);
+                            value = value.Replace(yd, string.Empty);
+                        }
+                        else
+                            break;
+                    }
+                    else
+                        break;
+                }
+
+                MySql.Data.MySqlClient.MySqlCommand ab = new MySql.Data.MySqlClient.MySqlCommand();
+                ab.Connection = conn1;
+                ab.CommandText = $"UPDATE orign_commodity_hn set barcode = '{value}' where id = {reader["ID"]} and name = '{reader["name"]}' and barcode = '{name}'";
+                ab.ExecuteNonQuery();
+            }
+
+
 
 
 
@@ -222,8 +267,8 @@ namespace TestWebAPI
                         from cdata in am.DefaultIfEmpty()
                             //select new { a = adata, b = bdata, c = cdata } into res
                         select adata.ID;
-                        //where !res.a.IsDeleted && res.b.IsDeleted && res.c == null ? true : !res.c.IsDeleted
-                        //select new { aid = res.a.ID, bid = res.b.ID, cid = res.c.ID };
+            //where !res.a.IsDeleted && res.b.IsDeleted && res.c == null ? true : !res.c.IsDeleted
+            //select new { aid = res.a.ID, bid = res.b.ID, cid = res.c.ID };
             var m = query.ToList();
 
 
