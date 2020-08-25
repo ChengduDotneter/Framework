@@ -79,9 +79,15 @@ namespace TestWebAPI.Controllers
             {
                 try
                 {
-                    m_warehouseInfoSearchQuery.Count(transaction: transaction);
+                    //m_warehouseInfoSearchQuery.Count(transaction: transaction);
 
-                    IEnumerable<ConcurrentModel> concurrentModels = m_concurrentModelSearchQuery.FilterIsDeleted().Search(transaction: transaction);
+                    //IEnumerable<ConcurrentModel> concurrentModels = m_concurrentModelSearchQuery.FilterIsDeleted().Search(transaction: transaction);
+
+                    warehouseInfo.UpdateTime = DateTime.Now;
+
+                    m_warehouseInfoEditQuery.FilterIsDeleted().Insert(transaction, warehouseInfo);
+
+                    var datas = m_warehouseInfoSearchQuery.FilterIsDeleted().Search(transaction: transaction);
 
                     transaction.Submit();
                 }

@@ -4,6 +4,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Common.DAL.Transaction;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 
@@ -418,6 +421,8 @@ namespace Common.DAL
         {
             m_mongoClient = new MongoClient($"mongodb://{ConfigManager.Configuration["MongoDBService:EndPoint"]}");
             m_mongoDatabase = m_mongoClient.GetDatabase(ConfigManager.Configuration["MongoDBService:Database"]);
+
+            BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Local, BsonType.DateTime));
         }
     }
 }
