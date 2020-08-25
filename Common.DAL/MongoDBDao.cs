@@ -115,7 +115,6 @@ namespace Common.DAL
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
             private static IMongoCollection<T> m_mongoCollection;
 
-
             public ITransaction BeginTransaction(int weight = 0)
             {
                 return new MongoDBTransaction(weight);
