@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +9,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Common.DAL.Transaction;
+using Common.Log;
 using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
@@ -20,6 +22,7 @@ namespace Common.DAL
     {
         private const int GET_DATACONNECTION_THREAD_TIME_SPAN = 1;
         private const int DEFAULT_CONNECTION_COUNT = 10;
+        private static ILogHelper m_logHelper;
         private static IDictionary<string, ConcurrentQueue<DataConnection>> m_connectionPool;
         private static ISet<string> m_tableNames;
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
@@ -28,6 +31,7 @@ namespace Common.DAL
         static Linq2DBDao()
         {
             m_tableNames = new HashSet<string>();
+            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
             LinqToDbConnectionOptionsBuilder masterLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
             LinqToDbConnectionOptionsBuilder slaveLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
 
@@ -37,17 +41,16 @@ namespace Common.DAL
             masterLinqToDbConnectionOptionsBuilder.WithTraceLevel(TraceLevel.Verbose);
             slaveLinqToDbConnectionOptionsBuilder.WithTraceLevel(TraceLevel.Verbose);
 
-            //TODO: 日志
             masterLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
             {
-                Console.WriteLine("master " + traceInfo.SqlText);
+                if (traceInfo.TraceInfoStep == TraceInfoStep.Completed || traceInfo.TraceInfoStep == TraceInfoStep.Error)
+                    m_logHelper.Info("linq2DB_master", traceInfo.SqlText);
             });
 
-            //TODO: 日志
             slaveLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
             {
-                Console.WriteLine(traceInfo.DataConnection.GetHashCode());
-                Console.WriteLine("slave " + traceInfo.SqlText);
+                if (traceInfo.TraceInfoStep == TraceInfoStep.Completed || traceInfo.TraceInfoStep == TraceInfoStep.Error)
+                    m_logHelper.Info("linq2DB_slave", traceInfo.SqlText);
             });
 
             m_masterlinqToDbConnectionOptions = masterLinqToDbConnectionOptionsBuilder.Build();
@@ -239,6 +242,41 @@ namespace Common.DAL
             }
         }
 
+        private class Linq2DBQueryable<T> : ISearchQueryable<T>
+            where T : class, IEntity, new()
+        {
+            private ITable<T> m_table;
+            private bool m_inTransaction;
+
+            public Linq2DBQueryable(ITable<T> table, bool inTransaction)
+            {
+                m_inTransaction = inTransaction;
+                m_table = table;
+            }
+
+            public Type ElementType => m_table.ElementType;
+
+            public Expression Expression => m_table.Expression;
+
+            public IQueryProvider Provider => m_table.Provider;
+
+            public void Dispose()
+            {
+                if (!m_inTransaction && m_table.DataContext is DataConnection dataConnection)
+                    DisposeConnection(dataConnection);
+            }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                return m_table.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable)m_table).GetEnumerator();
+            }
+        }
+
         private class Linq2DBDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>
             where T : class, IEntity, new()
         {
@@ -246,7 +284,6 @@ namespace Common.DAL
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
             private static readonly object m_lockThis;
             private bool m_codeFirst;
-            private DataConnection m_queryableDataConnection;
 
             public ITransaction BeginTransaction(int weight = 0)
             {
@@ -283,19 +320,8 @@ namespace Common.DAL
 
             public int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null)
             {
-                bool inTransaction = Apply<T>(transaction);
-
-                try
-                {
-                    return query.Count();
-                }
-                finally
-                {
-                    if (!inTransaction && query is ITable<T> table && table.DataContext is DataConnection dataConnection)
-                        DisposeConnection(dataConnection);
-                    else if (!inTransaction && query is IExpressionQuery expressionQuery && expressionQuery.DataContext is DataConnection expressionQueryDataConnection)
-                        DisposeConnection(expressionQueryDataConnection);
-                }
+                Apply<T>(transaction);
+                return query.Count();
             }
 
             public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
@@ -323,19 +349,8 @@ namespace Common.DAL
 
             public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null)
             {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-
-                try
-                {
-                    return await query.CountAsync();
-                }
-                finally
-                {
-                    if (!inTransaction && query is ITable<T> table && table.DataContext is DataConnection dataConnection)
-                        DisposeConnection(dataConnection);
-                    else if (!inTransaction && query is IExpressionQuery expressionQuery && expressionQuery.DataContext is DataConnection expressionQueryDataConnection)
-                        DisposeConnection(expressionQueryDataConnection);
-                }
+                await ApplyAsync<T>(transaction);
+                return await query.CountAsync();
             }
 
             public void Delete(ITransaction transaction = null, params long[] ids)
@@ -415,43 +430,31 @@ namespace Common.DAL
                 }
             }
 
-            public IQueryable<TResult> GetQueryable<TResult>(ITransaction transaction = null)
-                where TResult : class, IEntity, new()
+            public ISearchQueryable<T> GetQueryable(ITransaction transaction = null)
             {
                 bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    if (m_queryableDataConnection == null)
-                        lock (m_lockThis)
-                            if (m_queryableDataConnection == null)
-                                m_queryableDataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    return m_queryableDataConnection.GetTable<TResult>();
+                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).GetTable<T>(), inTransaction);
                 }
                 else
                 {
-                    return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<TResult>();
+                    return new Linq2DBQueryable<T>(((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>(), inTransaction);
                 }
             }
 
-            public async Task<IQueryable<TResult>> GetQueryableAsync<TResult>(ITransaction transaction = null)
-                where TResult : class, IEntity, new()
+            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    if (m_queryableDataConnection == null)
-                        lock (m_lockThis)
-                            if (m_queryableDataConnection == null)
-                                m_queryableDataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    return m_queryableDataConnection.GetTable<TResult>();
+                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).GetTable<T>(), inTransaction);
                 }
                 else
                 {
-                    return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<TResult>();
+                    return new Linq2DBQueryable<T>(((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>(), inTransaction);
                 }
             }
 
@@ -594,19 +597,8 @@ namespace Common.DAL
 
             public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
             {
-                bool inTransaction = Apply<T>(transaction);
-
-                try
-                {
-                    return query.Skip(startIndex).Take(count).ToList();
-                }
-                finally
-                {
-                    if (!inTransaction && query is ITable<T> table && table.DataContext is DataConnection dataConnection)
-                        DisposeConnection(dataConnection);
-                    else if (!inTransaction && query is IExpressionQuery expressionQuery && expressionQuery.DataContext is DataConnection expressionQueryDataConnection)
-                        DisposeConnection(expressionQueryDataConnection);
-                }
+                Apply<T>(transaction);
+                return query.Skip(startIndex).Take(count).ToList();
             }
 
             public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
@@ -686,19 +678,8 @@ namespace Common.DAL
 
             public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
             {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-
-                try
-                {
-                    return await query.Skip(startIndex).Take(count).ToListAsync();
-                }
-                finally
-                {
-                    if (!inTransaction && query is ITable<T> table && table.DataContext is DataConnection dataConnection)
-                        DisposeConnection(dataConnection);
-                    else if (!inTransaction && query is IExpressionQuery expressionQuery && expressionQuery.DataContext is DataConnection expressionQueryDataConnection)
-                        DisposeConnection(expressionQueryDataConnection);
-                }
+                await ApplyAsync<T>(transaction);
+                return await query.Skip(startIndex).Take(count).ToListAsync();
             }
 
             public void Update(T data, ITransaction transaction = null)
@@ -708,7 +689,7 @@ namespace Common.DAL
 
                 try
                 {
-                    dataConnection.Update<T>(data);
+                    dataConnection.Update(data);
                 }
                 finally
                 {
@@ -756,7 +737,7 @@ namespace Common.DAL
 
                 try
                 {
-                    await dataConnection.UpdateAsync<T>(data);
+                    await dataConnection.UpdateAsync(data);
                 }
                 finally
                 {
@@ -807,12 +788,6 @@ namespace Common.DAL
             {
                 EMPTY_PREDICATE = _ => true;
                 m_lockThis = new object();
-            }
-
-            ~Linq2DBDaoInstance()
-            {
-                if (m_queryableDataConnection != null)
-                    DisposeConnection(m_queryableDataConnection);
             }
         }
     }

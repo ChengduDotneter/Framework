@@ -208,21 +208,25 @@ namespace Common.DAL
         /// <summary>
         /// 获取Linq查询接口
         /// </summary>
-        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="T"></typeparam>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        IQueryable<TResult> GetQueryable<TResult>(ITransaction transaction = null)
-            where TResult : class, IEntity, new();
+        ISearchQueryable<T> GetQueryable(ITransaction transaction = null);
 
         /// <summary>
         /// 获取Linq查询接口
         /// </summary>
-        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="T"></typeparam>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<IQueryable<TResult>> GetQueryableAsync<TResult>(ITransaction transaction = null)
-             where TResult : class, IEntity, new();
+        Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null);
     }
+
+    /// <summary>
+    /// 查询Queryable
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface ISearchQueryable<T> : IQueryable<T>, IDisposable { }
 
     /// <summary>
     /// 事务接口

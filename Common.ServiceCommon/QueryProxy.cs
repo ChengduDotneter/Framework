@@ -274,25 +274,21 @@ namespace Common.ServiceCommon
         /// <summary>
         /// 获取Linq查询接口
         /// </summary>
-        /// <typeparam name="TResult"></typeparam>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        public IQueryable<TResult> GetQueryable<TResult>(ITransaction transaction = null)
-            where TResult : class, IEntity, new()
+        public ISearchQueryable<T> GetQueryable(ITransaction transaction = null)
         {
-            return m_searchQuery.GetQueryable<TResult>(transaction);
+            return m_searchQuery.GetQueryable(transaction);
         }
 
         /// <summary>
         /// 获取Linq查询接口
         /// </summary>
-        /// <typeparam name="TResult"></typeparam>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        public Task<IQueryable<TResult>> GetQueryableAsync<TResult>(ITransaction transaction = null)
-            where TResult : class, IEntity, new()
+        public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
         {
-            return m_searchQuery.GetQueryableAsync<TResult>(transaction);
+            return m_searchQuery.GetQueryableAsync(transaction);
         }
 
         /// <summary>
@@ -448,25 +444,21 @@ namespace Common.ServiceCommon
         /// <summary>
         /// 获取Linq查询接口
         /// </summary>
-        /// <typeparam name="TResult"></typeparam>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        public IQueryable<TResult> GetQueryable<TResult>(ITransaction transaction = null)
-            where TResult : class, IEntity, new()
+        public ISearchQueryable<T> GetQueryable(ITransaction transaction = null)
         {
-            return m_searchQuery.GetQueryable<TResult>(transaction);
+            return m_searchQuery.GetQueryable(transaction);
         }
 
         /// <summary>
         /// 获取Linq查询接口
         /// </summary>
-        /// <typeparam name="TResult"></typeparam>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        public Task<IQueryable<TResult>> GetQueryableAsync<TResult>(ITransaction transaction = null)
-            where TResult : class, IEntity, new()
+        public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
         {
-            return m_searchQuery.GetQueryableAsync<TResult>(transaction);
+            return m_searchQuery.GetQueryableAsync(transaction);
         }
 
         /// <summary>

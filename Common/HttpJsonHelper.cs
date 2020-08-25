@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Common
@@ -259,14 +260,13 @@ namespace Common
         }
 
         /// <summary>
-        /// 根据Object获取httpcontext
+        /// 根据Object获取HttpContext
         /// </summary>
         /// <param name="requestObject"></param>
         /// <returns></returns>
         public static HttpContent ObjectToByteArrayContent(object requestObject)
         {
-            //TODO:暂时还原为Newtonsoft.Json，System.Text.Json 存在JObject JArray序列化不支持情况
-            return new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(requestObject)));
+            return new ByteArrayContent(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(requestObject)));
         }
     }
 }

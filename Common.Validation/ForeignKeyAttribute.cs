@@ -1,7 +1,7 @@
-﻿using Common.DAL;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
+using Common.DAL;
 
 namespace Common.Validation
 {
@@ -36,7 +36,6 @@ namespace Common.Validation
         protected override string GetErrorMessage(ValidationContext validationContext, string propertyName) =>
             $"{m_foreignTableType.Name}中{m_foreignColumn}为{validationContext.ObjectType.GetProperty(validationContext.MemberName).GetValue(validationContext.ObjectInstance)}的数据不存在。";
 
-        //TODO: 外键表Insert时处理方式
         /// <summary>
         /// 验证属性值
         /// </summary>
@@ -52,14 +51,16 @@ namespace Common.Validation
 
                 Type queryType = typeof(ISearchQuery<>).MakeGenericType(m_foreignTableType);
                 object searchQuery = validationContext.GetService(queryType);
-                string sql = string.Format("{0} = @{0} {1}", m_foreignColumn,
-                                                              m_filterIsDeleted ? " AND IsDeleted = 0 " : string.Empty);
 
-                Dictionary<string, object> parameters = new Dictionary<string, object>();
-                parameters.Add($"@{m_foreignColumn}", value);
+                ParameterExpression parameter = Expression.Parameter(m_foreignTableType, "item");
+                Expression equal = Expression.Equal(Expression.Property(parameter, m_foreignColumn), Expression.Constant(value));
+                Expression isDeleted = Expression.Equal(Expression.Property(parameter, "IsDeleted"), Expression.Constant(false));
+                Expression predicate = Expression.Lambda(equal, parameter);
 
-                return (int)queryType.GetMethod("Count", new Type[] { typeof(string), typeof(Dictionary<string, object>) }).
-                    Invoke(searchQuery, new object[] { sql, parameters, null }) > 0;
+                if (m_filterIsDeleted)
+                    predicate = Expression.And(isDeleted, isDeleted);
+
+                return (int)typeof(ISearchQuery<>).MakeGenericType(m_foreignTableType).GetMethod("Count", new Type[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(m_foreignTableType, typeof(bool))), typeof(ITransaction) }).Invoke(searchQuery, new object[] { predicate, null }) > 0;
             }
 
             throw new NotImplementedException();

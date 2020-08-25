@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Apache.Ignite.Core.Cache.Configuration;
 using Common;
 using Common.DAL;
 using Common.Model;
@@ -11,10 +8,10 @@ using Common.ServiceCommon;
 using Common.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SqlSugar;
 
 namespace TestWebAPI.Controllers
 {
+<<<<<<< HEAD
     [IgnoreBuildController(ignoreGet: true, ignoreDelete: true, ignorePost: true, ignorePut: true, ignoreSearch: true)]
     public class ConcurrentModel : ViewModelBase
     {
@@ -100,9 +97,10 @@ namespace TestWebAPI.Controllers
         }
     }
 
+=======
+>>>>>>> 9725635... 111
     public class TCCTestData : ViewModelBase
     {
-        [SugarColumn(IsNullable = false, Length = 10)]
         [NotNull]
         [StringMaxLength(100)]
         public string Data { get; set; }

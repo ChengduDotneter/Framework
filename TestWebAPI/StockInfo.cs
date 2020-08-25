@@ -65,11 +65,6 @@ namespace MicroService.StorageService.Model
         /// </summary>
         //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         //public IEnumerable<StockSpecification> StockSpecifications { get; set; }
-
-        public static StockInfo Build(StockInfo stockInfo)
-        {
-            return null;
-        }
     }
 
     [IgnoreBuildController(ignoreGet: true, ignoreDelete: true, ignorePost: true, ignorePut: true, ignoreSearch: true)]

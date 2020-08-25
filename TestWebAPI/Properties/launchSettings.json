@@ -17,7 +17,11 @@
       }
     },
     "TestWebAPI": {
+<<<<<<< HEAD
       "applicationUrl": "http://192.168.10.69:7788",
+=======
+      "applicationUrl": "http://127.0.0.1:7788",
+>>>>>>> 9725635... 111
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

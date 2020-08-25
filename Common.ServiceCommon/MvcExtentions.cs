@@ -19,8 +19,6 @@ using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 namespace Common.ServiceCommon
 {
     //TODO: Cache
-    //TODO: 动态Controller Sql实现
-    //TODO: TCC返回值乱码
 
     /// <summary>
     /// MVC扩展类

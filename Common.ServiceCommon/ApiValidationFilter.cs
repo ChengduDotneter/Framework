@@ -105,13 +105,13 @@ namespace Common.ServiceCommon
         /// <param name="context"></param>
         public override Task ExecuteResultAsync(ActionContext context)
         {
-            return Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(async () =>
             {
                 context.HttpContext.Response.ContentType = string.IsNullOrEmpty(ContentType) ? "application/json" : ContentType;
                 context.HttpContext.Response.StatusCode = StatusCode ?? StatusCodes.Status400BadRequest;
 
                 if (Value != null)
-                    context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(Value)).Wait();
+                    await context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(Value));
             });
         }
     }

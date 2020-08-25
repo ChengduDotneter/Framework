@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using Apache.Ignite.Core.Cache;
-using Apache.Ignite.Linq;
 using Common;
 using Common.DAL;
 using Common.Log;
@@ -205,50 +204,74 @@ namespace TestWebAPI
 
 
 
-            MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection("Server=192.168.10.211;Database=commodity_fix;User=sa;Password=hgl@2020;");
-            conn.Open();
+            //MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection("Server=192.168.10.211;Database=commodity_fix;User=sa;Password=hgl@2020;");
+            //conn.Open();
 
-            MySql.Data.MySqlClient.MySqlCommand mySqlCommand = new MySql.Data.MySqlClient.MySqlCommand();
-            mySqlCommand.CommandText = "select * from orign_commodity_hn where BarCode like '%【%'";
-            mySqlCommand.Connection = conn;
+            //MySql.Data.MySqlClient.MySqlCommand mySqlCommand = new MySql.Data.MySqlClient.MySqlCommand();
+            //mySqlCommand.CommandText = "select * from orign_commodity_hn where BarCode like '%【%'";
+            //mySqlCommand.Connection = conn;
 
-            MySql.Data.MySqlClient.MySqlConnection conn1 = new MySql.Data.MySqlClient.MySqlConnection("Server=192.168.10.211;Database=commodity_fix;User=sa;Password=hgl@2020;");
-            conn1.Open();
+            //MySql.Data.MySqlClient.MySqlConnection conn1 = new MySql.Data.MySqlClient.MySqlConnection("Server=192.168.10.211;Database=commodity_fix;User=sa;Password=hgl@2020;");
+            //conn1.Open();
 
 
-            var reader = mySqlCommand.ExecuteReader();
+            //var reader = mySqlCommand.ExecuteReader();
 
-            while (reader.Read())
-            {
-                string name = reader["barcode"].ToString();
-                string value = name;
+            //while (reader.Read())
+            //{
+            //    string name = reader["barcode"].ToString();
+            //    string value = name;
 
-                while (true)
-                {
-                    int start = value.IndexOf("【");
+            //    while (true)
+            //    {
+            //        int start = value.IndexOf("【");
 
-                    if (start > -1)
-                    {
-                        int end = value.IndexOf("】");
+            //        if (start > -1)
+            //        {
+            //            int end = value.IndexOf("】");
 
-                        if (end > -1)
-                        {
-                            string yd = value.Substring(start, end - start + 1);
-                            value = value.Replace(yd, string.Empty);
-                        }
-                        else
-                            break;
-                    }
-                    else
-                        break;
-                }
+            //            if (end > -1)
+            //            {
+            //                string yd = value.Substring(start, end - start + 1);
+            //                value = value.Replace(yd, string.Empty);
+            //            }
+            //            else
+            //                break;
+            //        }
+            //        else
+            //            break;
+            //    }
 
-                MySql.Data.MySqlClient.MySqlCommand ab = new MySql.Data.MySqlClient.MySqlCommand();
-                ab.Connection = conn1;
-                ab.CommandText = $"UPDATE orign_commodity_hn set barcode = '{value}' where id = {reader["ID"]} and name = '{reader["name"]}' and barcode = '{name}'";
-                ab.ExecuteNonQuery();
-            }
+            //    MySql.Data.MySqlClient.MySqlCommand ab = new MySql.Data.MySqlClient.MySqlCommand();
+            //    ab.Connection = conn1;
+            //    ab.CommandText = $"UPDATE orign_commodity_hn set barcode = '{value}' where id = {reader["ID"]} and name = '{reader["name"]}' and barcode = '{name}'";
+            //    ab.ExecuteNonQuery();
+            //}
 
+
+
+            //var etlTask = Common.DAL.ETL.ETLHelper.Transform(new Type[] { typeof(StockInfo), typeof(WarehouseInfo), typeof(SupplierCommodity) },
+            //         type => typeof(DaoFactory).GetMethod("GetSearchMongoDBQuery").MakeGenericMethod(type).Invoke(null, null),
+            //         type => typeof(DaoFactory).GetMethod("GetEditLinq2DBQuery").MakeGenericMethod(type).Invoke(null, new object[] { false }));
+
+            //while (!etlTask.Task.IsCompleted)
+            //{
+            //    if (etlTask.RunningTable != null)
+            //        Console.WriteLine($"{etlTask.RunningTable}: {etlTask.RunningTable.ComplatedCount}/{etlTask.RunningTable.DataCount}");
+
+            //    System.Threading.Thread.Sleep(1000);
+            //}
+
+            //Console.WriteLine("ok");
+
+            string foreignColumn = "ID";
+            ParameterExpression parameter = Expression.Parameter(typeof(StockInfo), "item");
+            Expression equal = Expression.Equal(Expression.Property(parameter, foreignColumn), Expression.Constant(191574238853980162L));
+            Expression equal1 = Expression.Equal(Expression.Property(parameter, "IsDeleted"), Expression.Constant(false));
+
+            equal = Expression.And(equal, equal1);
+
+            Expression expression = Expression.Lambda(equal, parameter);
 
 
 
@@ -257,21 +280,29 @@ namespace TestWebAPI
             ISearchQuery<WarehouseInfo> bsearch = DaoFactory.GetSearchMongoDBQuery<WarehouseInfo>();
             ISearchQuery<SupplierCommodity> csearch = DaoFactory.GetSearchMongoDBQuery<SupplierCommodity>();
 
-            var a = asearch.GetQueryable<StockInfo>();
-            var b = bsearch.GetQueryable<WarehouseInfo>();
-            var c = csearch.GetQueryable<SupplierCommodity>();
+            var type1 = typeof(Func<,>).MakeGenericType(typeof(StockInfo), typeof(bool));
+            var type = typeof(Expression<>).MakeGenericType(type1);
+
+            var q = typeof(DaoFactory).GetMethod("GetSearchMongoDBQuery").MakeGenericMethod(typeof(StockInfo)).Invoke(null, null);
+            var method = typeof(ISearchQuery<>).MakeGenericType(typeof(StockInfo)).GetMethod("Count", new Type[] { type, typeof(ITransaction) });
+
+            var ksd = (int)method.Invoke(q, new object[] { expression, null });
+
+            var a = asearch.GetQueryable();
+            var b = bsearch.GetQueryable();
+            var c = csearch.GetQueryable();
 
             var query = from adata in a
                         join bdata in b on adata.WarehouseID.Value equals bdata.ID
-                        join cdata in c on adata.SupplierCommodityID.Value equals cdata.ID into am
-                        from cdata in am.DefaultIfEmpty()
-                            //select new { a = adata, b = bdata, c = cdata } into res
+                        //join cdata in c on adata.SupplierCommodityID.Value equals cdata.ID into am
+                        //from cdata in am.DefaultIfEmpty()
+                        //select new { a = adata, b = bdata, c = cdata } into res
                         select adata.ID;
             //where !res.a.IsDeleted && res.b.IsDeleted && res.c == null ? true : !res.c.IsDeleted
             //select new { aid = res.a.ID, bid = res.b.ID, cid = res.c.ID };
-            var m = query.ToList();
+            var m = asearch.Search(item => item.IsDeleted, new QueryOrderBy<StockInfo>[] { new QueryOrderBy<StockInfo>(item => item.CreateTime, OrderByType.Desc) }, 0, 15);
 
-
+            var s = asearch.Count(item => !item.IsDeleted);
 
 
 
