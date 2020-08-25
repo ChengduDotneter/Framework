@@ -12,7 +12,7 @@ namespace MicroService.StorageService.Model
     /// <summary>
     /// 仓库实体
     /// </summary>
-    [IgnoreBuildController(ignoreGet: true, ignoreDelete: true, ignorePost: true, ignorePut: true, ignoreSearch: false)]
+    [IgnoreBuildController(ignoreGet: true, ignoreDelete: true, ignorePost: true, ignorePut: true, ignoreSearch: true)]
     [LinqSearch(typeof(WarehouseInfo), nameof(GetSearchLinq))]
     [MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
     public class WarehouseInfo : ViewModelBase

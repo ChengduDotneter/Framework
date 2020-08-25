@@ -4,6 +4,7 @@ using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson.Serialization.Attributes;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -376,6 +377,7 @@ namespace TestWebAPI.Controllers
         public DateTime? ShelfLifeEndTime { get; set; }
     }
 
+    [BsonIgnoreExtraElements]
     public class WarehouseInfo : ViewModelBase
     {
         /// <summary>

@@ -14,7 +14,7 @@ namespace MicroService.StorageService.Model
     /// 第三方供应商商品
     /// </summary>
     [LinqSearch(typeof(SupplierCommoditySearch), nameof(GetSearchLinq))]
-    [IgnoreBuildController(ignoreGet: false, ignoreDelete: true, ignorePost: true, ignorePut: true, ignoreSearch: false)]
+    [IgnoreBuildController(ignoreGet: true, ignoreDelete: true, ignorePost: true, ignorePut: true, ignoreSearch: true)]
     [MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
     public class SupplierCommodity : ViewModelBase
     {
