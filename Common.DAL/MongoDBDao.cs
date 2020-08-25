@@ -258,10 +258,10 @@ namespace Common.DAL
                             sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
                     }
 
-                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).ToList();
+                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList();
                 }
 
-                return findFluent.ToList();
+                return findFluent.Skip(startIndex).Limit(count).ToList();
             }
 
             public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
@@ -290,10 +290,10 @@ namespace Common.DAL
                             sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
                     }
 
-                    return await findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).ToListAsync();
+                    return await findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToListAsync();
                 }
 
-                return await findFluent.ToListAsync();
+                return await findFluent.Skip(startIndex).Limit(count).ToListAsync();
             }
 
             public void Update(T data, ITransaction transaction = null)
