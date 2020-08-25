@@ -19,13 +19,11 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <param name="queuesName">队列名称</param>
         public static void BindingQueues(string exchangeName, ExChangeTypeEnum exchangeType, IModel channel, string routingKey, IEnumerable<string> queuesName)
         {
-            IDictionary<string, object> argument = new Dictionary<string, object> { { "x-expires", 6000 } }; //防止生成多余的缓存队列 
-
-            channel.ExchangeDeclare(exchange: exchangeName, type: exchangeType.ToString(), durable: true, autoDelete: false, argument);//设置交换器类型
+            channel.ExchangeDeclare(exchange: exchangeName, type: exchangeType.ToString(), durable: true, autoDelete: false, null);//设置交换器类型
 
             foreach (var queueName in queuesName)
             {
-                channel.QueueDeclare(queueName, true, false, false, argument);
+                channel.QueueDeclare(queueName, true, false, false, null);
                 channel.QueueBind(queueName, exchangeName, routingKey); // 设置路由关键字即为队列的名称
             }
         }
