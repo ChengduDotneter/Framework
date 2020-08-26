@@ -75,14 +75,14 @@ namespace Common.ServiceCommon
                 httpContext.Response.StatusCode = StatusCodes.Status402PaymentRequired;
                 await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, ExceptionHelper.GetMessage(exception), Encoding.UTF8);
 
-                await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo);
+                await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo, exception.StackTrace);
             }
             catch (Exception exception)
             {
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, "内部异常", Encoding.UTF8);
 
-                await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo);
+                await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo, exception.StackTrace);
             }
         }
 

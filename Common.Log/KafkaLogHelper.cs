@@ -37,17 +37,18 @@ namespace Common.Log
         /// <param name="path">接口路径</param>
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
+        /// <param name="stackTrace"></param>
         /// <param name="controllerName">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
         /// <param name="statusCode">接口状态编码</param>
-        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
+        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "")
         {
             await GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog)),
                     new ErrorLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
                         NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                        StackTrace = Environment.StackTrace,
+                        StackTrace = stackTrace,
                         ControllerName = controllerName,
                         ErrorMessage = errorMessage,
                         Methed = methed,
@@ -109,26 +110,6 @@ namespace Common.Log
                         Methed = methed,
                         Parameters = parameters,
                         Path = path
-                    });
-        }
-
-        /// <summary>
-        /// Sql错误日志写入
-        /// </summary>
-        /// <param name="sql">Sql语句</param>
-        /// <param name="parameters">Sql请求参数</param>
-        /// <param name="message">Sql执行结果</param>
-        public async Task SqlError(string sql, string message, string parameters = "")
-        {
-            await GetKafkaInstance<SqlErrorLog>().ProduceAsync(new MQContext(nameof(SqlErrorLog)),
-                    new SqlErrorLog
-                    {
-                        Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
-                        NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                        Sql = sql,
-                        Message = message,
-                        Parameters = parameters,
-                        StackTrace = Environment.StackTrace,
                     });
         }
 

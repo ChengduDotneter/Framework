@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Common.Log
 {
@@ -36,18 +37,11 @@ namespace Common.Log
         /// <param name="path">接口路径</param>
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
+        /// <param name="stackTrace"></param>
         /// <param name="controllerName">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
         /// <param name="statusCode">接口状态编码</param>
-        Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters);
-
-        /// <summary>
-        /// Sql错误日志写入
-        /// </summary>
-        /// <param name="sql">Sql语句</param>
-        /// <param name="parameters">Sql请求参数</param>
-        /// <param name="message">Sql执行结果</param>
-        Task SqlError(string sql, string message, string parameters = "");
+        Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "");
 
         /// <summary>
         /// TCCNode日志写入

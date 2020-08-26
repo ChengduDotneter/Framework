@@ -35,13 +35,14 @@ namespace Common.Log
         /// <param name="path">接口路径</param>
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
+        /// <param name="stackTrace"></param>
         /// <param name="controllerName">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
         /// <param name="statusCode">接口状态编码</param>
-        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters)
+        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "")
         {
             await Task.Factory.StartNew(() =>
-                CreateLog("Controller", controllerName, methed).Error($" Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{Environment.StackTrace}")
+                CreateLog("Controller", controllerName, methed).Error($" Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{stackTrace}")
             );
         }
 
@@ -84,19 +85,6 @@ namespace Common.Log
         }
 
         /// <summary>
-        /// Sql错误日志写入
-        /// </summary>
-        /// <param name="sql">Sql语句</param>
-        /// <param name="parameters">Sql请求参数</param>
-        /// <param name="message">Sql执行结果</param>
-        public async Task SqlError(string sql, string message, string parameters = "")
-        {
-            await Task.Factory.StartNew(() =>
-                CreateLog("Sql", "error").Error($" message: {message}{Environment.NewLine} sql: {sql}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} stack_trace:{Environment.NewLine}{Environment.StackTrace}")
-            );
-        }
-
-        /// <summary>
         /// TCCNode日志写入
         /// </summary>
         /// <param name="transcationID">TCC事务ID</param>
@@ -112,7 +100,6 @@ namespace Common.Log
                 else log.Info($" transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine}");
             });
         }
-
 
         /// <summary>
         /// TCCServer日志写入
@@ -203,6 +190,5 @@ namespace Common.Log
 
             return m_logs[logKey];
         }
-
     }
 }
