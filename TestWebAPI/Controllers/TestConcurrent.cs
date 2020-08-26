@@ -59,4 +59,14 @@ namespace TestWebAPI.Controllers
             return data;
         }
     }
+    [ApiController]
+    [Route("tttessst")]
+    public class TestController : ControllerBase
+    {
+        [HttpGet]
+        public string ttt()
+        {
+            throw new DealException("123456");
+        }
+    }
 }
