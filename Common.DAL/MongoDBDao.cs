@@ -455,7 +455,7 @@ namespace Common.DAL
 
             private static string GetOrderByString(IEnumerable<QueryOrderBy<T>> queryOrderBies)
             {
-                return string.Join(Environment.NewLine, queryOrderBies.Select(queryOrderBy => $"predicate: {queryOrderBy.Expression} {queryOrderBy.OrderByType}"));
+                return string.Join(Environment.NewLine, queryOrderBies?.Select(queryOrderBy => $"predicate: {queryOrderBy.Expression} {queryOrderBy.OrderByType}"));
             }
 
             static MongoDBDaoInstance()
