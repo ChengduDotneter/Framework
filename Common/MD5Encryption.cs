@@ -9,15 +9,15 @@ namespace Common
     /// </summary>
     public static class MD5Encryption
     {
-        private static MD5 m_md5;
+        private static readonly MD5 m_md5;
 
         /// <summary>
         /// 获取MD5加密字符串
         /// </summary>
         /// <param name="encryptedString"></param>
-        /// <param name="charset"></param>
+        /// <param name="charset">默认UTF-8</param>
         /// <returns></returns>
-        public static string GetMD5(string encryptedString, string charset)
+        public static string GetMD5(string encryptedString, string charset = "UTF-8")
         {
             byte[] fromData = Encoding.GetEncoding(charset).GetBytes(encryptedString);
             byte[] targetData = m_md5.ComputeHash(fromData);
