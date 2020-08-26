@@ -55,10 +55,11 @@ namespace Common.Validation
                 ParameterExpression parameter = Expression.Parameter(m_foreignTableType, "item");
                 Expression equal = Expression.Equal(Expression.Property(parameter, m_foreignColumn), Expression.Constant(value));
                 Expression isDeleted = Expression.Equal(Expression.Property(parameter, "IsDeleted"), Expression.Constant(false));
-                Expression predicate = Expression.Lambda(equal, parameter);
 
                 if (m_filterIsDeleted)
-                    predicate = Expression.And(isDeleted, isDeleted);
+                    equal = Expression.And(isDeleted, equal);
+
+                Expression predicate = Expression.Lambda(equal, parameter);
 
                 return (int)typeof(ISearchQuery<>).MakeGenericType(m_foreignTableType).GetMethod("Count", new Type[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(m_foreignTableType, typeof(bool))), typeof(ITransaction) }).Invoke(searchQuery, new object[] { predicate, null }) > 0;
             }

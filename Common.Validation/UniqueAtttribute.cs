@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 
 namespace Common.Validation
 {
@@ -38,16 +39,19 @@ namespace Common.Validation
             {
                 Type queryType = typeof(ISearchQuery<>).MakeGenericType(validationContext.ObjectType);
                 object searchQuery = validationContext.GetService(queryType);
-                string sql = string.Format("{0} = @{0} AND {1} <> @{1} {2}", validationContext.MemberName,
-                                                                               nameof(IEntity.ID),
-                                                                               m_filterIsDeleted ? " AND IsDeleted = 0 " : string.Empty);
 
-                Dictionary<string, object> parameters = new Dictionary<string, object>();
-                parameters.Add($"@{validationContext.MemberName}", value);
-                parameters.Add($"@{nameof(IEntity.ID)}", typeof(IEntity).GetProperty(nameof(IEntity.ID)).GetValue(entity));
+                ParameterExpression parameter = Expression.Parameter(validationContext.ObjectType, "item");
+                Expression equal = Expression.Equal(Expression.Property(parameter, validationContext.MemberName), Expression.Constant(value));
+                Expression notThis = Expression.NotEqual(Expression.Property(parameter, nameof(IEntity.ID)), Expression.Constant(entity.ID));
+                Expression unique = Expression.And(equal, notThis);
+                Expression isDeleted = Expression.Equal(Expression.Property(parameter, "IsDeleted"), Expression.Constant(false));
 
-                return (int)queryType.GetMethod("Count", new Type[] { typeof(string), typeof(Dictionary<string, object>) }).
-                        Invoke(searchQuery, new object[] { sql, parameters }) == 0;
+                if (m_filterIsDeleted)
+                    unique = Expression.And(isDeleted, unique);
+
+                Expression predicate = Expression.Lambda(unique, parameter);
+
+                return (int)typeof(ISearchQuery<>).MakeGenericType(validationContext.ObjectType).GetMethod("Count", new Type[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(validationContext.ObjectType, typeof(bool))), typeof(ITransaction) }).Invoke(searchQuery, new object[] { predicate, null }) == 0;
             }
 
             throw new NotSupportedException();
