@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Apache.Ignite.Core;
+using Apache.Ignite.Core.Communication.Tcp;
 using Apache.Ignite.Core.Compute;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Multicast;
@@ -26,6 +27,11 @@ namespace Common.Compute
                     {
                         Endpoints = new[] { ConfigManager.Configuration["IgniteService:TcpDiscoveryMulticastIpFinderEndPoint"] }
                     }
+                },
+
+                CommunicationSpi = new TcpCommunicationSpi
+                {
+                    LocalPort = Convert.ToInt32(ConfigManager.Configuration["IgniteService:TcpCommunicationSpiEndPoint"])
                 }
             };
 
