@@ -4,12 +4,14 @@ using System.Text.Json.Serialization;
 
 namespace Common.Model
 {
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
     public abstract class ViewModelBase : IEntity
     {
         /// <summary>
         /// 主键ID
         /// </summary>
         [LinqToDB.Mapping.PrimaryKey, LinqToDB.Mapping.NotNull]
+        [MongoDB.Bson.Serialization.Attributes.BsonId]
         [JsonConverter(typeof(ObjectIdConverter))]
         [Validation.NotNull]
         public long ID { get; set; }

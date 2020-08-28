@@ -8,6 +8,7 @@ using Apache.Ignite.Core.Cache;
 using Common;
 using Common.DAL;
 using Common.Log;
+using Common.Model;
 using Common.ServiceCommon;
 using LinqToDB.Mapping;
 using MicroService.StorageService.Model;
@@ -50,6 +51,12 @@ namespace TestWebAPI
     //    [Column]
     //    public string ClassName { get; set; }
     //}
+
+    public class TestData : ViewModelBase
+    {
+        public string Data { get; set; }
+        public DateTime AC { get; set; }
+    }
 
     public class Program
     {
