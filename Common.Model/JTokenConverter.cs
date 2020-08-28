@@ -30,8 +30,8 @@ namespace Common.Model
                 new JObjectConverter().Write(writer, (JObject)value, options);
             if (value.Type == JTokenType.Array)
                 new JArrayConverter().Write(writer, (JArray)value, options);
-
-            throw new NotSupportedException();
+            else
+                throw new NotSupportedException();
         }
     }
 }
