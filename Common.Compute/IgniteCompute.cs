@@ -23,15 +23,13 @@ namespace Common.Compute
 
                 DiscoverySpi = new TcpDiscoverySpi()
                 {
+                    LocalAddress = ConfigManager.Configuration["IgniteService:TcpDiscoveryLocalAddress"],
+                    LocalPort = Convert.ToInt32(ConfigManager.Configuration["IgniteService:TcpDiscoveryLocalPort"]),
+                    LocalPortRange = Convert.ToInt32(ConfigManager.Configuration["IgniteService:TcpDiscoveryLocalPortRange"]),
                     IpFinder = new TcpDiscoveryStaticIpFinder()
                     {
-                        Endpoints = new[] { ConfigManager.Configuration["IgniteService:TcpDiscoveryMulticastIpFinderEndPoint"] }
+                        Endpoints = ConfigManager.Configuration["IgniteService:TcpDiscoveryMulticastIpFinderEndPoint"].Split(',').ToArray()
                     }
-                },
-
-                CommunicationSpi = new TcpCommunicationSpi
-                {
-                    LocalPort = Convert.ToInt32(ConfigManager.Configuration["IgniteService:TcpCommunicationSpiEndPoint"])
                 }
             };
 
