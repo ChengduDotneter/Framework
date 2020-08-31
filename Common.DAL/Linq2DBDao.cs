@@ -69,7 +69,7 @@ namespace Common.DAL
                     m_connectionPool[m_masterlinqToDbConnectionOptions.ConnectionString].Enqueue(new DataConnection(m_masterlinqToDbConnectionOptions));
             }
 
-            if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.ConnectionString))
+            if (!m_connectionPool.ContainsKey(m_slavelinqToDbConnectionOptions.ConnectionString))
             {
                 m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString, new ConcurrentQueue<DataConnection>());
 
