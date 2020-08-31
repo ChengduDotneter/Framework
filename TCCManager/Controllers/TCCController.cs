@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Common;
 using Common.Lock;
 using Common.Log;
@@ -13,6 +6,13 @@ using Common.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace TCCManager.Controllers
 {
@@ -72,8 +72,8 @@ namespace TCCManager.Controllers
         /// TryContent
         /// </summary>
         [NotNull]
-        [JsonConverter(typeof(JObjectConverter))]
-        public JObject TryContent { get; set; }
+        [JsonConverter(typeof(JTokenConverter))]
+        public JToken TryContent { get; set; }
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ namespace TCCManager.Controllers
                         if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                         {
                             nodeResult.Success = false;
-                            nodeResult.ErrorMessage = $"{tryUrl} Try失败{Environment.NewLine}详细信息：{await httpResponseMessage.Content.ReadAsStringAsync()}{Environment.NewLine}Data：{tccNode.TryContent}。";
+                            nodeResult.ErrorMessage = $"{tryUrl} Try失败{Environment.NewLine}请求状态码：{(int)httpResponseMessage.StatusCode}{Environment.NewLine}详细信息：{await httpResponseMessage.Content.ReadAsStringAsync()}{Environment.NewLine}Data：{tccNode.TryContent}。";
                         }
 
                         return nodeResult;
