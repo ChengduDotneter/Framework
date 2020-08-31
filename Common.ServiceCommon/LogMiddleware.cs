@@ -64,7 +64,8 @@ namespace Common.ServiceCommon
                (httpMethodMetadata.HttpMethods.Count == 1 &&
                 httpMethodMetadata.HttpMethods[0] != "Get")))
             {
-                await m_logHelper.Info(controllerActionDescriptor.ControllerName, httpContext.Request.Method, controllerActionDescriptor.ActionName, parameterInfo);
+                if (!(controllerActionDescriptor.ControllerName == "Health"))
+                    await m_logHelper.Info(controllerActionDescriptor.ControllerName, httpContext.Request.Method, controllerActionDescriptor.ActionName, parameterInfo);
             }
             try
             {
