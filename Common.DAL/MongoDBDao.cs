@@ -17,7 +17,6 @@ namespace Common.DAL
 {
     internal static class MongoDBDao
     {
-        private static ILogHelper m_logHelper;
         private static MongoClient m_masterMongoClient;
         private static MongoClient m_slaveMongoClient;
         private static IMongoDatabase m_masterMongoDatabase;
@@ -162,7 +161,7 @@ namespace Common.DAL
             public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
             {
                 bool inTransaction = Apply<T>(transaction);
-                m_logHelper.Info("mongoDB", $"count: {predicate}");
+                DaoFactory.LogHelper.Info("mongoDB", $"count: {predicate}");
 
                 if (!inTransaction)
                     return (int)GetCollection(m_slaveMongoDatabase).CountDocuments(predicate ?? EMPTY_PREDICATE);
@@ -173,7 +172,7 @@ namespace Common.DAL
             public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
-                await m_logHelper.Info("mongoDB", $"count predicate: {predicate}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"count predicate: {predicate}");
 
                 if (!inTransaction)
                     return (int)await GetCollection(m_slaveMongoDatabase).CountDocumentsAsync(predicate ?? EMPTY_PREDICATE);
@@ -184,7 +183,7 @@ namespace Common.DAL
             public void Delete(ITransaction transaction = null, params long[] ids)
             {
                 bool inTransaction = Apply<T>(transaction);
-                m_logHelper.Info("mongoDB", $"delete ids: {string.Join(",", ids)}");
+                DaoFactory.LogHelper.Info("mongoDB", $"delete ids: {string.Join(",", ids)}");
 
                 if (!inTransaction)
                     GetCollection(m_masterMongoDatabase).DeleteMany(Builders<T>.Filter.In(nameof(IEntity.ID), ids));
@@ -195,7 +194,7 @@ namespace Common.DAL
             public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
-                await m_logHelper.Info("mongoDB", $"delete ids: {string.Join(",", ids)}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"delete ids: {string.Join(",", ids)}");
 
                 if (!inTransaction)
                     await GetCollection(m_masterMongoDatabase).DeleteManyAsync(Builders<T>.Filter.In(nameof(IEntity.ID), ids));
@@ -206,7 +205,7 @@ namespace Common.DAL
             public T Get(long id, ITransaction transaction = null)
             {
                 bool inTransaction = Apply<T>(transaction);
-                m_logHelper.Info("mongoDB", $"get id: {id}");
+                DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
 
                 if (!inTransaction)
                     return GetCollection(m_slaveMongoDatabase).Find(Builders<T>.Filter.Eq(nameof(IEntity.ID), id)).FirstOrDefault();
@@ -217,7 +216,7 @@ namespace Common.DAL
             public async Task<T> GetAsync(long id, ITransaction transaction = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
-                await m_logHelper.Info("mongoDB", $"get id: {id}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
 
                 if (!inTransaction)
                     return await (await GetCollection(m_slaveMongoDatabase).FindAsync(Builders<T>.Filter.Eq(nameof(IEntity.ID), id))).FirstOrDefaultAsync();
@@ -228,7 +227,7 @@ namespace Common.DAL
             public void Insert(ITransaction transaction = null, params T[] datas)
             {
                 bool inTransaction = Apply<T>(transaction);
-                m_logHelper.Info("mongoDB", $"insert datas: {Environment.NewLine}{string.Join(Environment.NewLine, datas.Select(data => JObject.FromObject(data)))}");
+                DaoFactory.LogHelper.Info("mongoDB", $"insert datas: {Environment.NewLine}{string.Join(Environment.NewLine, datas.Select(data => JObject.FromObject(data)))}");
 
                 if (!inTransaction)
                     GetCollection(m_masterMongoDatabase).InsertMany(datas);
@@ -239,7 +238,7 @@ namespace Common.DAL
             public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
-                await m_logHelper.Info("mongoDB", $"insert datas: {Environment.NewLine}{string.Join(Environment.NewLine, datas.Select(data => JObject.FromObject(data)))}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"insert datas: {Environment.NewLine}{string.Join(Environment.NewLine, datas.Select(data => JObject.FromObject(data)))}");
 
                 if (!inTransaction)
                     await GetCollection(m_masterMongoDatabase).InsertManyAsync(datas);
@@ -250,7 +249,7 @@ namespace Common.DAL
             public void Merge(ITransaction transaction = null, params T[] datas)
             {
                 bool inTransaction = Apply<T>(transaction);
-                m_logHelper.Info("mongoDB", $"merge datas: {Environment.NewLine}{string.Join(Environment.NewLine, datas.Select(data => JObject.FromObject(data)))}");
+                DaoFactory.LogHelper.Info("mongoDB", $"merge datas: {Environment.NewLine}{string.Join(Environment.NewLine, datas.Select(data => JObject.FromObject(data)))}");
 
                 for (int i = 0; i < datas.Length; i++)
                 {
@@ -264,7 +263,7 @@ namespace Common.DAL
             public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
-                await m_logHelper.Info("mongoDB", $"merge datas: {Environment.NewLine}{string.Join(Environment.NewLine, datas.Select(data => JObject.FromObject(data)))}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"merge datas: {Environment.NewLine}{string.Join(Environment.NewLine, datas.Select(data => JObject.FromObject(data)))}");
 
                 Task[] tasks = new Task[datas.Length];
 
@@ -283,7 +282,7 @@ namespace Common.DAL
             {
                 bool inTransaction = Apply<T>(transaction);
 
-                m_logHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
+                DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
                 IFindFluent<T, T> findFluent;
 
@@ -318,7 +317,7 @@ namespace Common.DAL
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
-                await m_logHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
                 IFindFluent<T, T> findFluent;
 
@@ -348,7 +347,7 @@ namespace Common.DAL
             public void Update(T data, ITransaction transaction = null)
             {
                 bool inTransaction = Apply<T>(transaction);
-                m_logHelper.Info("mongoDB", $"update data: {Environment.NewLine}{JObject.FromObject(data)}");
+                DaoFactory.LogHelper.Info("mongoDB", $"update data: {Environment.NewLine}{JObject.FromObject(data)}");
 
                 if (!inTransaction)
                     GetCollection(m_masterMongoDatabase).ReplaceOne(Builders<T>.Filter.Eq(nameof(IEntity.ID), data.ID), data);
@@ -360,7 +359,7 @@ namespace Common.DAL
             {
                 bool inTransaction = Apply<T>(transaction);
 
-                m_logHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, upateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
+                DaoFactory.LogHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, upateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
 
                 if (!inTransaction)
                 {
@@ -381,7 +380,7 @@ namespace Common.DAL
             public async Task UpdateAsync(T data, ITransaction transaction = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
-                await m_logHelper.Info("mongoDB", $"update data: {Environment.NewLine}{JObject.FromObject(data)}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"update data: {Environment.NewLine}{JObject.FromObject(data)}");
 
                 if (!inTransaction)
                     await GetCollection(m_masterMongoDatabase).ReplaceOneAsync(Builders<T>.Filter.Eq(nameof(IEntity.ID), data.ID), data);
@@ -393,7 +392,7 @@ namespace Common.DAL
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
-                await m_logHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, upateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, upateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
 
                 if (!inTransaction)
                 {
@@ -413,25 +412,25 @@ namespace Common.DAL
 
             public int Count<TResult>(IQueryable<TResult> query, ITransaction _ = null)
             {
-                m_logHelper.Info("mongoDB", $"count: {query}");
+                DaoFactory.LogHelper.Info("mongoDB", $"count: {query}");
                 return ((IMongoQueryable<T>)query).Count();
             }
 
             public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction _ = null)
             {
-                await m_logHelper.Info("mongoDB", $"count: {query}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"count: {query}");
                 return await ((IMongoQueryable<T>)query).CountAsync();
             }
 
             public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null)
             {
-                m_logHelper.Info("mongoDB", $"search: {query}");
+                DaoFactory.LogHelper.Info("mongoDB", $"search: {query}");
                 return ((IMongoQueryable<TResult>)query).Skip(startIndex).Take(count).ToList();
             }
 
             public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null)
             {
-                await m_logHelper.Info("mongoDB", $"search: {query}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"search: {query}");
                 return await ((IMongoQueryable<TResult>)query).Skip(startIndex).Take(count).ToListAsync();
             }
 
@@ -498,8 +497,6 @@ namespace Common.DAL
 
         static MongoDBDao()
         {
-            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
-
             m_masterMongoClient = new MongoClient(new MongoClientSettings()
             {
                 ConnectionMode = ConnectionMode.ReplicaSet,

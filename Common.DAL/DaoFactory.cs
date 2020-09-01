@@ -1,10 +1,17 @@
-﻿namespace Common.DAL
+﻿using Common.Log;
+
+namespace Common.DAL
 {
     /// <summary>
     /// Dao工厂类
     /// </summary>
     public static class DaoFactory
     {
+        /// <summary>
+        /// 日志处理
+        /// </summary>
+        public static ILogHelper LogHelper { get; set; }
+
         /// <summary>
         /// 获取查询的MongoDB操作实体
         /// </summary>
@@ -45,6 +52,11 @@
         public static IEditQuery<T> GetEditLinq2DBQuery<T>(bool codeFirst) where T : class, IEntity, new()
         {
             return Linq2DBDao.GetLinq2DBEditQuery<T>(codeFirst);
+        }
+
+        static DaoFactory()
+        {
+            LogHelper = LogHelperFactory.GetKafkaLogHelper();
         }
     }
 }
