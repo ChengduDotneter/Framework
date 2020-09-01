@@ -66,6 +66,41 @@ namespace TestWebAPI
         {
             ConfigManager.Init("Development");
 
+            var query1 = DaoFactory.GetSearchMongoDBQuery<TestData>();
+            IEditQuery<TestData> editQuery = DaoFactory.GetEditMongoDBQuery<TestData>();
+            var c1 = query1.Count();
+
+            int index = 0;
+            int time = Environment.TickCount;
+            int startTime = Environment.TickCount;
+
+            //while (true)
+            //{
+            //    TestData[] testDatas = new TestData[1000];
+
+            //    for (int i = 0; i < testDatas.Length; i++)
+            //    {
+            //        testDatas[i] = new TestData() { AC = DateTime.Now, CreateTime = DateTime.Now, CreateUserID = -9999, Data = $"data_{++index}", ID = IDGenerator.NextID(), IsDeleted = false, UpdateTime = null, UpdateUserID = null };
+            //    }
+
+            //    editQuery.Insert(datas: testDatas);
+
+            //    if (Environment.TickCount - time > 1000)
+            //    {
+            //        Console.WriteLine(index * 1000d / (Environment.TickCount - startTime));
+            //        time = Environment.TickCount;
+            //    }
+            //}
+
+            while (true)
+            {
+                int time1 = Environment.TickCount;
+                Console.WriteLine($"{query1.Count()} time: {Environment.TickCount - time1}");
+                time1 = Environment.TickCount;
+
+                Thread.Sleep(1000);
+            }
+
             ////IEditQuery<Left> leftEditQuery = DaoFactory.GetEditMongoDBQuery<Left>();
             //IEditQuery<Left> leftEditQuery = DaoFactory.GetEditLinq2DBQuery<Left>(false);
 

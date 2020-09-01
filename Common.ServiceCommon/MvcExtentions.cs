@@ -18,8 +18,6 @@ using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 
 namespace Common.ServiceCommon
 {
-    //TODO: Cache
-
     /// <summary>
     /// MVC扩展类
     /// </summary>
