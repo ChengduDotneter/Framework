@@ -95,7 +95,7 @@ namespace TestWebAPI
             while (true)
             {
                 int time1 = Environment.TickCount;
-                Console.WriteLine($"{query1.Count()} time: {Environment.TickCount - time1}");
+                Console.WriteLine($"{query1.Count(item => item.ID > 0)} time: {Environment.TickCount - time1}");
                 time1 = Environment.TickCount;
 
                 Thread.Sleep(1000);

@@ -22,7 +22,6 @@ namespace Common.DAL
     {
         private const int GET_DATACONNECTION_THREAD_TIME_SPAN = 1;
         private const int DEFAULT_CONNECTION_COUNT = 10;
-        private static ILogHelper m_logHelper;
         private static IDictionary<string, ConcurrentQueue<DataConnection>> m_connectionPool;
         private static ISet<string> m_tableNames;
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
@@ -31,7 +30,6 @@ namespace Common.DAL
         static Linq2DBDao()
         {
             m_tableNames = new HashSet<string>();
-            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
             LinqToDbConnectionOptionsBuilder masterLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
             LinqToDbConnectionOptionsBuilder slaveLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
 
@@ -44,13 +42,13 @@ namespace Common.DAL
             masterLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
             {
                 if (traceInfo.TraceInfoStep == TraceInfoStep.Completed || traceInfo.TraceInfoStep == TraceInfoStep.Error)
-                    m_logHelper.Info("linq2DB_master", traceInfo.SqlText);
+                    DaoFactory.LogHelper.Info("linq2DB_master", traceInfo.SqlText);
             });
 
             slaveLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
             {
                 if (traceInfo.TraceInfoStep == TraceInfoStep.Completed || traceInfo.TraceInfoStep == TraceInfoStep.Error)
-                    m_logHelper.Info("linq2DB_slave", traceInfo.SqlText);
+                    DaoFactory.LogHelper.Info("linq2DB_slave", traceInfo.SqlText);
             });
 
             m_masterlinqToDbConnectionOptions = masterLinqToDbConnectionOptionsBuilder.Build();
