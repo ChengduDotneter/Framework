@@ -1,6 +1,7 @@
 ﻿using Apache.Ignite.Core.Cache.Configuration;
 using Common;
 using Common.DAL;
+using Common.MessageQueueClient;
 using Common.Model;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +14,23 @@ using System.Threading.Tasks;
 
 namespace TestOrder.Controllers
 {
+    [Route("test")]
+    [ApiController]
+    public class TestController : ControllerBase
+    {
+        [HttpGet]
+        public bool Test()
+        {
+            MessageQueueFactory.GetRabbitMQProducer<MqSendMessage>(new List<string>() { "TestMQ" }, "TestMQ", ExChangeTypeEnum.fanout).Produce(new MQContext("TestMQ", ""), new MqSendMessage() { });
+            return true;
+        }
+    }
+
+    public class MqSendMessage : IMQData
+    {
+        public DateTime CreateTime => DateTime.Now;
+    }
+
     [Route("order")]
     public class TCCOrderController : TransactionTCCController<OrderInfo, OrderInfo>
     {
