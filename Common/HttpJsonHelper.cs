@@ -233,22 +233,6 @@ namespace Common
         }
 
         /// <summary>
-        /// 异步获取请求结果
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="response"></param>
-        /// <returns></returns>
-        public static async Task<T> GetResponseAsync<T>(HttpResponseMessage response)
-        {
-            if (response.IsSuccessStatusCode)
-                return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
-            else if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.PaymentRequired)
-                throw new DealException(await response.Content.ReadAsStringAsync());
-            else
-                throw new Exception(await response.Content.ReadAsStringAsync());
-        }
-
-        /// <summary>
         /// 同步获取请求结果
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -256,7 +240,12 @@ namespace Common
         /// <returns></returns>
         public static T GetResponse<T>(HttpResponseMessage response)
         {
-            return GetResponseAsync<T>(response).Result;
+            if (response.IsSuccessStatusCode)
+                return JsonConvert.DeserializeObject<T>(response.Content.ReadAsStringAsync().Result);
+            else if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.PaymentRequired)
+                throw new DealException(response.Content.ReadAsStringAsync().Result);
+            else
+                throw new Exception(response.Content.ReadAsStringAsync().Result);
         }
 
         /// <summary>

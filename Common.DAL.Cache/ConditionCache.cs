@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Common.DAL.Cache
 {
@@ -24,18 +26,20 @@ namespace Common.DAL.Cache
         }
 
         /// <summary>
-        /// 查询条件
+        /// 根据筛选条件匹配数据
         /// </summary>
         /// <param name="condition"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
         /// <returns></returns>
-        public IEnumerable<T> Get(string condition)
+        public IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
         {
-            //TODO: 需要重新实现
+            string conditionKey = $"{condition}_{startIndex}_{count}";
 
-            if (!m_memoryCache.TryGetValue(condition, out IEnumerable<T> result))
+            if (!m_memoryCache.TryGetValue(conditionKey, out IEnumerable<T> result))
             {
-                //result = m_searchQuery.Search(condition);
-                m_memoryCache.Set(condition, result);
+                result = m_searchQuery.Search(condition, startIndex: startIndex, count: count);
+                m_memoryCache.Set(conditionKey, result);
             }
 
             return result;

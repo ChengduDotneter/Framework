@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Common.DAL.Cache
 {
@@ -26,7 +28,9 @@ namespace Common.DAL.Cache
         /// 根据筛选条件匹配数据
         /// </summary>
         /// <param name="condition"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
         /// <returns></returns>
-        IEnumerable<T> Get(string condition);
+        IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue);
     }
 }
