@@ -41,21 +41,21 @@ namespace Common.Log
         /// <param name="controllerName">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
         /// <param name="statusCode">接口状态编码</param>
-        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "")
+        public Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "")
         {
-            await GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog)),
-                    new ErrorLog
-                    {
-                        Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
-                        NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
-                        StackTrace = stackTrace,
-                        ControllerName = controllerName,
-                        ErrorMessage = errorMessage,
-                        Methed = methed,
-                        Parameters = parameters,
-                        Path = path,
-                        StatusCode = statusCode
-                    });
+            return GetKafkaInstance<ErrorLog>().ProduceAsync(new MQContext(nameof(ErrorLog)),
+                     new ErrorLog
+                     {
+                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
+                         NodeType = Convert.ToInt32(ConfigManager.Configuration["NodeType"]),
+                         StackTrace = stackTrace,
+                         ControllerName = controllerName,
+                         ErrorMessage = errorMessage,
+                         Methed = methed,
+                         Parameters = parameters,
+                         Path = path,
+                         StatusCode = statusCode
+                     });
         }
 
         /// <summary>
@@ -63,9 +63,9 @@ namespace Common.Log
         /// </summary>
         /// <param name="customCode">自定义编码</param>
         /// <param name="message">需要写入的日志信息</param>
-        public async Task Error(string customCode, string message)
+        public Task Error(string customCode, string message)
         {
-            await GetKafkaInstance<CustomErrorLog>().ProduceAsync(new MQContext(nameof(CustomErrorLog)),
+            return GetKafkaInstance<CustomErrorLog>().ProduceAsync(new MQContext(nameof(CustomErrorLog)),
                     new CustomErrorLog
                     {
                         CustomCode = customCode,
@@ -80,9 +80,9 @@ namespace Common.Log
         /// </summary>
         /// <param name="customCode">自定义编码</param>
         /// <param name="message">需要写入的日志信息</param>
-        public async Task Info(string customCode, string message)
+        public Task Info(string customCode, string message)
         {
-            await GetKafkaInstance<CustomLog>().ProduceAsync(new MQContext(nameof(CustomLog)),
+            return GetKafkaInstance<CustomLog>().ProduceAsync(new MQContext(nameof(CustomLog)),
                     new CustomLog
                     {
                         CustomCode = customCode,
@@ -99,9 +99,9 @@ namespace Common.Log
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
         /// <param name="controllerName">接口组名称</param>
-        public async Task Info(string controllerName, string methed, string path, string parameters)
+        public Task Info(string controllerName, string methed, string path, string parameters)
         {
-            await GetKafkaInstance<InfoLog>().ProduceAsync(new MQContext(nameof(InfoLog)),
+            return GetKafkaInstance<InfoLog>().ProduceAsync(new MQContext(nameof(InfoLog)),
                     new InfoLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -119,9 +119,9 @@ namespace Common.Log
         /// <param name="transcationID">TCC事务ID</param>
         /// <param name="isError">是否报错</param>
         /// <param name="message">TCC节点接口调用日志</param>
-        public async Task TCCNode(long transcationID, bool? isError, string message)
+        public Task TCCNode(long transcationID, bool? isError, string message)
         {
-            await GetKafkaInstance<TCCNodeLog>().ProduceAsync(new MQContext(nameof(TCCNodeLog)),
+            return GetKafkaInstance<TCCNodeLog>().ProduceAsync(new MQContext(nameof(TCCNodeLog)),
                      new TCCNodeLog
                      {
                          Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),
@@ -137,9 +137,9 @@ namespace Common.Log
         /// </summary>
         /// <param name="transcationID">TCC事务ID</param>
         /// <param name="message">TCC服务端相关日志</param>
-        public async Task TCCServer(long transcationID, string message)
+        public Task TCCServer(long transcationID, string message)
         {
-            await GetKafkaInstance<TCCServerLog>().ProduceAsync(new MQContext(nameof(TCCServerLog)),
+            return GetKafkaInstance<TCCServerLog>().ProduceAsync(new MQContext(nameof(TCCServerLog)),
                     new TCCServerLog
                     {
                         Node = Convert.ToInt32(ConfigManager.Configuration["Node"]),

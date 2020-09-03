@@ -46,9 +46,10 @@ namespace Common.MessageQueueClient.Kafka
         /// <param name="mQContext">消息队列上下文</param>
         /// <param name="message">需要推送的消息</param>
         /// <returns></returns>
-        public async Task ProduceAsync(MQContext mQContext, T message)
+        public Task ProduceAsync(MQContext mQContext, T message)
         {
-            await m_kafkaProducer.ProduceAsync(mQContext.MessageQueueName, ConvertDataToMessage(message));
+            m_kafkaProducer.ProduceAsync(mQContext.MessageQueueName, ConvertDataToMessage(message));
+            return Task.CompletedTask;
         }
 
         /// <summary>

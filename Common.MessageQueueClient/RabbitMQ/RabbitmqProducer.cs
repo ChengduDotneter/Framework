@@ -74,9 +74,9 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <param name="mQContext"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public async Task ProduceAsync(MQContext mQContext, T message)
+        public Task ProduceAsync(MQContext mQContext, T message)
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
                 ProduceData(m_channel, mQContext, message);
             });

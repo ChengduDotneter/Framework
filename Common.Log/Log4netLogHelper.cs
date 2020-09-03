@@ -39,9 +39,9 @@ namespace Common.Log
         /// <param name="controllerName">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
         /// <param name="statusCode">接口状态编码</param>
-        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "")
+        public Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "")
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
                 CreateLog("Controller", controllerName, methed).Error($" Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{stackTrace}")
             );
         }
@@ -51,9 +51,9 @@ namespace Common.Log
         /// </summary>
         /// <param name="customCode">自定义编码</param>
         /// <param name="message">需要写入的日志信息</param>
-        public async Task Error(string customCode, string message)
+        public Task Error(string customCode, string message)
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
                CreateLog("Custom", "Error", customCode).Info(message)
            );
         }
@@ -63,9 +63,9 @@ namespace Common.Log
         /// </summary>
         /// <param name="customCode">自定义编码</param>
         /// <param name="message">需要写入的日志信息</param>
-        public async Task Info(string customCode, string message)
+        public Task Info(string customCode, string message)
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
                 CreateLog("Custom", "info", customCode).Info(message)
             );
         }
@@ -77,9 +77,9 @@ namespace Common.Log
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
         /// <param name="controllerName">接口组名称</param>
-        public async Task Info(string controllerName, string methed, string path, string parameters)
+        public Task Info(string controllerName, string methed, string path, string parameters)
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
                 CreateLog("Controller", controllerName, methed).Info($" path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}")
             );
         }
@@ -90,9 +90,9 @@ namespace Common.Log
         /// <param name="transcationID">TCC事务ID</param>
         /// <param name="isError">是否报错</param>
         /// <param name="message">TCC节点接口调用日志</param>
-        public async Task TCCNode(long transcationID, bool? isError, string message)
+        public Task TCCNode(long transcationID, bool? isError, string message)
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
                 ILog log = CreateLog("TCC", "TCC", "TCCDetails");
                 if (isError ?? false)
@@ -106,9 +106,9 @@ namespace Common.Log
         /// </summary>
         /// <param name="transcationID">TCC事务ID</param>
         /// <param name="message">TCC服务端相关日志</param>
-        public async Task TCCServer(long transcationID, string message)
+        public Task TCCServer(long transcationID, string message)
         {
-            await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
                 CreateLog("TCC", "TCC", "TCCTransactions").Info($" transcationID: {transcationID}{Environment.NewLine} message:{message}")
             );
         }
