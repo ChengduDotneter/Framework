@@ -161,7 +161,7 @@ namespace Common.DAL
             public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
             {
                 bool inTransaction = Apply<T>(transaction);
-                DaoFactory.LogHelper.Info("mongoDB", $"count: {predicate}");
+                DaoFactory.LogHelper.Info("mongoDB", $"count predicate: {predicate}");
 
                 if (!inTransaction)
                     return (int)GetCollection(m_slaveMongoDatabase).CountDocuments(predicate ?? EMPTY_PREDICATE);
