@@ -20,15 +20,18 @@ namespace Common.Compute
             IgniteConfiguration igniteConfiguration = new IgniteConfiguration()
             {
                 Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
+                SpringConfigUrl = ConfigManager.Configuration["IgniteService:SpringConfigUrl"],
 
                 DiscoverySpi = new TcpDiscoverySpi()
                 {
-                    LocalAddress = ConfigManager.Configuration["IgniteService:TcpDiscoveryLocalAddress"],
-                    LocalPort = Convert.ToInt32(ConfigManager.Configuration["IgniteService:TcpDiscoveryLocalPort"]),
-                    LocalPortRange = Convert.ToInt32(ConfigManager.Configuration["IgniteService:TcpDiscoveryLocalPortRange"]),
+                    LocalAddress = ConfigManager.Configuration["IgniteService:LocalHost"],
+                    LocalPort = Convert.ToInt32(ConfigManager.Configuration["IgniteService:DiscoverPort"]),
                     IpFinder = new TcpDiscoveryStaticIpFinder()
                     {
-                        Endpoints = ConfigManager.Configuration["IgniteService:TcpDiscoveryMulticastIpFinderEndPoint"].Split(',').ToArray()
+                        Endpoints = ConfigManager.Configuration.GetSection("IgniteService:TcpDiscoveryStaticIpEndPoints").GetChildren().
+                                    Select(item => item.Value).
+                                    Concat(new[] { $"{ConfigManager.Configuration["IgniteService:LocalHost"]}:{ConfigManager.Configuration["IgniteService:DiscoverPort"]}" }).
+                                    ToArray()
                     }
                 }
             };
