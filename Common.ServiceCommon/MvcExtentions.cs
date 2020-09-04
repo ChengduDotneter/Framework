@@ -112,7 +112,6 @@ namespace Common.ServiceCommon
             {
                 Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
                 SpringConfigUrl = springConfigPath,
-                IncludedEventTypes = EventType.DiscoveryAll,
 
                 DiscoverySpi = new TcpDiscoverySpi()
                 {
