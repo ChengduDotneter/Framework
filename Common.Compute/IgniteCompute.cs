@@ -1,10 +1,10 @@
 ﻿using Apache.Ignite.Core;
-using Apache.Ignite.Core.Communication.Tcp;
 using Apache.Ignite.Core.Compute;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Static;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +20,7 @@ namespace Common.Compute
             IgniteConfiguration igniteConfiguration = new IgniteConfiguration()
             {
                 Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
-                SpringConfigUrl = ConfigManager.Configuration["IgniteService:SpringConfigUrl"],
+                SpringConfigUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigManager.Configuration["IgniteService:SpringConfigUrl"]),
 
                 DiscoverySpi = new TcpDiscoverySpi()
                 {
