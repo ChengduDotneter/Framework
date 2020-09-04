@@ -1,7 +1,5 @@
-﻿using Apache.Ignite.Core;
-using Apache.Ignite.Core.Cluster;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using Apache.Ignite.Core;
 
 namespace Common
 {
@@ -23,13 +21,6 @@ namespace Common
                 return;
 
             m_ignite = Ignition.Start(igniteConfiguration);
-            m_ignite.GetCluster().SetActive(true);
-
-            //基线拓扑，数据再平衡
-            m_ignite.GetCluster().SetBaselineAutoAdjustEnabledFlag(false);
-            ICollection<IBaselineNode> baselineNodes = m_ignite.GetCluster().GetBaselineTopology();
-            baselineNodes.Add(m_ignite.GetCluster().GetLocalNode());
-            m_ignite.GetCluster().SetBaselineTopology(baselineNodes);
             m_init = true;
         }
 

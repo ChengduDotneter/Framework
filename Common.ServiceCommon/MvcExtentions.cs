@@ -1,19 +1,22 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
-using Apache.Ignite.Core.Discovery.Tcp.Multicast;
+using Apache.Ignite.Core.Discovery.Tcp.Static;
+using Apache.Ignite.Core.Events;
 using Common.DAL;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using System.Threading;
 using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 
 namespace Common.ServiceCommon
@@ -78,11 +81,11 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public static HostBuilderContext ConfigIgnite(this HostBuilderContext hostBuilderContext)
         {
-            IgniteManager.Init(ConfigIgnite());
+            IgniteManager.Init(ConfigIgnite(Path.Combine(hostBuilderContext.HostingEnvironment.ContentRootPath, "spring.xml")));
             return hostBuilderContext;
         }
 
-        private static IgniteConfiguration ConfigIgnite()
+        private static IgniteConfiguration ConfigIgnite(string springConfigPath)
         {
             IList<BinaryTypeConfiguration> binaryTypeConfigurations = new List<BinaryTypeConfiguration>();
 
@@ -108,12 +111,19 @@ namespace Common.ServiceCommon
             IgniteConfiguration igniteConfiguration = new IgniteConfiguration()
             {
                 Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
+                SpringConfigUrl = springConfigPath,
+                IncludedEventTypes = EventType.DiscoveryAll,
 
                 DiscoverySpi = new TcpDiscoverySpi()
                 {
-                    IpFinder = new TcpDiscoveryMulticastIpFinder()
+                    LocalAddress = ConfigManager.Configuration["IgniteService:LocalHost"],
+                    LocalPort = Convert.ToInt32(ConfigManager.Configuration["IgniteService:DiscoverPort"]),
+                    IpFinder = new TcpDiscoveryStaticIpFinder()
                     {
-                        Endpoints = new[] { ConfigManager.Configuration["IgniteService:TcpDiscoveryMulticastIpFinderEndPoint"] }
+                        Endpoints = ConfigManager.Configuration.GetSection("IgniteService:TcpDiscoveryStaticIpEndPoints").GetChildren().
+                                    Select(item => item.Value).
+                                    Concat(new[] { $"{ConfigManager.Configuration["IgniteService:LocalHost"]}:{ConfigManager.Configuration["IgniteService:DiscoverPort"]}" }).
+                                    ToArray()
                     }
                 },
 
@@ -122,7 +132,7 @@ namespace Common.ServiceCommon
                     DefaultDataRegionConfiguration = new DataRegionConfiguration
                     {
                         Name = ConfigManager.Configuration["IgniteService:RegionName"],
-                        PersistenceEnabled = true
+                        PersistenceEnabled = false
                     }
                 },
 

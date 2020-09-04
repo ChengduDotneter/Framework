@@ -1,4 +1,4 @@
-﻿{
+{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
@@ -17,13 +17,13 @@
       }
     },
     "TestWebAPI": {
-      "applicationUrl": "http://127.0.0.1:7788",
       "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger/index.html",
+      "applicationUrl": "http://127.0.0.1:7788",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "launchBrowser": true,
-      "launchUrl": "swagger/index.html"
+      }
     }
   }
 }
