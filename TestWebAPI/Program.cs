@@ -350,8 +350,6 @@ namespace TestWebAPI
 
 
 
-
-
             ////Common.ConfigManager.Init("Production");
             ////string key = System.Guid.NewGuid().ToString("D");
             ////Common.Lock.ILock @lock = Common.Lock.LockFactory.GetRedisLock();
@@ -409,10 +407,6 @@ namespace TestWebAPI
 
 
             ////System.Console.Read();
-
-
-
-
 
 
 
