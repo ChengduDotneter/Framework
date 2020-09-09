@@ -1201,12 +1201,12 @@
             MD5编码扩展类
             </summary>
         </member>
-        <member name="M:Common.MD5Encryption.GetMd5Password(System.String,System.String)">
+        <member name="M:Common.MD5Encryption.GetMD5(System.String,System.String)">
             <summary>
             获取MD5加密字符串
             </summary>
-            <param name="password"></param>
-            <param name="charset"></param>
+            <param name="encryptedString"></param>
+            <param name="charset">默认UTF-8</param>
             <returns></returns>
         </member>
         <member name="T:Common.SteamHelper">
