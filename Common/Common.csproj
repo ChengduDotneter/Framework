@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.2.36</Version>
-    <AssemblyVersion>1.2.36.0</AssemblyVersion>
-    <FileVersion>1.2.36.0</FileVersion>
+    <Version>1.2.37</Version>
+    <AssemblyVersion>1.2.37.0</AssemblyVersion>
+    <FileVersion>1.2.37.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -26,6 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.1" />
   </ItemGroup>
   <ItemGroup>
     <None Remove=".DS_Store" />

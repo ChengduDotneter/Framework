@@ -638,6 +638,11 @@
             <param name="request2"></param>
             <param name="request3"></param>
         </member>
+        <member name="T:Common.ServiceCommon.DynamicDisplayAttribute">
+            <summary>
+            动态请求类参数验证文本特性
+            </summary>
+        </member>
         <member name="T:Common.ServiceCommon.DynamicControllerManager">
             <summary>
             动态控制器配置
@@ -1006,6 +1011,11 @@
             RBMQ相关接口依赖注册
             </summary>
             <param name="serviceCollection"></param>
+        </member>
+        <member name="M:Common.ServiceCommon.MvcExtentions.EncodingCodePagesRegist">
+            <summary>
+            注册EncodingCodePages 包含Windows-1252, Shift-JIS, and GB2312
+            </summary>
         </member>
         <member name="M:Common.ServiceCommon.MvcExtentions.AddJsonSerialize(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>

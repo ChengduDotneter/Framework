@@ -143,6 +143,14 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 注册EncodingCodePages 包含Windows-1252, Shift-JIS, and GB2312
+        /// </summary>
+        public static void EncodingCodePagesRegist()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+
+        /// <summary>
         /// JSON序列化相关接口依赖注册
         /// </summary>
         /// <param name="serviceCollection"></param>
