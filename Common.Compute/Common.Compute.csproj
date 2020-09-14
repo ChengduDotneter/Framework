@@ -12,5 +12,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\Common.Log\Common.Log.csproj" />
+    <ProjectReference Include="..\Common.Model\Common.Model.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Consul" Version="1.6.1.1" />
   </ItemGroup>
 </Project>

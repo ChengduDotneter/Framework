@@ -1,4 +1,5 @@
 using Common;
+using Common.Compute;
 using Common.DAL;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Builder;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Net.Http;
 using System.Reflection;
 using TestWebAPI.Controllers;
 
@@ -82,6 +84,14 @@ namespace TestWebAPI
             services.AddJsonSerialize();
 
             services.AddSwagger();
+
+            services.AddComputeFactory();
+
+            services.AddHttpCompute();
+
+            services.AddScoped(sp => ComputeFactory.GetHttpCompute(sp.GetService<IHttpClientFactory>()));
+
+            services.AddHostedService(sp => new TestService(sp.CreateScope().ServiceProvider.GetService<IComputeFactory>(), sp.CreateScope().ServiceProvider.GetService<ICompute>()));
 
             //services.AddLog4NetLogHelper();
 

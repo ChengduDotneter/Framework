@@ -1,4 +1,6 @@
-﻿namespace Common.Compute
+﻿using System.Net.Http;
+
+namespace Common.Compute
 {
     /// <summary>
     /// 并行计算工厂
@@ -6,11 +8,21 @@
     public static class ComputeFactory
     {
         /// <summary>
-        /// 创建并行计算
+        /// 创建Ignite并行计算
         /// </summary>
         public static ICompute GetIgniteCompute()
         {
             return IgniteTask.CreateCompute();
+        }
+
+        /// <summary>
+        /// 创建Http并行计算
+        /// </summary>
+        /// <param name="httpClientFactory"></param>
+        /// <returns></returns>
+        public static ICompute GetHttpCompute(IHttpClientFactory httpClientFactory)
+        {
+            return HttpTask.CreateCompute(httpClientFactory);
         }
 
         /// <summary>

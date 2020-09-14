@@ -11,7 +11,6 @@ using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Static;
-using Apache.Ignite.Core.Events;
 using Common.DAL;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -164,11 +163,21 @@ namespace Common.ServiceCommon
             mvcBuilder.AddApplicationPart(ModelTypeControllerManager.GenerateModelTypeControllerToAssembly(modelTypes));
             mvcBuilder.AddApplicationPart(DynamicControllerManager.GenerateDynamicControllerToAssembly(dynamicControllerTypes));
             mvcBuilder.AddApplicationPart(typeof(HealthController).Assembly);
+            mvcBuilder.AddApplicationPart(typeof(HttpCompute).Assembly);
             serviceCollection.AddScoped<ISSOUserService, SSOUserService>();
             serviceCollection.AddSingleton<ITccNotifyFactory, TccNotifyFactory>();
             serviceCollection.AddSingleton<ITccTransactionManager, TccTransactionManager>();
 
             return mvcBuilder;
+        }
+
+        /// <summary>
+        /// 启动ComputeService
+        /// </summary>
+        /// <param name="_"></param>
+        public static void AddHttpCompute(this IServiceCollection _)
+        {
+            HttpCompute.StartHttpComputeService();
         }
 
         /// <summary>
