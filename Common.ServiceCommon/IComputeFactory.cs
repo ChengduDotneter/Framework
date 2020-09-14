@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using Common.Compute;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +36,13 @@ namespace Common.ServiceCommon
         /// <typeparam name="TSplitParameter">Job参数</typeparam>
         /// <typeparam name="TSplitResult">Job返回值</typeparam>
         IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> CreateComputeMapReduceTask<T, TParameter, TResult, TSplitParameter, TSplitResult>() where T : IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>;
+
+        /// <summary>
+        /// 创建并行计算Job
+        /// </summary>
+        /// <param name="computeFuncType">JOB类型</param>
+        /// <returns></returns>
+        object CreateComputeFunc(Type computeFuncType);
     }
 
     internal class ComputeFactory : IComputeFactory
@@ -51,7 +59,7 @@ namespace Common.ServiceCommon
             ConstructorInfo[] constructorInfos = type.GetConstructors(BindingFlags.CreateInstance | BindingFlags.Public | BindingFlags.Instance);
 
             if (constructorInfos.Length != 1)
-                throw new Exception($"{type.FullName}有且只能有一个公有构造函数。");
+                throw new DealException($"{type.FullName}有且只能有一个公有构造函数。");
 
             IServiceProvider serviceProvider = host.Services.CreateScope().ServiceProvider;
             ParameterInfo[] parameterInfos = constructorInfos[0].GetParameters();
@@ -77,6 +85,16 @@ namespace Common.ServiceCommon
             where T : IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>
         {
             return (IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>)CreateInstance(m_host, typeof(T));
+        }
+
+        public object CreateComputeFunc(Type computeFuncType)
+        {
+            if (computeFuncType.GetInterfaces().All(item => !item.IsGenericType ||
+                                                    (item.GetGenericTypeDefinition() != typeof(IComputeFunc<,>) &&
+                                                    item.GetGenericTypeDefinition() != typeof(IComputeFunc<>))))
+                throw new DealException("错误的JOB类型。");
+
+            return CreateInstance(m_host, computeFuncType);
         }
     }
 }

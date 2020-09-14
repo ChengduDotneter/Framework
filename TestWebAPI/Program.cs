@@ -64,15 +64,15 @@ namespace TestWebAPI
 
         public static void Main(string[] args)
         {
-            ConfigManager.Init("Development");
+            //ConfigManager.Init("Development");
 
-            var query1 = DaoFactory.GetSearchMongoDBQuery<TestData>();
-            IEditQuery<TestData> editQuery = DaoFactory.GetEditMongoDBQuery<TestData>();
-            var c1 = query1.Count();
+            //var query1 = DaoFactory.GetSearchMongoDBQuery<TestData>();
+            //IEditQuery<TestData> editQuery = DaoFactory.GetEditMongoDBQuery<TestData>();
+            //var c1 = query1.Count();
 
-            int index = 0;
-            int time = Environment.TickCount;
-            int startTime = Environment.TickCount;
+            //int index = 0;
+            //int time = Environment.TickCount;
+            //int startTime = Environment.TickCount;
 
             //while (true)
             //{
@@ -92,14 +92,14 @@ namespace TestWebAPI
             //    }
             //}
 
-            while (true)
-            {
-                int time1 = Environment.TickCount;
-                Console.WriteLine($"{query1.Count(item => item.ID > 0)} time: {Environment.TickCount - time1}");
-                time1 = Environment.TickCount;
+            //while (true)
+            //{
+            //    int time1 = Environment.TickCount;
+            //    Console.WriteLine($"{query1.Count(item => item.ID > 0)} time: {Environment.TickCount - time1}");
+            //    time1 = Environment.TickCount;
 
-                Thread.Sleep(1000);
-            }
+            //    Thread.Sleep(1000);
+            //}
 
             ////IEditQuery<Left> leftEditQuery = DaoFactory.GetEditMongoDBQuery<Left>();
             //IEditQuery<Left> leftEditQuery = DaoFactory.GetEditLinq2DBQuery<Left>(false);
@@ -306,45 +306,45 @@ namespace TestWebAPI
 
             //Console.WriteLine("ok");
 
-            string foreignColumn = "ID";
-            ParameterExpression parameter = Expression.Parameter(typeof(StockInfo), "item");
-            Expression equal = Expression.Equal(Expression.Property(parameter, foreignColumn), Expression.Constant(191574238853980162L));
-            Expression equal1 = Expression.Equal(Expression.Property(parameter, "IsDeleted"), Expression.Constant(false));
+            //string foreignColumn = "ID";
+            //ParameterExpression parameter = Expression.Parameter(typeof(StockInfo), "item");
+            //Expression equal = Expression.Equal(Expression.Property(parameter, foreignColumn), Expression.Constant(191574238853980162L));
+            //Expression equal1 = Expression.Equal(Expression.Property(parameter, "IsDeleted"), Expression.Constant(false));
 
-            equal = Expression.And(equal, equal1);
+            //equal = Expression.And(equal, equal1);
 
-            Expression expression = Expression.Lambda(equal, parameter);
-
-
+            //Expression expression = Expression.Lambda(equal, parameter);
 
 
-            ISearchQuery<StockInfo> asearch = DaoFactory.GetSearchMongoDBQuery<StockInfo>();
-            ISearchQuery<WarehouseInfo> bsearch = DaoFactory.GetSearchMongoDBQuery<WarehouseInfo>();
-            ISearchQuery<SupplierCommodity> csearch = DaoFactory.GetSearchMongoDBQuery<SupplierCommodity>();
 
-            var type1 = typeof(Func<,>).MakeGenericType(typeof(StockInfo), typeof(bool));
-            var type = typeof(Expression<>).MakeGenericType(type1);
 
-            var q = typeof(DaoFactory).GetMethod("GetSearchMongoDBQuery").MakeGenericMethod(typeof(StockInfo)).Invoke(null, null);
-            var method = typeof(ISearchQuery<>).MakeGenericType(typeof(StockInfo)).GetMethod("Count", new Type[] { type, typeof(ITransaction) });
+            //ISearchQuery<StockInfo> asearch = DaoFactory.GetSearchMongoDBQuery<StockInfo>();
+            //ISearchQuery<WarehouseInfo> bsearch = DaoFactory.GetSearchMongoDBQuery<WarehouseInfo>();
+            //ISearchQuery<SupplierCommodity> csearch = DaoFactory.GetSearchMongoDBQuery<SupplierCommodity>();
 
-            var ksd = (int)method.Invoke(q, new object[] { expression, null });
+            //var type1 = typeof(Func<,>).MakeGenericType(typeof(StockInfo), typeof(bool));
+            //var type = typeof(Expression<>).MakeGenericType(type1);
 
-            var a = asearch.GetQueryable();
-            var b = bsearch.GetQueryable();
-            var c = csearch.GetQueryable();
+            //var q = typeof(DaoFactory).GetMethod("GetSearchMongoDBQuery").MakeGenericMethod(typeof(StockInfo)).Invoke(null, null);
+            //var method = typeof(ISearchQuery<>).MakeGenericType(typeof(StockInfo)).GetMethod("Count", new Type[] { type, typeof(ITransaction) });
 
-            var query = from adata in a
-                        join bdata in b on adata.WarehouseID.Value equals bdata.ID
-                        //join cdata in c on adata.SupplierCommodityID.Value equals cdata.ID into am
-                        //from cdata in am.DefaultIfEmpty()
-                        //select new { a = adata, b = bdata, c = cdata } into res
-                        select adata.ID;
-            //where !res.a.IsDeleted && res.b.IsDeleted && res.c == null ? true : !res.c.IsDeleted
-            //select new { aid = res.a.ID, bid = res.b.ID, cid = res.c.ID };
-            var m = asearch.Search(item => item.IsDeleted, new QueryOrderBy<StockInfo>[] { new QueryOrderBy<StockInfo>(item => item.CreateTime, OrderByType.Desc) }, 0, 15);
+            //var ksd = (int)method.Invoke(q, new object[] { expression, null });
 
-            var s = asearch.Count(item => !item.IsDeleted);
+            //var a = asearch.GetQueryable();
+            //var b = bsearch.GetQueryable();
+            //var c = csearch.GetQueryable();
+
+            //var query = from adata in a
+            //            join bdata in b on adata.WarehouseID.Value equals bdata.ID
+            //            //join cdata in c on adata.SupplierCommodityID.Value equals cdata.ID into am
+            //            //from cdata in am.DefaultIfEmpty()
+            //            //select new { a = adata, b = bdata, c = cdata } into res
+            //            select adata.ID;
+            ////where !res.a.IsDeleted && res.b.IsDeleted && res.c == null ? true : !res.c.IsDeleted
+            ////select new { aid = res.a.ID, bid = res.b.ID, cid = res.c.ID };
+            //var m = asearch.Search(item => item.IsDeleted, new QueryOrderBy<StockInfo>[] { new QueryOrderBy<StockInfo>(item => item.CreateTime, OrderByType.Desc) }, 0, 15);
+
+            //var s = asearch.Count(item => !item.IsDeleted);
 
 
 

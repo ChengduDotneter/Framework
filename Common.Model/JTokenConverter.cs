@@ -28,7 +28,7 @@ namespace Common.Model
         {
             if (value.Type == JTokenType.Object)
                 new JObjectConverter().Write(writer, (JObject)value, options);
-            if (value.Type == JTokenType.Array)
+            else if (value.Type == JTokenType.Array)
                 new JArrayConverter().Write(writer, (JArray)value, options);
             else
                 throw new NotSupportedException();

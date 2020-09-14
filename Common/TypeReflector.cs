@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -24,11 +25,28 @@ namespace Common
             {
                 try
                 {
-                    IList<Assembly> assemblies = new List<Assembly>();
+                    if (!Path.GetDirectoryName(loadedAssembly.Location).Contains(Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory)))
+                        continue;
 
+                    IList<Assembly> assemblies = new List<Assembly>();
                     assemblies.Add(loadedAssembly);
+
                     foreach (AssemblyName assemblyName in loadedAssembly.GetReferencedAssemblies())
-                        assemblies.Add(Assembly.Load(assemblyName));
+                    {
+                        try
+                        {
+                            Assembly assembly = Assembly.Load(assemblyName);
+
+                            if (!Path.GetDirectoryName(assembly.Location).Contains(Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory)))
+                                continue;
+
+                            assemblies.Add(assembly);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
 
                     foreach (Assembly assembly in assemblies)
                     {
@@ -39,10 +57,17 @@ namespace Common
 
                         foreach (Type type in assembly.GetTypes())
                         {
-                            if (!predicate(type))
-                                continue;
+                            try
+                            {
+                                if (!predicate(type))
+                                    continue;
 
-                            types.Add(type);
+                                types.Add(type);
+                            }
+                            catch
+                            {
+                                continue;
+                            }
                         }
                     }
                 }

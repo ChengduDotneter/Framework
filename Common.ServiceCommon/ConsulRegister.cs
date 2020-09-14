@@ -20,8 +20,6 @@ namespace Common.ServiceCommon
         public static IApplicationBuilder RegisterConsul(this IApplicationBuilder app, Microsoft.Extensions.Hosting.IHostApplicationLifetime lifetime, IConfiguration configuration)
         {
             ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
-
-            //获取配置文件中IdentityServerConfig节点转换为实体identityServerConfig
             configuration.Bind("ConsulService", serviceEntity);
 
             //请求注册的 Consul 地址
