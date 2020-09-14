@@ -80,7 +80,6 @@ namespace Common.ServiceCommon
 
         public static void StartHttpComputeService()
         {
-            return;
             ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
             ConfigManager.Configuration.Bind("ConsulService", serviceEntity);
 
