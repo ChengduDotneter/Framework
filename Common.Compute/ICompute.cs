@@ -63,45 +63,37 @@ namespace Common.Compute
     /// <summary>
     /// 同步MapReduce接口
     /// </summary>
-    public interface IMapReduce : IDisposable
+    public interface IMapReduce
     {
         /// <summary>
         /// 执行MapReduce
         /// </summary>
+        /// <typeparam name="TComputeFunc">任务类型</typeparam>
         /// <typeparam name="TParameter">任务参数类型</typeparam>
         /// <typeparam name="TResult">任务返回值类型</typeparam>
         /// <typeparam name="TSplitParameter">Job参数</typeparam>
         /// <typeparam name="TSplitResult">Job返回值</typeparam>
         /// <param name="mapReduceTask">MapReduceTask</param>
         /// <param name="parameter">任务参数</param>
-        TResult Excute<TParameter, TResult, TSplitParameter, TSplitResult>(IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter);
+        TResult Excute<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>(IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter);
     }
 
     /// <summary>
     /// 异步MapReduce接口
     /// </summary>
-    public interface IAsyncMapReduce : IDisposable
+    public interface IAsyncMapReduce
     {
-        /// <summary>
-        /// 获取是否正在执行
-        /// </summary>
-        bool Running { get; }
-
         /// <summary>
         /// 执行MapReduce
         /// </summary>
+        /// <typeparam name="TComputeFunc">任务类型</typeparam>
         /// <typeparam name="TParameter">任务参数类型</typeparam>
         /// <typeparam name="TResult">任务返回值类型</typeparam>
         /// <typeparam name="TSplitParameter">Job参数</typeparam>
         /// <typeparam name="TSplitResult">Job返回值</typeparam>
         /// <param name="mapReduceTask">MapReduceTask</param>
         /// <param name="parameter">任务参数</param>
-        Task<TResult> ExcuteAsync<TParameter, TResult, TSplitParameter, TSplitResult>(IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter);
-
-        /// <summary>
-        /// 取消任务执行
-        /// </summary>
-        void Cancel();
+        Task<TResult> ExcuteAsync<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>(IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter);
     }
 
     /// <summary>

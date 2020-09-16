@@ -13,9 +13,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Common.Compute
 {
-    //TODO: 日志
-    //TODO: 返回值异常处理
-    //TODO: 无可用终节点的异常
     public class HttpComputeParameter
     {
         public string AssemblyName { get; set; }
@@ -72,7 +69,17 @@ namespace Common.Compute
 
         public static ICompute CreateCompute(IHttpClientFactory httpClientFactory)
         {
-            return new HttpTaskInstance(httpClientFactory);
+            return new HttpComputeInstance(httpClientFactory);
+        }
+
+        public static IMapReduce CreateMapReduce(IHttpClientFactory httpClientFactory)
+        {
+            return new HttpMapReduceInstance(httpClientFactory);
+        }
+
+        public static IAsyncMapReduce CreateAsyncMapReduce(IHttpClientFactory httpClientFactory)
+        {
+            return new HttpMapReduceInstance(httpClientFactory);
         }
 
         private static async Task<IEnumerable<string>> GetServiceEndPoints(Type type)
@@ -94,13 +101,13 @@ namespace Common.Compute
             };
         }
 
-        private static HttpComputeParameter CreateParameter<T>(T _)
+        private static HttpComputeParameter CreateParameter<TResult>(IComputeFunc<TResult> computeFunc)
         {
             return new HttpComputeParameter()
             {
-                AssemblyName = typeof(T).Assembly.GetName().FullName,
-                AssemblyVersion = typeof(T).Assembly.GetName().Version.ToString(),
-                ClassName = typeof(T).FullName
+                AssemblyName = computeFunc.GetType().Assembly.GetName().FullName,
+                AssemblyVersion = computeFunc.GetType().Assembly.GetName().Version.ToString(),
+                ClassName = computeFunc.GetType().FullName
             };
         }
 
@@ -137,11 +144,11 @@ namespace Common.Compute
             }));
         }
 
-        internal class HttpTaskInstance : ICompute
+        internal class HttpComputeInstance : ICompute
         {
             private IHttpClientFactory m_httpClientFactory;
 
-            public HttpTaskInstance(IHttpClientFactory httpClientFactory)
+            public HttpComputeInstance(IHttpClientFactory httpClientFactory)
             {
                 m_httpClientFactory = httpClientFactory;
             }
@@ -302,6 +309,96 @@ namespace Common.Compute
                 }
 
                 return await GetResults<TResult>(tasks);
+            }
+        }
+
+        internal class HttpMapReduceInstance : IMapReduce, IAsyncMapReduce
+        {
+            private IHttpClientFactory m_httpClientFactory;
+
+            public HttpMapReduceInstance(IHttpClientFactory httpClientFactory)
+            {
+                m_httpClientFactory = httpClientFactory;
+            }
+
+            public TResult Excute<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>
+                (IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
+            {
+                IList<Task<HttpResponseMessage>> tasks = new List<Task<HttpResponseMessage>>();
+                string[] serviceEndPoints = GetServiceEndPoints(typeof(TComputeFunc)).Result.ToArray();
+
+                if (serviceEndPoints.Length == 0)
+                {
+                    string errorMessage = $"请求错误，无可用计算节点。";
+                    m_logHelper.Error("httpCompute", errorMessage);
+                    throw new Exception(errorMessage);
+                }
+
+                IEnumerable<MapReduceSplitJob<TSplitParameter, TSplitResult>> mapReduceSplitJobs = mapReduceTask.Split(serviceEndPoints.Length, parameter);
+                IEnumerable<Tuple<MapReduceSplitJob<TSplitParameter, TSplitResult>, string>> tuples = mapReduceSplitJobs.Zip(serviceEndPoints, (mapReduceSplitJob, serviceEndPoint) =>
+                {
+                    if (mapReduceSplitJob.ComputeFunc.GetType() != typeof(TComputeFunc))
+                    {
+                        string errorMessage = $"请求错误，MapReduceSplitJob的ComputeFunc类型与传入的ComputeFunc类型不匹配。";
+                        m_logHelper.Error("httpCompute", errorMessage);
+                        throw new Exception(errorMessage);
+                    }
+
+                    return Tuple.Create(mapReduceSplitJob, serviceEndPoint);
+                });
+
+                foreach (Tuple<MapReduceSplitJob<TSplitParameter, TSplitResult>, string> tuple in tuples)
+                {
+                    (MapReduceSplitJob<TSplitParameter, TSplitResult> mapReduceSplitJob, string serviceEndPoint) = tuple;
+
+                    tasks.Add(Task.Factory.StartNew((serviceEndPoint) =>
+                    {
+                        return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
+                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter)).Result;
+                    }, serviceEndPoint));
+                }
+
+                return mapReduceTask.Reduce(GetResults<TSplitResult>(tasks));
+            }
+
+            public async Task<TResult> ExcuteAsync<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>
+                (IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
+            {
+                IList<Task<Task<HttpResponseMessage>>> tasks = new List<Task<Task<HttpResponseMessage>>>();
+                string[] serviceEndPoints = (await GetServiceEndPoints(typeof(TComputeFunc))).ToArray();
+
+                if (serviceEndPoints.Length == 0)
+                {
+                    string errorMessage = $"请求错误，无可用计算节点。";
+                    await m_logHelper.Error("httpCompute", errorMessage);
+                    throw new Exception(errorMessage);
+                }
+
+                IEnumerable<MapReduceSplitJob<TSplitParameter, TSplitResult>> mapReduceSplitJobs = mapReduceTask.Split(serviceEndPoints.Length, parameter);
+                IEnumerable<Tuple<MapReduceSplitJob<TSplitParameter, TSplitResult>, string>> tuples = mapReduceSplitJobs.Zip(serviceEndPoints, (mapReduceSplitJob, serviceEndPoint) =>
+                {
+                    if (mapReduceSplitJob.ComputeFunc.GetType() != typeof(TComputeFunc))
+                    {
+                        string errorMessage = $"请求错误，MapReduceSplitJob的ComputeFunc类型与传入的ComputeFunc类型不匹配。";
+                        m_logHelper.Error("httpCompute", errorMessage);
+                        throw new Exception(errorMessage);
+                    }
+
+                    return Tuple.Create(mapReduceSplitJob, serviceEndPoint);
+                });
+
+                foreach (Tuple<MapReduceSplitJob<TSplitParameter, TSplitResult>, string> tuple in tuples)
+                {
+                    (MapReduceSplitJob<TSplitParameter, TSplitResult> mapReduceSplitJob, string serviceEndPoint) = tuple;
+
+                    tasks.Add(Task.Factory.StartNew((serviceEndPoint) =>
+                    {
+                        return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
+                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter));
+                    }, serviceEndPoint));
+                }
+
+                return mapReduceTask.Reduce(await GetResults<TSplitResult>(tasks));
             }
         }
     }

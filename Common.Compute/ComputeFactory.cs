@@ -26,7 +26,7 @@ namespace Common.Compute
         }
 
         /// <summary>
-        /// 创建同步MapReduce
+        /// 创建同步IgniteMapReduce
         /// </summary>
         public static IMapReduce GetIgniteMapReduce()
         {
@@ -34,11 +34,29 @@ namespace Common.Compute
         }
 
         /// <summary>
-        /// 创建异步MapReduce
+        /// 创建异步IgniteMapReduce
         /// </summary>
         public static IAsyncMapReduce GetIgniteAsyncMapReduce()
         {
             return IgniteTask.CreateAsyncMapReduce();
+        }
+
+        /// <summary>
+        /// 创建同步HttpMapReduce
+        /// </summary>
+        /// <param name="httpClientFactory"></param>
+        public static IMapReduce GetHttpMapReduce(IHttpClientFactory httpClientFactory)
+        {
+            return HttpTask.CreateMapReduce(httpClientFactory);
+        }
+
+        /// <summary>
+        /// 创建异步HttpMapReduce
+        /// </summary>
+        /// <param name="httpClientFactory"></param>
+        public static IAsyncMapReduce GetHttpAsyncMapReduce(IHttpClientFactory httpClientFactory)
+        {
+            return HttpTask.CreateAsyncMapReduce(httpClientFactory);
         }
     }
 }

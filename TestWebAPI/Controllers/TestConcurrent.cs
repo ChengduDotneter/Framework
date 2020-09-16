@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -76,11 +77,15 @@ namespace TestWebAPI.Controllers
     {
         private IComputeFactory m_computeFactory;
         private ICompute m_compute;
+        private IMapReduce m_mapReduce;
+        private IAsyncMapReduce m_asyncMapReduce;
 
-        public TestService(IComputeFactory computeFactory, ICompute compute)
+        public TestService(IComputeFactory computeFactory, ICompute compute, IMapReduce mapReduce, IAsyncMapReduce asyncMapReduce)
         {
             m_computeFactory = computeFactory;
             m_compute = compute;
+            m_mapReduce = mapReduce;
+            m_asyncMapReduce = asyncMapReduce;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -91,12 +96,17 @@ namespace TestWebAPI.Controllers
 
                 while (true)
                 {
-                    IComputeFunc<ComputeParameter, ComputeResult> computeFunc = m_computeFactory.CreateComputeFunc<ComputeFunc, ComputeParameter, ComputeResult>();
+                    //IComputeFunc<ComputeParameter, ComputeResult> computeFunc = m_computeFactory.CreateComputeFunc<ComputeFunc, ComputeParameter, ComputeResult>();
 
-                    foreach (ComputeResult computeResult in m_compute.Bordercast(computeFunc, new ComputeParameter() { RequestData = "ZXY" }))
-                    {
-                        Console.WriteLine(computeResult.ResponseData);
-                    }
+                    //foreach (ComputeResult computeResult in m_compute.Bordercast(computeFunc, new ComputeParameter() { RequestData = "ZXY" }))
+                    //{
+                    //    Console.WriteLine(computeResult.ResponseData);
+                    //}
+
+                    ComputeResult computeResult = m_mapReduce.Excute<ComputeSplitFunc, ComputeParameter, ComputeResult, ComputeSplitParameter, ComputeSplitResult>
+                        (new ComputeMapReduce(m_computeFactory), new ComputeParameter() { RequestData = "ZXY" });
+
+                    Console.WriteLine(computeResult.ResponseData);
 
                     await Task.Delay(1000);
                 }
@@ -120,6 +130,16 @@ namespace TestWebAPI.Controllers
         public string ResponseData { get; set; }
     }
 
+    public class ComputeSplitParameter
+    {
+        public string RequestData { get; set; }
+    }
+
+    public class ComputeSplitResult
+    {
+        public string ResponseData { get; set; }
+    }
+
     public class ComputeFunc : IComputeFunc<ComputeParameter, ComputeResult>
     {
         private readonly ISearchQuery<TestData> m_searchQuery;
@@ -133,6 +153,53 @@ namespace TestWebAPI.Controllers
         {
             Console.WriteLine(parameter.RequestData);
             return new ComputeResult() { ResponseData = DateTime.Now.ToString("g") };
+        }
+    }
+
+    public class ComputeSplitFunc : IComputeFunc<ComputeSplitParameter, ComputeSplitResult>
+    {
+        private readonly ISearchQuery<TestData> m_searchQuery;
+
+        public ComputeSplitFunc(ISearchQuery<TestData> searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
+
+        public ComputeSplitResult Excute(ComputeSplitParameter parameter)
+        {
+            Console.WriteLine(parameter.RequestData);
+            return new ComputeSplitResult() { ResponseData = DateTime.Now.ToString("g") };
+        }
+    }
+
+    public class ComputeMapReduce : IMapReduceTask<ComputeParameter, ComputeResult, ComputeSplitParameter, ComputeSplitResult>
+    {
+        private IComputeFactory m_computeFactory;
+
+        public ComputeMapReduce(IComputeFactory computeFactory)
+        {
+            m_computeFactory = computeFactory;
+        }
+
+        public ComputeResult Reduce(IEnumerable<ComputeSplitResult> splitResults)
+        {
+            return new ComputeResult() { ResponseData = $"map: {string.Join(",", splitResults.Select(item => item.ResponseData))}" };
+        }
+
+        public IEnumerable<MapReduceSplitJob<ComputeSplitParameter, ComputeSplitResult>> Split(int nodeCount, ComputeParameter parameter)
+        {
+            IList<MapReduceSplitJob<ComputeSplitParameter, ComputeSplitResult>> mapReduceSplitJobs = new List<MapReduceSplitJob<ComputeSplitParameter, ComputeSplitResult>>();
+
+            for (int i = 0; i < nodeCount; i++)
+            {
+                mapReduceSplitJobs.Add(new MapReduceSplitJob<ComputeSplitParameter, ComputeSplitResult>()
+                {
+                    ComputeFunc = m_computeFactory.CreateComputeFunc<ComputeSplitFunc, ComputeSplitParameter, ComputeSplitResult>(),
+                    Parameter = new ComputeSplitParameter() { RequestData = parameter.RequestData[i % parameter.RequestData.Length].ToString() }
+                });
+            }
+
+            return mapReduceSplitJobs;
         }
     }
 }
