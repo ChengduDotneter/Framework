@@ -13,6 +13,7 @@ using Common.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Primitives;
 
 namespace TestWebAPI.Controllers
 {
@@ -88,15 +89,14 @@ namespace TestWebAPI.Controllers
             m_asyncMapReduce = asyncMapReduce;
         }
 
-        private void Test(object _)
+        private void Test()
         {
             Console.WriteLine("change");
-            Common.ConfigManager.Configuration.GetReloadToken().RegisterChangeCallback(Test, null);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Common.ConfigManager.Configuration.GetReloadToken().RegisterChangeCallback(Test, null);
+            ChangeToken.OnChange(() => ConfigManager.Configuration.GetReloadToken(), Test);
 
             return Task.Factory.StartNew(async () =>
             {
