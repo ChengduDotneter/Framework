@@ -88,8 +88,15 @@ namespace TestWebAPI.Controllers
             m_asyncMapReduce = asyncMapReduce;
         }
 
+        private void Test(object _)
+        {
+            Console.WriteLine("change");
+        }
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            Common.ConfigManager.Configuration.GetReloadToken().RegisterChangeCallback(Test, null);
+
             return Task.Factory.StartNew(async () =>
             {
                 await Task.Delay(5000);
