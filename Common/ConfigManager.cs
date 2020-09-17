@@ -1,7 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
-using Microsoft.Extensions.FileProviders;
-using System;
 
 namespace Common
 {
@@ -37,14 +36,12 @@ namespace Common
                 .Add(new JsonConfigurationSource
                 {
                     Path = "appsettings.json",
-                    ReloadOnChange = true,
-                    FileProvider = new PhysicalFileProvider(AppDomain.CurrentDomain.BaseDirectory)
+                    ReloadOnChange = true
                 })
                 .Add(new JsonConfigurationSource
                 {
                     Path = $"appsettings.{enviroment}.json",
-                    ReloadOnChange = true,
-                    FileProvider = new PhysicalFileProvider(AppDomain.CurrentDomain.BaseDirectory)
+                    ReloadOnChange = true
                 }).Build();
 
             m_isInit = true;

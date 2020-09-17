@@ -91,6 +91,7 @@ namespace TestWebAPI.Controllers
         private void Test(object _)
         {
             Console.WriteLine("change");
+            Common.ConfigManager.Configuration.GetReloadToken().RegisterChangeCallback(Test, null);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
