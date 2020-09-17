@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Apache.Ignite.Core.Compute;
 
@@ -16,12 +15,12 @@ namespace Common.Compute
 
         public static IMapReduce CreateMapReduce()
         {
-            return new IgniteMapReduce();
+            return new IgniteMapReduceInstance();
         }
 
         public static IAsyncMapReduce CreateAsyncMapReduce()
         {
-            return new IgniteMapReduce();
+            return new IgniteMapReduceInstance();
         }
 
         private static Apache.Ignite.Core.Compute.ICompute GetCompute()
@@ -84,11 +83,8 @@ namespace Common.Compute
             }
         }
 
-        internal class IgniteMapReduce : IMapReduce, IAsyncMapReduce
+        internal class IgniteMapReduceInstance : IMapReduce, IAsyncMapReduce
         {
-            private CancellationTokenSource m_cancellationTokenSource;
-            public bool Running { get; private set; }
-
             private class IgniteComputeJobAdapter<TParameter, TResult> : ComputeJobAdapter<TResult>
             {
                 public TParameter Parameter { get; set; }
@@ -120,43 +116,17 @@ namespace Common.Compute
                 }
             }
 
-            public TResult Excute<TParameter, TResult, TSplitParameter, TSplitResult>(IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
+            public TResult Excute<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>
+                (IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
             {
-                return ExcuteAsync(mapReduceTask, parameter).Result;
+                return ExcuteAsync<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>(mapReduceTask, parameter).Result;
             }
 
-            public async Task<TResult> ExcuteAsync<TParameter, TResult, TSplitParameter, TSplitResult>(IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
+            public async Task<TResult> ExcuteAsync<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>
+                (IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
             {
-                if (Running)
-                    throw new Exception("任务已经执行。");
-
-                Running = true;
-                m_cancellationTokenSource = new CancellationTokenSource();
-
-                TResult result = await GetCompute().ExecuteAsync(new IgniteComputeTaskSplitAdapter<TParameter, TResult, TSplitParameter, TSplitResult>(mapReduceTask), parameter, m_cancellationTokenSource.Token);
-
-                Running = false;
-                m_cancellationTokenSource.Dispose();
-
+                TResult result = await GetCompute().ExecuteAsync(new IgniteComputeTaskSplitAdapter<TParameter, TResult, TSplitParameter, TSplitResult>(mapReduceTask), parameter);
                 return result;
-            }
-
-            public void Cancel()
-            {
-                Running = false;
-                m_cancellationTokenSource.Cancel();
-
-                if (m_cancellationTokenSource != null)
-                    m_cancellationTokenSource.Dispose();
-            }
-
-            public void Dispose()
-            {
-                if (Running)
-                    throw new Exception("尝试销毁正在执行中的任务。");
-
-                if (m_cancellationTokenSource != null)
-                    m_cancellationTokenSource.Dispose();
             }
         }
     }

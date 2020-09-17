@@ -18,14 +18,14 @@ namespace Common.ServiceCommon
         /// <typeparam name="T">并行计算Job实现类型</typeparam>
         /// <typeparam name="TParameter">Job参数</typeparam>
         /// <typeparam name="TResult">Job返回值</typeparam>
-        IComputeFunc<TParameter, TResult> CreateComputeFunc<T, TParameter, TResult>() where T : IComputeFunc<TParameter, TResult>;
+        T CreateComputeFunc<T, TParameter, TResult>() where T : IComputeFunc<TParameter, TResult>;
 
         /// <summary>
         /// 创建并行计算Job
         /// </summary>
         /// <typeparam name="T">并行计算Job实现类型</typeparam>
         /// <typeparam name="TResult">Job返回值</typeparam>
-        IComputeFunc<TResult> CreateComputeFunc<T, TResult>() where T : IComputeFunc<TResult>;
+        T CreateComputeFunc<T, TResult>() where T : IComputeFunc<TResult>;
 
         /// <summary>
         /// 创建并行计算任务
@@ -35,7 +35,7 @@ namespace Common.ServiceCommon
         /// <typeparam name="TResult">任务返回值</typeparam>
         /// <typeparam name="TSplitParameter">Job参数</typeparam>
         /// <typeparam name="TSplitResult">Job返回值</typeparam>
-        IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> CreateComputeMapReduceTask<T, TParameter, TResult, TSplitParameter, TSplitResult>() where T : IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>;
+        T CreateComputeMapReduceTask<T, TParameter, TResult, TSplitParameter, TSplitResult>() where T : IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>;
 
         /// <summary>
         /// 创建并行计算Job
@@ -71,20 +71,20 @@ namespace Common.ServiceCommon
             return constructorInfos[0].Invoke(parameters);
         }
 
-        public IComputeFunc<TParameter, TResult> CreateComputeFunc<T, TParameter, TResult>() where T : IComputeFunc<TParameter, TResult>
+        public T CreateComputeFunc<T, TParameter, TResult>() where T : IComputeFunc<TParameter, TResult>
         {
-            return (IComputeFunc<TParameter, TResult>)CreateInstance(m_host, typeof(T));
+            return (T)CreateInstance(m_host, typeof(T));
         }
 
-        public IComputeFunc<TResult> CreateComputeFunc<T, TResult>() where T : IComputeFunc<TResult>
+        public T CreateComputeFunc<T, TResult>() where T : IComputeFunc<TResult>
         {
-            return (IComputeFunc<TResult>)CreateInstance(m_host, typeof(T));
+            return (T)CreateInstance(m_host, typeof(T));
         }
 
-        public IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> CreateComputeMapReduceTask<T, TParameter, TResult, TSplitParameter, TSplitResult>()
+        public T CreateComputeMapReduceTask<T, TParameter, TResult, TSplitParameter, TSplitResult>()
             where T : IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>
         {
-            return (IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>)CreateInstance(m_host, typeof(T));
+            return (T)CreateInstance(m_host, typeof(T));
         }
 
         public object CreateComputeFunc(Type computeFuncType)

@@ -413,13 +413,13 @@ namespace Common.DAL
             public int Count<TResult>(IQueryable<TResult> query, ITransaction _ = null)
             {
                 DaoFactory.LogHelper.Info("mongoDB", $"count: {query}");
-                return ((IMongoQueryable<T>)query).Count();
+                return ((IMongoQueryable<TResult>)query).Count();
             }
 
             public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction _ = null)
             {
                 await DaoFactory.LogHelper.Info("mongoDB", $"count: {query}");
-                return await ((IMongoQueryable<T>)query).CountAsync();
+                return await ((IMongoQueryable<TResult>)query).CountAsync();
             }
 
             public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null)

@@ -91,7 +91,14 @@ namespace TestWebAPI
 
             services.AddScoped(sp => ComputeFactory.GetHttpCompute(sp.GetService<IHttpClientFactory>()));
 
-            services.AddHostedService(sp => new TestService(sp.CreateScope().ServiceProvider.GetService<IComputeFactory>(), sp.CreateScope().ServiceProvider.GetService<ICompute>()));
+            services.AddScoped(sp => ComputeFactory.GetHttpMapReduce(sp.GetService<IHttpClientFactory>()));
+
+            services.AddScoped(sp => ComputeFactory.GetHttpAsyncMapReduce(sp.GetService<IHttpClientFactory>()));
+
+            services.AddHostedService(sp => new TestService(sp.CreateScope().ServiceProvider.GetService<IComputeFactory>(),
+                                                            sp.CreateScope().ServiceProvider.GetService<ICompute>(),
+                                                            sp.CreateScope().ServiceProvider.GetService<IMapReduce>(),
+                                                            sp.CreateScope().ServiceProvider.GetService<IAsyncMapReduce>()));
 
             //services.AddLog4NetLogHelper();
 

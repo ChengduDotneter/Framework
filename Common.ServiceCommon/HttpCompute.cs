@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Common.Compute;
+using Common.Log;
 using Consul;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -41,6 +42,7 @@ namespace Common.ServiceCommon
             }
         }
 
+        private static ILogHelper m_logHelper;
         private static IDictionary<string, ComputeAssembly> m_computeAssemblys;
         private IHttpContextAccessor m_httpContextAccessor;
         private IComputeFactory m_computeFactory;
@@ -53,6 +55,7 @@ namespace Common.ServiceCommon
 
         static HttpCompute()
         {
+            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
             m_computeAssemblys = new Dictionary<string, ComputeAssembly>();
 
             TypeReflector.ReflectType((type) =>
@@ -128,6 +131,12 @@ namespace Common.ServiceCommon
                    m_computeAssemblys[assemblyName].ComputeTypes.ContainsKey(className);
         }
 
+        [HttpPost("mapReduce")]
+        public Task<HttpComputeResult> MapReduce(HttpComputeParameter httpComputeParameter)
+        {
+            return ExcuteWithParameter(httpComputeParameter);
+        }
+
         [HttpPost("boardcast")]
         public Task<HttpComputeResult> Boardcast(HttpComputeParameter httpComputeParameter)
         {
@@ -149,6 +158,7 @@ namespace Common.ServiceCommon
         private Task<HttpComputeResult> Excute(HttpComputeParameter httpComputeParameter)
         {
             ConnectionInfo connectionInfo = m_httpContextAccessor.HttpContext.Connection;
+            string method = m_httpContextAccessor.HttpContext.Request.RouteValues["action"].ToString().ToLower();
 
             if (!AssemblyCheck(httpComputeParameter.AssemblyName, httpComputeParameter.AssemblyVersion, httpComputeParameter.ClassName))
                 throw new DealException($"{connectionInfo.LocalIpAddress}:{connectionInfo.LocalPort}未找到指向的Compute类型或Compute类型版本不匹配。");
@@ -158,6 +168,7 @@ namespace Common.ServiceCommon
 
             return Task.Factory.StartNew(() =>
             {
+                m_logHelper.Info("httpCompute", $"method: {method}{Environment.NewLine}parameter: {httpComputeParameter.Parameter}");
                 object result = computeFuncType.FuncType.GetMethod("Excute").Invoke(computeFunc, null);
 
                 return new HttpComputeResult()
@@ -171,6 +182,7 @@ namespace Common.ServiceCommon
         private Task<HttpComputeResult> ExcuteWithParameter(HttpComputeParameter httpComputeParameter)
         {
             ConnectionInfo connectionInfo = m_httpContextAccessor.HttpContext.Connection;
+            string method = m_httpContextAccessor.HttpContext.Request.RouteValues["action"].ToString().ToLower();
 
             if (!AssemblyCheck(httpComputeParameter.AssemblyName, httpComputeParameter.AssemblyVersion, httpComputeParameter.ClassName))
                 throw new DealException($"{connectionInfo.LocalIpAddress}:{connectionInfo.LocalPort}未找到指向的Compute类型或Compute类型版本不匹配。");
@@ -181,6 +193,7 @@ namespace Common.ServiceCommon
 
             return Task.Factory.StartNew(() =>
             {
+                m_logHelper.Info("httpCompute", $"method: {method}{Environment.NewLine}parameter: {httpComputeParameter.Parameter}");
                 object result = computeFuncType.FuncType.GetMethod("Excute").Invoke(computeFunc, new object[] { parameter });
 
                 return new HttpComputeResult()
