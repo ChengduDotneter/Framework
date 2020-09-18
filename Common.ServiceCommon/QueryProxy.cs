@@ -1,6 +1,7 @@
 ﻿using Common.DAL;
 using Common.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -298,6 +299,30 @@ namespace Common.ServiceCommon
         public OrderByIDDescSearchQueryProxy(ISearchQuery<T> searchQuery) => m_searchQuery = searchQuery;
     }
 
+    public class SearchQueryableProxy<T> : ISearchQueryable<T>
+    {
+        private readonly IQueryable<T> m_queryable;
+        private readonly IDisposable m_disposable;
+
+        public Type ElementType => m_queryable.ElementType;
+
+        public Expression Expression => m_queryable.Expression;
+
+        public IQueryProvider Provider => m_queryable.Provider;
+
+        public SearchQueryableProxy(IQueryable<T> queable, IDisposable disposable)
+        {
+            m_disposable = disposable;
+            m_queryable = queable;
+        }
+
+        public void Dispose() => m_disposable.Dispose();
+
+        public IEnumerator<T> GetEnumerator() => m_queryable.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)m_queryable).GetEnumerator();
+    }
+
     /// <summary>
     /// 逻辑删除装饰者，继承ISearchQuery
     /// </summary>
@@ -448,7 +473,9 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public ISearchQueryable<T> GetQueryable(ITransaction transaction = null)
         {
-            return m_searchQuery.GetQueryable(transaction);
+            ISearchQueryable<T> searchQuerable = m_searchQuery.GetQueryable(transaction);
+
+            return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 
         /// <summary>
@@ -456,9 +483,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
+        public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
         {
-            return m_searchQuery.GetQueryableAsync(transaction);
+            ISearchQueryable<T> searchQuerable = await m_searchQuery.GetQueryableAsync(transaction);
+
+            return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 
         /// <summary>
