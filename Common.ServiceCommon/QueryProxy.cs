@@ -299,25 +299,50 @@ namespace Common.ServiceCommon
         public OrderByIDDescSearchQueryProxy(ISearchQuery<T> searchQuery) => m_searchQuery = searchQuery;
     }
 
+    /// <summary>
+    /// 装饰者的SearchQueryable实现
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class SearchQueryableProxy<T> : ISearchQueryable<T>
     {
         private readonly IQueryable<T> m_queryable;
         private readonly IDisposable m_disposable;
 
+        /// <summary>
+        /// 类型
+        /// </summary>
         public Type ElementType => m_queryable.ElementType;
 
+        /// <summary>
+        /// 表达式
+        /// </summary>
         public Expression Expression => m_queryable.Expression;
 
+        /// <summary>
+        /// 查询提供者
+        /// </summary>
         public IQueryProvider Provider => m_queryable.Provider;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="queable"></param>
+        /// <param name="disposable"></param>
         public SearchQueryableProxy(IQueryable<T> queable, IDisposable disposable)
         {
             m_disposable = disposable;
             m_queryable = queable;
         }
 
+        /// <summary>
+        /// 释放
+        /// </summary>
         public void Dispose() => m_disposable.Dispose();
 
+        /// <summary>
+        /// 获取构造器
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<T> GetEnumerator() => m_queryable.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)m_queryable).GetEnumerator();
