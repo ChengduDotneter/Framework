@@ -9,6 +9,7 @@ using System.Reflection;
 
 namespace Common.ServiceCommon
 {
+    //TODO: 返回值需要用Task包裹，以便支持异步
     /// <summary>
     /// Service中无相应的实体接受请求参数时使用且请求参数为JObject的接口基类
     /// </summary>
