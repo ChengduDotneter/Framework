@@ -27,6 +27,8 @@ namespace Common.DAL
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
         private static LinqToDbConnectionOptions m_slavelinqToDbConnectionOptions;
 
+        private static IDictionary<DataConnection, DateTime> m_creatureDataConnectionPool;
+
         static Linq2DBDao()
         {
             m_tableNames = new HashSet<string>();
@@ -56,6 +58,8 @@ namespace Common.DAL
 
             m_connectionPool = new Dictionary<string, ConcurrentQueue<DataConnection>>();
 
+            m_creatureDataConnectionPool = new Dictionary<DataConnection, DateTime>();
+
             if (!int.TryParse(ConfigManager.Configuration["ConnectionCount"], out int connectionCount))
                 connectionCount = DEFAULT_CONNECTION_COUNT;
 
@@ -64,7 +68,16 @@ namespace Common.DAL
                 m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new ConcurrentQueue<DataConnection>());
 
                 for (int i = 0; i < connectionCount; i++)
-                    m_connectionPool[m_masterlinqToDbConnectionOptions.ConnectionString].Enqueue(new DataConnection(m_masterlinqToDbConnectionOptions));
+                {
+                    lock (m_creatureDataConnectionPool)
+                    {
+                        DataConnection dataConnection = new DataConnection(m_masterlinqToDbConnectionOptions);
+
+                        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+
+                        m_connectionPool[m_masterlinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
+                    }
+                }
             }
 
             if (!m_connectionPool.ContainsKey(m_slavelinqToDbConnectionOptions.ConnectionString))
@@ -72,19 +85,46 @@ namespace Common.DAL
                 m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString, new ConcurrentQueue<DataConnection>());
 
                 for (int i = 0; i < connectionCount; i++)
-                    m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].Enqueue(new DataConnection(m_slavelinqToDbConnectionOptions));
+                {
+                    lock (m_creatureDataConnectionPool)
+                    {
+                        DataConnection dataConnection = new DataConnection(m_slavelinqToDbConnectionOptions);
+
+                        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+
+                        m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
+                    }
+                }
             }
         }
 
         private static DataConnection CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions)
         {
             if (m_connectionPool[linqToDbConnectionOptions.ConnectionString].IsEmpty)
-                throw new Exception("连接池已满。");
+                throw new DealException("连接池已满。");
 
             DataConnection dataConnection;
 
             while (!m_connectionPool[linqToDbConnectionOptions.ConnectionString].TryDequeue(out dataConnection))
                 Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
+
+            if (m_creatureDataConnectionPool.ContainsKey(dataConnection))
+            {
+                if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > 10000)
+                {
+                    lock (m_creatureDataConnectionPool)
+                    {
+                        dataConnection.Close();
+                        dataConnection.Dispose();
+
+                        m_creatureDataConnectionPool.Remove(dataConnection);
+
+                        dataConnection = new DataConnection(linqToDbConnectionOptions);
+
+                        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+                    }
+                }
+            }
 
             return dataConnection;
         }

@@ -43,7 +43,7 @@ namespace Common.ServiceCommon
                 throw new DealException($"{microServiceName}服务调用超时");
 
             if (httpResponseMessage.StatusCode == HttpStatusCode.NotFound)
-                throw new DealException($"未发现{microServiceName}服务数据");
+                throw new DealException($"未发现{microServiceName}服务");
 
             if (httpResponseMessage.StatusCode == HttpStatusCode.InternalServerError)
                 throw new DealException($"{microServiceName}服务内部错误");
