@@ -22,12 +22,15 @@ namespace Common.DAL
     {
         private const int GET_DATACONNECTION_THREAD_TIME_SPAN = 1;
         private const int DEFAULT_CONNECTION_COUNT = 10;
+        private const int DEFAULT_CONNECTION_WAITTIMEOUT = 8 * 60 * 60 * 1000;//8小时
         private static IDictionary<string, ConcurrentQueue<DataConnection>> m_connectionPool;
         private static ISet<string> m_tableNames;
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
         private static LinqToDbConnectionOptions m_slavelinqToDbConnectionOptions;
 
         private static IDictionary<DataConnection, DateTime> m_creatureDataConnectionPool;
+
+        private static readonly int m_dataConnectionOutTime;
 
         static Linq2DBDao()
         {
@@ -62,6 +65,9 @@ namespace Common.DAL
 
             if (!int.TryParse(ConfigManager.Configuration["ConnectionCount"], out int connectionCount))
                 connectionCount = DEFAULT_CONNECTION_COUNT;
+
+            if (!int.TryParse(ConfigManager.Configuration["ConnectionTimeOut"], out int m_dataConnectionOutTime))
+                m_dataConnectionOutTime = DEFAULT_CONNECTION_WAITTIMEOUT;
 
             if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.ConnectionString))
             {
@@ -110,7 +116,7 @@ namespace Common.DAL
 
             if (m_creatureDataConnectionPool.ContainsKey(dataConnection))
             {
-                if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > 10000)
+                if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > m_dataConnectionOutTime)
                 {
                     lock (m_creatureDataConnectionPool)
                     {
