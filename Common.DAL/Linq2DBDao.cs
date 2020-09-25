@@ -63,10 +63,13 @@ namespace Common.DAL
 
             m_creatureDataConnectionPool = new Dictionary<DataConnection, DateTime>();
 
-            if (!int.TryParse(ConfigManager.Configuration["ConnectionCount"], out int connectionCount))
+            int.TryParse(ConfigManager.Configuration["ConnectionCount"], out int connectionCount);
+
+            if (connectionCount <= 0)
                 connectionCount = DEFAULT_CONNECTION_COUNT;
 
-            if (!int.TryParse(ConfigManager.Configuration["ConnectionTimeOut"], out int m_dataConnectionOutTime))
+            int.TryParse(ConfigManager.Configuration["ConnectionTimeOut"], out m_dataConnectionOutTime);
+            if (m_dataConnectionOutTime <= 0)
                 m_dataConnectionOutTime = DEFAULT_CONNECTION_WAITTIMEOUT;
 
             if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.ConnectionString))
