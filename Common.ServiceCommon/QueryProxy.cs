@@ -499,7 +499,6 @@ namespace Common.ServiceCommon
         public ISearchQueryable<T> GetQueryable(ITransaction transaction = null)
         {
             ISearchQueryable<T> searchQuerable = m_searchQuery.GetQueryable(transaction);
-
             return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 
@@ -511,7 +510,6 @@ namespace Common.ServiceCommon
         public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
         {
             ISearchQueryable<T> searchQuerable = await m_searchQuery.GetQueryableAsync(transaction);
-
             return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 
