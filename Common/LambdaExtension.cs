@@ -216,16 +216,30 @@ namespace Common
     {
         private readonly StringBuilder m_parametersStringBuilder;
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         public ToStringVisitor()
         {
             m_parametersStringBuilder = new StringBuilder();
         }
 
+        /// <summary>
+        /// 将表达式转换为表达式+参数名+常量值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="expression"></param>
+        /// <returns></returns>
         public string ToString<T>(Expression<Func<T, bool>> expression)
         {
             return expression.Body.ToString() + m_parametersStringBuilder.ToString();
         }
 
+        /// <summary>
+        /// 访问表达式成员
+        /// </summary>
+        /// <param name="memberNode"></param>
+        /// <returns></returns>
         protected override Expression VisitMember(MemberExpression memberNode)
         {
             if (memberNode.Expression.NodeType == ExpressionType.Constant)
