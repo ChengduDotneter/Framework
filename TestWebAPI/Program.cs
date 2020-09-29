@@ -19,38 +19,22 @@ using Microsoft.Extensions.Logging;
 
 namespace TestWebAPI
 {
-    //[MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
-    //public class Left : IEntity
-    //{
-    //    [SqlSugar.SugarColumn(IsPrimaryKey = true)]
-    //    [Apache.Ignite.Core.Cache.Configuration.QuerySqlField(IsIndexed = true)]
-    //    [PrimaryKey]
-    //    public long ID { get; set; }
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
+    public class Left : ViewModelBase
+    {
+        [Column]
+        public string StudentName { get; set; }
 
-    //    [SqlSugar.SugarColumn]
-    //    [Apache.Ignite.Core.Cache.Configuration.QuerySqlField]
-    //    [Column]
-    //    public string StudentName { get; set; }
+        [Column]
+        public long ClassID { get; set; }
+    }
 
-    //    [SqlSugar.SugarColumn]
-    //    [Apache.Ignite.Core.Cache.Configuration.QuerySqlField]
-    //    [Column]
-    //    public long ClassID { get; set; }
-    //}
-
-    //[MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
-    //public class Right : IEntity
-    //{
-    //    [SqlSugar.SugarColumn(IsPrimaryKey = true)]
-    //    [Apache.Ignite.Core.Cache.Configuration.QuerySqlField(IsIndexed = true)]
-    //    [PrimaryKey]
-    //    public long ID { get; set; }
-
-    //    [SqlSugar.SugarColumn]
-    //    [Apache.Ignite.Core.Cache.Configuration.QuerySqlField]
-    //    [Column]
-    //    public string ClassName { get; set; }
-    //}
+    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
+    public class Right : ViewModelBase
+    {
+        [Column]
+        public string ClassName { get; set; }
+    }
 
     public class TestData : ViewModelBase
     {
@@ -64,7 +48,22 @@ namespace TestWebAPI
 
         public static void Main(string[] args)
         {
-            //ConfigManager.Init("Development");
+            ConfigManager.Init("Development");
+
+            var query1 = DaoFactory.GetSearchMongoDBQuery<Left>();
+            var query2 = DaoFactory.GetSearchMongoDBQuery<Right>();
+
+            //var queryable1 = query1.FilterIsDeleted().GetQueryable();
+            //var queryable2 = query2.FilterIsDeleted().GetQueryable();
+            var queryable1 = query1.GetQueryable();
+            var queryable2 = query2.GetQueryable();
+
+            var d = from left in queryable1
+                    join right in queryable2 on left.ClassID equals right.ID
+                    where left.StudentName != null
+                    select left.ID;
+
+            var ks = d.ToArray();
 
             //var query1 = DaoFactory.GetSearchMongoDBQuery<TestData>();
             //IEditQuery<TestData> editQuery = DaoFactory.GetEditMongoDBQuery<TestData>();
