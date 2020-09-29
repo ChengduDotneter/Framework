@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Common.DAL.Cache
 {
@@ -34,7 +35,7 @@ namespace Common.DAL.Cache
         /// <returns></returns>
         public IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
         {
-            string conditionKey = $"{condition}_{startIndex}_{count}";
+            string conditionKey = $"{condition.ToString<T>()}_{startIndex}_{count}";
 
             if (!m_memoryCache.TryGetValue(conditionKey, out IEnumerable<T> result))
             {
