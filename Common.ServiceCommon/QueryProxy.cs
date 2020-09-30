@@ -58,6 +58,39 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
+    /// ViewModelBase扩展
+    /// </summary>
+    public static class ViewModelBaseExtention
+    {
+        /// <summary>
+        /// 添加操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="operateNameModel"></param>
+        /// <param name="ssoUserService"></param>
+        /// <returns></returns>
+        public static T AddUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase, new()
+        {
+            SSOUserInfo userInfo = ssoUserService.GetUser();
+
+            if (viewModelBase.CreateUserID == 0)
+            {
+                viewModelBase.CreateUserID = userInfo.ID;
+                viewModelBase.CreateUserName = userInfo.UserName;
+            }
+            else
+            {
+                viewModelBase.UpdateTime = DateTime.Now;
+                viewModelBase.UpdateUserID = userInfo.ID;
+                viewModelBase.UpdateUserName = userInfo.UserName;
+            }
+
+            return viewModelBase;
+        }
+    }
+
+    /// <summary>
     /// QueryProxyHelper
     /// </summary>
     internal static class QueryProxyHelper
