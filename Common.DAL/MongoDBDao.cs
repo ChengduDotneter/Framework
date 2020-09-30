@@ -3,9 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Common.DAL.Transaction;
-using Common.Log;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
@@ -113,32 +114,287 @@ namespace Common.DAL
             }
         }
 
-        private class MongoDBQueryable<T> : ISearchQueryable<T>
-            where T : class, IEntity, new()
+        private class MongoQueryable<T> : ISearchQueryable<T>
         {
-            private IQueryable<T> m_query;
+            public IQueryable<T> InnerQuery { get; }
 
-            public MongoDBQueryable(IQueryable<T> query)
-            {
-                m_query = query;
-            }
+            public Type ElementType => InnerQuery.ElementType;
 
-            public Type ElementType => m_query.ElementType;
+            public Expression Expression => InnerQuery.Expression;
 
-            public Expression Expression => m_query.Expression;
-
-            public IQueryProvider Provider => m_query.Provider;
+            public IQueryProvider Provider { get; }
 
             public void Dispose() { }
 
             public IEnumerator<T> GetEnumerator()
             {
-                return m_query.GetEnumerator();
+                IEnumerable<T> results = Provider.Execute<IEnumerable<T>>(Expression);
+                return results.GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return ((IEnumerable)m_query).GetEnumerator();
+                return ((IEnumerable)GetEnumerator()).GetEnumerator();
+            }
+
+            public MongoQueryable(IQueryable<T> innerQuery, IQueryProvider queryProvider)
+            {
+                InnerQuery = innerQuery;
+                Provider = queryProvider;
+            }
+        }
+
+        private class MongoQueryableProvider : IQueryProvider
+        {
+            private class JoinItem
+            {
+                public IMongoQueryable MongoQueryable { get; }
+                public Expression Expression { get; }
+
+                public JoinItem(IMongoQueryable mongoQueryable, Expression expression)
+                {
+                    Expression = expression;
+                    MongoQueryable = mongoQueryable;
+                }
+            }
+
+            private IQueryProvider m_queryProvider;
+            private IDictionary<string, JoinItem> m_joinItems;
+
+            public MongoQueryableProvider(IQueryProvider queryProvider)
+            {
+                m_queryProvider = queryProvider;
+                m_joinItems = new Dictionary<string, JoinItem>();
+            }
+
+            public IQueryable CreateQuery(Expression expression)
+            {
+                Type elementType = GetSequenceElementType(expression.Type);
+
+                try
+                {
+                    return (IQueryable)typeof(MongoQueryableProvider).GetMethod("CreateQuery", 1, new Type[] { typeof(Expression) }).MakeGenericMethod(elementType).Invoke(this, new object[] { expression });
+                }
+                catch (TargetInvocationException tie)
+                {
+                    throw tie.InnerException;
+                }
+            }
+
+            public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+            {
+                MethodCallExpression methodCallExpression = (MethodCallExpression)expression;
+
+                if (methodCallExpression.Method.Name == "Join" ||
+                    methodCallExpression.Method.Name == "GroupJoin")
+                {
+                    (Expression joinExpression, bool hasInnerExpression) = GetJoinExpression(methodCallExpression.Arguments[1]);
+
+                    if (hasInnerExpression)
+                    {
+                        JoinItem joinItem = new JoinItem((IMongoQueryable)((ConstantExpression)joinExpression).Value, methodCallExpression.Arguments[1]);
+                        string key = ((LambdaExpression)((UnaryExpression)methodCallExpression.Arguments[4]).Operand).Parameters[1].Name;
+                        m_joinItems.Add(key, joinItem);
+                        IList<Expression> arguments = new List<Expression>(methodCallExpression.Arguments);
+                        arguments[1] = joinExpression;
+                        expression = methodCallExpression.Update(methodCallExpression.Object, arguments);
+                    }
+                }
+
+                IQueryable<TElement> queryable = m_queryProvider.CreateQuery<TElement>(expression);
+                MongoQueryableProvider mongoQueryProvider = new MongoQueryableProvider(queryable.Provider);
+                m_joinItems.ForEach(item => mongoQueryProvider.m_joinItems.Add(item));
+
+                return new MongoQueryable<TElement>(queryable, mongoQueryProvider);
+            }
+
+            public object Execute(Expression expression)
+            {
+                return DoExcute(expression, "BuildPlan", false);
+            }
+
+            public TResult Execute<TResult>(Expression expression)
+            {
+                return (TResult)Execute(expression);
+            }
+
+            public Task<TResult> ExecuteAsync<TResult>(Expression expression)
+            {
+                return (Task<TResult>)DoExcute(expression, "BuildAsyncPlan", true);
+            }
+
+            private object DoExcute(Expression expression, string buildPlanFuncName, bool hasCancellationToken)
+            {
+                Type executionPlanBuilderType = Assembly.GetAssembly(typeof(IMongoCollection<>)).GetType("MongoDB.Driver.Linq.ExecutionPlanBuilder");
+                MethodInfo transateMethod = m_queryProvider.GetType().GetMethod("Translate", BindingFlags.Instance | BindingFlags.NonPublic);
+                object queryableTranslation = transateMethod.Invoke(m_queryProvider, new object[] { expression });
+                MethodInfo buildPlanMethod = executionPlanBuilderType.GetMethod(buildPlanFuncName);
+                Expression executionPlan;
+
+                if (hasCancellationToken)
+                    executionPlan = (Expression)buildPlanMethod.Invoke(null, new object[] { Expression.Constant(m_queryProvider), queryableTranslation, Expression.Constant(CancellationToken.None) });
+                else
+                    executionPlan = (Expression)buildPlanMethod.Invoke(null, new object[] { Expression.Constant(m_queryProvider), queryableTranslation });
+
+                ConstantExpression constantExpression;
+
+                if (executionPlan is MethodCallExpression methodCall)
+                {
+                    if (methodCall.Arguments[0] is UnaryExpression unaryExpression)
+                    {
+                        MethodCallExpression methodCallExpression = (MethodCallExpression)unaryExpression.Operand;
+                        constantExpression = (ConstantExpression)methodCallExpression.Arguments[0];
+                    }
+                    else if (methodCall.Arguments[0] is ConstantExpression constant)
+                    {
+                        constantExpression = constant;
+                    }
+                    else
+                        throw new NotSupportedException();
+                }
+                else if (executionPlan is InvocationExpression invocation)
+                {
+                    if (invocation.Arguments[0] is MethodCallExpression method)
+                    {
+                        UnaryExpression unaryExpression = (UnaryExpression)method.Arguments[0];
+                        MethodCallExpression methodCallExpression = (MethodCallExpression)unaryExpression.Operand;
+                        constantExpression = (ConstantExpression)methodCallExpression.Arguments[0];
+                    }
+                    else if (invocation.Arguments[0] is UnaryExpression unary)
+                    {
+                        MethodCallExpression methodCallExpression = (MethodCallExpression)unary.Operand;
+                        constantExpression = (ConstantExpression)methodCallExpression.Arguments[0];
+                    }
+                    else
+                        throw new NotSupportedException();
+                }
+                else
+                    throw new NotSupportedException();
+
+                QueryableExecutionModel queryableExecutionModel = (QueryableExecutionModel)constantExpression.Value;
+                IEnumerable<BsonDocument> stages = (IEnumerable<BsonDocument>)typeof(AggregateQueryableExecutionModel<>).MakeGenericType(queryableExecutionModel.OutputType).GetProperty("Stages").GetValue(queryableExecutionModel);
+                UpdateLookup(stages, m_joinItems);
+
+                DaoFactory.LogHelper.Info("mongoDB", queryableExecutionModel.ToString());
+
+                LambdaExpression lambda = Expression.Lambda(executionPlan);
+
+                try
+                {
+                    return lambda.Compile().DynamicInvoke(null);
+                }
+                catch (TargetInvocationException tie)
+                {
+                    throw tie.InnerException;
+                }
+            }
+
+            private static Tuple<ConstantExpression, bool> GetJoinExpression(Expression joinExpression)
+            {
+                if (joinExpression is MethodCallExpression methodCallExpression)
+                {
+                    if (methodCallExpression.Arguments[0] is ConstantExpression constantExpression)
+                        return Tuple.Create(constantExpression, true);
+                    else
+                        return GetJoinExpression(methodCallExpression.Arguments[0]);
+                }
+                else if (joinExpression is ConstantExpression constantExpression)
+                    return Tuple.Create(constantExpression, false);
+                else
+                    throw new NotSupportedException();
+            }
+
+            private static void UpdateLookup(IEnumerable<BsonDocument> stages, IDictionary<string, JoinItem> joinItems)
+            {
+                foreach (BsonDocument lookup in stages.Where(item => item.ElementCount == 1 && item.Elements.First().Name == "$lookup"))
+                {
+                    BsonDocument lookupValue = lookup.First().Value.AsBsonDocument;
+                    string localField = lookupValue.GetElement("localField").Value.AsString;
+                    string foreignField = lookupValue.GetElement("foreignField").Value.AsString;
+                    string referenceKey = JsonUtils.PropertyNameToJavaScriptStyle(localField).Replace(".", "_");
+                    string key = lookupValue.GetElement("as").Value.AsString;
+
+                    lookupValue.Remove("localField");
+                    lookupValue.Remove("foreignField");
+
+                    lookupValue.Add(new BsonElement("let", new BsonDocument
+                    {
+                        { $"{referenceKey}", $"${localField}" }
+                    }));
+
+                    BsonArray pipline = new BsonArray { new BsonDocument("$match", new BsonDocument("$expr", new BsonDocument("$and", new BsonArray
+                    {
+                        new BsonDocument("$eq", new BsonArray { $"${foreignField}", $"$${referenceKey}" })
+                    })))};
+
+                    if (joinItems.ContainsKey(key))
+                    {
+                        JoinItem joinItem = joinItems[key];
+                        QueryableExecutionModel queryableExecutionModel = ((IMongoQueryable)joinItem.MongoQueryable.Provider.CreateQuery(joinItem.Expression)).GetExecutionModel();
+                        IEnumerable<BsonDocument> joinMatchs = (IEnumerable<BsonDocument>)typeof(AggregateQueryableExecutionModel<>).MakeGenericType(queryableExecutionModel.OutputType).GetProperty("Stages")
+                                                               .GetValue(queryableExecutionModel);
+
+                        pipline.AddRange(joinMatchs);
+                    }
+
+                    lookupValue.Add(new BsonElement("pipeline",
+                        pipline));
+                }
+            }
+
+            private static Type GetSequenceElementType(Type type)
+            {
+                Type ienum = FindIEnumerable(type);
+                if (ienum == null) { return type; }
+                return ienum.GetTypeInfo().GetGenericArguments()[0];
+            }
+
+            public static Type FindIEnumerable(Type seqType)
+            {
+                if (seqType == null || seqType == typeof(string))
+                {
+                    return null;
+                }
+
+                var seqTypeInfo = seqType.GetTypeInfo();
+                if (seqTypeInfo.IsGenericType && seqTypeInfo.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    return seqType;
+                }
+
+                if (seqTypeInfo.IsArray)
+                {
+                    return typeof(IEnumerable<>).MakeGenericType(seqType.GetElementType());
+                }
+
+                if (seqTypeInfo.IsGenericType)
+                {
+                    foreach (Type arg in seqType.GetTypeInfo().GetGenericArguments())
+                    {
+                        Type ienum = typeof(IEnumerable<>).MakeGenericType(arg);
+                        if (ienum.GetTypeInfo().IsAssignableFrom(seqType))
+                        {
+                            return ienum;
+                        }
+                    }
+                }
+
+                Type[] ifaces = seqTypeInfo.GetInterfaces();
+                if (ifaces != null && ifaces.Length > 0)
+                {
+                    foreach (Type iface in ifaces)
+                    {
+                        Type ienum = FindIEnumerable(iface);
+                        if (ienum != null) { return ienum; }
+                    }
+                }
+
+                if (seqTypeInfo.BaseType != null && seqTypeInfo.BaseType != typeof(object))
+                {
+                    return FindIEnumerable(seqTypeInfo.BaseType);
+                }
+
+                return null;
             }
         }
 
@@ -147,6 +403,7 @@ namespace Common.DAL
         {
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
             private static readonly IDictionary<IMongoDatabase, IMongoCollection<T>> m_collection;
+            private static readonly MethodInfo m_countMethodInfo;
 
             public ITransaction BeginTransaction(int weight = 0)
             {
@@ -412,26 +669,32 @@ namespace Common.DAL
 
             public int Count<TResult>(IQueryable<TResult> query, ITransaction _ = null)
             {
-                DaoFactory.LogHelper.Info("mongoDB", $"count: {query}");
-                return ((IMongoQueryable<TResult>)query).Count();
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                return queryable.Count();
             }
 
             public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction _ = null)
             {
-                await DaoFactory.LogHelper.Info("mongoDB", $"count: {query}");
-                return await ((IMongoQueryable<TResult>)query).CountAsync();
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                return await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<int>(Expression.Call(m_countMethodInfo.MakeGenericMethod(typeof(TResult)), queryable.Expression));
             }
 
             public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null)
             {
-                DaoFactory.LogHelper.Info("mongoDB", $"search: {query}");
-                return ((IMongoQueryable<TResult>)query).Skip(startIndex).Take(count).ToList();
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                return queryable.Skip(startIndex).Take(count).ToList();
             }
 
             public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null)
             {
-                await DaoFactory.LogHelper.Info("mongoDB", $"search: {query}");
-                return await ((IMongoQueryable<TResult>)query).Skip(startIndex).Take(count).ToListAsync();
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                IAsyncCursor<TResult> asyncCursor = await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<IAsyncCursor<TResult>>(queryable.Expression);
+                IList<TResult> results = new List<TResult>();
+
+                while (await asyncCursor.MoveNextAsync(CancellationToken.None))
+                    results.AddRange(asyncCursor.Current);
+
+                return results;
             }
 
             public ISearchQueryable<T> GetQueryable(ITransaction transaction = null)
@@ -439,9 +702,15 @@ namespace Common.DAL
                 bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
-                    return new MongoDBQueryable<T>(GetCollection(m_slaveMongoDatabase).AsQueryable());
+                {
+                    IQueryable<T> queryable = GetCollection(m_slaveMongoDatabase).AsQueryable();
+                    return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
+                }
                 else
-                    return new MongoDBQueryable<T>(GetCollection(m_masterMongoDatabase).AsQueryable(((MongoDBTransaction)transaction).ClientSessionHandle));
+                {
+                    IQueryable<T> queryable = GetCollection(m_masterMongoDatabase).AsQueryable(((MongoDBTransaction)transaction).ClientSessionHandle);
+                    return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
+                }
             }
 
             public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
@@ -449,9 +718,15 @@ namespace Common.DAL
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
                 if (!inTransaction)
-                    return new MongoDBQueryable<T>(GetCollection(m_slaveMongoDatabase).AsQueryable());
+                {
+                    IQueryable<T> queryable = GetCollection(m_slaveMongoDatabase).AsQueryable();
+                    return new MongoQueryable<T>(GetCollection(m_slaveMongoDatabase).AsQueryable(), new MongoQueryableProvider(queryable.Provider));
+                }
                 else
-                    return new MongoDBQueryable<T>(GetCollection(m_masterMongoDatabase).AsQueryable(((MongoDBTransaction)transaction).ClientSessionHandle));
+                {
+                    IQueryable<T> queryable = GetCollection(m_masterMongoDatabase).AsQueryable(((MongoDBTransaction)transaction).ClientSessionHandle);
+                    return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
+                }
             }
 
             private static string GetOrderByString(IEnumerable<QueryOrderBy<T>> queryOrderBies)
@@ -466,6 +741,7 @@ namespace Common.DAL
             {
                 EMPTY_PREDICATE = _ => true;
                 m_collection = new Dictionary<IMongoDatabase, IMongoCollection<T>>();
+                m_countMethodInfo = typeof(Queryable).GetMethods().Where(item => item.Name == "Count").ElementAt(0);
             }
 
             private static IMongoCollection<T> GetCollection(IMongoDatabase mongoDatabase)

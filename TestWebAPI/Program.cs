@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace TestWebAPI
 {
@@ -55,15 +56,18 @@ namespace TestWebAPI
 
             //var queryable1 = query1.FilterIsDeleted().GetQueryable();
             //var queryable2 = query2.FilterIsDeleted().GetQueryable();
-            var queryable1 = query1.GetQueryable();
-            var queryable2 = query2.GetQueryable();
+            var queryable1 = query1.FilterIsDeleted().GetQueryable();
+            var queryable2 = query2.FilterIsDeleted().GetQueryable();
+
 
             var d = from left in queryable1
-                    join right in queryable2 on left.ClassID equals right.ID
+                    join right in queryable2 on left.ClassID equals right.ID into inqs
                     where left.StudentName != null
-                    select left.ID;
+                    select left.StudentName;
 
-            var ks = d.ToArray();
+
+
+            var ks = query1.SearchAsync(d).Result;
 
             //var query1 = DaoFactory.GetSearchMongoDBQuery<TestData>();
             //IEditQuery<TestData> editQuery = DaoFactory.GetEditMongoDBQuery<TestData>();
