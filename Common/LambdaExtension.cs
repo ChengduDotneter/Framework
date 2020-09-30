@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace Common
 {
@@ -191,6 +192,63 @@ namespace Common
         public static Expression<Func<T, bool>> ReplaceAssign<T>(this Expression<Func<T, bool>> expression)
         {
             return (Expression<Func<T, bool>>)EquelToAssignVisitor.ReplaceBinary(expression);
+        }
+
+        /// <summary>
+        /// 表达式树形转换为字符串扩展
+        /// </summary>
+        /// <typeparam name="T">需要转换的表达式参数类型</typeparam>
+        /// <param name="expression">需要转换的表达式</param>
+        /// <returns>转换后的表达式</returns>
+        public static string ToString<T>(this Expression<Func<T, bool>> expression)
+        {
+            ToStringVisitor toStringVisitor = new ToStringVisitor();
+            toStringVisitor.Visit(expression);
+
+            return toStringVisitor.ToString(expression);
+        }
+    }
+
+    /// <summary>
+    /// 表达式转换为字符串转换器
+    /// </summary>
+    public class ToStringVisitor : ExpressionVisitor
+    {
+        private readonly StringBuilder m_parametersStringBuilder;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public ToStringVisitor()
+        {
+            m_parametersStringBuilder = new StringBuilder();
+        }
+
+        /// <summary>
+        /// 将表达式转换为表达式+参数名+常量值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="expression"></param>
+        /// <returns></returns>
+        public string ToString<T>(Expression<Func<T, bool>> expression)
+        {
+            return expression.Body.ToString() + m_parametersStringBuilder.ToString();
+        }
+
+        /// <summary>
+        /// 访问表达式成员
+        /// </summary>
+        /// <param name="memberNode"></param>
+        /// <returns></returns>
+        protected override Expression VisitMember(MemberExpression memberNode)
+        {
+            if (memberNode.Expression.NodeType == ExpressionType.Constant)
+            {
+                m_parametersStringBuilder.Append(memberNode.ToString());
+                m_parametersStringBuilder.Append(Expression.Lambda(memberNode).Compile().DynamicInvoke().ToString());
+            }
+
+            return base.VisitMember(memberNode);
         }
     }
 
