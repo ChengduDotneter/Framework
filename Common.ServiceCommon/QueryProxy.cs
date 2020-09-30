@@ -80,40 +80,6 @@ namespace Common.ServiceCommon
 
             return predicate.AndAlso(expression);
         }
-
-        public static Expression<Func<T, TJoinTable, bool>> GetJoinIsDeletedCondition<T, TJoinTable>(Expression<Func<T, TJoinTable, bool>> predicate)
-            where T : IEntity, new()
-            where TJoinTable : IEntity, new()
-        {
-            if (predicate == null)
-            {
-                ParameterExpression parameter1 = Expression.Parameter(typeof(T));
-                ParameterExpression parameter2 = Expression.Parameter(typeof(T));
-
-                return Expression.Lambda<Func<T, TJoinTable, bool>>(
-                    Expression.AndAlso(Expression.Equal(Expression.Property(parameter1, nameof(ViewModelBase.IsDeleted)), Expression.Constant(false, typeof(bool))),
-                                       Expression.Equal(Expression.Property(parameter2, nameof(ViewModelBase.IsDeleted)), Expression.Constant(false, typeof(bool)))),
-                    parameter1, parameter2);
-            }
-
-            Expression<Func<T, TJoinTable, bool>> expression =
-                Expression.Lambda<Func<T, TJoinTable, bool>>(
-                    Expression.AndAlso(Expression.Equal(Expression.Property(predicate.Parameters[0], nameof(ViewModelBase.IsDeleted)), Expression.Constant(false, typeof(bool))),
-                                       Expression.Equal(Expression.Property(predicate.Parameters[1], nameof(ViewModelBase.IsDeleted)), Expression.Constant(false, typeof(bool)))),
-                    predicate.Parameters);
-
-            return predicate.AndAlso(expression);
-        }
-
-        public static string GetIsDeletedCondition(string queryWhere)
-        {
-            string isDeleted = $"{nameof(ViewModelBase.IsDeleted)} = 0";
-
-            if (string.IsNullOrWhiteSpace(queryWhere))
-                return isDeleted;
-            else
-                return $"{queryWhere} AND {isDeleted}";
-        }
     }
 
     /// <summary>
@@ -123,7 +89,6 @@ namespace Common.ServiceCommon
     public class OrderByIDDescSearchQueryProxy<T> : ISearchQuery<T>
         where T : ViewModelBase, new()
     {
-        private const string ORDER_BY_ID_DESC = "ID DESC";
         private ISearchQuery<T> m_searchQuery;
 
         /// <summary>
