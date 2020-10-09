@@ -77,13 +77,11 @@ namespace Common.ServiceCommon
             if (viewModelBase.CreateUserID == 0)
             {
                 viewModelBase.CreateUserID = userInfo.ID;
-                viewModelBase.CreateUserName = userInfo.UserName;
             }
             else
             {
                 viewModelBase.UpdateTime = DateTime.Now;
                 viewModelBase.UpdateUserID = userInfo.ID;
-                viewModelBase.UpdateUserName = userInfo.UserName;
             }
 
             return viewModelBase;

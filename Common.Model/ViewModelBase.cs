@@ -31,12 +31,6 @@ namespace Common.Model
         public long CreateUserID { set; get; }
 
         /// <summary>
-        /// 创建人姓名
-        /// </summary>
-        [LinqToDB.Mapping.Column(CanBeNull = true)]
-        public string CreateUserName { set; get; }
-
-        /// <summary>
         /// 修改时间
         /// </summary>
         [LinqToDB.Mapping.Column(CanBeNull = true)]
@@ -48,12 +42,6 @@ namespace Common.Model
         [JsonConverter(typeof(ObjectIdNullableConverter))]
         [LinqToDB.Mapping.Column(CanBeNull = true)]
         public long? UpdateUserID { set; get; }
-
-        /// <summary>
-        /// 修改人姓名
-        /// </summary>
-        [LinqToDB.Mapping.Column(CanBeNull = true)]
-        public string UpdateUserName { set; get; }
 
         /// <summary>
         /// 是否删除
