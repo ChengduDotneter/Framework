@@ -144,6 +144,11 @@ namespace Common.DAL
             }
         }
 
+        private class OrderedMongoQueryable<T> : MongoQueryable<T>, IOrderedQueryable<T>
+        {
+            public OrderedMongoQueryable(IQueryable<T> innerQuery, IQueryProvider queryProvider) : base(innerQuery, queryProvider) { }
+        }
+
         private class MongoQueryableProvider : IQueryProvider
         {
             private class JoinItem
@@ -205,7 +210,18 @@ namespace Common.DAL
                 MongoQueryableProvider mongoQueryProvider = new MongoQueryableProvider(queryable.Provider);
                 m_joinItems.ForEach(item => mongoQueryProvider.m_joinItems.Add(item));
 
-                return new MongoQueryable<TElement>(queryable, mongoQueryProvider);
+
+                if (methodCallExpression.Method.Name == "OrderBy" ||
+                    methodCallExpression.Method.Name == "ThenBy" ||
+                    methodCallExpression.Method.Name == "OrderByDescending" ||
+                    methodCallExpression.Method.Name == "ThenByDescending")
+                {
+                    return new OrderedMongoQueryable<TElement>(queryable, mongoQueryProvider);
+                }
+                else
+                {
+                    return new MongoQueryable<TElement>(queryable, mongoQueryProvider);
+                }
             }
 
             public object Execute(Expression expression)

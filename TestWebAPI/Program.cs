@@ -54,15 +54,17 @@ namespace TestWebAPI
             var query1 = DaoFactory.GetSearchMongoDBQuery<Left>();
             var query2 = DaoFactory.GetSearchMongoDBQuery<Right>();
 
-            //var queryable1 = query1.FilterIsDeleted().GetQueryable();
-            //var queryable2 = query2.FilterIsDeleted().GetQueryable();
             var queryable1 = query1.FilterIsDeleted().GetQueryable();
             var queryable2 = query2.FilterIsDeleted().GetQueryable();
 
 
-            var d = from left in queryable1
-                    join right in queryable2 on left.ClassID equals right.ID into inqs
+            var m = queryable1.OrderByDescending(item => item.ID).ThenBy(item => item.StudentName).ToArray();
+
+
+            var d = from left in queryable1.OrderByDescending(item => item.ID).ThenBy(item => item.StudentName)
+                    join right in queryable2.OrderByDescending(item => item.ID).ThenBy(item => item.ClassName) on left.ClassID equals right.ID into inqs
                     where left.StudentName != null
+                    orderby left.ID ascending
                     select left.StudentName;
 
 
