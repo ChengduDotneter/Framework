@@ -208,7 +208,6 @@ namespace Common.DAL
         /// <summary>
         /// 获取Linq查询接口
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="transaction"></param>
         /// <returns></returns>
         ISearchQueryable<T> GetQueryable(ITransaction transaction = null);

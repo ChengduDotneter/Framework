@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Common.ServiceCommon
 {
@@ -23,7 +24,7 @@ namespace Common.ServiceCommon
         /// <param name="jObjectSerializeService"></param>
         /// <returns></returns>
         [HttpPost]
-        public TResponse Post([FromServices] IJObjectSerializeService jObjectSerializeService)
+        public Task<TResponse> Post([FromServices] IJObjectSerializeService jObjectSerializeService)
         {
             return DoPost(jObjectSerializeService.GetJObject());
         }
@@ -33,7 +34,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        protected abstract TResponse DoPost(JObject request);
+        protected abstract Task<TResponse> DoPost(JObject request);
     }
 
     /// <summary>
@@ -49,7 +50,7 @@ namespace Common.ServiceCommon
         /// <param name="jArraySerializeService"></param>
         /// <returns></returns>
         [HttpPost]
-        public TResponse Post([FromServices] IJArraySerializeService jArraySerializeService)
+        public Task<TResponse> Post([FromServices] IJArraySerializeService jArraySerializeService)
         {
             return DoPost(jArraySerializeService.GetJArray());
         }
@@ -59,7 +60,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        protected abstract TResponse DoPost(JArray request);
+        protected abstract Task<TResponse> DoPost(JArray request);
     }
 
     /// <summary>
@@ -74,9 +75,9 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public IActionResult Get(long id)
+        public async Task<IActionResult> Get(long id)
         {
-            TResponse data = DoGet(id);
+            TResponse data = await DoGet(id);
 
             if (data == null)
                 return NotFound(id);
@@ -89,7 +90,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        protected abstract TResponse DoGet(long id);
+        protected abstract Task<TResponse> DoGet(long id);
     }
 
     /// <summary>
@@ -104,7 +105,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public TResponse Get()
+        public Task<TResponse> Get()
         {
             return SearchDatas();
         }
@@ -113,7 +114,7 @@ namespace Common.ServiceCommon
         /// 获取结果
         /// </summary>
         /// <returns></returns>
-        protected abstract TResponse SearchDatas();
+        protected abstract Task<TResponse> SearchDatas();
     }
 
     /// <summary>
@@ -132,9 +133,9 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public IActionResult Get(long id)
+        public async Task<IActionResult> Get(long id)
         {
-            TResponse data = DoGet(id);
+            TResponse data = await DoGet(id);
 
             if (data == null)
                 return NotFound(id);
@@ -147,9 +148,9 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        protected virtual TResponse DoGet(long id)
+        protected virtual Task<TResponse> DoGet(long id)
         {
-            return m_searchQuery.FilterIsDeleted().Get(id);
+            return m_searchQuery.FilterIsDeleted().GetAsync(id);
         }
 
         /// <summary>
@@ -176,7 +177,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost]
-        public TResponse Get(TRequest request)
+        public Task<TResponse> Get(TRequest request)
         {
             return SearchDatas(request);
         }
@@ -186,7 +187,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        protected abstract TResponse SearchDatas(TRequest request);
+        protected abstract Task<TResponse> SearchDatas(TRequest request);
     }
 
     /// <summary>
@@ -213,13 +214,13 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public PageQueryResult<TResponse> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
+        public async Task<PageQueryResult<TResponse>> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
-            Tuple<IEnumerable<TResponse>, int> tupleDatas = SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
+            Tuple<IEnumerable<TResponse>, int> tupleDatas = await SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
 
             return new PageQueryResult<TResponse>()
             {
-                Datas = PreperDatas(tupleDatas?.Item1),
+                Datas = await PreperDatas(tupleDatas?.Item1),
                 TotalCount = tupleDatas?.Item2 ?? 0
             };
         }
@@ -229,10 +230,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="pageQuery">请求参数</param>
         /// <returns></returns>
-        protected virtual Tuple<IEnumerable<TResponse>, int> SearchDatas(PageQuery<TRequest> pageQuery)
+        protected virtual async Task<Tuple<IEnumerable<TResponse>, int>> SearchDatas(PageQuery<TRequest> pageQuery)
         {
             Expression<Func<TResponse, bool>> linq = GetBaseLinq(pageQuery.Condition);
-            return Tuple.Create(m_searchQuery.FilterIsDeleted().OrderByIDDesc().Search(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), m_searchQuery.FilterIsDeleted().Count(linq));
+
+            return Tuple.Create(await m_searchQuery.FilterIsDeleted().OrderByIDDesc().SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), await m_searchQuery.FilterIsDeleted().CountAsync(linq));
         }
 
         /// <summary>
@@ -240,7 +242,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="datas"></param>
         /// <returns></returns>
-        protected virtual IEnumerable<TResponse> PreperDatas(IEnumerable<TResponse> datas) => datas;
+        protected virtual async Task<IEnumerable<TResponse>> PreperDatas(IEnumerable<TResponse> datas) => datas;
 
         /// <summary>
         /// 获取LinqSearchAttribute特性指定的Linq
@@ -285,12 +287,12 @@ namespace Common.ServiceCommon
         /// <param name="pageQueryParameterService"></param>
         /// <returns></returns>
         [HttpGet]
-        public JObject Get([FromServices] IPageQueryParameterService pageQueryParameterService)
+        public async Task<JObject> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
             return new JObject()
             {
-                ["Datas"] = SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>()),
-                ["TotalCount"] = SearchDatasCount(pageQueryParameterService.GetQueryParameter<TRequest>())
+                ["Datas"] = await SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>()),
+                ["TotalCount"] = await SearchDatasCount(pageQueryParameterService.GetQueryParameter<TRequest>())
             };
         }
 
@@ -299,14 +301,14 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="pageQuery"></param>
         /// <returns></returns>
-        protected abstract int SearchDatasCount(PageQuery<TRequest> pageQuery);
+        protected abstract Task<int> SearchDatasCount(PageQuery<TRequest> pageQuery);
 
         /// <summary>
         /// 查询结果
         /// </summary>
         /// <param name="datas"></param>
         /// <returns></returns>
-        protected abstract JArray SearchDatas(PageQuery<TRequest> datas);
+        protected abstract Task<JArray> SearchDatas(PageQuery<TRequest> datas);
     }
 
     /// <summary>
@@ -325,13 +327,13 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult Post([FromBody] TRequest request)
+        public async Task<IActionResult> Post([FromBody] TRequest request)
         {
             request.ID = IDGenerator.NextID();
             request.AddCreateUser(m_ssoUserService);
             request.IsDeleted = false;
 
-            DoPost(request.ID, request);
+            await DoPost(request.ID, request);
 
             return Ok(request);
         }
@@ -341,9 +343,9 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="id"></param>
         /// <param name="request"></param>
-        protected virtual void DoPost(long id, TRequest request)
+        protected virtual async Task DoPost(long id, TRequest request)
         {
-            m_editQuery.FilterIsDeleted().Insert(datas: request);
+            await m_editQuery.FilterIsDeleted().InsertAsync(datas: request);
         }
 
         /// <summary>
@@ -376,12 +378,12 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPut]
-        public virtual IActionResult Put([FromBody] TRequest request)
+        public virtual async Task<IActionResult> Put([FromBody] TRequest request)
         {
             if (m_searchQuery.FilterIsDeleted().Count(item => item.ID == request.ID) > 0)
             {
                 request.AddUpdateUser(m_ssoUserService);
-                DoPut(request);
+                await DoPut(request);
 
                 return Ok();
             }
@@ -393,13 +395,13 @@ namespace Common.ServiceCommon
         /// 获取结果
         /// </summary>
         /// <param name="request"></param>
-        protected virtual void DoPut(TRequest request)
+        protected virtual async Task DoPut(TRequest request)
         {
-            m_editQuery.FilterIsDeleted().Update(request);
+            await m_editQuery.FilterIsDeleted().UpdateAsync(request);
         }
 
         /// <summary>
-        ///
+        /// 构造函数
         /// </summary>
         /// <param name="editQuery"></param>
         /// <param name="searchQuery"></param>
@@ -429,11 +431,11 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        public virtual IActionResult Delete(long id)
+        public virtual async Task<IActionResult> Delete(long id)
         {
-            if (m_searchQuery.FilterIsDeleted().Count(item => item.ID == id) > 0)
+            if (await m_searchQuery.FilterIsDeleted().CountAsync(item => item.ID == id) > 0)
             {
-                DoDelete(id);
+                await DoDelete(id);
                 return Ok();
             }
             else
@@ -444,13 +446,13 @@ namespace Common.ServiceCommon
         /// 获取结果
         /// </summary>
         /// <param name="id"></param>
-        protected virtual void DoDelete(long id)
+        protected virtual async Task DoDelete(long id)
         {
-            m_editQuery.FilterIsDeleted().Delete(ids: id);
+            await m_editQuery.FilterIsDeleted().DeleteAsync(ids: id);
         }
 
         /// <summary>
-        ///
+        /// 构造函数
         /// </summary>
         /// <param name="editQuery"></param>
         /// <param name="searchQuery"></param>
@@ -477,9 +479,9 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public IActionResult Get(long id)
+        public async Task<IActionResult> Get(long id)
         {
-            Tuple<TResponse1, TResponse2> data = DoGet(id);
+            Tuple<TResponse1, TResponse2> data = await DoGet(id);
 
             if (data == null)
                 return NotFound(id);
@@ -496,7 +498,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        protected abstract Tuple<TResponse1, TResponse2> DoGet(long id);
+        protected abstract Task<Tuple<TResponse1, TResponse2>> DoGet(long id);
     }
 
     /// <summary>
@@ -517,9 +519,9 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public IActionResult Get(long id)
+        public async Task<IActionResult> Get(long id)
         {
-            Tuple<TResponse1, TResponse2, TResponse3> data = DoGet(id);
+            Tuple<TResponse1, TResponse2, TResponse3> data = await DoGet(id);
 
             if (data == null)
                 return NotFound(id);
@@ -537,7 +539,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        protected abstract Tuple<TResponse1, TResponse2, TResponse3> DoGet(long id);
+        protected abstract Task<Tuple<TResponse1, TResponse2, TResponse3>> DoGet(long id);
     }
 
     /// <summary>
@@ -567,11 +569,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="request1"></param>
         /// <returns></returns>
-        public IActionResult Post(TRequest1 request1)
+        public async Task<IActionResult> Post(TRequest1 request1)
         {
-            DoPost(request1);
+            await DoPost(request1);
 
-            object result = GetReturnValue();
+            object result = await GetReturnValue();
 
             if (result == null)
                 return new OkResult();
@@ -583,13 +585,13 @@ namespace Common.ServiceCommon
         /// 设置接口返回值
         /// </summary>
         /// <returns></returns>
-        public virtual object GetReturnValue() => null;
+        public virtual async Task<object> GetReturnValue() => null;
 
         /// <summary>
         /// post请求具体执行方法
         /// </summary>
         /// <param name="request1"></param>
-        protected abstract void DoPost(TRequest1 request1);
+        protected abstract Task DoPost(TRequest1 request1);
     }
 
     /// <summary>
@@ -616,11 +618,11 @@ namespace Common.ServiceCommon
         /// <param name="request1"></param>
         /// <param name="request2"></param>
         /// <returns></returns>
-        public IActionResult Post(TRequest1 request1, TRequest2 request2)
+        public async Task<IActionResult> Post(TRequest1 request1, TRequest2 request2)
         {
-            DoPost(request1, request2);
+            await DoPost(request1, request2);
 
-            object result = GetReturnValue();
+            object result = await GetReturnValue();
 
             if (result == null)
                 return new OkResult();
@@ -632,14 +634,14 @@ namespace Common.ServiceCommon
         /// 设置接口返回值
         /// </summary>
         /// <returns></returns>
-        public virtual object GetReturnValue() => null;
+        public virtual async Task<object> GetReturnValue() => null;
 
         /// <summary>
         /// post请求具体执行方法
         /// </summary>
         /// <param name="request1"></param>
         /// <param name="request2"></param>
-        protected abstract void DoPost(TRequest1 request1, TRequest2 request2);
+        protected abstract Task DoPost(TRequest1 request1, TRequest2 request2);
     }
 
     /// <summary>
@@ -668,11 +670,11 @@ namespace Common.ServiceCommon
         /// <param name="request2"></param>
         /// <param name="request3"></param>
         /// <returns></returns>
-        public IActionResult Post(TRequest1 request1, TRequest2 request2, TRequest3 request3)
+        public async Task<IActionResult> Post(TRequest1 request1, TRequest2 request2, TRequest3 request3)
         {
-            DoPost(request1, request2, request3);
+            await DoPost(request1, request2, request3);
 
-            object result = GetReturnValue();
+            object result = await GetReturnValue();
 
             if (result == null)
                 return new OkResult();
@@ -684,7 +686,7 @@ namespace Common.ServiceCommon
         /// 设置接口返回值
         /// </summary>
         /// <returns></returns>
-        public virtual object GetReturnValue() => null;
+        public virtual async Task<object> GetReturnValue() => null;
 
         /// <summary>
         /// post请求具体实现方法
@@ -692,7 +694,7 @@ namespace Common.ServiceCommon
         /// <param name="request1"></param>
         /// <param name="request2"></param>
         /// <param name="request3"></param>
-        protected abstract void DoPost(TRequest1 request1, TRequest2 request2, TRequest3 request3);
+        protected abstract Task DoPost(TRequest1 request1, TRequest2 request2, TRequest3 request3);
     }
 
     /// <summary>
@@ -717,9 +719,9 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="request1"></param>
         /// <returns></returns>
-        public IActionResult Put(TRequest1 request1)
+        public async Task<IActionResult> Put(TRequest1 request1)
         {
-            DoPut(request1);
+            await DoPut(request1);
             return new OkResult();
         }
 
@@ -727,7 +729,7 @@ namespace Common.ServiceCommon
         /// put请求具体方法实现
         /// </summary>
         /// <param name="request1"></param>
-        protected abstract void DoPut(TRequest1 request1);
+        protected abstract Task DoPut(TRequest1 request1);
     }
 
     /// <summary>
@@ -754,9 +756,9 @@ namespace Common.ServiceCommon
         /// <param name="request1"></param>
         /// <param name="request2"></param>
         /// <returns></returns>
-        public IActionResult Put(TRequest1 request1, TRequest2 request2)
+        public async Task<IActionResult> Put(TRequest1 request1, TRequest2 request2)
         {
-            DoPut(request1, request2);
+            await DoPut(request1, request2);
             return new OkResult();
         }
 
@@ -765,7 +767,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="request1"></param>
         /// <param name="request2"></param>
-        protected abstract void DoPut(TRequest1 request1, TRequest2 request2);
+        protected abstract Task DoPut(TRequest1 request1, TRequest2 request2);
     }
 
     /// <summary>
@@ -794,9 +796,9 @@ namespace Common.ServiceCommon
         /// <param name="request2"></param>
         /// <param name="request3"></param>
         /// <returns></returns>
-        public IActionResult Put(TRequest1 request1, TRequest2 request2, TRequest3 request3)
+        public async Task<IActionResult> Put(TRequest1 request1, TRequest2 request2, TRequest3 request3)
         {
-            DoPut(request1, request2, request3);
+            await DoPut(request1, request2, request3);
             return new OkResult();
         }
 
@@ -806,7 +808,7 @@ namespace Common.ServiceCommon
         /// <param name="request1"></param>
         /// <param name="request2"></param>
         /// <param name="request3"></param>
-        protected abstract void DoPut(TRequest1 request1, TRequest2 request2, TRequest3 request3);
+        protected abstract Task DoPut(TRequest1 request1, TRequest2 request2, TRequest3 request3);
     }
 
     /// <summary>

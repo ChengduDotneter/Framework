@@ -64,7 +64,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public SSOUserInfo GetUser()
         {
-            IHeaderDictionary headers = m_httpContextAccessor.HttpContext.Request.Headers;
+            IHeaderDictionary headers = m_httpContextAccessor.HttpContext?.Request?.Headers;
 
             //TODO: 可能存在下游服务失去User相关信息或验证
             if (headers["id"].Count == 0 || headers["userName"].Count == 0)

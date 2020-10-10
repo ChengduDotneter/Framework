@@ -43,9 +43,9 @@ namespace Common.ServiceCommon
                         {3}
                     }}
                     [Microsoft.AspNetCore.Mvc.HttpPost]
-                    public Microsoft.AspNetCore.Mvc.IActionResult Post({4})
+                    public async System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Post({4})
                     {{
-                        return {5}.Post({6});
+                        return await {5}.Post({6});
                     }}
                 }}
              }}";
@@ -65,9 +65,9 @@ namespace Common.ServiceCommon
                         {3}
                     }}
                     [Microsoft.AspNetCore.Mvc.HttpPut]
-                    public Microsoft.AspNetCore.Mvc.IActionResult Put({4})
+                    public async System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Put({4})
                     {{
-                        return {5}.Put({6});
+                        return await {5}.Put({6});
                     }}
                 }}
              }}";
