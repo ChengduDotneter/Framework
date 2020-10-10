@@ -66,7 +66,7 @@ namespace Common.ServiceCommon
         /// 添加操作者信息
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="operateNameModel"></param>
+        /// <param name="viewModelBase"></param>
         /// <param name="ssoUserService"></param>
         /// <returns></returns>
         public static T AddUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
@@ -75,9 +75,7 @@ namespace Common.ServiceCommon
             SSOUserInfo userInfo = ssoUserService.GetUser();
 
             if (viewModelBase.CreateUserID == 0)
-            {
                 viewModelBase.CreateUserID = userInfo.ID;
-            }
             else
             {
                 viewModelBase.UpdateTime = DateTime.Now;
