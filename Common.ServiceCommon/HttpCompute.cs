@@ -13,7 +13,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Common.ServiceCommon
 {
-    //TODO: LOG
     [Route("compute")]
     [ApiController]
     public class HttpCompute : ControllerBase
