@@ -328,8 +328,7 @@ namespace Common.ServiceCommon
         public IActionResult Post([FromBody] TRequest request)
         {
             request.ID = IDGenerator.NextID();
-            request.CreateUserID = m_ssoUserService.GetUser().ID;
-            request.CreateTime = DateTime.Now;
+            request.AddCreateUser(m_ssoUserService);
             request.IsDeleted = false;
 
             DoPost(request.ID, request);
@@ -381,8 +380,7 @@ namespace Common.ServiceCommon
         {
             if (m_searchQuery.FilterIsDeleted().Count(item => item.ID == request.ID) > 0)
             {
-                request.UpdateUserID = m_ssoUserService.GetUser().ID;
-                request.UpdateTime = DateTime.Now;
+                request.AddUpdateUser(m_ssoUserService);
                 DoPut(request);
 
                 return Ok();

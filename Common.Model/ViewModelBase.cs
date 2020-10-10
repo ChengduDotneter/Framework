@@ -47,10 +47,5 @@ namespace Common.Model
         /// 是否删除
         /// </summary>
         public bool IsDeleted { set; get; }
-
-        public ViewModelBase()
-        {
-            CreateTime = DateTime.Now;
-        }
     }
 }

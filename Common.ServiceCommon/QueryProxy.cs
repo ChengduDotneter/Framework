@@ -72,15 +72,84 @@ namespace Common.ServiceCommon
         public static T AddUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
             where T : ViewModelBase, new()
         {
-            SSOUserInfo userInfo = ssoUserService.GetUser();
-
             if (viewModelBase.CreateUserID == 0)
-                viewModelBase.CreateUserID = userInfo.ID;
+                return viewModelBase.AddCreateUser(ssoUserService);
             else
-            {
-                viewModelBase.UpdateTime = DateTime.Now;
-                viewModelBase.UpdateUserID = userInfo.ID;
-            }
+                return viewModelBase.AddUpdateUser(ssoUserService);
+        }
+
+        /// <summary>
+        /// 添加创建及修改操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserService"></param>
+        /// <returns></returns>
+        public static T AddBothUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase, new()
+        {
+            SSOUserInfo ssoUserInfo = ssoUserService.GetUser();
+
+            SetCreateUser(viewModelBase, ssoUserInfo);
+            SetUpdateUser(viewModelBase, ssoUserInfo);
+
+            return viewModelBase;
+        }
+
+        /// <summary>
+        /// 添加创建操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserService"></param>
+        /// <returns></returns>
+        public static T AddCreateUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase, new()
+        {
+            return SetCreateUser(viewModelBase, ssoUserService.GetUser());
+        }
+
+        /// <summary>
+        /// 添加创建操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserService"></param>
+        /// <returns></returns>
+        public static T AddUpdateUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase, new()
+        {
+            return SetUpdateUser(viewModelBase, ssoUserService.GetUser());
+        }
+
+        /// <summary>
+        /// 设置创建操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserInfo"></param>
+        /// <returns></returns>
+        public static T SetCreateUser<T>(T viewModelBase, SSOUserInfo ssoUserInfo)
+            where T : ViewModelBase, new()
+        {
+            viewModelBase.CreateUserID = ssoUserInfo.ID;
+            viewModelBase.CreateTime = DateTime.Now;
+
+            return viewModelBase;
+        }
+
+        /// <summary>
+        /// 设置修改操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserInfo"></param>
+        /// <returns></returns>
+        public static T SetUpdateUser<T>(T viewModelBase, SSOUserInfo ssoUserInfo)
+            where T : ViewModelBase, new()
+        {
+            viewModelBase.UpdateTime = DateTime.Now;
+            viewModelBase.UpdateUserID = ssoUserInfo.ID;
 
             return viewModelBase;
         }
