@@ -794,7 +794,7 @@ namespace Common.DAL
                 ConnectionMode = ConnectionMode.ReplicaSet,
                 ReadPreference = new ReadPreference(ReadPreferenceMode.Primary),
                 ReplicaSetName = ConfigManager.Configuration["MongoDBService:ReplicaSet"],
-                Server = new MongoServerAddress(ConfigManager.Configuration["MongoDBService:Address"], Convert.ToInt32(ConfigManager.Configuration["MongoDBService:Port"]))
+                Servers = new HashSet<MongoServerAddress>(ConfigManager.Configuration.GetSection("MongoDBService:Addresses").GetChildren().Select(item => MongoServerAddress.Parse(item.Value)))
             });
 
             m_slaveMongoClient = new MongoClient(new MongoClientSettings()
@@ -802,7 +802,7 @@ namespace Common.DAL
                 ConnectionMode = ConnectionMode.ReplicaSet,
                 ReadPreference = new ReadPreference(ReadPreferenceMode.Secondary),
                 ReplicaSetName = ConfigManager.Configuration["MongoDBService:ReplicaSet"],
-                Server = new MongoServerAddress(ConfigManager.Configuration["MongoDBService:Address"], Convert.ToInt32(ConfigManager.Configuration["MongoDBService:Port"]))
+                Servers = new HashSet<MongoServerAddress>(ConfigManager.Configuration.GetSection("MongoDBService:Addresses").GetChildren().Select(item => MongoServerAddress.Parse(item.Value)))
             });
 
             m_masterMongoDatabase = m_masterMongoClient.GetDatabase(ConfigManager.Configuration["MongoDBService:Database"]);
