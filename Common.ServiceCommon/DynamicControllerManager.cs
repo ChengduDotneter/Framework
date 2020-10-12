@@ -349,19 +349,6 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 根据类型属性的名称（泛型以_隔开）
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private static string GetParameterNameByType(Type type)
-        {
-            if (type.IsGenericType)
-                return $" {string.Join("", type.GenericTypeArguments.Select(item => GetParameterNameByType(item)))}s ";
-
-            return type.Name;
-        }
-
-        /// <summary>
         /// 根据类型获取类型的名称
         /// </summary>
         /// <param name="type"></param>

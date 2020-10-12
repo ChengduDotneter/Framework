@@ -199,7 +199,7 @@ namespace Common.ServiceCommon
         where TRequest : ViewModelBase, new()
         where TResponse : ViewModelBase, new()
     {
-        private static ISearchQuery<TResponse> m_searchQuery;
+        private ISearchQuery<TResponse> m_searchQuery;
 
         /// <summary>
         ///
@@ -241,7 +241,10 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="datas"></param>
         /// <returns></returns>
-        protected virtual async Task<IEnumerable<TResponse>> PreperDatas(IEnumerable<TResponse> datas) => datas;
+        protected virtual Task<IEnumerable<TResponse>> PreperDatas(IEnumerable<TResponse> datas)
+        {
+            return Task.FromResult(datas);
+        }
 
         /// <summary>
         /// 获取LinqSearchAttribute特性指定的Linq
@@ -552,16 +555,13 @@ namespace Common.ServiceCommon
     /// <typeparam name="TRequest1">请求实体泛型</typeparam>
     public abstract class MultipleGenericPostController<TRequest1> : IDynamicController
     {
-        private ISSOUserService m_ssoUserService;
-
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="ssoUserService"></param>
-        public MultipleGenericPostController(ISSOUserService ssoUserService)
-        {
-            m_ssoUserService = ssoUserService;
-        }
+#pragma warning disable IDE0060 // 删除未使用的参数
+        public MultipleGenericPostController(ISSOUserService ssoUserService) { }
+#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// post请求入口
@@ -584,7 +584,10 @@ namespace Common.ServiceCommon
         /// 设置接口返回值
         /// </summary>
         /// <returns></returns>
-        public virtual async Task<object> GetReturnValue() => null;
+        public virtual Task<object> GetReturnValue()
+        {
+            return Task.FromResult(default(object));
+        }
 
         /// <summary>
         /// post请求具体执行方法
@@ -600,16 +603,13 @@ namespace Common.ServiceCommon
     /// <typeparam name="TRequest2">请求实体泛型</typeparam>
     public abstract class MultipleGenericPostController<TRequest1, TRequest2> : IDynamicController
     {
-        private ISSOUserService m_ssoUserService;
-
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="ssoUserService"></param>
-        public MultipleGenericPostController(ISSOUserService ssoUserService)
-        {
-            m_ssoUserService = ssoUserService;
-        }
+#pragma warning disable IDE0060 // 删除未使用的参数
+        public MultipleGenericPostController(ISSOUserService ssoUserService) { }
+#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// post请求入口
@@ -633,7 +633,10 @@ namespace Common.ServiceCommon
         /// 设置接口返回值
         /// </summary>
         /// <returns></returns>
-        public virtual async Task<object> GetReturnValue() => null;
+        public virtual Task<object> GetReturnValue()
+        {
+            return Task.FromResult(default(object));
+        }
 
         /// <summary>
         /// post请求具体执行方法
@@ -651,16 +654,13 @@ namespace Common.ServiceCommon
     /// <typeparam name="TRequest3">请求实体泛型</typeparam>
     public abstract class MultipleGenericPostController<TRequest1, TRequest2, TRequest3> : IDynamicController
     {
-        private readonly ISSOUserService m_ssoUserService;
-
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="ssoUserService"></param>
-        public MultipleGenericPostController(ISSOUserService ssoUserService)
-        {
-            m_ssoUserService = ssoUserService;
-        }
+#pragma warning disable IDE0060 // 删除未使用的参数
+        public MultipleGenericPostController(ISSOUserService ssoUserService) { }
+#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// post请求
@@ -685,7 +685,10 @@ namespace Common.ServiceCommon
         /// 设置接口返回值
         /// </summary>
         /// <returns></returns>
-        public virtual async Task<object> GetReturnValue() => null;
+        public virtual Task<object> GetReturnValue()
+        {
+            return Task.FromResult(default(object));
+        }
 
         /// <summary>
         /// post请求具体实现方法
@@ -702,16 +705,13 @@ namespace Common.ServiceCommon
     /// <typeparam name="TRequest1">请求实体泛型</typeparam>
     public abstract class MultipleGenericPutController<TRequest1> : IDynamicController
     {
-        private ISSOUserService m_ssoUserService;
-
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="ssoUserService"></param>
-        public MultipleGenericPutController(ISSOUserService ssoUserService)
-        {
-            m_ssoUserService = ssoUserService;
-        }
+#pragma warning disable IDE0060 // 删除未使用的参数
+        public MultipleGenericPutController(ISSOUserService ssoUserService) { }
+#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// Put请求入口
@@ -738,16 +738,13 @@ namespace Common.ServiceCommon
     /// <typeparam name="TRequest2">请求实体泛型</typeparam>
     public abstract class MultipleGenericPutController<TRequest1, TRequest2> : IDynamicController
     {
-        private readonly ISSOUserService m_ssoUserService;
-
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="ssoUserService"></param>
-        public MultipleGenericPutController(ISSOUserService ssoUserService)
-        {
-            m_ssoUserService = ssoUserService;
-        }
+#pragma warning disable IDE0060 // 删除未使用的参数
+        public MultipleGenericPutController(ISSOUserService ssoUserService) { }
+#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// put请求入口
@@ -777,16 +774,13 @@ namespace Common.ServiceCommon
     /// <typeparam name="TRequest3">请求实体泛型</typeparam>
     public abstract class MultipleGenericPutController<TRequest1, TRequest2, TRequest3> : IDynamicController
     {
-        private ISSOUserService m_ssoUserService;
-
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="ssoUserService"></param>
-        public MultipleGenericPutController(ISSOUserService ssoUserService)
-        {
-            m_ssoUserService = ssoUserService;
-        }
+#pragma warning disable IDE0060 // 删除未使用的参数
+        public MultipleGenericPutController(ISSOUserService ssoUserService) { }
+#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// put请求入口
