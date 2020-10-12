@@ -199,7 +199,7 @@ namespace Common.ServiceCommon
         where TRequest : ViewModelBase, new()
         where TResponse : ViewModelBase, new()
     {
-        private static ISearchQuery<TResponse> m_searchQuery;
+        private ISearchQuery<TResponse> m_searchQuery;
 
         /// <summary>
         ///
