@@ -109,7 +109,7 @@ namespace Common.ServiceCommon
                     }
                 }
                 else
-                    parameter.Append(httpContext.Request.RouteValues);
+                    parameter.Append("NULL");
             }
             else if (httpContext.Request.ContentType.Contains("application/json") && httpContext.Request.ContentLength.HasValue && httpContext.Request.ContentLength.Value < MAX_JSON_LOG_SIZE)
                 parameter.AppendLine(await LoadJsonFromBody(httpContext));
