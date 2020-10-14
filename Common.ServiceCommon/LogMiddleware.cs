@@ -109,18 +109,12 @@ namespace Common.ServiceCommon
                     }
                 }
                 else
-                {
-                    parameter.Append("NULL");
-                }
+                    parameter.Append(httpContext.Request.RouteValues);
             }
-            else if (httpContext.Request.ContentType == "application/json" && httpContext.Request.ContentLength.HasValue && httpContext.Request.ContentLength.Value < MAX_JSON_LOG_SIZE)
-            {
+            else if (httpContext.Request.ContentType == "application/json")//&& httpContext.Request.ContentLength.HasValue && httpContext.Request.ContentLength.Value < MAX_JSON_LOG_SIZE
                 parameter.AppendLine(await LoadJsonFromBody(httpContext));
-            }
             else
-            {
                 parameter.Append("UNKNOWN");
-            }
 
             return $"path: {path}{Environment.NewLine}{Environment.NewLine}parameter: {Environment.NewLine}{parameter}";
         }
