@@ -51,6 +51,21 @@ namespace TestWebAPI
         {
             ConfigManager.Init("Development");
 
+            var query = DaoFactory.GetEditLinq2DBQuery<Left>(false);
+            var query11 = DaoFactory.GetSearchLinq2DBQuery<Left>(false);
+
+            using (ITransaction transaction = query.BeginTransaction())
+            {
+                var data = new Left() { ID = IDGenerator.NextID(), StudentName = "abc" };
+                query.Insert(transaction, datas: data);
+                var datas = query11.Search(item => item.StudentName == "abc", transaction: transaction);
+                Console.WriteLine(datas.Count());
+                transaction.Rollback();
+            }
+
+            Console.ReadLine();
+
+
             var query1 = DaoFactory.GetSearchMongoDBQuery<Left>();
             var query2 = DaoFactory.GetSearchMongoDBQuery<Right>();
 

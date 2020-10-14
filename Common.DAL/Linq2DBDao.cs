@@ -507,16 +507,27 @@ namespace Common.DAL
 
             public void Insert(ITransaction transaction = null, params T[] datas)
             {
-                Apply<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                //TODO: TRANSACTION BUG UPDATE, INSERT, DELETE
 
-                try
+                bool inTransaction = Apply<T>(transaction);
+
+                if (!inTransaction)
                 {
-                    dataConnection.GetTable<T>().BulkCopy(datas);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        dataConnection.GetTable<T>().BulkCopy(datas);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
                 }
-                finally
+                else
                 {
-                    DisposeConnection(dataConnection);
+                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
+                    dataConnection.GetTable<T>().BulkCopy(datas);
                 }
             }
 
