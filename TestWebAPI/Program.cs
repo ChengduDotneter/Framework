@@ -56,10 +56,22 @@ namespace TestWebAPI
 
             using (ITransaction transaction = query.BeginTransaction())
             {
-                var data = new Left() { ID = IDGenerator.NextID(), StudentName = "abc" };
-                query.Insert(transaction, datas: data);
-                var datas = query11.Search(item => item.StudentName == "abc", transaction: transaction);
-                Console.WriteLine(datas.Count());
+                //var datas = query11.Search(transaction: transaction).ToList();
+                //datas.FirstOrDefault().StudentName = "111";
+
+                //data.StudentName = "111";
+                //query.Insert(transaction, new Left() { ID = IDGenerator.NextID(), StudentName = "111" });
+
+                //query.Merge(item => !item.IsDeleted, new Dictionary<string, object> { [nameof(Left.StudentName)] = "123456" }, transaction).Wait();
+                //query.MergeAsync(transaction, datas.ToArray()).Wait();
+
+                query.DeleteAsync(transaction, 236813124689205441).Wait();
+
+                //var datass = query11.SearchAsync(item => item.StudentName == "abc", transaction: transaction).Result;
+
+                var datass = query11.Search(transaction: transaction).ToList();
+
+                Console.WriteLine(datass.Count());
                 transaction.Rollback();
             }
 

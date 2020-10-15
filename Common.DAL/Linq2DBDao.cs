@@ -425,16 +425,24 @@ namespace Common.DAL
 
             public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
             {
-                await ApplyAsync<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                bool inTransaction = await ApplyAsync<T>(transaction);
 
-                try
+                if (!inTransaction)
                 {
-                    await dataConnection.GetTable<T>().DeleteAsync(item => ids.Contains(item.ID));
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        await dataConnection.GetTable<T>().DeleteAsync(item => ids.Contains(item.ID));
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
                 }
-                finally
+                else
                 {
-                    DisposeConnection(dataConnection);
+                    await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().DeleteAsync(item => ids.Contains(item.ID));
                 }
             }
 
