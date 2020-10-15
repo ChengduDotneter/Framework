@@ -402,16 +402,24 @@ namespace Common.DAL
 
             public void Delete(ITransaction transaction = null, params long[] ids)
             {
-                Apply<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                bool inTransaction = Apply<T>(transaction);
 
-                try
+                if (!inTransaction)
                 {
-                    dataConnection.GetTable<T>().Delete(item => ids.Contains(item.ID));
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        dataConnection.GetTable<T>().Delete(item => ids.Contains(item.ID));
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
                 }
-                finally
+                else
                 {
-                    DisposeConnection(dataConnection);
+                    ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Delete(item => ids.Contains(item.ID));
                 }
             }
 
