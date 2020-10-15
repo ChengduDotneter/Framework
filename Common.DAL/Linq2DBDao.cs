@@ -515,8 +515,6 @@ namespace Common.DAL
 
             public void Insert(ITransaction transaction = null, params T[] datas)
             {
-                //TODO: TRANSACTION BUG UPDATE, INSERT, DELETE
-
                 bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
@@ -541,48 +539,79 @@ namespace Common.DAL
 
             public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
             {
-                await ApplyAsync<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                bool inTransaction = await ApplyAsync<T>(transaction);
 
-                try
+                if (!inTransaction)
                 {
-                    dataConnection.GetTable<T>().BulkCopy(datas);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        await dataConnection.GetTable<T>().BulkCopyAsync(datas);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
                 }
-                finally
+                else
                 {
-                    DisposeConnection(dataConnection);
+                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
+                    await dataConnection.GetTable<T>().BulkCopyAsync(datas);
                 }
             }
 
             public void Merge(ITransaction transaction = null, params T[] datas)
             {
-                Apply<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                bool inTransaction = Apply<T>(transaction);
 
-                try
+                if (!inTransaction)
                 {
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        for (int i = 0; i < datas.Length; i++)
+                            dataConnection.InsertOrReplace(datas[i]);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                {
+                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
+
                     for (int i = 0; i < datas.Length; i++)
                         dataConnection.InsertOrReplace(datas[i]);
-                }
-                finally
-                {
-                    DisposeConnection(dataConnection);
                 }
             }
 
             public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
             {
-                await ApplyAsync<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                bool inTransaction = await ApplyAsync<T>(transaction);
 
-                try
+                if (!inTransaction)
                 {
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        for (int i = 0; i < datas.Length; i++)
+                            await dataConnection.InsertOrReplaceAsync(datas[i]);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                {
+                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
+
                     for (int i = 0; i < datas.Length; i++)
                         await dataConnection.InsertOrReplaceAsync(datas[i]);
-                }
-                finally
-                {
-                    DisposeConnection(dataConnection);
                 }
             }
 
@@ -750,16 +779,25 @@ namespace Common.DAL
 
             public void Update(T data, ITransaction transaction = null)
             {
-                Apply<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                bool inTransaction = Apply<T>(transaction);
 
-                try
+                if (!inTransaction)
                 {
-                    dataConnection.Update(data);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        dataConnection.Update(data);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
                 }
-                finally
+                else
                 {
-                    DisposeConnection(dataConnection);
+                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
+                    dataConnection.Update(data);
                 }
             }
 
@@ -771,11 +809,37 @@ namespace Common.DAL
                 foreach (var item in upateDictionary)
                     updates.Add(Tuple.Create(typeof(T).GetProperty(item.Key).PropertyType, Expression.Lambda(Expression.Property(parameter, item.Key), parameter), item.Value));
 
-                Apply<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                bool inTransaction = Apply<T>(transaction);
 
-                try
+                if (!inTransaction)
                 {
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        IUpdatable<T> updatable = dataConnection.GetTable<T>().Where(predicate).AsUpdatable();
+
+                        foreach (var update in updates)
+                        {
+                            (Type valueType, Expression expression, object value) = update;
+                            Type funcType = typeof(Func<,>).MakeGenericType(typeof(T), valueType);
+                            Type expressionType = typeof(Expression<>).MakeGenericType(funcType);
+                            MethodInfo methodInfo = typeof(LinqExtensions).
+                                GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).MakeGenericMethod(typeof(T), valueType);
+                            updatable = (IUpdatable<T>)methodInfo.Invoke(null, new object[] { updatable, expression, value });
+                        }
+
+                        updatable.Update();
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                {
+                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
+
                     IUpdatable<T> updatable = dataConnection.GetTable<T>().Where(predicate).AsUpdatable();
 
                     foreach (var update in updates)
@@ -790,24 +854,29 @@ namespace Common.DAL
 
                     updatable.Update();
                 }
-                finally
-                {
-                    DisposeConnection(dataConnection);
-                }
             }
 
             public async Task UpdateAsync(T data, ITransaction transaction = null)
             {
-                await ApplyAsync<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                bool inTransaction = await ApplyAsync<T>(transaction);
 
-                try
+                if (!inTransaction)
                 {
-                    await dataConnection.UpdateAsync(data);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        await dataConnection.UpdateAsync(data);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
                 }
-                finally
+                else
                 {
-                    DisposeConnection(dataConnection);
+                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
+                    await dataConnection.UpdateAsync(data);
                 }
             }
 
@@ -819,11 +888,37 @@ namespace Common.DAL
                 foreach (var item in upateDictionary)
                     updates.Add(Tuple.Create(typeof(T).GetProperty(item.Key).PropertyType, Expression.Lambda(Expression.Property(parameter, item.Key), parameter), item.Value));
 
-                await ApplyAsync<T>(transaction);
-                DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                bool inTransaction = await ApplyAsync<T>(transaction);
 
-                try
+                if (!inTransaction)
                 {
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        IUpdatable<T> updatable = dataConnection.GetTable<T>().Where(predicate).AsUpdatable();
+
+                        foreach (var update in updates)
+                        {
+                            (Type valueType, Expression expression, object value) = update;
+                            Type funcType = typeof(Func<,>).MakeGenericType(typeof(T), valueType);
+                            Type expressionType = typeof(Expression<>).MakeGenericType(funcType);
+                            MethodInfo methodInfo = typeof(LinqExtensions).
+                                GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).MakeGenericMethod(typeof(T), valueType);
+                            updatable = (IUpdatable<T>)methodInfo.Invoke(null, new object[] { updatable, expression, value });
+                        }
+
+                        await updatable.UpdateAsync();
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                {
+                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
+
                     IUpdatable<T> updatable = dataConnection.GetTable<T>().Where(predicate).AsUpdatable();
 
                     foreach (var update in updates)
@@ -837,10 +932,6 @@ namespace Common.DAL
                     }
 
                     await updatable.UpdateAsync();
-                }
-                finally
-                {
-                    DisposeConnection(dataConnection);
                 }
             }
 
