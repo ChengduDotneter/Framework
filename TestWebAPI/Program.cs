@@ -54,26 +54,23 @@ namespace TestWebAPI
             var query = DaoFactory.GetEditLinq2DBQuery<Left>(false);
             var query11 = DaoFactory.GetSearchLinq2DBQuery<Left>(false);
 
-            using (ITransaction transaction = query.BeginTransaction())
-            {
-                //var datas = query11.Search(transaction: transaction).ToList();
-                //datas.FirstOrDefault().StudentName = "111";
+            var queryable = query11.GetQueryable();
+            //var datas = query11.Search(transaction: transaction).ToList();
+            //datas.FirstOrDefault().StudentName = "111";
 
-                //data.StudentName = "111";
-                //query.Insert(transaction, new Left() { ID = IDGenerator.NextID(), StudentName = "111" });
+            //data.StudentName = "111";
+            query.Insert(null, new Left() { ID = IDGenerator.NextID(), StudentName = "111" });
 
-                //query.Merge(item => !item.IsDeleted, new Dictionary<string, object> { [nameof(Left.StudentName)] = "123456" }, transaction).Wait();
-                //query.MergeAsync(transaction, datas.ToArray()).Wait();
+            //query.Merge(item => !item.IsDeleted, new Dictionary<string, object> { [nameof(Left.StudentName)] = "123456" }, transaction).Wait();
+            //query.MergeAsync(transaction, datas.ToArray()).Wait();
 
-                query.DeleteAsync(transaction, 236813124689205441).Wait();
+            //query.DeleteAsync(transaction, 236813124689205441).Wait();
 
-                //var datass = query11.SearchAsync(item => item.StudentName == "abc", transaction: transaction).Result;
+            //var datass = query11.SearchAsync(item => item.StudentName == "abc", transaction: transaction).Result;
 
-                var datass = query11.Search(transaction: transaction).ToList();
+            var datass = query11.Search(queryable).ToList();
 
-                Console.WriteLine(datass.Count());
-                transaction.Rollback();
-            }
+            Console.WriteLine(datass.Count());
 
             Console.ReadLine();
 

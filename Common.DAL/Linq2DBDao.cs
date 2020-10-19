@@ -109,9 +109,6 @@ namespace Common.DAL
 
         private static DataConnection CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions)
         {
-            if (m_connectionPool[linqToDbConnectionOptions.ConnectionString].IsEmpty)
-                throw new DealException("连接池已满。");
-
             DataConnection dataConnection;
 
             while (!m_connectionPool[linqToDbConnectionOptions.ConnectionString].TryDequeue(out dataConnection))
@@ -368,6 +365,7 @@ namespace Common.DAL
             public int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null)
             {
                 Apply<T>(transaction);
+
                 return query.Count();
             }
 
@@ -499,7 +497,16 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).GetTable<T>(), inTransaction);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        return new Linq2DBQueryable<T>(dataConnection.GetTable<T>(), inTransaction);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
                 }
                 else
                 {
@@ -513,7 +520,16 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).GetTable<T>(), inTransaction);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        return new Linq2DBQueryable<T>(dataConnection.GetTable<T>(), inTransaction);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
                 }
                 else
                 {
