@@ -55,6 +55,9 @@ namespace TestWebAPI
             var query11 = DaoFactory.GetSearchLinq2DBQuery<Left>(false);
 
             var queryable = query11.GetQueryable();
+            var qquerable = from query111 in queryable
+                            select query111;
+
             //var datas = query11.Search(transaction: transaction).ToList();
             //datas.FirstOrDefault().StudentName = "111";
 
@@ -68,7 +71,7 @@ namespace TestWebAPI
 
             //var datass = query11.SearchAsync(item => item.StudentName == "abc", transaction: transaction).Result;
 
-            var datass = query11.Search(queryable).ToList();
+            var datass = query11.Search(qquerable).ToList();
 
             Console.WriteLine(datass.Count());
 
