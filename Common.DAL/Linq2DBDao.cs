@@ -568,7 +568,7 @@ namespace Common.DAL
                     await dataConnection.GetTable<T>().BulkCopyAsync(datas);
                 }
             }
-
+            //TODO: 参照mogodb的merge更改为多个Task执行的形式
             public void Merge(ITransaction transaction = null, params T[] datas)
             {
                 bool inTransaction = Apply<T>(transaction);
