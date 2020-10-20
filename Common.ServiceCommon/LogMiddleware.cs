@@ -92,7 +92,7 @@ namespace Common.ServiceCommon
             StringBuilder parameter = new StringBuilder();
             string path = httpContext.Request.Path;
 
-            if (httpContext.Request.Method == "GET")
+            if (httpContext.Request.Method == "GET" || httpContext.Request.Method == "DELETE")
             {
                 if (httpContext.Request.RouteValues.ContainsKey("id"))
                 {
@@ -111,7 +111,7 @@ namespace Common.ServiceCommon
                 else
                     parameter.Append("NULL");
             }
-            else if (httpContext.Request.ContentType.Contains("application/json") && httpContext.Request.ContentLength.HasValue && httpContext.Request.ContentLength.Value < MAX_JSON_LOG_SIZE)
+            else if (httpContext.Request.ContentType != null && httpContext.Request.ContentType.Contains("application/json") && httpContext.Request.ContentLength.HasValue && httpContext.Request.ContentLength.Value < MAX_JSON_LOG_SIZE)
                 parameter.AppendLine(await LoadJsonFromBody(httpContext));
             else
                 parameter.Append("UNKNOWN");
