@@ -72,6 +72,7 @@ namespace Common.DAL
                 connectionCount = DEFAULT_CONNECTION_COUNT;
 
             int.TryParse(ConfigManager.Configuration["ConnectionTimeOut"], out m_dataConnectionOutTime);
+            
             if (m_dataConnectionOutTime <= 0)
                 m_dataConnectionOutTime = DEFAULT_CONNECTION_WAITTIMEOUT;
 
