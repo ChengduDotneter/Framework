@@ -598,7 +598,7 @@ namespace Common.DAL
                     await dataConnection.GetTable<T>().BulkCopyAsync(datas);
                 }
             }
-            //TODO: 参照mogodb的merge更改为多个Task执行的形式
+
             public void Merge(ITransaction transaction = null, params T[] datas)
             {
                 bool inTransaction = Apply<T>(transaction);
@@ -630,6 +630,8 @@ namespace Common.DAL
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
+                Task[] tasks = new Task[datas.Length];
+
                 if (!inTransaction)
                 {
                     DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
@@ -637,7 +639,10 @@ namespace Common.DAL
                     try
                     {
                         for (int i = 0; i < datas.Length; i++)
-                            await dataConnection.InsertOrReplaceAsync(datas[i]);
+                        {
+                            tasks[i] = dataConnection.InsertOrReplaceAsync(datas[i]);
+                        }
+                        await Task.WhenAll(tasks);
                     }
                     finally
                     {
@@ -649,7 +654,9 @@ namespace Common.DAL
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
 
                     for (int i = 0; i < datas.Length; i++)
-                        await dataConnection.InsertOrReplaceAsync(datas[i]);
+                        tasks[i] = dataConnection.InsertOrReplaceAsync(datas[i]);
+
+                    await Task.WhenAll(tasks);
                 }
             }
 
