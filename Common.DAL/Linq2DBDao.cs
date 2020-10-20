@@ -161,6 +161,7 @@ namespace Common.DAL
 
         private static void DisposeConnection(DataConnection dataConnection)
         {
+            //如果该连接为临时连，则关闭并释放资源
             if (m_tempDataConnections.Contains(dataConnection))
             {
                 dataConnection.Close();
@@ -169,8 +170,8 @@ namespace Common.DAL
                 lock (m_tempDataConnections)
                     m_tempDataConnections.Remove(dataConnection);
             }
-
-            if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
+            //如果该连接为长连接，并且长连接连接队列里面没包含该连接，则将连接入队到连接池中
+            else if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
                 m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
         }
 
