@@ -21,20 +21,23 @@ namespace Common.DAL
     internal static class Linq2DBDao
     {
         private const int GET_DATACONNECTION_THREAD_TIME_SPAN = 1;
-        private const int DEFAULT_CONNECTION_COUNT = 10;
+        private const int DEFAULT_CONNECTION_COUNT = 10; //最大长连接数
         private const int DEFAULT_CONNECTION_WAITTIMEOUT = 8 * 60 * 60 * 1000;//8小时
+        private const int DEFAULT_MAX_TEMP_CONNECTION_COUNT = 10; //最大临时连接数
         private static IDictionary<string, ConcurrentQueue<DataConnection>> m_connectionPool;
         private static ISet<string> m_tableNames;
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
         private static LinqToDbConnectionOptions m_slavelinqToDbConnectionOptions;
 
         private static IDictionary<DataConnection, DateTime> m_creatureDataConnectionPool;
+        private static ISet<DataConnection> m_tempDataConnections;
 
         private static readonly int m_dataConnectionOutTime;
 
         static Linq2DBDao()
         {
             m_tableNames = new HashSet<string>();
+            m_tempDataConnections = new HashSet<DataConnection>();
             LinqToDbConnectionOptionsBuilder masterLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
             LinqToDbConnectionOptionsBuilder slaveLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
 
@@ -109,28 +112,46 @@ namespace Common.DAL
 
         private static DataConnection CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions)
         {
-            if (m_connectionPool[linqToDbConnectionOptions.ConnectionString].IsEmpty)
-                throw new DealException("连接池已满。");
-
             DataConnection dataConnection;
 
-            while (!m_connectionPool[linqToDbConnectionOptions.ConnectionString].TryDequeue(out dataConnection))
-                Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
-
-            if (m_creatureDataConnectionPool.ContainsKey(dataConnection))
+            if (m_connectionPool[linqToDbConnectionOptions.ConnectionString].IsEmpty)
             {
-                if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > m_dataConnectionOutTime)
+                int.TryParse(ConfigManager.Configuration["MaxTempConnectionCount"], out int maxTempConnectionCount);
+
+                if (maxTempConnectionCount <= 0)
+                    maxTempConnectionCount = DEFAULT_MAX_TEMP_CONNECTION_COUNT;
+
+                if (m_tempDataConnections.Count < maxTempConnectionCount)
                 {
-                    lock (m_creatureDataConnectionPool)
+                    dataConnection = new DataConnection(linqToDbConnectionOptions);
+
+                    lock (m_tempDataConnections)
                     {
-                        dataConnection.Close();
-                        dataConnection.Dispose();
+                        m_tempDataConnections.Add(dataConnection);
+                    }
+                }
+                else throw new DealException("连接繁忙，请稍后再试。");
+            }
+            else
+            {
+                while (!m_connectionPool[linqToDbConnectionOptions.ConnectionString].TryDequeue(out dataConnection))
+                    Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
 
-                        m_creatureDataConnectionPool.Remove(dataConnection);
+                if (m_creatureDataConnectionPool.ContainsKey(dataConnection))
+                {
+                    if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > m_dataConnectionOutTime)
+                    {
+                        lock (m_creatureDataConnectionPool)
+                        {
+                            dataConnection.Close();
+                            dataConnection.Dispose();
 
-                        dataConnection = new DataConnection(linqToDbConnectionOptions);
+                            m_creatureDataConnectionPool.Remove(dataConnection);
 
-                        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+                            dataConnection = new DataConnection(linqToDbConnectionOptions);
+
+                            m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+                        }
                     }
                 }
             }
@@ -140,6 +161,15 @@ namespace Common.DAL
 
         private static void DisposeConnection(DataConnection dataConnection)
         {
+            if (m_tempDataConnections.Contains(dataConnection))
+            {
+                dataConnection.Close();
+                dataConnection.Dispose();
+
+                lock (m_tempDataConnections)
+                    m_tempDataConnections.Remove(dataConnection);
+            }
+
             if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
                 m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
         }

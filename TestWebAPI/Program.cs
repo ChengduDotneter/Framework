@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Apache.Ignite.Core.Cache;
 using Common;
 using Common.DAL;
@@ -51,18 +52,42 @@ namespace TestWebAPI
         {
             ConfigManager.Init("Development");
 
-            var query = DaoFactory.GetEditLinq2DBQuery<Left>(false);
-            var query11 = DaoFactory.GetSearchLinq2DBQuery<Left>(false);
+            for (int i = 0; i < 10; i++)
+            {
+                Task.Factory.StartNew(() =>
+                {
+                    //while (true)
+                    //{
+                    try
+                    {
+                        var query = DaoFactory.GetSearchLinq2DBQuery<Left>(false);
 
-            var queryable = query11.GetQueryable();
-            var qquerable = from query111 in queryable
-                            select query111;
+                        using (var queryable = query.GetQueryable())
+                        {
+                            Task.Delay(3000).Wait();
+
+                            var qquerable = from query111 in queryable
+                                            select query111;
+
+                            var datass = query.Search(qquerable).ToList();
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    //}
+                });
+            }
+
+            //var query = DaoFactory.GetEditLinq2DBQuery<Left>(false);
 
             //var datas = query11.Search(transaction: transaction).ToList();
             //datas.FirstOrDefault().StudentName = "111";
 
             //data.StudentName = "111";
-            query.Insert(null, new Left() { ID = IDGenerator.NextID(), StudentName = "111" });
+            //query.Insert(null, new Left() { ID = IDGenerator.NextID(), StudentName = "111" });
 
             //query.Merge(item => !item.IsDeleted, new Dictionary<string, object> { [nameof(Left.StudentName)] = "123456" }, transaction).Wait();
             //query.MergeAsync(transaction, datas.ToArray()).Wait();
@@ -71,12 +96,7 @@ namespace TestWebAPI
 
             //var datass = query11.SearchAsync(item => item.StudentName == "abc", transaction: transaction).Result;
 
-            var datass = query11.Search(qquerable).ToList();
-
-            Console.WriteLine(datass.Count());
-
             Console.ReadLine();
-
 
             var query1 = DaoFactory.GetSearchMongoDBQuery<Left>();
             var query2 = DaoFactory.GetSearchMongoDBQuery<Right>();
