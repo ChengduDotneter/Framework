@@ -123,16 +123,10 @@ namespace Common.Lock
             }
         }
 
-        static Dictionary<string, string> sds = new Dictionary<string, string>();
-
         async Task<bool> ILock.AcquireAsync(string key, string identity, int weight, int timeOut)
         {
             if (!m_lockInstances.ContainsKey(identity))
                 m_lockInstances.TryAdd(identity, new LockInstance(identity));
-
-            lock (sds)
-                if (!sds.ContainsKey(key))
-                    sds.Add(key, string.Empty);
 
             LockInstance lockInstance = m_lockInstances[identity];
 
@@ -140,10 +134,6 @@ namespace Common.Lock
             {
                 RedisKey redisKey = new RedisKey(key);
                 int time = Environment.TickCount;
-
-                lock (sds)
-                    if (sds[key] == identity)
-                        return true;
 
                 while (!await m_redisClient.LockTakeAsync(redisKey, lockInstance.Token, TTL))
                 {

@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Common.DAL.Transaction;
-using Common.Log;
 using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
@@ -85,9 +84,7 @@ namespace Common.DAL
                     lock (m_creatureDataConnectionPool)
                     {
                         DataConnection dataConnection = new DataConnection(m_masterlinqToDbConnectionOptions);
-
                         m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-
                         m_connectionPool[m_masterlinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
                     }
                 }
@@ -102,9 +99,7 @@ namespace Common.DAL
                     lock (m_creatureDataConnectionPool)
                     {
                         DataConnection dataConnection = new DataConnection(m_slavelinqToDbConnectionOptions);
-
                         m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-
                         m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
                     }
                 }
@@ -148,9 +143,7 @@ namespace Common.DAL
                             dataConnection.Dispose();
 
                             m_creatureDataConnectionPool.Remove(dataConnection);
-
                             dataConnection = new DataConnection(linqToDbConnectionOptions);
-
                             m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
                         }
                     }
@@ -171,6 +164,7 @@ namespace Common.DAL
                 lock (m_tempDataConnections)
                     m_tempDataConnections.Remove(dataConnection);
             }
+
             //如果该连接为长连接，并且长连接连接队列里面没包含该连接，则将连接入队到连接池中
             else if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
                 m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
@@ -361,7 +355,6 @@ namespace Common.DAL
         {
             private LinqToDbConnectionOptions m_linqToDbConnectionOptions;
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
-            private static readonly object m_lockThis;
             private bool m_codeFirst;
 
             public ITransaction BeginTransaction(int weight = 0)
@@ -991,7 +984,6 @@ namespace Common.DAL
             static Linq2DBDaoInstance()
             {
                 EMPTY_PREDICATE = _ => true;
-                m_lockThis = new object();
             }
         }
     }
