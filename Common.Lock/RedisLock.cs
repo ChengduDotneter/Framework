@@ -168,7 +168,16 @@ namespace Common.Lock
             RedisKey[] locks = lockInstance.Locks.ToArray();
 
             for (int i = 0; i < locks.Length; i++)
-                m_redisClient.LockRelease(locks[i], lockInstance.Token);
+            {
+                try
+                {
+                    m_redisClient.LockRelease(locks[i], lockInstance.Token);
+                }
+                catch
+                {
+                    continue;
+                }
+            }
         }
 
         async Task ILock.ReleaseAsync(string identity)
@@ -185,10 +194,15 @@ namespace Common.Lock
             for (int i = 0; i < locks.Length; i++)
                 tasks.Add(m_redisClient.LockReleaseAsync(locks[i], lockInstance.Token));
 
-            await Task.WhenAll(tasks);
-
-            while (!m_lockInstances.TryRemove(identity, out _))
-                await Task.Delay(THREAD_TIME_SPAN);
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                while (!m_lockInstances.TryRemove(identity, out _))
+                    await Task.Delay(THREAD_TIME_SPAN);
+            }
         }
     }
 }
