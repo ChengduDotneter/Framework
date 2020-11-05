@@ -32,7 +32,7 @@ namespace Common.Validation
         protected override bool ValidateValue(object value, ValidationContext validationContext)
         {
             if (value == null)
-                return false;
+                return true;
 
             return (int)typeof(CompareHelper).GetMethod(nameof(CompareHelper.Compare)).MakeGenericMethod(value.GetType()).
                 Invoke(null, new object[] { value, GetGreaterOrEqualThanValue(validationContext, m_greaterOrEqualThanValue) }) >= 0;
