@@ -153,6 +153,27 @@ namespace Common.ServiceCommon
 
             return viewModelBase;
         }
+
+        public static T GenerateInitialization<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase
+        {
+            viewModelBase.ID = IDGenerator.NextID();
+            viewModelBase.CreateTime = DateTime.Now;
+            viewModelBase.CreateUserID = ssoUserService.GetUser().ID;
+            viewModelBase.IsDeleted = false;
+
+            return viewModelBase;
+        }
+
+        public static T UpdateInitialization<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase
+        {
+            viewModelBase.UpdateTime = DateTime.Now;
+            viewModelBase.UpdateUserID = ssoUserService.GetUser().ID;
+            viewModelBase.IsDeleted = false;
+
+            return viewModelBase;
+        }
     }
 
     /// <summary>
