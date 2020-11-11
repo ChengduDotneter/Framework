@@ -431,7 +431,7 @@ namespace Common.DAL
                 return await Task.FromResult(new MongoDBTransaction(weight));
             }
 
-            public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
+            public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = Apply<T>(transaction);
                 DaoFactory.LogHelper.Info("mongoDB", $"count predicate: {predicate}");
@@ -442,7 +442,7 @@ namespace Common.DAL
                     return (int)GetCollection(m_masterMongoDatabase).CountDocuments(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
             }
 
-            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
+            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
                 await DaoFactory.LogHelper.Info("mongoDB", $"count predicate: {predicate}");
@@ -475,7 +475,7 @@ namespace Common.DAL
                     await GetCollection(m_masterMongoDatabase).DeleteManyAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.In(nameof(IEntity.ID), ids));
             }
 
-            public T Get(long id, ITransaction transaction = null)
+            public T Get(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = Apply<T>(transaction);
                 DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
@@ -486,7 +486,7 @@ namespace Common.DAL
                     return GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), id)).FirstOrDefault();
             }
 
-            public async Task<T> GetAsync(long id, ITransaction transaction = null)
+            public async Task<T> GetAsync(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
                 await DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
@@ -551,7 +551,7 @@ namespace Common.DAL
                 await Task.WhenAll(tasks);
             }
 
-            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = Apply<T>(transaction);
 
@@ -586,7 +586,7 @@ namespace Common.DAL
                                                           IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                                           int startIndex = 0,
                                                           int count = int.MaxValue,
-                                                          ITransaction transaction = null)
+                                                          ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
@@ -683,25 +683,25 @@ namespace Common.DAL
                 }
             }
 
-            public int Count<TResult>(IQueryable<TResult> query, ITransaction _ = null)
+            public int Count<TResult>(IQueryable<TResult> query, ITransaction _ = null, IDBResourceContent dbResourceContent = null)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 return queryable.Count();
             }
 
-            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction _ = null)
+            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction _ = null, IDBResourceContent dbResourceContent = null)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 return await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<int>(Expression.Call(m_countMethodInfo.MakeGenericMethod(typeof(TResult)), queryable.Expression));
             }
 
-            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null)
+            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null, IDBResourceContent dbResourceContent = null)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 return queryable.Skip(startIndex).Take(count).ToList();
             }
 
-            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null)
+            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null, IDBResourceContent dbResourceContent = null)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 IAsyncCursor<TResult> asyncCursor = await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<IAsyncCursor<TResult>>(queryable.Expression);
@@ -713,7 +713,7 @@ namespace Common.DAL
                 return results;
             }
 
-            public ISearchQueryable<T> GetQueryable(ITransaction transaction = null)
+            public ISearchQueryable<T> GetQueryable(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = Apply<T>(transaction);
 
@@ -729,7 +729,7 @@ namespace Common.DAL
                 }
             }
 
-            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
+            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 

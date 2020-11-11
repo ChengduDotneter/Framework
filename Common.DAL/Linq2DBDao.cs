@@ -23,7 +23,7 @@ namespace Common.DAL
         private const int DEFAULT_CONNECTION_COUNT = 10; //最大长连接数
         private const int DEFAULT_CONNECTION_WAITTIMEOUT = 8 * 60 * 60 * 1000;//8小时
         private const int DEFAULT_MAX_TEMP_CONNECTION_COUNT = 10; //最大临时连接数
-        private static IDictionary<string, ConcurrentQueue<DataConnection>> m_connectionPool;
+        private static IDictionary<string, DataConnectResourcePool> m_connectionPool;
         private static ISet<string> m_tableNames;
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
         private static LinqToDbConnectionOptions m_slavelinqToDbConnectionOptions;
@@ -61,7 +61,7 @@ namespace Common.DAL
             m_masterlinqToDbConnectionOptions = masterLinqToDbConnectionOptionsBuilder.Build();
             m_slavelinqToDbConnectionOptions = slaveLinqToDbConnectionOptionsBuilder.Build();
 
-            m_connectionPool = new Dictionary<string, ConcurrentQueue<DataConnection>>();
+            m_connectionPool = new Dictionary<string, DataConnectResourcePool>();
 
             m_creatureDataConnectionPool = new Dictionary<DataConnection, DateTime>();
 
@@ -71,103 +71,116 @@ namespace Common.DAL
                 connectionCount = DEFAULT_CONNECTION_COUNT;
 
             int.TryParse(ConfigManager.Configuration["ConnectionTimeOut"], out m_dataConnectionOutTime);
-            
+
             if (m_dataConnectionOutTime <= 0)
                 m_dataConnectionOutTime = DEFAULT_CONNECTION_WAITTIMEOUT;
 
+            int.TryParse(ConfigManager.Configuration["MaxTempConnectionCount"], out int maxTempConnectionCount);
+
+            if (maxTempConnectionCount <= 0)
+                maxTempConnectionCount = DEFAULT_MAX_TEMP_CONNECTION_COUNT;
+
+
+            int.TryParse(ConfigManager.Configuration["TempConnectionTimeOut"], out int tempConnectionTimeOut);
+
+            if (tempConnectionTimeOut <= 0)
+                tempConnectionTimeOut = 60 * 1000 * 10;
+
             if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.ConnectionString))
             {
-                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new ConcurrentQueue<DataConnection>());
+                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, m_masterlinqToDbConnectionOptions));
 
-                for (int i = 0; i < connectionCount; i++)
-                {
-                    lock (m_creatureDataConnectionPool)
-                    {
-                        DataConnection dataConnection = new DataConnection(m_masterlinqToDbConnectionOptions);
-                        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-                        m_connectionPool[m_masterlinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
-                    }
-                }
+                //for (int i = 0; i < connectionCount; i++)
+                //{
+                //    lock (m_creatureDataConnectionPool)
+                //    {
+                //        DataConnection dataConnection = new DataConnection(m_masterlinqToDbConnectionOptions);
+                //        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+                //        m_connectionPool[m_masterlinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
+                //    }
+                //}
             }
 
             if (!m_connectionPool.ContainsKey(m_slavelinqToDbConnectionOptions.ConnectionString))
             {
-                m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString, new ConcurrentQueue<DataConnection>());
+                m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString, new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, m_slavelinqToDbConnectionOptions));
 
-                for (int i = 0; i < connectionCount; i++)
-                {
-                    lock (m_creatureDataConnectionPool)
-                    {
-                        DataConnection dataConnection = new DataConnection(m_slavelinqToDbConnectionOptions);
-                        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-                        m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
-                    }
-                }
+                //for (int i = 0; i < connectionCount; i++)
+                //{
+                //    lock (m_creatureDataConnectionPool)
+                //    {
+                //        DataConnection dataConnection = new DataConnection(m_slavelinqToDbConnectionOptions);
+                //        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+                //        m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
+                //    }
+                //}
             }
         }
 
-        private static DataConnection CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions)
+        private static DataConnection CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions, IDBResourceContent dbResourceContent = null)
         {
-            DataConnection dataConnection;
+            //DataConnection dataConnection;
 
-            if (m_connectionPool[linqToDbConnectionOptions.ConnectionString].IsEmpty)
-            {
-                int.TryParse(ConfigManager.Configuration["MaxTempConnectionCount"], out int maxTempConnectionCount);
+            //if (m_connectionPool[linqToDbConnectionOptions.ConnectionString].IsEmpty)
+            //{
+            //    int.TryParse(ConfigManager.Configuration["MaxTempConnectionCount"], out int maxTempConnectionCount);
 
-                if (maxTempConnectionCount <= 0)
-                    maxTempConnectionCount = DEFAULT_MAX_TEMP_CONNECTION_COUNT;
+            //    if (maxTempConnectionCount <= 0)
+            //        maxTempConnectionCount = DEFAULT_MAX_TEMP_CONNECTION_COUNT;
 
-                if (m_tempDataConnections.Count < maxTempConnectionCount)
-                {
-                    dataConnection = new DataConnection(linqToDbConnectionOptions);
+            //    if (m_tempDataConnections.Count < maxTempConnectionCount)
+            //    {
+            //        dataConnection = new DataConnection(linqToDbConnectionOptions);
 
-                    lock (m_tempDataConnections)
-                    {
-                        m_tempDataConnections.Add(dataConnection);
-                    }
-                }
-                else throw new DealException("连接繁忙，请稍后再试。");
-            }
-            else
-            {
-                while (!m_connectionPool[linqToDbConnectionOptions.ConnectionString].TryDequeue(out dataConnection))
-                    Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
+            //        lock (m_tempDataConnections)
+            //        {
+            //            m_tempDataConnections.Add(dataConnection);
+            //        }
+            //    }
+            //    else throw new DealException("连接繁忙，请稍后再试。");
+            //}
+            //else
+            //{
+            //    while (!m_connectionPool[linqToDbConnectionOptions.ConnectionString].TryDequeue(out dataConnection))
+            //        Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
 
-                if (m_creatureDataConnectionPool.ContainsKey(dataConnection))
-                {
-                    if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > m_dataConnectionOutTime)
-                    {
-                        lock (m_creatureDataConnectionPool)
-                        {
-                            dataConnection.Close();
-                            dataConnection.Dispose();
+            //    if (m_creatureDataConnectionPool.ContainsKey(dataConnection))
+            //    {
+            //        if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > m_dataConnectionOutTime)
+            //        {
+            //            lock (m_creatureDataConnectionPool)
+            //            {
+            //                dataConnection.Close();
+            //                dataConnection.Dispose();
 
-                            m_creatureDataConnectionPool.Remove(dataConnection);
-                            dataConnection = new DataConnection(linqToDbConnectionOptions);
-                            m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-                        }
-                    }
-                }
-            }
+            //                m_creatureDataConnectionPool.Remove(dataConnection);
+            //                dataConnection = new DataConnection(linqToDbConnectionOptions);
+            //                m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+            //            }
+            //        }
+            //    }
+            //}
 
-            return dataConnection;
+            return m_connectionPool[linqToDbConnectionOptions.ConnectionString].ApplyInstance(dbResourceContent);
         }
 
         private static void DisposeConnection(DataConnection dataConnection)
         {
-            //如果该连接为临时连，则关闭并释放资源
-            if (m_tempDataConnections.Contains(dataConnection))
-            {
-                dataConnection.Close();
-                dataConnection.Dispose();
+            ////如果该连接为临时连，则关闭并释放资源
+            //if (m_tempDataConnections.Contains(dataConnection))
+            //{
+            //    dataConnection.Close();
+            //    dataConnection.Dispose();
 
-                lock (m_tempDataConnections)
-                    m_tempDataConnections.Remove(dataConnection);
-            }
+            //    lock (m_tempDataConnections)
+            //        m_tempDataConnections.Remove(dataConnection);
+            //}
 
-            //如果该连接为长连接，并且长连接连接队列里面没包含该连接，则将连接入队到连接池中
-            else if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
-                m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
+            ////如果该连接为长连接，并且长连接连接队列里面没包含该连接，则将连接入队到连接池中
+            //else if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
+            //    m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
+
+            m_connectionPool[dataConnection.ConnectionString].RealseInstance(dataConnection);
         }
 
         public static ISearchQuery<T> GetLinq2DBSearchQuery<T>(bool codeFirst)
@@ -289,8 +302,8 @@ namespace Common.DAL
 
             public async void Dispose()
             {
-                DisposeConnection(m_dataConnectionTransaction.DataConnection);
                 await m_dataConnectionTransaction.DisposeAsync();
+                DisposeConnection(m_dataConnectionTransaction.DataConnection);
                 Release(Identity);
             }
 
@@ -359,7 +372,11 @@ namespace Common.DAL
 
             public ITransaction BeginTransaction(int weight = 0)
             {
-                return new Linq2DBTransaction(CreateConnection(m_linqToDbConnectionOptions).BeginTransaction(), weight);
+                var dataconnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                Console.WriteLine($"链接资源hash:{dataconnection.GetHashCode()}");
+
+                return new Linq2DBTransaction(dataconnection.BeginTransaction(), weight);
             }
 
             public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
@@ -367,13 +384,13 @@ namespace Common.DAL
                 return new Linq2DBTransaction(await CreateConnection(m_linqToDbConnectionOptions).BeginTransactionAsync(), weight);
             }
 
-            public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
+            public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
 
                     try
                     {
@@ -390,19 +407,19 @@ namespace Common.DAL
                 }
             }
 
-            public int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null)
+            public int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 Apply<T>(transaction);
                 return query.Count();
             }
 
-            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
+            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
 
                     try
                     {
@@ -419,7 +436,7 @@ namespace Common.DAL
                 }
             }
 
-            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null)
+            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 await ApplyAsync<T>(transaction);
                 return await query.CountAsync();
@@ -471,13 +488,13 @@ namespace Common.DAL
                 }
             }
 
-            public T Get(long id, ITransaction transaction = null)
+            public T Get(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
 
                     try
                     {
@@ -495,13 +512,13 @@ namespace Common.DAL
                 }
             }
 
-            public async Task<T> GetAsync(long id, ITransaction transaction = null)
+            public async Task<T> GetAsync(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
 
                     try
                     {
@@ -518,13 +535,13 @@ namespace Common.DAL
                 }
             }
 
-            public ISearchQueryable<T> GetQueryable(ITransaction transaction = null)
+            public ISearchQueryable<T> GetQueryable(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).GetTable<T>(), inTransaction);
+                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions, dbResourceContent).GetTable<T>(), inTransaction);
                 }
                 else
                 {
@@ -532,13 +549,13 @@ namespace Common.DAL
                 }
             }
 
-            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
+            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).GetTable<T>(), inTransaction);
+                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions, dbResourceContent).GetTable<T>(), inTransaction);
                 }
                 else
                 {
@@ -655,13 +672,13 @@ namespace Common.DAL
                 }
             }
 
-            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = Apply<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
 
                     try
                     {
@@ -730,19 +747,19 @@ namespace Common.DAL
                 }
             }
 
-            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 Apply<T>(transaction);
                 return query.Skip(startIndex).Take(count).ToList();
             }
 
-            public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+            public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
 
                     try
                     {
@@ -811,7 +828,7 @@ namespace Common.DAL
                 }
             }
 
-            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 await ApplyAsync<T>(transaction);
                 return await query.Skip(startIndex).Take(count).ToListAsync();
