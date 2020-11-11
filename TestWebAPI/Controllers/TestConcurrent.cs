@@ -1,19 +1,19 @@
-﻿using System;
+﻿using Common;
+using Common.Compute;
+using Common.DAL;
+using Common.Model;
+using Common.ServiceCommon;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Primitives;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Common;
-using Common.Compute;
-using Common.DAL;
-using Common.Model;
-using Common.ServiceCommon;
-using Common.Validation;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Primitives;
+using TestRedis;
 
 namespace TestWebAPI.Controllers
 {
@@ -26,17 +26,35 @@ namespace TestWebAPI.Controllers
     [ApiController]
     public class CCC : ControllerBase
     {
-        private ISearchQuery<TCCTestData> m_searchQuery;
+        private ISearchQuery<Left> m_searchQuery;
+        private IEditQuery<Left> m_editQuery;
 
-        public CCC(ISearchQuery<TCCTestData> searchQuery)
+        public CCC(ISearchQuery<Left> searchQuery, IEditQuery<Left> editQuery)
         {
             m_searchQuery = searchQuery;
+            m_editQuery = editQuery;
         }
 
         [HttpGet]
-        public async Task<TCCTestData> Get()
+        public async Task<Left> Get()
         {
-            return (await m_searchQuery.SearchAsync(count: 1)).FirstOrDefault();
+            m_searchQuery.RedisCache().Search();
+            m_searchQuery.RedisCache().Search(item => !item.IsDeleted);
+            m_searchQuery.RedisCache().Search(item => !item.IsDeleted, startIndex: 0);
+            m_searchQuery.RedisCache().Search(item => !item.IsDeleted, startIndex: 0, count: 100);
+            m_searchQuery.RedisCache().Search(item => !item.IsDeleted, new List<QueryOrderBy<Left>> { new QueryOrderBy<Left>(item => item.ID, OrderByType.Desc) }, startIndex: 0, count: 100);
+
+            m_searchQuery.RedisCache().Count();
+            m_searchQuery.RedisCache().Count(item => !item.IsDeleted);
+
+            var data = m_searchQuery.RedisCache().Get(238335829955582145);
+
+            data.StudentName = "456789";
+            //m_editQuery.RedisCache().Update(data);
+
+            //m_editQuery.RedisCache().Insert(null, new Left() { ID = IDGenerator.NextID(), CreateTime = DateTime.Now, CreateUserID = 1002, StudentName = "123456" });
+
+            return (await m_searchQuery.RedisCache().SearchAsync(count: 1)).FirstOrDefault();
         }
     }
 

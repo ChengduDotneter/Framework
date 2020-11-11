@@ -69,70 +69,17 @@ namespace TestWebAPI
             IMvcBuilder mvcBuilder = services.AddControllers(modelTypes, controllerTypes);
             services.ConfigureValidation(mvcBuilder, 10);
 
-            //services.AddQuerys(modelTypes);
-
-            services.AddQuerys(modelTypes,
-                (type) =>
-                {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
-                },
-                (type) =>
-                {
-                    return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
-                });
+            services.AddQuerys(modelTypes);
 
             services.AddJsonSerialize();
 
             services.AddSwagger();
 
-            services.AddComputeFactory();
-
-            services.AddHttpCompute();
-
-            services.AddScoped(sp => ComputeFactory.GetHttpCompute(sp.GetService<IHttpClientFactory>()));
-
-            services.AddScoped(sp => ComputeFactory.GetHttpMapReduce(sp.GetService<IHttpClientFactory>()));
-
-            services.AddScoped(sp => ComputeFactory.GetHttpAsyncMapReduce(sp.GetService<IHttpClientFactory>()));
-
-            services.AddHostedService(sp => new TestService(sp.CreateScope().ServiceProvider.GetService<IComputeFactory>(),
-                                                            sp.CreateScope().ServiceProvider.GetService<ICompute>(),
-                                                            sp.CreateScope().ServiceProvider.GetService<IMapReduce>(),
-                                                            sp.CreateScope().ServiceProvider.GetService<IAsyncMapReduce>()));
-
-            //services.AddLog4NetLogHelper();
-
-            //System.Threading.Tasks.Task.Factory.StartNew(() =>
-            //{
-            //    var task = ETLHelper.Transform(
-            //       modelTypes,
-            //       (type) =>
-            //       {
-            //           return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchSqlSugarQuery)).MakeGenericMethod(type).Invoke(null, new object[] { false });
-            //       },
-            //       (type) =>
-            //       {
-            //           return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
-            //       },
-            //       2048);
-
-            //    int time = Environment.TickCount;
-
-            //    while (!task.Task.IsCompleted)
-            //    {
-            //        if (task.RunningTable != null)
-            //            Console.WriteLine($"Current Table: {task.RunningTable.TableType.Name}, Data Count: {task.RunningTable.DataCount}, Complated Count: {task.RunningTable.ComplatedCount}");
-
-            //        Thread.Sleep(5000);
-            //    }
-
-            //    Console.WriteLine("Transform Done.");
-            //});
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
         {
-            app.ApplicationServices.GetService<ITccNotifyFactory>().RegisterNotify(new TestTCCNotify());
+            //app.ApplicationServices.GetService<ITccNotifyFactory>().RegisterNotify(new TestTCCNotify());
 
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
@@ -155,8 +102,8 @@ namespace TestWebAPI
             });
 
             //服务发现
-            //if (!env.IsDevelopment())
-            app.RegisterConsul(lifetime, m_configuration);
+            if (!env.IsDevelopment())
+                app.RegisterConsul(lifetime, m_configuration);
         }
     }
 }
