@@ -172,5 +172,65 @@ namespace TestRedis.CacheSearchQuery
         {
             return m_searchQuery.SearchAsync(query, startIndex, count, transaction);
         }
+
+        T ISearchQuery<T>.Get(long id, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<T> ISearchQuery<T>.GetAsync(long id, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        int ISearchQuery<T>.Count(Expression<Func<T, bool>> predicate, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<int> ISearchQuery<T>.CountAsync(Expression<Func<T, bool>> predicate, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerable<T> ISearchQuery<T>.Search(Expression<Func<T, bool>> predicate, IEnumerable<QueryOrderBy<T>> queryOrderBies, int startIndex, int count, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<IEnumerable<T>> ISearchQuery<T>.SearchAsync(Expression<Func<T, bool>> predicate, IEnumerable<QueryOrderBy<T>> queryOrderBies, int startIndex, int count, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        int ISearchQuery<T>.Count<TResult>(IQueryable<TResult> query, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<int> ISearchQuery<T>.CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerable<TResult> ISearchQuery<T>.Search<TResult>(IQueryable<TResult> query, int startIndex, int count, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<IEnumerable<TResult>> ISearchQuery<T>.SearchAsync<TResult>(IQueryable<TResult> query, int startIndex, int count, ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        ISearchQueryable<T> ISearchQuery<T>.GetQueryable(ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<ISearchQueryable<T>> ISearchQuery<T>.GetQueryableAsync(ITransaction transaction, IDBResourceContent dbResourceContent)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

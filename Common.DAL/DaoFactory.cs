@@ -54,6 +54,11 @@ namespace Common.DAL
             return Linq2DBDao.GetLinq2DBEditQuery<T>(codeFirst);
         }
 
+        public static IDBResourceContent GetLinq2DBResourceContent()
+        {
+            return Linq2DBDao.GetDBResourceContent();
+        }
+
         static DaoFactory()
         {
             LogHelper = LogHelperFactory.GetKafkaLogHelper();

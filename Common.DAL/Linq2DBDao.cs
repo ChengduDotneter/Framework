@@ -1,25 +1,22 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using Common.DAL.Transaction;
+﻿using Common.DAL.Transaction;
 using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Linq;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Common.DAL
 {
     internal static class Linq2DBDao
     {
-        private const int GET_DATACONNECTION_THREAD_TIME_SPAN = 1;
         private const int DEFAULT_CONNECTION_COUNT = 10; //最大长连接数
         private const int DEFAULT_CONNECTION_WAITTIMEOUT = 8 * 60 * 60 * 1000;//8小时
         private const int DEFAULT_MAX_TEMP_CONNECTION_COUNT = 10; //最大临时连接数
@@ -28,15 +25,11 @@ namespace Common.DAL
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
         private static LinqToDbConnectionOptions m_slavelinqToDbConnectionOptions;
 
-        private static IDictionary<DataConnection, DateTime> m_creatureDataConnectionPool;
-        private static ISet<DataConnection> m_tempDataConnections;
-
         private static readonly int m_dataConnectionOutTime;
 
         static Linq2DBDao()
         {
             m_tableNames = new HashSet<string>();
-            m_tempDataConnections = new HashSet<DataConnection>();
             LinqToDbConnectionOptionsBuilder masterLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
             LinqToDbConnectionOptionsBuilder slaveLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
 
@@ -63,8 +56,6 @@ namespace Common.DAL
 
             m_connectionPool = new Dictionary<string, DataConnectResourcePool>();
 
-            m_creatureDataConnectionPool = new Dictionary<DataConnection, DateTime>();
-
             int.TryParse(ConfigManager.Configuration["ConnectionCount"], out int connectionCount);
 
             if (connectionCount <= 0)
@@ -88,99 +79,39 @@ namespace Common.DAL
 
             if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.ConnectionString))
             {
-                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, m_masterlinqToDbConnectionOptions));
-
-                //for (int i = 0; i < connectionCount; i++)
-                //{
-                //    lock (m_creatureDataConnectionPool)
-                //    {
-                //        DataConnection dataConnection = new DataConnection(m_masterlinqToDbConnectionOptions);
-                //        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-                //        m_connectionPool[m_masterlinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
-                //    }
-                //}
+                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, CreateMasterDataConnection, CloseDataConnection));
             }
 
             if (!m_connectionPool.ContainsKey(m_slavelinqToDbConnectionOptions.ConnectionString))
             {
-                m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString, new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, m_slavelinqToDbConnectionOptions));
-
-                //for (int i = 0; i < connectionCount; i++)
-                //{
-                //    lock (m_creatureDataConnectionPool)
-                //    {
-                //        DataConnection dataConnection = new DataConnection(m_slavelinqToDbConnectionOptions);
-                //        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-                //        m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
-                //    }
-                //}
+                m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString, new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, CreateSlaveDataConnection, CloseDataConnection));
             }
         }
 
-        private static DataConnection CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions, IDBResourceContent dbResourceContent = null)
+        private static DataConnectionInstance CreateMasterDataConnection()
         {
-            //DataConnection dataConnection;
-
-            //if (m_connectionPool[linqToDbConnectionOptions.ConnectionString].IsEmpty)
-            //{
-            //    int.TryParse(ConfigManager.Configuration["MaxTempConnectionCount"], out int maxTempConnectionCount);
-
-            //    if (maxTempConnectionCount <= 0)
-            //        maxTempConnectionCount = DEFAULT_MAX_TEMP_CONNECTION_COUNT;
-
-            //    if (m_tempDataConnections.Count < maxTempConnectionCount)
-            //    {
-            //        dataConnection = new DataConnection(linqToDbConnectionOptions);
-
-            //        lock (m_tempDataConnections)
-            //        {
-            //            m_tempDataConnections.Add(dataConnection);
-            //        }
-            //    }
-            //    else throw new DealException("连接繁忙，请稍后再试。");
-            //}
-            //else
-            //{
-            //    while (!m_connectionPool[linqToDbConnectionOptions.ConnectionString].TryDequeue(out dataConnection))
-            //        Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
-
-            //    if (m_creatureDataConnectionPool.ContainsKey(dataConnection))
-            //    {
-            //        if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > m_dataConnectionOutTime)
-            //        {
-            //            lock (m_creatureDataConnectionPool)
-            //            {
-            //                dataConnection.Close();
-            //                dataConnection.Dispose();
-
-            //                m_creatureDataConnectionPool.Remove(dataConnection);
-            //                dataConnection = new DataConnection(linqToDbConnectionOptions);
-            //                m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-            //            }
-            //        }
-            //    }
-            //}
-
-            return m_connectionPool[linqToDbConnectionOptions.ConnectionString].ApplyInstance(dbResourceContent);
+            return new DataConnectionInstance(Environment.TickCount + m_dataConnectionOutTime, m_masterlinqToDbConnectionOptions);
         }
 
-        private static void DisposeConnection(DataConnection dataConnection)
+        private static DataConnectionInstance CreateSlaveDataConnection()
         {
-            ////如果该连接为临时连，则关闭并释放资源
-            //if (m_tempDataConnections.Contains(dataConnection))
-            //{
-            //    dataConnection.Close();
-            //    dataConnection.Dispose();
+            return new DataConnectionInstance(0, m_slavelinqToDbConnectionOptions);
+        }
 
-            //    lock (m_tempDataConnections)
-            //        m_tempDataConnections.Remove(dataConnection);
-            //}
+        private static void CloseDataConnection(DataConnectionInstance dataConnectionInstance)
+        {
+            dataConnectionInstance.Close();
+            dataConnectionInstance.Dispose();
+        }
 
-            ////如果该连接为长连接，并且长连接连接队列里面没包含该连接，则将连接入队到连接池中
-            //else if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
-            //    m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
+        private static IResourceInstance<DataConnectionInstance> CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions)
+        {
+            return m_connectionPool[linqToDbConnectionOptions.ConnectionString].ApplyInstance();
+        }
 
-            m_connectionPool[dataConnection.ConnectionString].RealseInstance(dataConnection);
+        private static void DisposeConnection(IResourceInstance<DataConnectionInstance> resourceInstance)
+        {
+            resourceInstance.Dispose();
         }
 
         public static ISearchQuery<T> GetLinq2DBSearchQuery<T>(bool codeFirst)
@@ -206,6 +137,11 @@ namespace Common.DAL
             return linq2DBDaoInstance;
         }
 
+        public static IDBResourceContent GetDBResourceContent()
+        {
+            return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].ApplyInstance());
+        }
+
         private static void CreateTable<T>(LinqToDbConnectionOptions linqToDbConnectionOptions)
              where T : class, IEntity, new()
         {
@@ -217,11 +153,11 @@ namespace Common.DAL
                 {
                     if (!m_tableNames.Contains(tableName))
                     {
-                        DataConnection dataConnection = CreateConnection(linqToDbConnectionOptions);
+                        IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(linqToDbConnectionOptions);
 
                         try
                         {
-                            dataConnection.CreateTable<T>(tableName);
+                            dataConnection.Instance.CreateTable<T>(tableName);
                         }
                         catch
                         {
@@ -229,7 +165,7 @@ namespace Common.DAL
                         }
                         finally
                         {
-                            dataConnection.Dispose();
+                            dataConnection.Instance.Dispose();
                             m_tableNames.Add(tableName);
                         }
                     }
@@ -282,18 +218,39 @@ namespace Common.DAL
             await TransactionResourceHelper.ReleaseResourceAsync(identity);
         }
 
+        private class Linq2DBResourceContent : IResourceInstance<DataConnectionInstance>, IDBResourceContent
+        {
+            private IResourceInstance<DataConnectionInstance> m_resourceInstance;
+
+            public Linq2DBResourceContent(IResourceInstance<DataConnectionInstance> resourceInstance)
+            {
+                m_resourceInstance = resourceInstance;
+            }
+
+            public object Content { get { return this; } }
+
+            public DataConnectionInstance Instance { get { return m_resourceInstance.Instance; } }
+
+            public void Dispose()
+            {
+                m_resourceInstance.Dispose();
+            }
+        }
+
         private class Linq2DBTransaction : ITransaction
         {
             private DataConnectionTransaction m_dataConnectionTransaction;
+            private readonly IResourceInstance<DataConnectionInstance> m_resourceInstance;
 
             public HashSet<Type> TransactionTables { get; }
             public string Identity { get; }
             public int Weight { get; }
 
-            public Linq2DBTransaction(DataConnectionTransaction dataConnectionTransaction, int weight)
+            public Linq2DBTransaction(DataConnectionTransaction dataConnectionTransaction, int weight, IResourceInstance<DataConnectionInstance> resourceInstance)
             {
                 Identity = Guid.NewGuid().ToString("D");
                 Weight = weight;
+                m_resourceInstance = resourceInstance;
                 TransactionTables = new HashSet<Type>();
                 m_dataConnectionTransaction = dataConnectionTransaction;
             }
@@ -303,7 +260,7 @@ namespace Common.DAL
             public async void Dispose()
             {
                 await m_dataConnectionTransaction.DisposeAsync();
-                DisposeConnection(m_dataConnectionTransaction.DataConnection);
+                DisposeConnection(m_resourceInstance);
                 Release(Identity);
             }
 
@@ -348,7 +305,7 @@ namespace Common.DAL
 
             public void Dispose()
             {
-                if (!m_inTransaction && m_table.DataContext is DataConnection dataConnection)
+                if (!m_inTransaction && m_table.DataContext is IResourceInstance<DataConnectionInstance> dataConnection)
                     DisposeConnection(dataConnection);
             }
 
@@ -372,34 +329,36 @@ namespace Common.DAL
 
             public ITransaction BeginTransaction(int weight = 0)
             {
-                var dataconnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                Console.WriteLine($"链接资源hash:{dataconnection.GetHashCode()}");
-
-                return new Linq2DBTransaction(dataconnection.BeginTransaction(), weight);
+                IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
+                return new Linq2DBTransaction(resourceInstance.Instance.BeginTransaction(), weight, resourceInstance);
             }
 
             public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
             {
-                return new Linq2DBTransaction(await CreateConnection(m_linqToDbConnectionOptions).BeginTransactionAsync(), weight);
+                IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
+                return new Linq2DBTransaction(await resourceInstance.Instance.BeginTransactionAsync(), weight, resourceInstance);
             }
 
             public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
             {
                 bool inTransaction = Apply<T>(transaction);
 
-                if (!inTransaction)
+                if (!inTransaction && dbResourceContent == null)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        return dataConnection.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
+                        return dataConnection.Instance.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
                     }
                     finally
                     {
                         DisposeConnection(dataConnection);
                     }
+                }
+                else if (!inTransaction && dbResourceContent != null)
+                {
+                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
                 }
                 else
                 {
@@ -417,18 +376,22 @@ namespace Common.DAL
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
-                if (!inTransaction)
+                if (!inTransaction && dbResourceContent == null)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        return await dataConnection.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
+                        return await dataConnection.Instance.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
                     }
                     finally
                     {
                         DisposeConnection(dataConnection);
                     }
+                }
+                else if (!inTransaction && dbResourceContent != null)
+                {
+                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
                 }
                 else
                 {
@@ -448,11 +411,11 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        dataConnection.GetTable<T>().Delete(item => ids.Contains(item.ID));
+                        dataConnection.Instance.GetTable<T>().Delete(item => ids.Contains(item.ID));
                     }
                     finally
                     {
@@ -471,11 +434,11 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        await dataConnection.GetTable<T>().DeleteAsync(item => ids.Contains(item.ID));
+                        await dataConnection.Instance.GetTable<T>().DeleteAsync(item => ids.Contains(item.ID));
                     }
                     finally
                     {
@@ -492,18 +455,22 @@ namespace Common.DAL
             {
                 bool inTransaction = Apply<T>(transaction);
 
-                if (!inTransaction)
+                if (!inTransaction && dbResourceContent == null)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        return dataConnection.GetTable<T>().SingleOrDefault(item => item.ID == id);
+                        return dataConnection.Instance.GetTable<T>().SingleOrDefault(item => item.ID == id);
                     }
                     finally
                     {
                         DisposeConnection(dataConnection);
                     }
+                }
+                else if (!inTransaction && dbResourceContent != null)
+                {
+                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().SingleOrDefault(item => item.ID == id);
                 }
                 else
                 {
@@ -516,18 +483,22 @@ namespace Common.DAL
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
-                if (!inTransaction)
+                if (!inTransaction && dbResourceContent == null)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        return await dataConnection.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
+                        return await dataConnection.Instance.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
                     }
                     finally
                     {
                         DisposeConnection(dataConnection);
                     }
+                }
+                else if (!inTransaction && dbResourceContent != null)
+                {
+                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
                 }
                 else
                 {
@@ -539,9 +510,13 @@ namespace Common.DAL
             {
                 bool inTransaction = Apply<T>(transaction);
 
-                if (!inTransaction)
+                if (!inTransaction && dbResourceContent == null)
                 {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions, dbResourceContent).GetTable<T>(), inTransaction);
+                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), inTransaction);
+                }
+                else if (!inTransaction && dbResourceContent != null)
+                {
+                    return new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), inTransaction);
                 }
                 else
                 {
@@ -553,9 +528,13 @@ namespace Common.DAL
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
-                if (!inTransaction)
+                if (!inTransaction && dbResourceContent == null)
                 {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions, dbResourceContent).GetTable<T>(), inTransaction);
+                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), inTransaction);
+                }
+                else if (!inTransaction && dbResourceContent != null)
+                {
+                    return new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), inTransaction);
                 }
                 else
                 {
@@ -569,11 +548,11 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        dataConnection.GetTable<T>().BulkCopy(datas);
+                        dataConnection.Instance.GetTable<T>().BulkCopy(datas);
                     }
                     finally
                     {
@@ -593,11 +572,11 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        await dataConnection.GetTable<T>().BulkCopyAsync(datas);
+                        await dataConnection.Instance.GetTable<T>().BulkCopyAsync(datas);
                     }
                     finally
                     {
@@ -617,12 +596,12 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
                         for (int i = 0; i < datas.Length; i++)
-                            dataConnection.InsertOrReplace(datas[i]);
+                            dataConnection.Instance.InsertOrReplace(datas[i]);
                     }
                     finally
                     {
@@ -646,13 +625,13 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
                         for (int i = 0; i < datas.Length; i++)
                         {
-                            tasks[i] = dataConnection.InsertOrReplaceAsync(datas[i]);
+                            tasks[i] = dataConnection.Instance.InsertOrReplaceAsync(datas[i]);
                         }
                         await Task.WhenAll(tasks);
                     }
@@ -676,13 +655,13 @@ namespace Common.DAL
             {
                 bool inTransaction = Apply<T>(transaction);
 
-                if (!inTransaction)
+                if (!inTransaction && dbResourceContent == null)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        IQueryable<T> query = dataConnection.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
                         bool orderd = false;
 
                         if (queryOrderBies != null)
@@ -714,6 +693,36 @@ namespace Common.DAL
                     {
                         DisposeConnection(dataConnection);
                     }
+                }
+                else if (!inTransaction && dbResourceContent != null)
+                {
+                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                    bool orderd = false;
+
+                    if (queryOrderBies != null)
+                    {
+                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                        {
+                            if (queryOrderBy.OrderByType == OrderByType.Asc)
+                            {
+                                if (!orderd)
+                                    query = query.OrderBy(queryOrderBy.Expression);
+                                else
+                                    query = query.ThenOrBy(queryOrderBy.Expression);
+                            }
+                            else
+                            {
+                                if (!orderd)
+                                    query = query.OrderByDescending(queryOrderBy.Expression);
+                                else
+                                    query = query.ThenOrByDescending(queryOrderBy.Expression);
+                            }
+
+                            orderd = true;
+                        }
+                    }
+
+                    return query.Skip(startIndex).Take(count).ToList();
                 }
                 else
                 {
@@ -757,13 +766,13 @@ namespace Common.DAL
             {
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
-                if (!inTransaction)
+                if (!inTransaction && dbResourceContent == null)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions, dbResourceContent);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        IQueryable<T> query = dataConnection.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
                         bool orderd = false;
 
                         if (queryOrderBies != null)
@@ -795,6 +804,36 @@ namespace Common.DAL
                     {
                         DisposeConnection(dataConnection);
                     }
+                }
+                else if (!inTransaction && dbResourceContent != null)
+                {
+                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                    bool orderd = false;
+
+                    if (queryOrderBies != null)
+                    {
+                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                        {
+                            if (queryOrderBy.OrderByType == OrderByType.Asc)
+                            {
+                                if (!orderd)
+                                    query = query.OrderBy(queryOrderBy.Expression);
+                                else
+                                    query = query.ThenOrBy(queryOrderBy.Expression);
+                            }
+                            else
+                            {
+                                if (!orderd)
+                                    query = query.OrderByDescending(queryOrderBy.Expression);
+                                else
+                                    query = query.ThenOrByDescending(queryOrderBy.Expression);
+                            }
+
+                            orderd = true;
+                        }
+                    }
+
+                    return await query.Skip(startIndex).Take(count).ToListAsync();
                 }
                 else
                 {
@@ -840,11 +879,11 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        dataConnection.Update(data);
+                        dataConnection.Instance.Update(data);
                     }
                     finally
                     {
@@ -870,11 +909,11 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        IUpdatable<T> updatable = dataConnection.GetTable<T>().Where(predicate).AsUpdatable();
+                        IUpdatable<T> updatable = dataConnection.Instance.GetTable<T>().Where(predicate).AsUpdatable();
 
                         foreach (var update in updates)
                         {
@@ -896,7 +935,6 @@ namespace Common.DAL
                 else
                 {
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
-
                     IUpdatable<T> updatable = dataConnection.GetTable<T>().Where(predicate).AsUpdatable();
 
                     foreach (var update in updates)
@@ -919,11 +957,11 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        await dataConnection.UpdateAsync(data);
+                        await dataConnection.Instance.UpdateAsync(data);
                     }
                     finally
                     {
@@ -949,11 +987,11 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    DataConnection dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
                     try
                     {
-                        IUpdatable<T> updatable = dataConnection.GetTable<T>().Where(predicate).AsUpdatable();
+                        IUpdatable<T> updatable = dataConnection.Instance.GetTable<T>().Where(predicate).AsUpdatable();
 
                         foreach (var update in updates)
                         {
@@ -975,7 +1013,6 @@ namespace Common.DAL
                 else
                 {
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
-
                     IUpdatable<T> updatable = dataConnection.GetTable<T>().Where(predicate).AsUpdatable();
 
                     foreach (var update in updates)
