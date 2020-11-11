@@ -212,6 +212,8 @@ namespace Common.ServiceCommon
         /// <param name="editQueryProvider"></param>
         public static void AddQuerys(this IServiceCollection serviceCollection, Type[] modelTypes, Func<Type, object> searchQueryProvider = null, Func<Type, object> editQueryProvider = null)
         {
+            serviceCollection.AddScoped<IDBResourceContent, DBResourceContent>();
+
             for (int i = 0; i < modelTypes.Length; i++)
             {
                 Type modelType = modelTypes[i];

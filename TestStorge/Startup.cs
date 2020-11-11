@@ -113,9 +113,9 @@ namespace TestStorge
 
             app.UseRouting();
 
-            app.UseAuthorization();
+           // app.UseAuthorization();
 
-            app.UseMiddleware<LogMiddleware>(env.IsDevelopment());
+           // app.UseMiddleware<LogMiddleware>(env.IsDevelopment());
 
             app.UseCors("any");
 
@@ -126,7 +126,7 @@ namespace TestStorge
 
             //������
             //if (!env.IsDevelopment())
-            //app.RegisterConsul(lifetime, m_configuration);
+           // app.RegisterConsul(lifetime, m_configuration);
         }
     }
 }

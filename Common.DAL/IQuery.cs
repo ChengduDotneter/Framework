@@ -109,7 +109,7 @@ namespace Common.DAL
         /// <param name="id"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        T Get(long id, ITransaction transaction = null);
+        T Get(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 根据ID查询
@@ -117,7 +117,7 @@ namespace Common.DAL
         /// <param name="id"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<T> GetAsync(long id, ITransaction transaction = null);
+        Task<T> GetAsync(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 根据Linq筛选条件查询条数
@@ -125,7 +125,7 @@ namespace Common.DAL
         /// <param name="predicate"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null);
+        int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 根据Linq筛选条件查询条数
@@ -133,7 +133,7 @@ namespace Common.DAL
         /// <param name="predicate"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null);
+        Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 根据Linq筛选条件查询
@@ -148,7 +148,7 @@ namespace Common.DAL
                               IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                               int startIndex = 0,
                               int count = int.MaxValue,
-                              ITransaction transaction = null);
+                              ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 根据Linq筛选条件查询
@@ -163,7 +163,7 @@ namespace Common.DAL
                               IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                               int startIndex = 0,
                               int count = int.MaxValue,
-                              ITransaction transaction = null);
+                              ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 根据Linq筛选条件两表联查条数
@@ -172,7 +172,7 @@ namespace Common.DAL
         /// <param name="query"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null);
+        int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 根据Linq筛选条件两表联查条数
@@ -181,7 +181,7 @@ namespace Common.DAL
         /// <param name="query"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null);
+        Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 根据Linq筛选条件两表联查数据
@@ -192,7 +192,7 @@ namespace Common.DAL
         /// <param name="count"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null);
+        IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 根据Linq筛选条件两表联查数据
@@ -203,14 +203,14 @@ namespace Common.DAL
         /// <param name="count"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null);
+        Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 获取Linq查询接口
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        ISearchQueryable<T> GetQueryable(ITransaction transaction = null);
+        ISearchQueryable<T> GetQueryable(ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 获取Linq查询接口
@@ -218,7 +218,7 @@ namespace Common.DAL
         /// <typeparam name="T"></typeparam>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null);
+        Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
     }
 
     /// <summary>

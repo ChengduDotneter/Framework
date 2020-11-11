@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Lock", "Common.Lock\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Log", "Common.Log\Common.Log.csproj", "{62CAAAA0-53BD-45B0-9758-4C1B3F8914A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IgniteCompute", "IgniteCompute\IgniteCompute.csproj", "{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IgniteCompute", "IgniteCompute\IgniteCompute.csproj", "{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

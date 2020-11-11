@@ -3,6 +3,7 @@ using Common;
 using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
+using LinqToDB.Mapping;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -14,47 +15,121 @@ using System.Threading.Tasks;
 
 namespace TestStorge.Controllers
 {
-    [Route("teststock")]
-   public class StockInfoGetController : ControllerBase
-    {
-        private ISearchQuery<StockInfo> m_searchQuery;
-        private IEditQuery<StockInfo> m_editQuery;
+    //[Route("tccstorge")]
+    //public class TCCStorgeController : TransactionTCCController<StockInfoCousme, StockInfoCousme>
+    //{
+    //    private readonly ISearchQuery<StockInfo> m_stockInfoSearchQuery;
+    //    private readonly IEditQuery<StockInfo> m_stockInfoEditQuery;
 
-        public StockInfoGetController(ISearchQuery<StockInfo> searchQuery,
-            IEditQuery<StockInfo> editQuery)
+    //    public TCCStorgeController(
+    //        IEditQuery<StockInfoCousme> editQuery,
+    //        IHttpClientFactory httpClientFactory,
+    //        IHttpContextAccessor httpContextAccessor,
+    //        ITccTransactionManager tccTransactionManager,
+    //        ISearchQuery<StockInfo> stockInfoSearchQuery,
+    //        IEditQuery<StockInfo> stockInfoEditQuery) : base(editQuery, httpClientFactory, httpContextAccessor, tccTransactionManager)
+    //    {
+    //        m_stockInfoSearchQuery = stockInfoSearchQuery;
+    //        m_stockInfoEditQuery = stockInfoEditQuery;
+    //    }
+
+    //    protected override async Task<object> DoTry(long tccID, ITransaction transaction, StockInfoCousme data)
+    //    {
+    //        IEnumerable<string> commodityNames = data.StockInfos.Select(item => item.CommodityName);
+    //        IEnumerable<StockInfo> currentStockInfos = await m_stockInfoSearchQuery.FilterIsDeleted().SearchAsync(item => commodityNames.Contains(item.CommodityName), transaction: transaction);
+
+    //        foreach (StockInfo stockInfo in data.StockInfos)
+    //        {
+    //            StockInfo currentStock = currentStockInfos.FirstOrDefault(item => item.CommodityName == stockInfo.CommodityName);
+
+    //            if (currentStock == null)
+    //                throw new DealException("库存不存在");
+
+    //            if (currentStock.Number < stockInfo.Number)
+    //                throw new DealException("库存不足");
+
+    //            currentStock.Number -= stockInfo.Number;
+    //        }
+
+    //        await m_stockInfoEditQuery.FilterIsDeleted().MergeAsync(transaction, currentStockInfos.ToArray());
+    //        return data;
+    //    }
+    //}
+
+
+    [Route("testssss")]
+    public class TestssssController : ControllerBase
+    {
+        private readonly ISearchQuery<StockInfo> m_stockInfoSearchQuery;
+        private readonly IEditQuery<StockInfo> m_stockInfoEditQuery;
+        private readonly IDBResourceContent m_dbResourceContent;
+
+        public TestssssController(ISearchQuery<StockInfo> stockInfoSearchQuery,
+            IEditQuery<StockInfo> stockInfoEditQuery, 
+            IDBResourceContent dbResourceContent)
         {
-            m_searchQuery = searchQuery;
-            m_editQuery = editQuery;
+            m_stockInfoSearchQuery = stockInfoSearchQuery;
+            m_stockInfoEditQuery = stockInfoEditQuery;
+            m_dbResourceContent = dbResourceContent;
         }
 
+        [HttpGet]
         public IActionResult Get()
         {
-            //using (ITransaction transaction = m_editQuery.BeginTransaction())
-            //{
-
-            //}
-
+            Console.WriteLine($"DBResourceContent HASH:{m_dbResourceContent.GetHashCode()}");
             IEnumerable<StockInfo> search;
 
-            using (var queryable = m_searchQuery.GetQueryable())
-            using (var queryable1 = m_searchQuery.GetQueryable())
+            using (ISearchQueryable<StockInfo> stockInfoQuery = m_stockInfoSearchQuery.FilterIsDeleted().GetQueryable(dbResourceContent: m_dbResourceContent))
+            using (ISearchQueryable<StockInfo> stockInfoQuery1 = m_stockInfoSearchQuery.FilterIsDeleted().GetQueryable(dbResourceContent: m_dbResourceContent))
             {
-                var qquerable = from query111 in queryable
-                                select query111;
+                search = m_stockInfoSearchQuery.FilterIsDeleted().Search(dbResourceContent: m_dbResourceContent);
 
-                Thread.Sleep(500);
-
-                search = m_searchQuery.Search(qquerable).ToList();
+                //Thread.Sleep(500);
             }
 
             return Ok(search);
         }
     }
 
+    [Route("test2")]
+    public class Test2Controller : ControllerBase
+    {
+        private readonly ISearchQuery<StockInfo> m_stockInfoSearchQuery;
+
+        public Test2Controller(ISearchQuery<StockInfo> stockInfoSearchQuery)
+        {
+            m_stockInfoSearchQuery = stockInfoSearchQuery;
+        }
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+            IEnumerable<StockInfo> search;
+
+            using (var queryable = m_stockInfoSearchQuery.GetQueryable())
+            {
+                var qquerable = from query111 in queryable
+                                select query111;
+
+                Thread.Sleep(500);
+
+                search = m_stockInfoSearchQuery.Search(qquerable).ToList();
+            }
+
+            return Ok(search);
+        }
+    }
+
+    //public class StockInfoCousme : ViewModelBase
+    //{
+    //    public IEnumerable<StockInfo> StockInfos { get; set; }
+    //}
+
     public class StockInfo : ViewModelBase
     {
 
-        [LinqToDB.Mapping.Column(Length = 18, CanBeNull = true, Precision = 16, Scale = 2)]
+        [Column(CanBeNull = true)]
+        [QuerySqlField]
         public decimal? Number { get; set; }
     }
 }

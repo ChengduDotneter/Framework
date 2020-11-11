@@ -1,5 +1,4 @@
-﻿using LinqToDB.Common;
-using LinqToDB.Configuration;
+﻿using LinqToDB.Configuration;
 using LinqToDB.Data;
 using System;
 using System.Collections.Concurrent;
@@ -8,195 +7,212 @@ using System.Linq;
 using System.Threading;
 
 namespace Common.DAL
-{
-    public interface IResourcePool<T>
+{ 
+    /// <summary>
+   /// 资源池（两个队列锁（临时队列及固定队列））
+   /// </summary>
+   /// <typeparam name="T"></typeparam>
+    public interface IResourcePoolManage<T>
     {
         /// <summary>
-        /// 创建资源
+        /// 初始化创建T实例
         /// </summary>
         /// <returns></returns>
         T DoCreateInstance();
 
         /// <summary>
-        /// 从资源池释放资源
+        /// 注销T实例
         /// </summary>
         /// <param name="instance"></param>
         /// <returns></returns>
-        bool DoDisposeInstance(T instance);
+        bool DoDisposableInstance(T instance);
 
         /// <summary>
-        /// 申请资源
+        /// 申请T资源
         /// </summary>
         /// <returns></returns>
-        T Apply(int timeOut);
+        T ApplyInstance(IDBResourceContent dbResourceContent = null);
 
         /// <summary>
-        /// 释放资源到资源池
+        /// 使用完成后释放T资源
         /// </summary>
         /// <param name="instance"></param>
         /// <returns></returns>
-        bool Release(T instance);
+        bool RealseInstance(T instance);
     }
 
-    public abstract class ResourcePool<T> : IResourcePool<T>
+    public abstract class ResourcePool<T> : IResourcePoolManage<T>
     {
+        private int m_fixedNum;
+        private int m_fixResetTimeMilliseconds;
+        private int m_temporaryNum;
+        private int m_temporaryOverTimeMilliseconds;
+
+        private static IDictionary<T, int> m_fixedCreatureTimePool;
+        private static ConcurrentQueue<T> m_fixedInstances;
+        private static IDictionary<T, int> m_temporaryCreatureTimePool;
+        private static ConcurrentQueue<T> m_temporaryInstances;
         private const int GET_DATACONNECTION_THREAD_TIME_SPAN = 1;
-        private const int SLEEP_THREAD_TIME_SPAN = 100;
-        private ConcurrentQueue<T> m_instancePool;
-        private ConcurrentDictionary<T, int> m_connections;
-        private Thread m_thread;
+        private const int MAX_REPLAY_RESOURCE_NUM = 5;
 
-        private int m_minThreadCount;
-        private int m_maxThreadCount;
-        private int m_fixedTimeOut;
-        private int m_temTimeOut;
-
-        private int m_maxTimeOut;
-
-        public T Apply(int timeOut = 0)
+        /// <summary>
+        /// 资源池构造函数
+        /// </summary>
+        /// <param name="fixedNum">固定资源数量</param>
+        /// <param name="fixResetTimeMilliseconds">固定资源重置时间（毫秒）</param>
+        /// <param name="temporaryNum">临时资源数量</param>
+        /// <param name="temporaryOverTimeMilliseconds">临时资源释放时间（毫秒） 最后一次使用后释放</param>
+        public ResourcePool(int fixedNum, int fixResetTimeMilliseconds, int temporaryNum, int temporaryOverTimeMilliseconds)
         {
-            T instance;
+            m_fixedNum = fixedNum;
+            m_fixResetTimeMilliseconds = fixResetTimeMilliseconds;
+            m_temporaryNum = temporaryNum;
+            m_temporaryOverTimeMilliseconds = temporaryOverTimeMilliseconds;
+        }
 
-            if (m_instancePool.IsEmpty)
+        protected void IniResourcePool()
+        {
+            m_fixedInstances = new ConcurrentQueue<T>();
+            m_fixedCreatureTimePool = new Dictionary<T, int>();
+
+            m_temporaryInstances = new ConcurrentQueue<T>();
+            m_temporaryCreatureTimePool = new Dictionary<T, int>();
+
+            for (int i = 0; i < m_fixedNum; i++)
             {
-                lock (m_connections)
+                lock (m_fixedInstances)
                 {
-                    if (m_connections.Count < m_maxThreadCount)
-                    {
-                        instance = DoCreateInstance();
+                    T instance = DoCreateInstance();
 
-                        if (!m_connections.TryAdd(instance, Environment.TickCount + m_temTimeOut))
-                            return Apply(timeOut);
-                    }
-                    else
-                    {
-                        if (timeOut > m_maxTimeOut)
-                            throw new DealException("资源池繁忙，请稍后再试。");
-
-                        Thread.Sleep(SLEEP_THREAD_TIME_SPAN);
-
-                        timeOut += SLEEP_THREAD_TIME_SPAN;
-
-                        return Apply(timeOut);
-                    }
+                    m_fixedInstances.Enqueue(instance);
+                    m_fixedCreatureTimePool.Add(instance, Environment.TickCount + m_fixResetTimeMilliseconds);
                 }
             }
-            else
-            {
-                while (!m_instancePool.TryDequeue(out instance))
-                    Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
-
-                if (m_connections[instance] < Environment.TickCount)
-                {
-                    DoDisposeInstance(instance);
-
-                    instance = DoCreateInstance();
-
-                    m_connections[instance] = Environment.TickCount + m_fixedTimeOut;
-                }
-            }
-
-            Console.WriteLine($"申请资源：{m_connections.Count}");
-
-            return instance;
         }
 
         public abstract T DoCreateInstance();
 
-        public abstract bool DoDisposeInstance(T instance);
+        public abstract bool DoDisposableInstance(T instance);
 
-        public bool Release(T instance)
+        private T ReplayApplyInstance(int replayNum = 0)
         {
-            if (m_connections.ContainsKey(instance))
-            {
-                m_instancePool.Enqueue(instance);
+            T instance;
 
-                if (m_connections.Count > m_minThreadCount)
-                    m_connections[instance] = Environment.TickCount + m_temTimeOut;
+            if (m_fixedInstances.IsEmpty)
+            {
+                lock (m_temporaryInstances)
+                {
+                    if (!m_temporaryInstances.IsEmpty)
+                    {
+                        while (!m_temporaryInstances.TryDequeue(out instance))
+                            Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
+                    }
+                    else if (m_temporaryCreatureTimePool.Count < m_temporaryNum)
+                    {
+                        lock (m_temporaryCreatureTimePool)
+                        {
+                            instance = DoCreateInstance();
+                            m_temporaryCreatureTimePool.Add(instance, Environment.TickCount + m_temporaryOverTimeMilliseconds);
+                        }
+                    }
+                    else
+                    {
+                        replayNum++;
+
+                        if (replayNum > MAX_REPLAY_RESOURCE_NUM)
+                        {
+                            throw new DealException("资源池繁忙，请稍后再试。");
+                        }
+
+                        Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
+                        return ReplayApplyInstance(replayNum);
+                    }
+                    // throw new DealException("资源池繁忙，请稍后再试。");
+                }
+            }
+            else
+            {
+                lock (m_fixedInstances)
+                {
+                    while (!m_fixedInstances.TryDequeue(out instance))
+                        Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
+
+                    if (m_fixedCreatureTimePool.ContainsKey(instance))
+                    {
+                        if (m_fixedCreatureTimePool[instance] < Environment.TickCount)
+                        {
+                            lock (m_fixedCreatureTimePool)
+                            {
+                                if (!DoDisposableInstance(instance))
+                                    throw new DealException("释放资源失败。");
+
+                                m_fixedCreatureTimePool.Remove(instance);
+
+                                instance = DoCreateInstance();
+
+                                m_fixedCreatureTimePool.Add(instance, Environment.TickCount + m_fixResetTimeMilliseconds);
+                            }
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine($"资源数量：{m_fixedCreatureTimePool.Count + m_temporaryCreatureTimePool.Count}");
+
+            return instance;
+        }
+
+        public T ApplyInstance(IDBResourceContent dbResourceContent = null)
+        {
+            
+            return ReplayApplyInstance();
+        }
+
+        public bool RealseInstance(T instance)
+        {
+            if (m_fixedCreatureTimePool.ContainsKey(instance))
+                lock (m_fixedInstances)
+                {
+                    if (!m_fixedInstances.Contains(instance))
+                        m_fixedInstances.Enqueue(instance);
+                }
+            else if (m_temporaryCreatureTimePool.ContainsKey(instance))
+            {
+                lock (m_temporaryInstances)
+                {
+                    m_temporaryCreatureTimePool[instance] = Environment.TickCount + m_temporaryOverTimeMilliseconds;
+
+                    m_temporaryInstances.Enqueue(instance);
+                }
             }
             else
                 throw new DealException("资源非法。");
 
             return true;
         }
-
-        public void InitInstance()
-        {
-            m_instancePool = new ConcurrentQueue<T>();
-            m_connections = new ConcurrentDictionary<T, int>();
-
-            for (int i = 0; i < m_minThreadCount; i++)
-            {
-                T instance = DoCreateInstance();
-
-                if (m_connections.TryAdd(instance, Environment.TickCount + m_fixedTimeOut))
-                    m_instancePool.Enqueue(instance);
-            }
-        }
-
-        private void DoWork()
-        {
-            while (true)
-            {
-                if (!m_instancePool.IsNullOrEmpty() && m_instancePool.Count > m_minThreadCount)
-                {
-                    IEnumerable<KeyValuePair<T, int>> connections = m_connections.Where(item => item.Value < Environment.TickCount);
-
-                    if (connections.Count() > 0)
-                    {
-                        T instance;
-
-                        while (!m_instancePool.TryDequeue(out instance))
-                            Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
-
-                        if (m_connections[instance] > Environment.TickCount)
-                            m_instancePool.Enqueue(instance);
-                        else
-                        {
-                            DoDisposeInstance(instance);
-                            m_connections.TryRemove(instance, out int value);
-                        }
-
-                        Console.WriteLine($"释放后资源：{m_connections.Count}");
-
-                    }
-
-                    Thread.Sleep(SLEEP_THREAD_TIME_SPAN);
-                }
-            }
-        }
-
-
-        public ResourcePool(int minThreadCount, int maxThreadCount, int fixedTimeOut, int temTimeOut)
-        {
-            m_minThreadCount = minThreadCount;
-            m_maxThreadCount = maxThreadCount;
-            m_fixedTimeOut = fixedTimeOut;
-            m_temTimeOut = temTimeOut;
-            m_maxTimeOut = Convert.ToInt32(ConfigManager.Configuration["MaxTimeOut"]);
-
-            m_thread = new Thread(DoWork);
-            m_thread.IsBackground = true;
-            m_thread.Start();
-        }
     }
 
-    public class ConnectResourcePool : ResourcePool<DataConnection>
+    public class DataConnectResourcePool : ResourcePool2<DataConnection>
     {
-        private LinqToDbConnectionOptions m_connectionOptions;
+        private LinqToDbConnectionOptions m_options;
 
-        public ConnectResourcePool(int minThreadCount, int maxThreadCount, int fixedTimeOut, int temTimeOut, LinqToDbConnectionOptions connectionOptions) : base(minThreadCount, maxThreadCount, fixedTimeOut, temTimeOut)
+        public DataConnectResourcePool(
+            int fixedNum,
+            int fixResetTimeMilliseconds,
+            int temporaryNum,
+            int temporaryOverTimeMilliseconds,
+            LinqToDbConnectionOptions options) : base(fixedNum, fixResetTimeMilliseconds, temporaryNum, temporaryOverTimeMilliseconds)
         {
-            m_connectionOptions = connectionOptions;
-            InitInstance();
+            m_options = options;
+            IniResourcePool();
         }
 
         public override DataConnection DoCreateInstance()
         {
-            return new DataConnection(m_connectionOptions);
+            return new DataConnection(m_options);
         }
 
-        public override bool DoDisposeInstance(DataConnection instance)
+        public override bool DoDisposableInstance(DataConnection instance)
         {
             instance.Close();
             instance.Dispose();

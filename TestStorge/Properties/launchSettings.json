@@ -18,7 +18,7 @@
     "TestStorge": {
       "commandName": "Project",
       //"launchBrowser": true,
-      "applicationUrl": "http://192.168.10.64:5001",
+      "applicationUrl": "http://192.168.10.33:5001",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
