@@ -202,6 +202,9 @@ namespace Common
         /// <returns>转换后的表达式</returns>
         public static string ToString<T>(this Expression<Func<T, bool>> expression)
         {
+            if (expression == null)
+                return string.Empty;
+
             ToStringVisitor toStringVisitor = new ToStringVisitor();
             toStringVisitor.Visit(expression);
 
