@@ -23,7 +23,7 @@ namespace Common.DAL
         private const int DEFAULT_CONNECTION_COUNT = 10; //最大长连接数
         private const int DEFAULT_CONNECTION_WAITTIMEOUT = 8 * 60 * 60 * 1000;//8小时
         private const int DEFAULT_MAX_TEMP_CONNECTION_COUNT = 10; //最大临时连接数
-        private static IDictionary<string, ConcurrentQueue<DataConnection>> m_connectionPool;
+        private static IDictionary<string, ConnectResourcePool> m_connectionPool;
         private static ISet<string> m_tableNames;
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
         private static LinqToDbConnectionOptions m_slavelinqToDbConnectionOptions;
@@ -32,6 +32,11 @@ namespace Common.DAL
         private static ISet<DataConnection> m_tempDataConnections;
 
         private static readonly int m_dataConnectionOutTime;
+
+        private static int m_minThreadCount = Convert.ToInt32(ConfigManager.Configuration["MinThreadCount"]);
+        private static int m_maxThreadCount = Convert.ToInt32(ConfigManager.Configuration["MaxThreadCount"]);
+        private static int m_fixedTimeOut = Convert.ToInt32(ConfigManager.Configuration["FixedTimeOut"]);
+        private static int m_temTimeOut = Convert.ToInt32(ConfigManager.Configuration["TemTimeOut"]);
 
         static Linq2DBDao()
         {
@@ -61,7 +66,7 @@ namespace Common.DAL
             m_masterlinqToDbConnectionOptions = masterLinqToDbConnectionOptionsBuilder.Build();
             m_slavelinqToDbConnectionOptions = slaveLinqToDbConnectionOptionsBuilder.Build();
 
-            m_connectionPool = new Dictionary<string, ConcurrentQueue<DataConnection>>();
+            m_connectionPool = new Dictionary<string, ConnectResourcePool>();
 
             m_creatureDataConnectionPool = new Dictionary<DataConnection, DateTime>();
 
@@ -71,103 +76,109 @@ namespace Common.DAL
                 connectionCount = DEFAULT_CONNECTION_COUNT;
 
             int.TryParse(ConfigManager.Configuration["ConnectionTimeOut"], out m_dataConnectionOutTime);
-            
+
             if (m_dataConnectionOutTime <= 0)
                 m_dataConnectionOutTime = DEFAULT_CONNECTION_WAITTIMEOUT;
 
             if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.ConnectionString))
             {
-                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new ConcurrentQueue<DataConnection>());
+                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new ConnectResourcePool(m_minThreadCount, m_maxThreadCount, m_fixedTimeOut, m_temTimeOut, m_masterlinqToDbConnectionOptions));
 
-                for (int i = 0; i < connectionCount; i++)
-                {
-                    lock (m_creatureDataConnectionPool)
-                    {
-                        DataConnection dataConnection = new DataConnection(m_masterlinqToDbConnectionOptions);
-                        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-                        m_connectionPool[m_masterlinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
-                    }
-                }
+                //m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new ConcurrentQueue<DataConnection>());
+
+                //for (int i = 0; i < connectionCount; i++)
+                //{
+                //    lock (m_creatureDataConnectionPool)
+                //    {
+                //        DataConnection dataConnection = new DataConnection(m_masterlinqToDbConnectionOptions);
+                //        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+                //        m_connectionPool[m_masterlinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
+                //    }
+                //}
             }
 
             if (!m_connectionPool.ContainsKey(m_slavelinqToDbConnectionOptions.ConnectionString))
             {
-                m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString, new ConcurrentQueue<DataConnection>());
+                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new ConnectResourcePool(m_minThreadCount, m_maxThreadCount, m_fixedTimeOut, m_temTimeOut, m_slavelinqToDbConnectionOptions));
 
-                for (int i = 0; i < connectionCount; i++)
-                {
-                    lock (m_creatureDataConnectionPool)
-                    {
-                        DataConnection dataConnection = new DataConnection(m_slavelinqToDbConnectionOptions);
-                        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-                        m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
-                    }
-                }
+                //m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString, new ConcurrentQueue<DataConnection>());
+
+                //for (int i = 0; i < connectionCount; i++)
+                //{
+                //    lock (m_creatureDataConnectionPool)
+                //    {
+                //        DataConnection dataConnection = new DataConnection(m_slavelinqToDbConnectionOptions);
+                //        m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+                //        m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].Enqueue(dataConnection);
+                //    }
+                //}
             }
         }
 
         private static DataConnection CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions)
         {
-            DataConnection dataConnection;
+            //DataConnection dataConnection;
 
-            if (m_connectionPool[linqToDbConnectionOptions.ConnectionString].IsEmpty)
-            {
-                int.TryParse(ConfigManager.Configuration["MaxTempConnectionCount"], out int maxTempConnectionCount);
+            //if (m_connectionPool[linqToDbConnectionOptions.ConnectionString].IsEmpty)
+            //{
+            //    int.TryParse(ConfigManager.Configuration["MaxTempConnectionCount"], out int maxTempConnectionCount);
 
-                if (maxTempConnectionCount <= 0)
-                    maxTempConnectionCount = DEFAULT_MAX_TEMP_CONNECTION_COUNT;
+            //    if (maxTempConnectionCount <= 0)
+            //        maxTempConnectionCount = DEFAULT_MAX_TEMP_CONNECTION_COUNT;
 
-                if (m_tempDataConnections.Count < maxTempConnectionCount)
-                {
-                    dataConnection = new DataConnection(linqToDbConnectionOptions);
+            //    if (m_tempDataConnections.Count < maxTempConnectionCount)
+            //    {
+            //        dataConnection = new DataConnection(linqToDbConnectionOptions);
 
-                    lock (m_tempDataConnections)
-                    {
-                        m_tempDataConnections.Add(dataConnection);
-                    }
-                }
-                else throw new DealException("连接繁忙，请稍后再试。");
-            }
-            else
-            {
-                while (!m_connectionPool[linqToDbConnectionOptions.ConnectionString].TryDequeue(out dataConnection))
-                    Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
+            //        lock (m_tempDataConnections)
+            //        {
+            //            m_tempDataConnections.Add(dataConnection);
+            //        }
+            //    }
+            //    else throw new DealException("连接繁忙，请稍后再试。");
+            //}
+            //else
+            //{
+            //    while (!m_connectionPool[linqToDbConnectionOptions.ConnectionString].TryDequeue(out dataConnection))
+            //        Thread.Sleep(GET_DATACONNECTION_THREAD_TIME_SPAN);
 
-                if (m_creatureDataConnectionPool.ContainsKey(dataConnection))
-                {
-                    if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > m_dataConnectionOutTime)
-                    {
-                        lock (m_creatureDataConnectionPool)
-                        {
-                            dataConnection.Close();
-                            dataConnection.Dispose();
+            //    if (m_creatureDataConnectionPool.ContainsKey(dataConnection))
+            //    {
+            //        if ((DateTime.Now - m_creatureDataConnectionPool[dataConnection]).TotalMilliseconds > m_dataConnectionOutTime)
+            //        {
+            //            lock (m_creatureDataConnectionPool)
+            //            {
+            //                dataConnection.Close();
+            //                dataConnection.Dispose();
 
-                            m_creatureDataConnectionPool.Remove(dataConnection);
-                            dataConnection = new DataConnection(linqToDbConnectionOptions);
-                            m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
-                        }
-                    }
-                }
-            }
+            //                m_creatureDataConnectionPool.Remove(dataConnection);
+            //                dataConnection = new DataConnection(linqToDbConnectionOptions);
+            //                m_creatureDataConnectionPool.Add(dataConnection, DateTime.Now);
+            //            }
+            //        }
+            //    }
+            //}
 
-            return dataConnection;
+            return m_connectionPool[linqToDbConnectionOptions.ConnectionString].Apply();
         }
 
         private static void DisposeConnection(DataConnection dataConnection)
         {
-            //如果该连接为临时连，则关闭并释放资源
-            if (m_tempDataConnections.Contains(dataConnection))
-            {
-                dataConnection.Close();
-                dataConnection.Dispose();
+            ////如果该连接为临时连，则关闭并释放资源
+            //if (m_tempDataConnections.Contains(dataConnection))
+            //{
+            //    dataConnection.Close();
+            //    dataConnection.Dispose();
 
-                lock (m_tempDataConnections)
-                    m_tempDataConnections.Remove(dataConnection);
-            }
+            //    lock (m_tempDataConnections)
+            //        m_tempDataConnections.Remove(dataConnection);
+            //}
 
-            //如果该连接为长连接，并且长连接连接队列里面没包含该连接，则将连接入队到连接池中
-            else if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
-                m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
+            ////如果该连接为长连接，并且长连接连接队列里面没包含该连接，则将连接入队到连接池中
+            //else if (!m_connectionPool[dataConnection.ConnectionString].Contains(dataConnection))
+            //    m_connectionPool[dataConnection.ConnectionString].Enqueue(dataConnection);
+
+            m_connectionPool[dataConnection.ConnectionString].Release(dataConnection);
         }
 
         public static ISearchQuery<T> GetLinq2DBSearchQuery<T>(bool codeFirst)

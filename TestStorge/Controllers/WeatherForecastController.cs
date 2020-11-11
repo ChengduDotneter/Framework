@@ -9,62 +9,52 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TestStorge.Controllers
 {
-    [Route("tccstorge")]
-    public class TCCStorgeController : TransactionTCCController<StockInfoCousme, StockInfoCousme>
+    [Route("teststock")]
+   public class StockInfoGetController : ControllerBase
     {
-        private readonly ISearchQuery<StockInfo> m_stockInfoSearchQuery;
-        private readonly IEditQuery<StockInfo> m_stockInfoEditQuery;
+        private ISearchQuery<StockInfo> m_searchQuery;
+        private IEditQuery<StockInfo> m_editQuery;
 
-        public TCCStorgeController(
-            IEditQuery<StockInfoCousme> editQuery,
-            IHttpClientFactory httpClientFactory,
-            IHttpContextAccessor httpContextAccessor,
-            ITccTransactionManager tccTransactionManager,
-            ISearchQuery<StockInfo> stockInfoSearchQuery,
-            IEditQuery<StockInfo> stockInfoEditQuery) : base(editQuery, httpClientFactory, httpContextAccessor, tccTransactionManager)
+        public StockInfoGetController(ISearchQuery<StockInfo> searchQuery,
+            IEditQuery<StockInfo> editQuery)
         {
-            m_stockInfoSearchQuery = stockInfoSearchQuery;
-            m_stockInfoEditQuery = stockInfoEditQuery;
+            m_searchQuery = searchQuery;
+            m_editQuery = editQuery;
         }
 
-        protected override async Task<object> DoTry(long tccID, ITransaction transaction, StockInfoCousme data)
+        public IActionResult Get()
         {
-            IEnumerable<string> commodityNames = data.StockInfos.Select(item => item.CommodityName);
-            IEnumerable<StockInfo> currentStockInfos = await m_stockInfoSearchQuery.FilterIsDeleted().SearchAsync(item => commodityNames.Contains(item.CommodityName), transaction: transaction);
+            //using (ITransaction transaction = m_editQuery.BeginTransaction())
+            //{
 
-            foreach (StockInfo stockInfo in data.StockInfos)
+            //}
+
+            IEnumerable<StockInfo> search;
+
+            using (var queryable = m_searchQuery.GetQueryable())
+            using (var queryable1 = m_searchQuery.GetQueryable())
             {
-                StockInfo currentStock = currentStockInfos.FirstOrDefault(item => item.CommodityName == stockInfo.CommodityName);
+                var qquerable = from query111 in queryable
+                                select query111;
 
-                if (currentStock == null)
-                    throw new DealException("库存不存在");
+                Thread.Sleep(500);
 
-                if (currentStock.Number < stockInfo.Number)
-                    throw new DealException("库存不足");
-
-                currentStock.Number -= stockInfo.Number;
+                search = m_searchQuery.Search(qquerable).ToList();
             }
 
-            await m_stockInfoEditQuery.FilterIsDeleted().MergeAsync(transaction, currentStockInfos.ToArray());
-            return data;
+            return Ok(search);
         }
-    }
-
-    public class StockInfoCousme : ViewModelBase
-    {
-        public IEnumerable<StockInfo> StockInfos { get; set; }
     }
 
     public class StockInfo : ViewModelBase
     {
-        [QuerySqlField]
-        public string CommodityName { get; set; }
 
-        [QuerySqlField]
+        [LinqToDB.Mapping.Column(Length = 18, CanBeNull = true, Precision = 16, Scale = 2)]
         public decimal? Number { get; set; }
     }
 }
