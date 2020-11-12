@@ -61,7 +61,7 @@ namespace Common.Validation
 
                 Expression predicate = Expression.Lambda(equal, parameter);
 
-                return (int)typeof(ISearchQuery<>).MakeGenericType(m_foreignTableType).GetMethod("Count", new Type[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(m_foreignTableType, typeof(bool))), typeof(ITransaction) }).Invoke(searchQuery, new object[] { predicate, null }) > 0;
+                return (int)typeof(ISearchQuery<>).MakeGenericType(m_foreignTableType).GetMethod("Count", new Type[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(m_foreignTableType, typeof(bool))), typeof(IDBResourceContent) }).Invoke(searchQuery, new object[] { predicate, null }) > 0;
             }
 
             throw new NotImplementedException();

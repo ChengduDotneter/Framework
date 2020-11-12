@@ -50,7 +50,7 @@ namespace Common.Validation
 
                 Expression predicate = Expression.Lambda(unique, parameter);
 
-                return (int)typeof(ISearchQuery<>).MakeGenericType(validationContext.ObjectType).GetMethod("Count", new Type[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(validationContext.ObjectType, typeof(bool))), typeof(ITransaction) }).Invoke(searchQuery, new object[] { predicate, null }) == 0;
+                return (int)typeof(ISearchQuery<>).MakeGenericType(validationContext.ObjectType).GetMethod("Count", new Type[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(validationContext.ObjectType, typeof(bool))), typeof(IDBResourceContent) }).Invoke(searchQuery, new object[] { predicate, null }) == 0;
             }
 
             throw new NotSupportedException();
