@@ -1048,19 +1048,18 @@ namespace Common.DAL
             public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
             {
                 await ValidTransactionAsync(transaction);
-
                 return new Linq2DBQueryable<T>(((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>(), true);
             }
 
-            public async Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+            public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), false);
+                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), false));
                 }
                 else
                 {
-                    return new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), false);
+                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), false));
                 }
             }
 
