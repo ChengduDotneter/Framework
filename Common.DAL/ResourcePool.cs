@@ -4,24 +4,6 @@ using System;
 
 namespace Common.DAL
 {
-    /// <summary>
-    /// 资源池（两个队列锁（临时队列及固定队列））
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface IResourcePoolManage<T>
-    {
-        /// <summary>
-        /// 申请T资源
-        /// </summary>
-        /// <returns></returns>
-        IResourceInstance<T> ApplyInstance();
-    }
-
-    public interface IResourceInstance<T> : IDisposable
-    {
-        T Instance { get; }
-    }
-
     public class DataConnectionInstance : DataConnection
     {
         /// <summary>
@@ -35,7 +17,7 @@ namespace Common.DAL
         }
     }
 
-    public class DataConnectResourcePool : ResourcePool2<DataConnectionInstance>
+    public class DataConnectResourcePool : ResourcePool<DataConnectionInstance>
     {
         private readonly Func<DataConnectionInstance> m_doCreateInstance;
         private readonly Action<DataConnectionInstance> m_doDisposableInstance;

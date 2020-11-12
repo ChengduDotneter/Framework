@@ -2,13 +2,31 @@
 using System.Collections.Concurrent;
 using System.Threading;
 
-namespace Common.DAL
+namespace Common
 {
+    /// <summary>
+    /// 资源池（两个队列锁（临时队列及固定队列））
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IResourcePoolManage<T>
+    {
+        /// <summary>
+        /// 申请T资源
+        /// </summary>
+        /// <returns></returns>
+        IResourceInstance<T> ApplyInstance();
+    }
+
+    public interface IResourceInstance<T> : IDisposable
+    {
+        T Instance { get; }
+    }
+
     /// <summary>
     /// 资源池（单个队列锁）
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class ResourcePool2<T> : IResourcePoolManage<T>
+    public abstract class ResourcePool<T> : IResourcePoolManage<T>
     {
         /// <summary>
         /// 资源池实例
@@ -30,9 +48,9 @@ namespace Common.DAL
             /// </summary>
             public int OverTimeMilliseconds { get; set; }
 
-            private readonly ResourcePool2<T> m_resourcePool;
+            private readonly ResourcePool<T> m_resourcePool;
 
-            public ResourceInstance(T instance, bool isTemp, int overTimeMilliseconds, ResourcePool2<T> resourcePool)
+            public ResourceInstance(T instance, bool isTemp, int overTimeMilliseconds, ResourcePool<T> resourcePool)
             {
                 Instance = instance;
                 IsTemp = isTemp;
@@ -79,7 +97,7 @@ namespace Common.DAL
         /// <param name="fixResetTimeMilliseconds">固定资源重置时间（毫秒）</param>
         /// <param name="temporaryNum">临时资源数量</param>
         /// <param name="temporaryOverTimeMilliseconds">临时资源释放时间（毫秒） 最后一次使用后释放</param>
-        public ResourcePool2(int fixedNum, int fixResetTimeMilliseconds, int temporaryNum, int temporaryOverTimeMilliseconds, Func<T> doCreateInstance, Action<T> doDisposableInstance)
+        public ResourcePool(int fixedNum, int fixResetTimeMilliseconds, int temporaryNum, int temporaryOverTimeMilliseconds, Func<T> doCreateInstance, Action<T> doDisposableInstance)
         {
             m_instanceCount = 0;
             m_fixedNum = fixedNum;
