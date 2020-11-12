@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace Common.DAL
@@ -44,10 +43,18 @@ namespace Common.DAL
 
             public void Dispose()
             {
-                if (IsTemp && OverTimeMilliseconds <= Environment.TickCount)
+                if (IsTemp)
                 {
-                    m_resourcePool.m_doDisposableInstance.Invoke(Instance);
-                    m_resourcePool.m_instanceCount--;
+                    if (OverTimeMilliseconds < Environment.TickCount)
+                    {
+                        m_resourcePool.m_doDisposableInstance.Invoke(Instance);
+                        m_resourcePool.m_instanceCount--;
+                    }
+                    else
+                    {
+                        OverTimeMilliseconds = Environment.TickCount + m_resourcePool.m_temporaryOverTimeMilliseconds;
+                        m_resourcePool.m_resourceInstanceQueue.Enqueue(this);
+                    }
                 }
                 else
                     m_resourcePool.m_resourceInstanceQueue.Enqueue(this);
@@ -84,7 +91,7 @@ namespace Common.DAL
             IniResourcePool();
         }
 
-        protected void IniResourcePool()
+        private void IniResourcePool()
         {
             m_resourceInstanceQueue = new ConcurrentQueue<ResourceInstance>();
 
@@ -96,7 +103,7 @@ namespace Common.DAL
             }
         }
 
-        public IResourceInstance<T> ApplyInstance()
+        public virtual IResourceInstance<T> ApplyInstance()
         {
             int replayNum = 0;
             ResourceInstance resourceInstance = null;
@@ -127,9 +134,7 @@ namespace Common.DAL
                 }
             }
 
-            if (resourceInstance.IsTemp)
-                resourceInstance.OverTimeMilliseconds = Environment.TickCount + m_temporaryOverTimeMilliseconds;
-
+            Console.WriteLine($"当前资源数量：{m_instanceCount}");
             return resourceInstance;
         }
     }

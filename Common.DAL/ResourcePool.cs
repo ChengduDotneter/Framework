@@ -1,10 +1,6 @@
 ﻿using LinqToDB.Configuration;
 using LinqToDB.Data;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 
 namespace Common.DAL
 {
@@ -39,19 +35,24 @@ namespace Common.DAL
         }
     }
 
-
     public class DataConnectResourcePool : ResourcePool2<DataConnectionInstance>
     {
         private readonly Func<DataConnectionInstance> m_doCreateInstance;
         private readonly Action<DataConnectionInstance> m_doDisposableInstance;
 
-        public DataConnectResourcePool(int fixedNum, int fixResetTimeMilliseconds, int temporaryNum, int temporaryOverTimeMilliseconds, Func<DataConnectionInstance> doCreateInstance, Action<DataConnectionInstance> doDisposableInstance) : base(fixedNum, fixResetTimeMilliseconds, temporaryNum, temporaryOverTimeMilliseconds, doCreateInstance, doDisposableInstance)
+        public DataConnectResourcePool(
+            int fixedNum, 
+            int fixResetTimeMilliseconds,
+            int temporaryNum,
+            int temporaryOverTimeMilliseconds, 
+            Func<DataConnectionInstance> doCreateInstance,
+            Action<DataConnectionInstance> doDisposableInstance) : base(fixedNum, fixResetTimeMilliseconds, temporaryNum, temporaryOverTimeMilliseconds, doCreateInstance, doDisposableInstance)
         {
             m_doCreateInstance = doCreateInstance;
             m_doDisposableInstance = doDisposableInstance;
         }
 
-        public new IResourceInstance<DataConnectionInstance> ApplyInstance()
+        public override IResourceInstance<DataConnectionInstance> ApplyInstance()
         {
             IResourceInstance<DataConnectionInstance> resourceInstance = base.ApplyInstance();
 
