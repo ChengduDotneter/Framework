@@ -27,61 +27,7 @@ namespace TestRedis.CacheSearchQuery
             m_searchQuery = searchQuery;
         }
 
-        public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
-        {
-            string predicateString = nameof(Count) + predicate.ToString<T>();
-            string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
-
-            int cacheCount = m_redisValueCache.GetValueByKey<int>(cacheKey);
-
-            if (cacheCount == 0)
-            {
-                cacheCount = m_searchQuery.Count(predicate);
-
-                if (cacheCount > 0)
-                {
-                    int saveMilliseconds = Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]);
-
-                    m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheCount, saveMilliseconds > MAX_SAVE_MILLISECONDS ? MAX_SAVE_MILLISECONDS : saveMilliseconds);
-                }
-            }
-
-            return cacheCount;
-        }
-
-        public int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null)
-        {
-            return m_searchQuery.Count(query);
-        }
-
-        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null)
-        {
-            string predicateString = nameof(Count) + predicate.ToString<T>();
-            string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
-
-            int cacheCount = await m_redisValueCache.GetValueByKeyAsync<int>(cacheKey);
-
-            if (cacheCount == 0)
-            {
-                cacheCount = await m_searchQuery.CountAsync(predicate);
-
-                if (cacheCount > 0)
-                {
-                    int saveMilliseconds = Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]);
-
-                    await m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheCount, saveMilliseconds > MAX_SAVE_MILLISECONDS ? MAX_SAVE_MILLISECONDS : saveMilliseconds);
-                }
-            }
-
-            return cacheCount;
-        }
-
-        public Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null)
-        {
-            return m_searchQuery.CountAsync(query);
-        }
-
-        public T Get(long id, ITransaction transaction = null)
+        public T Get(long id, ITransaction transaction)
         {
             string cacheKey = RedisKeyHelper.GetKeyCacheKey(typeof(T).Name, id);
 
@@ -98,7 +44,24 @@ namespace TestRedis.CacheSearchQuery
             return data;
         }
 
-        public async Task<T> GetAsync(long id, ITransaction transaction = null)
+        public T Get(long id, IDBResourceContent dbResourceContent = null)
+        {
+            string cacheKey = RedisKeyHelper.GetKeyCacheKey(typeof(T).Name, id);
+
+            T data = m_redisValueCache.GetValueByKey<T>(cacheKey);
+
+            if (data == null)
+            {
+                data = m_searchQuery.Get(id, dbResourceContent);
+
+                if (data != null)
+                    m_redisValueCache.SetValueByKeyAsync(cacheKey, data, Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]));
+            }
+
+            return data;
+        }
+
+        public async Task<T> GetAsync(long id, ITransaction transaction)
         {
             string cacheKey = RedisKeyHelper.GetKeyCacheKey(typeof(T).Name, id);
 
@@ -115,17 +78,78 @@ namespace TestRedis.CacheSearchQuery
             return data;
         }
 
-        public ISearchQueryable<T> GetQueryable(ITransaction transaction = null)
+        public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.GetQueryable(transaction);
+            string cacheKey = RedisKeyHelper.GetKeyCacheKey(typeof(T).Name, id);
+
+            T data = await m_redisValueCache.GetValueByKeyAsync<T>(cacheKey);
+
+            if (data == null)
+            {
+                data = await m_searchQuery.GetAsync(id, dbResourceContent);
+
+                if (data != null)
+                    await m_redisValueCache.SetValueByKeyAsync(cacheKey, data, Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]));
+            }
+
+            return data;
         }
 
-        public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null)
+        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
         {
-            return m_searchQuery.GetQueryableAsync(transaction);
+            return m_searchQuery.Count(transaction, predicate);
         }
 
-        public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+        public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Count(predicate, dbResourceContent);
+        }
+
+        public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+        {
+            string predicateString = nameof(Count) + predicate.ToString<T>();
+            string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
+
+            int cacheCount = m_redisValueCache.GetValueByKey<int>(cacheKey);
+
+            if (cacheCount == 0)
+            {
+                cacheCount = await m_searchQuery.CountAsync(transaction, predicate);
+
+                if (cacheCount > 0)
+                {
+                    int saveMilliseconds = Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]);
+
+                    await m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheCount, saveMilliseconds > MAX_SAVE_MILLISECONDS ? MAX_SAVE_MILLISECONDS : saveMilliseconds);
+                }
+            }
+
+            return cacheCount;
+        }
+
+        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            string predicateString = nameof(Count) + predicate.ToString<T>();
+            string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
+
+            int cacheCount = m_redisValueCache.GetValueByKey<int>(cacheKey);
+
+            if (cacheCount == 0)
+            {
+                cacheCount = await m_searchQuery.CountAsync(predicate, dbResourceContent);
+
+                if (cacheCount > 0)
+                {
+                    int saveMilliseconds = Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]);
+
+                    await m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheCount, saveMilliseconds > MAX_SAVE_MILLISECONDS ? MAX_SAVE_MILLISECONDS : saveMilliseconds);
+                }
+            }
+
+            return cacheCount;
+        }
+
+        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
         {
             string queryOrderBiesString = queryOrderBies == null ? "" : string.Join("_", queryOrderBies.Select(item => item.Expression.ToString() + "_" + item.OrderByType.ToString()));
             string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToString<T>();
@@ -135,7 +159,7 @@ namespace TestRedis.CacheSearchQuery
 
             if (cacheDatas == null || cacheDatas.Count() < 0)
             {
-                cacheDatas = m_searchQuery.Search(predicate, queryOrderBies, startIndex, count);
+                cacheDatas = m_searchQuery.Search(transaction, predicate, queryOrderBies, startIndex, count);
 
                 if (cacheDatas != null && cacheDatas.Count() > 0)
                     m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheDatas, Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]));
@@ -144,12 +168,26 @@ namespace TestRedis.CacheSearchQuery
             return cacheDatas;
         }
 
-        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+        public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.Search(query, startIndex, count, transaction);
+            string queryOrderBiesString = queryOrderBies == null ? "" : string.Join("_", queryOrderBies.Select(item => item.Expression.ToString() + "_" + item.OrderByType.ToString()));
+            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToString<T>();
+            string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
+
+            IEnumerable<T> cacheDatas = m_redisValueCache.GetValueByKey<IEnumerable<T>>(cacheKey);
+
+            if (cacheDatas == null || cacheDatas.Count() < 0)
+            {
+                cacheDatas = m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, dbResourceContent);
+
+                if (cacheDatas != null && cacheDatas.Count() > 0)
+                    m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheDatas, Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]));
+            }
+
+            return cacheDatas;
         }
 
-        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+        public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
         {
             string queryOrderBiesString = queryOrderBies == null ? "" : string.Join("_", queryOrderBies.Select(item => item.Expression.ToString() + "_" + item.OrderByType.ToString()));
             string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToString<T>();
@@ -159,7 +197,7 @@ namespace TestRedis.CacheSearchQuery
 
             if (cacheDatas == null || cacheDatas.Count() < 0)
             {
-                cacheDatas = await m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count);
+                cacheDatas = await m_searchQuery.SearchAsync(transaction, predicate, queryOrderBies, startIndex, count);
 
                 if (cacheDatas != null && cacheDatas.Count() > 0)
                     await m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheDatas, Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]));
@@ -168,69 +206,83 @@ namespace TestRedis.CacheSearchQuery
             return cacheDatas;
         }
 
-        public Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null)
+        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.SearchAsync(query, startIndex, count, transaction);
+            string queryOrderBiesString = queryOrderBies == null ? "" : string.Join("_", queryOrderBies.Select(item => item.Expression.ToString() + "_" + item.OrderByType.ToString()));
+            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToString<T>();
+            string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
+
+            IEnumerable<T> cacheDatas = await m_redisValueCache.GetValueByKeyAsync<IEnumerable<T>>(cacheKey);
+
+            if (cacheDatas == null || cacheDatas.Count() < 0)
+            {
+                cacheDatas = await m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count, dbResourceContent);
+
+                if (cacheDatas != null && cacheDatas.Count() > 0)
+                    await m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheDatas, Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]));
+            }
+
+            return cacheDatas;
         }
 
-        T ISearchQuery<T>.Get(long id, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
         {
-            throw new NotImplementedException();
+            return m_searchQuery.Count(transaction, query);
         }
 
-        Task<T> ISearchQuery<T>.GetAsync(long id, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
         {
-            throw new NotImplementedException();
+            return m_searchQuery.Count(query, dbResourceContent);
         }
 
-        int ISearchQuery<T>.Count(Expression<Func<T, bool>> predicate, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
         {
-            throw new NotImplementedException();
+            return await m_searchQuery.CountAsync(transaction, query);
         }
 
-        Task<int> ISearchQuery<T>.CountAsync(Expression<Func<T, bool>> predicate, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
         {
-            throw new NotImplementedException();
+            return await m_searchQuery.CountAsync(query, dbResourceContent);
         }
 
-        IEnumerable<T> ISearchQuery<T>.Search(Expression<Func<T, bool>> predicate, IEnumerable<QueryOrderBy<T>> queryOrderBies, int startIndex, int count, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
         {
-            throw new NotImplementedException();
+            return m_searchQuery.Search(transaction, query, startIndex, count);
         }
 
-        Task<IEnumerable<T>> ISearchQuery<T>.SearchAsync(Expression<Func<T, bool>> predicate, IEnumerable<QueryOrderBy<T>> queryOrderBies, int startIndex, int count, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            throw new NotImplementedException();
+            return m_searchQuery.Search(query, startIndex, count, dbResourceContent);
         }
 
-        int ISearchQuery<T>.Count<TResult>(IQueryable<TResult> query, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
         {
-            throw new NotImplementedException();
+            return await m_searchQuery.SearchAsync(transaction, query, startIndex, count);
         }
 
-        Task<int> ISearchQuery<T>.CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            throw new NotImplementedException();
+            return await m_searchQuery.SearchAsync(query, startIndex, count, dbResourceContent);
         }
 
-        IEnumerable<TResult> ISearchQuery<T>.Search<TResult>(IQueryable<TResult> query, int startIndex, int count, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public ISearchQueryable<T> GetQueryable(ITransaction transaction)
         {
-            throw new NotImplementedException();
+            return m_searchQuery.GetQueryable(transaction);
         }
 
-        Task<IEnumerable<TResult>> ISearchQuery<T>.SearchAsync<TResult>(IQueryable<TResult> query, int startIndex, int count, ITransaction transaction, IDBResourceContent dbResourceContent)
+        public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
         {
-            throw new NotImplementedException();
+            return m_searchQuery.GetQueryable(dbResourceContent);
         }
 
-        ISearchQueryable<T> ISearchQuery<T>.GetQueryable(ITransaction transaction, IDBResourceContent dbResourceContent)
+        public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
         {
-            throw new NotImplementedException();
+            return await m_searchQuery.GetQueryableAsync(transaction);
         }
 
-        Task<ISearchQueryable<T>> ISearchQuery<T>.GetQueryableAsync(ITransaction transaction, IDBResourceContent dbResourceContent)
+        public async Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
         {
-            throw new NotImplementedException();
+            return await m_searchQuery.GetQueryableAsync(dbResourceContent);
         }
     }
 }
