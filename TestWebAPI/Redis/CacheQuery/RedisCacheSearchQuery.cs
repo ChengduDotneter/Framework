@@ -97,12 +97,46 @@ namespace TestRedis.CacheSearchQuery
 
         public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
         {
-            return m_searchQuery.Count(transaction, predicate);
+            string predicateString = nameof(Count) + predicate.ToString<T>();
+            string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
+
+            int cacheCount = m_redisValueCache.GetValueByKey<int>(cacheKey);
+
+            if (cacheCount == 0)
+            {
+                cacheCount = m_searchQuery.Count(transaction, predicate);
+
+                if (cacheCount > 0)
+                {
+                    int saveMilliseconds = Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]);
+
+                    m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheCount, saveMilliseconds > MAX_SAVE_MILLISECONDS ? MAX_SAVE_MILLISECONDS : saveMilliseconds);
+                }
+            }
+
+            return cacheCount;
         }
 
         public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.Count(predicate, dbResourceContent);
+            string predicateString = nameof(Count) + predicate.ToString<T>();
+            string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
+
+            int cacheCount = m_redisValueCache.GetValueByKey<int>(cacheKey);
+
+            if (cacheCount == 0)
+            {
+                cacheCount = m_searchQuery.Count(predicate, dbResourceContent);
+
+                if (cacheCount > 0)
+                {
+                    int saveMilliseconds = Convert.ToInt32(ConfigManager.Configuration[REDIS_QUERY_SAVE_MILLISECONDS]);
+
+                    m_redisValueCache.SetValueByKeyAsync(cacheKey, cacheCount, saveMilliseconds > MAX_SAVE_MILLISECONDS ? MAX_SAVE_MILLISECONDS : saveMilliseconds);
+                }
+            }
+
+            return cacheCount;
         }
 
         public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
