@@ -1,4 +1,11 @@
-﻿using System;
+﻿using Common.DAL.Transaction;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,13 +13,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Common.DAL.Transaction;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
-using Newtonsoft.Json.Linq;
 
 namespace Common.DAL
 {
@@ -124,7 +124,9 @@ namespace Common.DAL
 
             public IQueryProvider Provider { get; }
 
-            public void Dispose() { }
+            public void Dispose()
+            {
+            }
 
             public IEnumerator<T> GetEnumerator()
             {
@@ -146,7 +148,9 @@ namespace Common.DAL
 
         private class OrderedMongoQueryable<T> : MongoQueryable<T>, IOrderedQueryable<T>
         {
-            public OrderedMongoQueryable(IQueryable<T> innerQuery, IQueryProvider queryProvider) : base(innerQuery, queryProvider) { }
+            public OrderedMongoQueryable(IQueryable<T> innerQuery, IQueryProvider queryProvider) : base(innerQuery, queryProvider)
+            {
+            }
         }
 
         private class MongoQueryableProvider : IQueryProvider
@@ -209,7 +213,6 @@ namespace Common.DAL
                 IQueryable<TElement> queryable = m_queryProvider.CreateQuery<TElement>(expression);
                 MongoQueryableProvider mongoQueryProvider = new MongoQueryableProvider(queryable.Provider);
                 m_joinItems.ForEach(item => mongoQueryProvider.m_joinItems.Add(item));
-
 
                 if (methodCallExpression.Method.Name == "OrderBy" ||
                     methodCallExpression.Method.Name == "ThenBy" ||
@@ -431,28 +434,6 @@ namespace Common.DAL
                 return await Task.FromResult(new MongoDBTransaction(weight));
             }
 
-            public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = Apply<T>(transaction);
-                DaoFactory.LogHelper.Info("mongoDB", $"count predicate: {predicate}");
-
-                if (!inTransaction)
-                    return (int)GetCollection(m_slaveMongoDatabase).CountDocuments(predicate ?? EMPTY_PREDICATE);
-                else
-                    return (int)GetCollection(m_masterMongoDatabase).CountDocuments(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
-            }
-
-            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-                await DaoFactory.LogHelper.Info("mongoDB", $"count predicate: {predicate}");
-
-                if (!inTransaction)
-                    return (int)await GetCollection(m_slaveMongoDatabase).CountDocumentsAsync(predicate ?? EMPTY_PREDICATE);
-                else
-                    return (int)await GetCollection(m_masterMongoDatabase).CountDocumentsAsync(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
-            }
-
             public void Delete(ITransaction transaction = null, params long[] ids)
             {
                 bool inTransaction = Apply<T>(transaction);
@@ -473,28 +454,6 @@ namespace Common.DAL
                     await GetCollection(m_masterMongoDatabase).DeleteManyAsync(Builders<T>.Filter.In(nameof(IEntity.ID), ids));
                 else
                     await GetCollection(m_masterMongoDatabase).DeleteManyAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.In(nameof(IEntity.ID), ids));
-            }
-
-            public T Get(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = Apply<T>(transaction);
-                DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
-
-                if (!inTransaction)
-                    return GetCollection(m_slaveMongoDatabase).Find(Builders<T>.Filter.Eq(nameof(IEntity.ID), id)).FirstOrDefault();
-                else
-                    return GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), id)).FirstOrDefault();
-            }
-
-            public async Task<T> GetAsync(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-                await DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
-
-                if (!inTransaction)
-                    return await (await GetCollection(m_slaveMongoDatabase).FindAsync(Builders<T>.Filter.Eq(nameof(IEntity.ID), id))).FirstOrDefaultAsync();
-                else
-                    return await (await GetCollection(m_masterMongoDatabase).FindAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), id))).FirstOrDefaultAsync();
             }
 
             public void Insert(ITransaction transaction = null, params T[] datas)
@@ -549,72 +508,6 @@ namespace Common.DAL
                 }
 
                 await Task.WhenAll(tasks);
-            }
-
-            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = Apply<T>(transaction);
-
-                DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
-
-                IFindFluent<T, T> findFluent;
-
-                if (!inTransaction)
-                    findFluent = GetCollection(m_slaveMongoDatabase).Find(predicate ?? EMPTY_PREDICATE);
-                else
-                    findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
-
-                if (queryOrderBies != null)
-                {
-                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
-
-                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                    {
-                        if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
-                        else
-                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
-                    }
-
-                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList();
-                }
-
-                return findFluent.Skip(startIndex).Limit(count).ToList();
-            }
-
-            public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
-                                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-                                                          int startIndex = 0,
-                                                          int count = int.MaxValue,
-                                                          ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-
-                await DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
-
-                IFindFluent<T, T> findFluent;
-
-                if (!inTransaction)
-                    findFluent = GetCollection(m_slaveMongoDatabase).Find(predicate ?? EMPTY_PREDICATE);
-                else
-                    findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
-
-                if (queryOrderBies != null)
-                {
-                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
-
-                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                    {
-                        if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
-                        else
-                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
-                    }
-
-                    return await findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToListAsync();
-                }
-
-                return await findFluent.Skip(startIndex).Limit(count).ToListAsync();
             }
 
             public void Update(T data, ITransaction transaction = null)
@@ -683,68 +576,6 @@ namespace Common.DAL
                 }
             }
 
-            public int Count<TResult>(IQueryable<TResult> query, ITransaction _ = null, IDBResourceContent dbResourceContent = null)
-            {
-                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
-                return queryable.Count();
-            }
-
-            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction _ = null, IDBResourceContent dbResourceContent = null)
-            {
-                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
-                return await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<int>(Expression.Call(m_countMethodInfo.MakeGenericMethod(typeof(TResult)), queryable.Expression));
-            }
-
-            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null, IDBResourceContent dbResourceContent = null)
-            {
-                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
-                return queryable.Skip(startIndex).Take(count).ToList();
-            }
-
-            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction _ = null, IDBResourceContent dbResourceContent = null)
-            {
-                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
-                IAsyncCursor<TResult> asyncCursor = await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<IAsyncCursor<TResult>>(queryable.Expression);
-                IList<TResult> results = new List<TResult>();
-
-                while (await asyncCursor.MoveNextAsync(CancellationToken.None))
-                    results.AddRange(asyncCursor.Current);
-
-                return results;
-            }
-
-            public ISearchQueryable<T> GetQueryable(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = Apply<T>(transaction);
-
-                if (!inTransaction)
-                {
-                    IQueryable<T> queryable = GetCollection(m_slaveMongoDatabase).AsQueryable();
-                    return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
-                }
-                else
-                {
-                    IQueryable<T> queryable = GetCollection(m_masterMongoDatabase).AsQueryable(((MongoDBTransaction)transaction).ClientSessionHandle);
-                    return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
-                }
-            }
-
-            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-
-                if (!inTransaction)
-                {
-                    IQueryable<T> queryable = GetCollection(m_slaveMongoDatabase).AsQueryable();
-                    return new MongoQueryable<T>(GetCollection(m_slaveMongoDatabase).AsQueryable(), new MongoQueryableProvider(queryable.Provider));
-                }
-                else
-                {
-                    IQueryable<T> queryable = GetCollection(m_masterMongoDatabase).AsQueryable(((MongoDBTransaction)transaction).ClientSessionHandle);
-                    return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
-                }
-            }
-
             private static string GetOrderByString(IEnumerable<QueryOrderBy<T>> queryOrderBies)
             {
                 if (queryOrderBies == null)
@@ -772,6 +603,277 @@ namespace Common.DAL
                 }
 
                 return m_collection[mongoDatabase];
+            }
+
+            private static void ValidTransaction(ITransaction transaction)
+            {
+                bool inTransaction = Apply<T>(transaction);
+
+                if (!inTransaction)
+                    throw new DealException($"当前未查询到事务信息，请先使用{nameof(MongoDBDaoInstance<T>.BeginTransaction)}开启事务。");
+            }
+
+            private async static Task ValidTransactionAsync(ITransaction transaction)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (!inTransaction)
+                    throw new DealException($"当前未查询到事务信息，请先使用{nameof(MongoDBDaoInstance<T>.BeginTransaction)}开启事务。");
+            }
+
+            public T Get(long id, ITransaction transaction)
+            {
+                ValidTransaction(transaction);
+                DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
+
+                return GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), id)).FirstOrDefault();
+            }
+
+            public T Get(long id, IDBResourceContent dbResourceContent = null)
+            {
+                DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
+                return GetCollection(m_slaveMongoDatabase).Find(Builders<T>.Filter.Eq(nameof(IEntity.ID), id)).FirstOrDefault();
+            }
+
+            public async Task<T> GetAsync(long id, ITransaction transaction)
+            {
+                await ValidTransactionAsync(transaction);
+                await DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
+
+                return await (await GetCollection(m_masterMongoDatabase).FindAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), id))).FirstOrDefaultAsync();
+            }
+
+            public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
+            {
+                await DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
+
+                return await (await GetCollection(m_slaveMongoDatabase).FindAsync(Builders<T>.Filter.Eq(nameof(IEntity.ID), id))).FirstOrDefaultAsync();
+            }
+
+            public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+            {
+                ValidTransaction(transaction);
+
+                return (int)GetCollection(m_masterMongoDatabase).CountDocuments(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
+            }
+
+            public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+            {
+                DaoFactory.LogHelper.Info("mongoDB", $"count predicate: {predicate}");
+
+                return (int)GetCollection(m_slaveMongoDatabase).CountDocuments(predicate ?? EMPTY_PREDICATE);
+            }
+
+            public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+            {
+                await ValidTransactionAsync(transaction);
+                await DaoFactory.LogHelper.Info("mongoDB", $"count predicate: {predicate}");
+
+                return (int)await GetCollection(m_masterMongoDatabase).CountDocumentsAsync(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
+            }
+
+            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+            {
+                await DaoFactory.LogHelper.Info("mongoDB", $"count predicate: {predicate}");
+                return (int)await GetCollection(m_slaveMongoDatabase).CountDocumentsAsync(predicate ?? EMPTY_PREDICATE);
+            }
+
+            public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
+            {
+                ValidTransaction(transaction);
+
+                DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
+
+                IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
+
+                if (queryOrderBies != null)
+                {
+                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
+
+                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                    {
+                        if (queryOrderBy.OrderByType == OrderByType.Asc)
+                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
+                        else
+                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
+                    }
+
+                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList();
+                }
+
+                return findFluent.Skip(startIndex).Limit(count).ToList();
+
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            {
+                DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
+
+                IFindFluent<T, T> findFluent = GetCollection(m_slaveMongoDatabase).Find(predicate ?? EMPTY_PREDICATE);
+
+                if (queryOrderBies != null)
+                {
+                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
+
+                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                    {
+                        if (queryOrderBy.OrderByType == OrderByType.Asc)
+                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
+                        else
+                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
+                    }
+
+                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList();
+                }
+
+                return findFluent.Skip(startIndex).Limit(count).ToList();
+
+                throw new NotImplementedException();
+            }
+
+            public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
+            {
+                await ValidTransactionAsync(transaction);
+
+                IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
+
+                if (queryOrderBies != null)
+                {
+                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
+
+                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                    {
+                        if (queryOrderBy.OrderByType == OrderByType.Asc)
+                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
+                        else
+                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
+                    }
+
+                    return await findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToListAsync();
+                }
+
+                return await findFluent.Skip(startIndex).Limit(count).ToListAsync();
+            }
+
+            public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            {
+                await DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
+
+                IFindFluent<T, T> findFluent = GetCollection(m_slaveMongoDatabase).Find(predicate ?? EMPTY_PREDICATE);
+
+                if (queryOrderBies != null)
+                {
+                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
+
+                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                    {
+                        if (queryOrderBy.OrderByType == OrderByType.Asc)
+                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
+                        else
+                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
+                    }
+
+                    return await findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToListAsync();
+                }
+
+                return await findFluent.Skip(startIndex).Limit(count).ToListAsync();
+            }
+
+            public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
+            {
+                ValidTransaction(transaction);
+
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                return queryable.Count();
+            }
+
+            public int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+            {
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                return queryable.Count();
+            }
+
+            public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
+            {
+                await ValidTransactionAsync(transaction);
+
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                return await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<int>(Expression.Call(m_countMethodInfo.MakeGenericMethod(typeof(TResult)), queryable.Expression));
+            }
+
+            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+            {
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                return await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<int>(Expression.Call(m_countMethodInfo.MakeGenericMethod(typeof(TResult)), queryable.Expression));
+            }
+
+            public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+            {
+                ValidTransaction(transaction);
+
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                return queryable.Skip(startIndex).Take(count).ToList();
+            }
+
+            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            {
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                return queryable.Skip(startIndex).Take(count).ToList();
+            }
+
+            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+            {
+                await ValidTransactionAsync(transaction);
+
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                IAsyncCursor<TResult> asyncCursor = await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<IAsyncCursor<TResult>>(queryable.Expression);
+                IList<TResult> results = new List<TResult>();
+
+                while (await asyncCursor.MoveNextAsync(CancellationToken.None))
+                    results.AddRange(asyncCursor.Current);
+
+                return results;
+            }
+
+            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            {
+                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
+                IAsyncCursor<TResult> asyncCursor = await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<IAsyncCursor<TResult>>(queryable.Expression);
+                IList<TResult> results = new List<TResult>();
+
+                while (await asyncCursor.MoveNextAsync(CancellationToken.None))
+                    results.AddRange(asyncCursor.Current);
+
+                return results;
+            }
+
+            public ISearchQueryable<T> GetQueryable(ITransaction transaction)
+            {
+                ValidTransaction(transaction);
+
+                IQueryable<T> queryable = GetCollection(m_masterMongoDatabase).AsQueryable(((MongoDBTransaction)transaction).ClientSessionHandle);
+                return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
+            }
+
+            public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
+            {
+                IQueryable<T> queryable = GetCollection(m_slaveMongoDatabase).AsQueryable();
+                return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
+            }
+
+            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
+            {
+                await ValidTransactionAsync(transaction);
+
+                IQueryable<T> queryable = GetCollection(m_masterMongoDatabase).AsQueryable(((MongoDBTransaction)transaction).ClientSessionHandle);
+                return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
+            }
+
+            public async Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+            {
+                IQueryable<T> queryable = GetCollection(m_slaveMongoDatabase).AsQueryable();
+                return new MongoQueryable<T>(GetCollection(m_slaveMongoDatabase).AsQueryable(), new MongoQueryableProvider(queryable.Provider));
             }
         }
 

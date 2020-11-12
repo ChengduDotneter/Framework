@@ -210,64 +210,47 @@ namespace Common.ServiceCommon
     {
         private ISearchQuery<T> m_searchQuery;
 
-        /// <summary>
-        /// 根据id获取实体
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public T Get(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public T Get(long id, ITransaction transaction)
         {
-            return m_searchQuery.Get(id, transaction, dbResourceContent);
+            return m_searchQuery.Get(id, transaction);
         }
 
-        /// <summary>
-        /// 根据id获取实体
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public async Task<T> GetAsync(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public T Get(long id, IDBResourceContent dbResourceContent = null)
         {
-            return await m_searchQuery.GetAsync(id, transaction, dbResourceContent);
+            return m_searchQuery.Get(id, dbResourceContent);
         }
 
-        /// <summary>
-        /// 根据linq查询条件获取查询条数
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<T> GetAsync(long id, ITransaction transaction)
         {
-            return m_searchQuery.Count(predicate, transaction, dbResourceContent);
+            return await m_searchQuery.GetAsync(id, transaction);
         }
 
-        /// <summary>
-        /// 根据linq查询条件获取查询条数
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
         {
-            return await m_searchQuery.CountAsync(predicate, transaction, dbResourceContent);
+            return await m_searchQuery.GetAsync(id, dbResourceContent);
         }
 
-        /// <summary>
-        /// 根据Linq查询条件获取查询结果列表
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="queryOrderBies"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
-                                     IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-                                     int startIndex = 0,
-                                     int count = int.MaxValue,
-                                     ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+        {
+            return m_searchQuery.Count(transaction, predicate);
+        }
+
+        public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Count(predicate, dbResourceContent);
+        }
+
+        public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+        {
+            return await m_searchQuery.CountAsync(transaction, predicate);
+        }
+
+        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            return await m_searchQuery.CountAsync(predicate, dbResourceContent);
+        }
+
+        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
         {
             IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
 
@@ -276,23 +259,10 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, transaction, dbResourceContent);
+            return m_searchQuery.Search(transaction, predicate, queryOrderBies, startIndex, count);
         }
 
-        /// <summary>
-        /// 根据Linq查询条件获取查询结果列表
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="queryOrderBies"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
-                                                      IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-                                                      int startIndex = 0,
-                                                      int count = int.MaxValue,
-                                                      ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
             IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
 
@@ -301,79 +271,91 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return await m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count, transaction, dbResourceContent);
+            return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        /// <summary>
-        /// 根据Linq筛选条件两表联查条数
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
         {
-            return m_searchQuery.Count(query, transaction, dbResourceContent);
+            IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
+
+            if (queryOrderBies != null)
+                queryOrderBies = queryOrderBies.Concat(orderByIDDesc);
+            else
+                queryOrderBies = orderByIDDesc;
+
+            return await m_searchQuery.SearchAsync(transaction, predicate, queryOrderBies, startIndex, count);
         }
 
-        /// <summary>
-        /// 根据Linq筛选条件两表联查条数
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.CountAsync(query, transaction, dbResourceContent);
+            IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
+
+            if (queryOrderBies != null)
+                queryOrderBies = queryOrderBies.Concat(orderByIDDesc);
+            else
+                queryOrderBies = orderByIDDesc;
+
+            return await m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count,  dbResourceContent);
         }
 
-        /// <summary>
-        /// 根据Linq筛选条件两表联查数据
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
         {
-            return m_searchQuery.Search(query, startIndex, count, transaction, dbResourceContent);
+            return m_searchQuery.Count(transaction, query);
         }
 
-        /// <summary>
-        /// 根据Linq筛选条件两表联查数据
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.SearchAsync(query, startIndex, count, transaction, dbResourceContent);
+            return m_searchQuery.Count(query, dbResourceContent);
         }
 
-        /// <summary>
-        /// 获取Linq查询接口
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public ISearchQueryable<T> GetQueryable(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
         {
-            return m_searchQuery.GetQueryable(transaction, dbResourceContent);
+            return await m_searchQuery.CountAsync(transaction, query);
         }
 
-        /// <summary>
-        /// 获取Linq查询接口
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.GetQueryableAsync(transaction, dbResourceContent);
+            return await m_searchQuery.CountAsync(query, dbResourceContent);
+        }
+
+        public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+        {
+            return m_searchQuery.Search(transaction, query, startIndex, count);
+        }
+
+        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Search(query, startIndex, count, dbResourceContent);
+        }
+
+        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+        {
+            return await m_searchQuery.SearchAsync(transaction, query, startIndex, count);
+        }
+
+        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return await m_searchQuery.SearchAsync(query, startIndex, count, dbResourceContent);
+        }
+
+        public ISearchQueryable<T> GetQueryable(ITransaction transaction)
+        {
+            return m_searchQuery.GetQueryable(transaction);
+        }
+
+        public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetQueryable(dbResourceContent);
+        }
+
+        public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
+        {
+            return await m_searchQuery.GetQueryableAsync(transaction);
+        }
+
+        public async Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+        {
+            return await m_searchQuery.GetQueryableAsync(dbResourceContent);
         }
 
         /// <summary>
@@ -440,160 +422,132 @@ namespace Common.ServiceCommon
         where T : ViewModelBase, new()
     {
         private ISearchQuery<T> m_searchQuery;
-
-        /// <summary>
-        /// Get
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public T Get(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+       
+        public T Get(long id, ITransaction transaction)
         {
-            T data = m_searchQuery.Get(id, transaction, dbResourceContent);
+            T data = m_searchQuery.Get(id, transaction);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
-        /// <summary>
-        /// Get
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public async Task<T> GetAsync(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public T Get(long id, IDBResourceContent dbResourceContent = null)
         {
-            T data = await m_searchQuery.GetAsync(id, transaction, dbResourceContent);
+            T data = m_searchQuery.Get(id, dbResourceContent);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
-        /// <summary>
-        /// 通过Lambda表达式获取Count
-        /// </summary>
-        /// <param name="predicate">Lambda表达式</param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<T> GetAsync(long id, ITransaction transaction)
         {
-            return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(predicate), transaction, dbResourceContent);
+            T data = await m_searchQuery.GetAsync(id, transaction);
+            return !data?.IsDeleted ?? false ? data : null;
         }
 
-        /// <summary>
-        /// 通过Lambda表达式获取Count
-        /// </summary>
-        /// <param name="predicate">Lambda表达式</param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
         {
-            return await m_searchQuery.CountAsync(QueryProxyHelper.GetIsDeletedCondition(predicate), transaction, dbResourceContent);
+            T data = await m_searchQuery.GetAsync(id, dbResourceContent);
+            return !data?.IsDeleted ?? false ? data : null;
         }
 
-        /// <summary>
-        /// Lambda表达式分页查询
-        /// </summary>
-        /// <param name="predicate">Lambda表达式</param>
-        /// <param name="queryOrderBies">排序方式</param>
-        /// <param name="startIndex">开始位置</param>
-        /// <param name="count">结果总数</param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
-                                     IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-                                     int startIndex = 0,
-                                     int count = int.MaxValue,
-                                     ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
         {
-            return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, transaction, dbResourceContent);
+            return m_searchQuery.Count(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate));
         }
 
-        /// <summary>
-        /// Lambda表达式分页查询
-        /// </summary>
-        /// <param name="predicate">Lambda表达式</param>
-        /// <param name="queryOrderBies">排序方式</param>
-        /// <param name="startIndex">开始位置</param>
-        /// <param name="count">结果总数</param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
-                                                      IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-                                                      int startIndex = 0,
-                                                      int count = int.MaxValue,
-                                                      ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
         {
-            return await m_searchQuery.SearchAsync(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, transaction, dbResourceContent);
+            return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(predicate), dbResourceContent);
         }
 
-        /// <summary>
-        /// 根据Linq筛选条件两表联查条数
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
         {
-            return m_searchQuery.Count(query, transaction, dbResourceContent);
+            return await m_searchQuery.CountAsync(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate));
         }
 
-        /// <summary>
-        /// 根据Linq筛选条件两表联查条数
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.CountAsync(query, transaction, dbResourceContent);
+            return await m_searchQuery.CountAsync(QueryProxyHelper.GetIsDeletedCondition(predicate), dbResourceContent);
         }
 
-        /// <summary>
-        /// 根据Linq筛选条件两表联查数据
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
         {
-            return m_searchQuery.Search(query, startIndex, count, transaction, dbResourceContent);
+            return m_searchQuery.Search(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count);
         }
 
-        /// <summary>
-        /// 根据Linq筛选条件两表联查数据
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.SearchAsync(query, startIndex, count, transaction, dbResourceContent);
+            return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        /// <summary>
-        /// 获取Linq查询接口
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public ISearchQueryable<T> GetQueryable(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
         {
-            ISearchQueryable<T> searchQuerable = m_searchQuery.GetQueryable(transaction, dbResourceContent);
+            return await m_searchQuery.SearchAsync(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count);
+        }
+
+        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return await m_searchQuery.SearchAsync(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, dbResourceContent);
+        }
+
+        public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
+        {
+            return m_searchQuery.Count(transaction, query);
+        }
+
+        public int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Count(query, dbResourceContent);
+        }
+
+        public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
+        {
+            return await m_searchQuery.CountAsync(transaction,query);
+        }
+
+        public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+        {
+            return await m_searchQuery.CountAsync(query, dbResourceContent);
+        }
+
+        public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+        {
+            return m_searchQuery.Search(transaction, query, startIndex, count);
+        }
+
+        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Search(query, startIndex, count, dbResourceContent);
+        }
+
+        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+        {
+            return await m_searchQuery.SearchAsync(transaction, query, startIndex, count);
+        }
+
+        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return await m_searchQuery.SearchAsync(query, startIndex, count, dbResourceContent);
+        }
+
+        public ISearchQueryable<T> GetQueryable(ITransaction transaction)
+        {
+            ISearchQueryable<T> searchQuerable = m_searchQuery.GetQueryable(transaction);
             return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 
-        /// <summary>
-        /// 获取Linq查询接口
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
+        public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
         {
-            ISearchQueryable<T> searchQuerable = await m_searchQuery.GetQueryableAsync(transaction, dbResourceContent);
+            ISearchQueryable<T> searchQuerable = m_searchQuery.GetQueryable(dbResourceContent);
+            return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
+        }
+
+        public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
+        {
+            ISearchQueryable<T> searchQuerable = await m_searchQuery.GetQueryableAsync(transaction);
+            return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
+        }
+
+        public async Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+        {
+            ISearchQueryable<T> searchQuerable = await m_searchQuery.GetQueryableAsync(dbResourceContent);
             return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 

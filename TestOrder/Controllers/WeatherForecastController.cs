@@ -58,7 +58,7 @@ namespace TestOrder.Controllers
             order.CreateTime = DateTime.Now;
             order.CreateUserID = -9999;
 
-            if (await m_orderSearchQuery.FilterIsDeleted().CountAsync(item => item.OrderNo == order.OrderNo && item.ID != order.ID, transaction: transaction) > 0)
+            if (await m_orderSearchQuery.FilterIsDeleted().CountAsync(transaction: transaction,item => item.OrderNo == order.OrderNo && item.ID != order.ID) > 0)
                 throw new DealException("订单已存在");
 
             await m_orderEditQuery.FilterIsDeleted().InsertAsync(transaction, order);

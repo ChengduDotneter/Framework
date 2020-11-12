@@ -76,13 +76,45 @@ namespace TestStorge.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Console.WriteLine($"DBResourceContent HASH:{m_dbResourceContent.GetHashCode()}");
             IEnumerable<StockInfo> search;
 
             using (ISearchQueryable<StockInfo> stockInfoQuery = m_stockInfoSearchQuery.FilterIsDeleted().GetQueryable(dbResourceContent: m_dbResourceContent))
             using (ISearchQueryable<StockInfo> stockInfoQuery1 = m_stockInfoSearchQuery.FilterIsDeleted().GetQueryable(dbResourceContent: m_dbResourceContent))
             {
                 search = m_stockInfoSearchQuery.FilterIsDeleted().Search(dbResourceContent: m_dbResourceContent);
+
+                //Thread.Sleep(500);
+            }
+
+            return Ok(search);
+        }
+    }
+
+    [Route("testaaaa")]
+    public class TestaaaaController : ControllerBase
+    {
+        private readonly ISearchQuery<StockInfo> m_stockInfoSearchQuery;
+        private readonly IEditQuery<StockInfo> m_stockInfoEditQuery;
+        private readonly IDBResourceContent m_dbResourceContent;
+
+        public TestaaaaController(ISearchQuery<StockInfo> stockInfoSearchQuery,
+            IEditQuery<StockInfo> stockInfoEditQuery,
+            IDBResourceContent dbResourceContent)
+        {
+            m_stockInfoSearchQuery = stockInfoSearchQuery;
+            m_stockInfoEditQuery = stockInfoEditQuery;
+            m_dbResourceContent = dbResourceContent;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            IEnumerable<StockInfo> search;
+
+            using (ISearchQueryable<StockInfo> stockInfoQuery = await m_stockInfoSearchQuery.FilterIsDeleted().GetQueryableAsync(dbResourceContent: m_dbResourceContent))
+            using (ISearchQueryable<StockInfo> stockInfoQuery1 = await m_stockInfoSearchQuery.FilterIsDeleted().GetQueryableAsync(dbResourceContent: m_dbResourceContent))
+            {
+                search = await m_stockInfoSearchQuery.FilterIsDeleted().SearchAsync(dbResourceContent: m_dbResourceContent);
 
                 //Thread.Sleep(500);
             }

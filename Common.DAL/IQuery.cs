@@ -104,36 +104,84 @@ namespace Common.DAL
     public interface ISearchQuery<T> where T : class, IEntity, new()
     {
         /// <summary>
-        /// 根据ID查询
+        /// 事务中根据ID查询
         /// </summary>
         /// <param name="id"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        T Get(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        T Get(long id, ITransaction transaction);
 
         /// <summary>
         /// 根据ID查询
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        T Get(long id, IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中根据ID查询（异步）
+        /// </summary>
+        /// <param name="id"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<T> GetAsync(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        Task<T> GetAsync(long id, ITransaction transaction);
+
+        /// <summary>
+        /// 根据ID查询（异步）
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中根据Linq筛选条件查询条数
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null);
 
         /// <summary>
         /// 根据Linq筛选条件查询条数
         /// </summary>
         /// <param name="predicate"></param>
-        /// <param name="transaction"></param>
+        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
-        /// 根据Linq筛选条件查询条数
+        /// 事务中根据Linq筛选条件查询条数（异步）
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null);
+
+        /// <summary>
+        /// 根据Linq筛选条件查询条数（异步）
         /// </summary>
         /// <param name="predicate"></param>
-        /// <param name="transaction"></param>
+        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中根据Linq筛选条件查询
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        IEnumerable<T> Search(
+            ITransaction transaction,
+            Expression<Func<T, bool>> predicate = null,
+            IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+            int startIndex = 0,
+            int count = int.MaxValue);
 
         /// <summary>
         /// 根据Linq筛选条件查询
@@ -142,83 +190,154 @@ namespace Common.DAL
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
-        /// <param name="transaction"></param>
+        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
-                              IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-                              int startIndex = 0,
-                              int count = int.MaxValue,
-                              ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        IEnumerable<T> Search(
+         Expression<Func<T, bool>> predicate = null,
+         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+         int startIndex = 0,
+         int count = int.MaxValue,
+         IDBResourceContent dbResourceContent = null);
 
         /// <summary>
-        /// 根据Linq筛选条件查询
+        /// 事务中根据Linq筛选条件查询（异步）
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        Task<IEnumerable<T>> SearchAsync(
+            ITransaction transaction,
+            Expression<Func<T, bool>> predicate = null,
+            IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+            int startIndex = 0,
+            int count = int.MaxValue);
+
+        /// <summary>
+        /// 根据Linq筛选条件查询（异步）
         /// </summary>
         /// <param name="predicate"></param>
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
-        /// <param name="transaction"></param>
+        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
-                              IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-                              int startIndex = 0,
-                              int count = int.MaxValue,
-                              ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        Task<IEnumerable<T>> SearchAsync(
+            Expression<Func<T, bool>> predicate = null,
+            IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+            int startIndex = 0,
+            int count = int.MaxValue,
+            IDBResourceContent dbResourceContent = null);
 
         /// <summary>
-        /// 根据Linq筛选条件两表联查条数
+        /// 事务中根据LinqQueryable筛选条件联查条数
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        int Count<TResult>(ITransaction transaction, IQueryable<TResult> query);
+
+        /// <summary>
+        /// 根据LinqQueryable筛选条件联查条数
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
-        /// <param name="transaction"></param>
+        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
-        /// 根据Linq筛选条件两表联查条数
+        /// 事务中根据LinqQueryable筛选条件联查条数（异步）
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query);
+
+        /// <summary>
+        /// 根据LinqQueryable筛选条件联查条数（异步）
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
-        /// <param name="transaction"></param>
+        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
-        /// 根据Linq筛选条件两表联查数据
+        /// 事务中根据LinqQueryable筛选条件联查数据
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="query"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
+
+        /// <summary>
+        /// 根据LinqQueryable筛选条件联查数据
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
-        /// <param name="transaction"></param>
+        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null);
 
         /// <summary>
-        /// 根据Linq筛选条件两表联查数据
+        /// 事务中根据LinqQueryable筛选条件联查数据（异步）
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="query"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
+
+        /// <summary>
+        /// 根据LinqQueryable筛选条件联查数据（异步）
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中获取Linq查询接口
+        /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        ISearchQueryable<T> GetQueryable(ITransaction transaction);
 
         /// <summary>
         /// 获取Linq查询接口
         /// </summary>
-        /// <param name="transaction"></param>
+        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        ISearchQueryable<T> GetQueryable(ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null);
 
         /// <summary>
-        /// 获取Linq查询接口
+        /// 事务中获取Linq查询接口（异步）
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null, IDBResourceContent dbResourceContent = null);
+        Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction);
+
+        /// <summary>
+        /// 获取Linq查询接口（异步）
+        /// </summary>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null);
     }
 
     /// <summary>

@@ -71,7 +71,6 @@ namespace Common.DAL
             if (maxTempConnectionCount <= 0)
                 maxTempConnectionCount = DEFAULT_MAX_TEMP_CONNECTION_COUNT;
 
-
             int.TryParse(ConfigManager.Configuration["TempConnectionTimeOut"], out int tempConnectionTimeOut);
 
             if (tempConnectionTimeOut <= 0)
@@ -128,7 +127,6 @@ namespace Common.DAL
         public static IEditQuery<T> GetLinq2DBEditQuery<T>(bool codeFirst)
              where T : class, IEntity, new()
         {
-
             Linq2DBDaoInstance<T> linq2DBDaoInstance = new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions, codeFirst);
 
             if (codeFirst)
@@ -339,72 +337,6 @@ namespace Common.DAL
                 return new Linq2DBTransaction(await resourceInstance.Instance.BeginTransactionAsync(), weight, resourceInstance);
             }
 
-            public int Count(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = Apply<T>(transaction);
-
-                if (!inTransaction && dbResourceContent == null)
-                {
-                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    try
-                    {
-                        return dataConnection.Instance.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
-                    }
-                    finally
-                    {
-                        DisposeConnection(dataConnection);
-                    }
-                }
-                else if (!inTransaction && dbResourceContent != null)
-                {
-                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
-                }
-                else
-                {
-                    return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
-                }
-            }
-
-            public int Count<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                Apply<T>(transaction);
-                return query.Count();
-            }
-
-            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-
-                if (!inTransaction && dbResourceContent == null)
-                {
-                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    try
-                    {
-                        return await dataConnection.Instance.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
-                    }
-                    finally
-                    {
-                        DisposeConnection(dataConnection);
-                    }
-                }
-                else if (!inTransaction && dbResourceContent != null)
-                {
-                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
-                }
-                else
-                {
-                    return await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
-                }
-            }
-
-            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                await ApplyAsync<T>(transaction);
-                return await query.CountAsync();
-            }
-
             public void Delete(ITransaction transaction = null, params long[] ids)
             {
                 bool inTransaction = Apply<T>(transaction);
@@ -448,97 +380,6 @@ namespace Common.DAL
                 else
                 {
                     await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().DeleteAsync(item => ids.Contains(item.ID));
-                }
-            }
-
-            public T Get(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = Apply<T>(transaction);
-
-                if (!inTransaction && dbResourceContent == null)
-                {
-                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    try
-                    {
-                        return dataConnection.Instance.GetTable<T>().SingleOrDefault(item => item.ID == id);
-                    }
-                    finally
-                    {
-                        DisposeConnection(dataConnection);
-                    }
-                }
-                else if (!inTransaction && dbResourceContent != null)
-                {
-                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().SingleOrDefault(item => item.ID == id);
-                }
-                else
-                {
-                    Linq2DBDaoInstance<T> linq2DBDaoInstance = (Linq2DBDaoInstance<T>)GetLinq2DBEditQuery<T>(m_codeFirst);
-                    return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().SingleOrDefault(item => item.ID == id);
-                }
-            }
-
-            public async Task<T> GetAsync(long id, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-
-                if (!inTransaction && dbResourceContent == null)
-                {
-                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    try
-                    {
-                        return await dataConnection.Instance.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
-                    }
-                    finally
-                    {
-                        DisposeConnection(dataConnection);
-                    }
-                }
-                else if (!inTransaction && dbResourceContent != null)
-                {
-                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
-                }
-                else
-                {
-                    return await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
-                }
-            }
-
-            public ISearchQueryable<T> GetQueryable(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = Apply<T>(transaction);
-
-                if (!inTransaction && dbResourceContent == null)
-                {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), inTransaction);
-                }
-                else if (!inTransaction && dbResourceContent != null)
-                {
-                    return new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), inTransaction);
-                }
-                else
-                {
-                    return new Linq2DBQueryable<T>(((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>(), inTransaction);
-                }
-            }
-
-            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-
-                if (!inTransaction && dbResourceContent == null)
-                {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), inTransaction);
-                }
-                else if (!inTransaction && dbResourceContent != null)
-                {
-                    return new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), inTransaction);
-                }
-                else
-                {
-                    return new Linq2DBQueryable<T>(((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>(), inTransaction);
                 }
             }
 
@@ -649,228 +490,6 @@ namespace Common.DAL
 
                     await Task.WhenAll(tasks);
                 }
-            }
-
-            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = Apply<T>(transaction);
-
-                if (!inTransaction && dbResourceContent == null)
-                {
-                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    try
-                    {
-                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
-                        bool orderd = false;
-
-                        if (queryOrderBies != null)
-                        {
-                            foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                            {
-                                if (queryOrderBy.OrderByType == OrderByType.Asc)
-                                {
-                                    if (!orderd)
-                                        query = query.OrderBy(queryOrderBy.Expression);
-                                    else
-                                        query = query.ThenOrBy(queryOrderBy.Expression);
-                                }
-                                else
-                                {
-                                    if (!orderd)
-                                        query = query.OrderByDescending(queryOrderBy.Expression);
-                                    else
-                                        query = query.ThenOrByDescending(queryOrderBy.Expression);
-                                }
-
-                                orderd = true;
-                            }
-                        }
-
-                        return query.Skip(startIndex).Take(count).ToList();
-                    }
-                    finally
-                    {
-                        DisposeConnection(dataConnection);
-                    }
-                }
-                else if (!inTransaction && dbResourceContent != null)
-                {
-                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
-                    bool orderd = false;
-
-                    if (queryOrderBies != null)
-                    {
-                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                        {
-                            if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            {
-                                if (!orderd)
-                                    query = query.OrderBy(queryOrderBy.Expression);
-                                else
-                                    query = query.ThenOrBy(queryOrderBy.Expression);
-                            }
-                            else
-                            {
-                                if (!orderd)
-                                    query = query.OrderByDescending(queryOrderBy.Expression);
-                                else
-                                    query = query.ThenOrByDescending(queryOrderBy.Expression);
-                            }
-
-                            orderd = true;
-                        }
-                    }
-
-                    return query.Skip(startIndex).Take(count).ToList();
-                }
-                else
-                {
-                    IQueryable<T> query = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
-                    bool orderd = false;
-
-                    if (queryOrderBies != null)
-                    {
-                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                        {
-                            if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            {
-                                if (!orderd)
-                                    query = query.OrderBy(queryOrderBy.Expression);
-                                else
-                                    query = query.ThenOrBy(queryOrderBy.Expression);
-                            }
-                            else
-                            {
-                                if (!orderd)
-                                    query = query.OrderByDescending(queryOrderBy.Expression);
-                                else
-                                    query = query.ThenOrByDescending(queryOrderBy.Expression);
-                            }
-
-                            orderd = true;
-                        }
-                    }
-
-                    return query.Skip(startIndex).Take(count).ToList();
-                }
-            }
-
-            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                Apply<T>(transaction);
-                return query.Skip(startIndex).Take(count).ToList();
-            }
-
-            public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-
-                if (!inTransaction && dbResourceContent == null)
-                {
-                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    try
-                    {
-                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
-                        bool orderd = false;
-
-                        if (queryOrderBies != null)
-                        {
-                            foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                            {
-                                if (queryOrderBy.OrderByType == OrderByType.Asc)
-                                {
-                                    if (!orderd)
-                                        query = query.OrderBy(queryOrderBy.Expression);
-                                    else
-                                        query = query.ThenOrBy(queryOrderBy.Expression);
-                                }
-                                else
-                                {
-                                    if (!orderd)
-                                        query = query.OrderByDescending(queryOrderBy.Expression);
-                                    else
-                                        query = query.ThenOrByDescending(queryOrderBy.Expression);
-                                }
-
-                                orderd = true;
-                            }
-                        }
-
-                        return await query.Skip(startIndex).Take(count).ToListAsync();
-                    }
-                    finally
-                    {
-                        DisposeConnection(dataConnection);
-                    }
-                }
-                else if (!inTransaction && dbResourceContent != null)
-                {
-                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
-                    bool orderd = false;
-
-                    if (queryOrderBies != null)
-                    {
-                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                        {
-                            if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            {
-                                if (!orderd)
-                                    query = query.OrderBy(queryOrderBy.Expression);
-                                else
-                                    query = query.ThenOrBy(queryOrderBy.Expression);
-                            }
-                            else
-                            {
-                                if (!orderd)
-                                    query = query.OrderByDescending(queryOrderBy.Expression);
-                                else
-                                    query = query.ThenOrByDescending(queryOrderBy.Expression);
-                            }
-
-                            orderd = true;
-                        }
-                    }
-
-                    return await query.Skip(startIndex).Take(count).ToListAsync();
-                }
-                else
-                {
-                    IQueryable<T> query = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
-                    bool orderd = false;
-
-                    if (queryOrderBies != null)
-                    {
-                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                        {
-                            if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            {
-                                if (!orderd)
-                                    query = query.OrderBy(queryOrderBy.Expression);
-                                else
-                                    query = query.ThenOrBy(queryOrderBy.Expression);
-                            }
-                            else
-                            {
-                                if (!orderd)
-                                    query = query.OrderByDescending(queryOrderBy.Expression);
-                                else
-                                    query = query.ThenOrByDescending(queryOrderBy.Expression);
-                            }
-
-                            orderd = true;
-                        }
-                    }
-
-                    return await query.Skip(startIndex).Take(count).ToListAsync();
-                }
-            }
-
-            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, ITransaction transaction = null, IDBResourceContent dbResourceContent = null)
-            {
-                await ApplyAsync<T>(transaction);
-                return await query.Skip(startIndex).Take(count).ToListAsync();
             }
 
             public void Update(T data, ITransaction transaction = null)
@@ -1026,6 +645,422 @@ namespace Common.DAL
                     }
 
                     await updatable.UpdateAsync();
+                }
+            }
+
+            private static void ValidTransaction(ITransaction transaction)
+            {
+                bool inTransaction = Apply<T>(transaction);
+
+                if (!inTransaction)
+                    throw new DealException($"当前未查询到事务信息，请先使用{nameof(Linq2DBDaoInstance<T>.BeginTransaction)}开启事务。");
+            }
+
+            private async static Task ValidTransactionAsync(ITransaction transaction)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction);
+
+                if (!inTransaction)
+                    throw new DealException($"当前未查询到事务信息，请先使用{nameof(Linq2DBDaoInstance<T>.BeginTransaction)}开启事务。");
+            }
+
+            public T Get(long id, ITransaction transaction)
+            {
+                ValidTransaction(transaction);
+
+                return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().SingleOrDefault(item => item.ID == id);
+            }
+
+            public T Get(long id, IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        return dataConnection.Instance.GetTable<T>().SingleOrDefault(item => item.ID == id);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().SingleOrDefault(item => item.ID == id);
+            }
+
+            public async Task<T> GetAsync(long id, ITransaction transaction)
+            {
+                await ValidTransactionAsync(transaction);
+
+                return await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
+            }
+
+            public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        return await dataConnection.Instance.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
+            }
+
+            public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+            {
+                ValidTransaction(transaction);
+
+                return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
+            }
+
+            public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        return dataConnection.Instance.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
+            }
+
+            public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+            {
+                await ValidTransactionAsync(transaction);
+
+                return await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
+            }
+
+            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        return await dataConnection.Instance.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
+            }
+
+            public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
+            {
+                ValidTransaction(transaction);
+
+                IQueryable<T> query = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                bool orderd = false;
+
+                if (queryOrderBies != null)
+                {
+                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                    {
+                        if (queryOrderBy.OrderByType == OrderByType.Asc)
+                        {
+                            if (!orderd)
+                                query = query.OrderBy(queryOrderBy.Expression);
+                            else
+                                query = query.ThenOrBy(queryOrderBy.Expression);
+                        }
+                        else
+                        {
+                            if (!orderd)
+                                query = query.OrderByDescending(queryOrderBy.Expression);
+                            else
+                                query = query.ThenOrByDescending(queryOrderBy.Expression);
+                        }
+
+                        orderd = true;
+                    }
+                }
+
+                return query.Skip(startIndex).Take(count).ToList();
+            }
+
+            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                        bool orderd = false;
+
+                        if (queryOrderBies != null)
+                        {
+                            foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                            {
+                                if (queryOrderBy.OrderByType == OrderByType.Asc)
+                                {
+                                    if (!orderd)
+                                        query = query.OrderBy(queryOrderBy.Expression);
+                                    else
+                                        query = query.ThenOrBy(queryOrderBy.Expression);
+                                }
+                                else
+                                {
+                                    if (!orderd)
+                                        query = query.OrderByDescending(queryOrderBy.Expression);
+                                    else
+                                        query = query.ThenOrByDescending(queryOrderBy.Expression);
+                                }
+
+                                orderd = true;
+                            }
+                        }
+
+                        return query.Skip(startIndex).Take(count).ToList();
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                {
+                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                    bool orderd = false;
+
+                    if (queryOrderBies != null)
+                    {
+                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                        {
+                            if (queryOrderBy.OrderByType == OrderByType.Asc)
+                            {
+                                if (!orderd)
+                                    query = query.OrderBy(queryOrderBy.Expression);
+                                else
+                                    query = query.ThenOrBy(queryOrderBy.Expression);
+                            }
+                            else
+                            {
+                                if (!orderd)
+                                    query = query.OrderByDescending(queryOrderBy.Expression);
+                                else
+                                    query = query.ThenOrByDescending(queryOrderBy.Expression);
+                            }
+
+                            orderd = true;
+                        }
+                    }
+
+                    return query.Skip(startIndex).Take(count).ToList();
+                }
+            }
+
+            public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
+            {
+                await ValidTransactionAsync(transaction);
+
+                IQueryable<T> query = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                bool orderd = false;
+
+                if (queryOrderBies != null)
+                {
+                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                    {
+                        if (queryOrderBy.OrderByType == OrderByType.Asc)
+                        {
+                            if (!orderd)
+                                query = query.OrderBy(queryOrderBy.Expression);
+                            else
+                                query = query.ThenOrBy(queryOrderBy.Expression);
+                        }
+                        else
+                        {
+                            if (!orderd)
+                                query = query.OrderByDescending(queryOrderBy.Expression);
+                            else
+                                query = query.ThenOrByDescending(queryOrderBy.Expression);
+                        }
+
+                        orderd = true;
+                    }
+                }
+
+                return await query.Skip(startIndex).Take(count).ToListAsync();
+            }
+
+            public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                        bool orderd = false;
+
+                        if (queryOrderBies != null)
+                        {
+                            foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                            {
+                                if (queryOrderBy.OrderByType == OrderByType.Asc)
+                                {
+                                    if (!orderd)
+                                        query = query.OrderBy(queryOrderBy.Expression);
+                                    else
+                                        query = query.ThenOrBy(queryOrderBy.Expression);
+                                }
+                                else
+                                {
+                                    if (!orderd)
+                                        query = query.OrderByDescending(queryOrderBy.Expression);
+                                    else
+                                        query = query.ThenOrByDescending(queryOrderBy.Expression);
+                                }
+
+                                orderd = true;
+                            }
+                        }
+
+                        return await query.Skip(startIndex).Take(count).ToListAsync();
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                {
+                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                    bool orderd = false;
+
+                    if (queryOrderBies != null)
+                    {
+                        foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
+                        {
+                            if (queryOrderBy.OrderByType == OrderByType.Asc)
+                            {
+                                if (!orderd)
+                                    query = query.OrderBy(queryOrderBy.Expression);
+                                else
+                                    query = query.ThenOrBy(queryOrderBy.Expression);
+                            }
+                            else
+                            {
+                                if (!orderd)
+                                    query = query.OrderByDescending(queryOrderBy.Expression);
+                                else
+                                    query = query.ThenOrByDescending(queryOrderBy.Expression);
+                            }
+
+                            orderd = true;
+                        }
+                    }
+
+                    return await query.Skip(startIndex).Take(count).ToListAsync();
+                }
+            }
+
+            public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
+            {
+                ValidTransaction(transaction);
+                return query.Count();
+            }
+
+            public int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+            {
+                return query.Count();
+            }
+
+            public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
+            {
+                await ValidTransactionAsync(transaction);
+                return await query.CountAsync();
+            }
+
+            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+            {
+                return await query.CountAsync();
+            }
+
+            public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+            {
+                ValidTransaction(transaction);
+
+                return query.Skip(startIndex).Take(count).ToList();
+            }
+
+            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            {
+                return query.Skip(startIndex).Take(count).ToList();
+            }
+
+            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+            {
+                await ValidTransactionAsync(transaction);
+
+                return await query.Skip(startIndex).Take(count).ToListAsync();
+            }
+
+            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            {
+                return await query.Skip(startIndex).Take(count).ToListAsync();
+            }
+
+            public ISearchQueryable<T> GetQueryable(ITransaction transaction)
+            {
+                ValidTransaction(transaction);
+
+                return new Linq2DBQueryable<T>(((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>(), true);
+            }
+
+            public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), false);
+                }
+                else
+                {
+                    return new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), false);
+                }
+            }
+
+            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
+            {
+                await ValidTransactionAsync(transaction);
+
+                return new Linq2DBQueryable<T>(((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>(), true);
+            }
+
+            public async Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), false);
+                }
+                else
+                {
+                    return new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), false);
                 }
             }
 
