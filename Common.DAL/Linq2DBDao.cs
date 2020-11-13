@@ -228,7 +228,7 @@ namespace Common.DAL
 
             public object Content { get { return this; } }
 
-            public DataConnectionInstance Instance { get { return m_resourceInstance.Instance; } }
+            public DataConnectionInstance Instance { get { return m_resourceInstance.Instance; }  }
 
             public void Dispose()
             {
