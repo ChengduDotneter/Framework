@@ -13,7 +13,7 @@ namespace TestRedis.RedisService
     {
         private static readonly ConnectionMultiplexer m_connectionMultiplexer;
 
-        private const int SAVE_MILLISECONDS = 1000 * 60;
+        private const int SAVE_MILLISECONDS = 1000 * 60 * 5;
 
         static RedisCache()
         {
@@ -27,6 +27,8 @@ namespace TestRedis.RedisService
 
         public void ClearCacheByKey(string key)
         {
+            Console.WriteLine($"clear conditoinche:{key}");
+
             IServer server = m_connectionMultiplexer.GetServer(ConfigManager.Configuration["RedisEndPoint"]);
 
             IEnumerable<RedisKey> redisKeys = server.Keys(pattern: key + "*");
@@ -51,7 +53,9 @@ namespace TestRedis.RedisService
             IDatabase database = m_connectionMultiplexer.GetDatabase();
 
             if (redisKeys != null && redisKeys.Count() > 0)
+            {
                 database.KeyDelete(redisKeys);
+            }
         }
 
         public Task DeleteCacheByKeyAsync(params string[] keys)
@@ -67,6 +71,9 @@ namespace TestRedis.RedisService
             string valueString = database.StringGet(key);
 
             if (!string.IsNullOrWhiteSpace(valueString))
+                Console.WriteLine($"GET redis key:{key}");
+
+            if (!string.IsNullOrWhiteSpace(valueString))
                 return JsonConvert.DeserializeObject<T>(valueString);
             else return (T)typeof(T).GetDefaultValue();
         }
@@ -75,7 +82,12 @@ namespace TestRedis.RedisService
         {
             IDatabase database = m_connectionMultiplexer.GetDatabase();
 
-            return JsonConvert.DeserializeObject<IEnumerable<T>>(database.StringGet(key));
+            string valueString = database.StringGet(key);
+
+            if (!string.IsNullOrWhiteSpace(valueString))
+                Console.WriteLine($"GET redis key:{key} redis value:{valueString}");
+
+            return JsonConvert.DeserializeObject<IEnumerable<T>>(valueString);
         }
 
         public Task<T> GetValueByKeyAsync<T>(string key)
@@ -87,12 +99,17 @@ namespace TestRedis.RedisService
         {
             IDatabase database = m_connectionMultiplexer.GetDatabase();
 
+            Console.WriteLine($"SET redis key:{key} redis overTime:{saveMilliseconds}");
+
             database.StringSet(key, JsonConvert.SerializeObject(Value), TimeSpan.FromMilliseconds(saveMilliseconds > 0 ? saveMilliseconds : SAVE_MILLISECONDS));
         }
 
         public Task SetValueByKeyAsync<T>(string key, T Value, int saveMilliseconds = SAVE_MILLISECONDS)
         {
-            return Task.Factory.StartNew(() => SetValueByKey(key, Value, saveMilliseconds));
+            return Task.Factory.StartNew(() => 
+            {
+                SetValueByKey(key, Value, saveMilliseconds);
+            });
         }
 
         public bool KeyExists(string key)

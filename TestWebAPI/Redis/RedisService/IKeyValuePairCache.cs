@@ -4,7 +4,7 @@ namespace TestRedis.RedisService
 {
     public interface IKeyValuePairCache
     {
-        const int SAVE_MILLISECONDS = 1000 * 60;
+        const int SAVE_MILLISECONDS = 1000 * 60 * 5;
 
         bool KeyExists(string key);
 
