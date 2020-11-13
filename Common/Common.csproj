@@ -1,36 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.0.42</Version>
-    <AssemblyVersion>2.0.42.0</AssemblyVersion>
-    <FileVersion>2.0.42.0</FileVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Version>2.0.43</Version>
+		<AssemblyVersion>2.0.43.0</AssemblyVersion>
+		<FileVersion>2.0.43.0</FileVersion>
+	</PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType></DebugType>
-    <DocumentationFile>bin\Release\netstandard2.1\Common.xml</DocumentationFile>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Aliyun.OSS.SDK.NetCore" Version="2.11.0" />
-    <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.6" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.6" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.6" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.6" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="NPOI" Version="2.4.1" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.6" />
-    <PackageReference Include="Apache.Ignite" Version="2.8.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove=".DS_Store" />
-  </ItemGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<DebugType></DebugType>
+		<DocumentationFile>bin\Release\netstandard2.1\Common.xml</DocumentationFile>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Aliyun.OSS.SDK.NetCore" Version="2.11.0" />
+		<PackageReference Include="log4net" Version="2.0.8" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.6" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.6" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.6" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="3.1.6" />
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<PackageReference Include="NPOI" Version="2.4.1" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
+		<PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.6" />
+		<PackageReference Include="Apache.Ignite" Version="2.8.1" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Remove=".DS_Store" />
+	</ItemGroup>
 </Project>

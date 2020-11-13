@@ -1,4 +1,7 @@
-﻿namespace Common.Log
+﻿using Common.Log.LogModel;
+using System;
+
+namespace Common.Log
 {
     /// <summary>
     /// 日志帮助对象工厂
@@ -7,6 +10,7 @@
     {
         private static ILogHelper m_log4netLogHelper;
         private static ILogHelper m_kafkaLogHelper;
+        private static LogHelperTypeEnum? m_defaultLogHelperType;
 
         static LogHelperFactory()
         {
@@ -30,6 +34,27 @@
         public static ILogHelper GetKafkaLogHelper()
         {
             return m_kafkaLogHelper;
+        }
+
+        /// <summary>
+        /// 获取默认日志帮助实例
+        /// </summary>
+        /// <returns></returns>
+        public static ILogHelper GetDefaultLogHelper() => m_defaultLogHelperType switch
+        {
+            LogHelperTypeEnum.KafkaLog => GetKafkaLogHelper(),
+            null => GetKafkaLogHelper(),
+            LogHelperTypeEnum.Log4netLog => GetLog4netLogHelper(),
+            _ => throw new NotSupportedException()
+        };
+
+        /// <summary>
+        /// 日志默认日志类型设置
+        /// </summary>
+        /// <param name="defaultLogHelperType"></param>
+        public static void LogHelperDefaultTypeConfig(LogHelperTypeEnum? defaultLogHelperType)
+        {
+            m_defaultLogHelperType = defaultLogHelperType;
         }
     }
 }

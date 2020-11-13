@@ -61,7 +61,7 @@ namespace Common.Compute
         static HttpTask()
         {
             m_catalogServiceEqualityComparer = new CatalogServiceEqualityComparer();
-            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
+            m_logHelper = LogHelperFactory.GetDefaultLogHelper();
             ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
             ConfigManager.Configuration.Bind("ConsulService", serviceEntity);
             m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));

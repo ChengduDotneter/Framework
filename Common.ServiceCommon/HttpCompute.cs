@@ -54,7 +54,7 @@ namespace Common.ServiceCommon
 
         static HttpCompute()
         {
-            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
+            m_logHelper = LogHelperFactory.GetDefaultLogHelper();
             m_computeAssemblys = new Dictionary<string, ComputeAssembly>();
 
             TypeReflector.ReflectType((type) =>

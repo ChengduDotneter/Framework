@@ -71,8 +71,6 @@ namespace TestWebAPI
 
             services.AddQuerys(modelTypes);
 
-            services.AddJsonSerialize();
-
             services.AddSwagger();
 
         }

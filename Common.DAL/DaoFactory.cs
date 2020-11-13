@@ -10,7 +10,7 @@ namespace Common.DAL
         /// <summary>
         /// 日志处理
         /// </summary>
-        public static ILogHelper LogHelper { get; set; }
+        public static ILogHelper LogHelper { get; }
 
         /// <summary>
         /// 获取查询的MongoDB操作实体
@@ -54,6 +54,10 @@ namespace Common.DAL
             return Linq2DBDao.GetLinq2DBEditQuery<T>(codeFirst);
         }
 
+        /// <summary>
+        /// 获取LinqToDB的数据库连接资源上下文
+        /// </summary>
+        /// <returns></returns>
         public static IDBResourceContent GetLinq2DBResourceContent()
         {
             return Linq2DBDao.GetDBResourceContent();
@@ -61,7 +65,7 @@ namespace Common.DAL
 
         static DaoFactory()
         {
-            LogHelper = LogHelperFactory.GetKafkaLogHelper();
+            LogHelper = LogHelperFactory.GetDefaultLogHelper();
         }
     }
 }

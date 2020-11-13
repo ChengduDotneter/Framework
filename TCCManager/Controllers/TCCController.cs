@@ -103,7 +103,7 @@ namespace TCCManager.Controllers
         private const string CANCEL = "cancel";
         private const string COMMIT = "commit";
         private readonly static int MIN_TIMEOUT;
-        private readonly static ILogHelper m_logHelper;
+        private readonly ILogHelper m_logHelper;
         private IHttpContextAccessor m_httpContextAccessor;
         private IHttpClientFactory m_httpClientFactory;
         private ILock m_lock;
@@ -114,11 +114,13 @@ namespace TCCManager.Controllers
         /// <param name="httpContextAccessor"></param>
         /// <param name="httpClientFactory"></param>
         /// <param name="lock"></param>
-        public TCCController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, ILock @lock)
+        /// <param name="logHelper"></param>
+        public TCCController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, ILock @lock, ILogHelper logHelper)
         {
             m_httpContextAccessor = httpContextAccessor;
             m_httpClientFactory = httpClientFactory;
             m_lock = @lock;
+            m_logHelper = logHelper;
         }
 
         /// <summary>
@@ -268,7 +270,6 @@ namespace TCCManager.Controllers
 
         static TCCController()
         {
-            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
             MIN_TIMEOUT = Convert.ToInt32(ConfigManager.Configuration["MinTimeOut"]);
         }
     }

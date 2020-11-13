@@ -1,3 +1,15 @@
+using Apache.Ignite.Core;
+using Apache.Ignite.Core.Binary;
+using Apache.Ignite.Core.Configuration;
+using Apache.Ignite.Core.Discovery.Tcp;
+using Apache.Ignite.Core.Discovery.Tcp.Static;
+using Common.DAL;
+using Common.Log;
+using Common.Log.LogModel;
+using Common.Model;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,16 +18,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Apache.Ignite.Core;
-using Apache.Ignite.Core.Binary;
-using Apache.Ignite.Core.Configuration;
-using Apache.Ignite.Core.Discovery.Tcp;
-using Apache.Ignite.Core.Discovery.Tcp.Static;
-using Common.DAL;
-using Common.Model;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 
 namespace Common.ServiceCommon
@@ -26,6 +28,7 @@ namespace Common.ServiceCommon
     public static class MvcExtentions
     {
         private const int DEFAULT_THREAD_COUNT = 200;
+        private static bool m_logInit;
         private static bool m_isCodeFirst;
         private static IDictionary<Type, Func<object>> m_defaultSearchQueryProviderDic;
         private static IDictionary<Type, Func<object>> m_defaultEditQueryProviderDic;
@@ -69,6 +72,9 @@ namespace Common.ServiceCommon
 
             ThreadPool.GetMinThreads(out int workerThreads, out int completionPortThreads);
             ThreadPool.SetMinThreads(Math.Max(workerThreads, threadCount), Math.Max(completionPortThreads, threadCount));
+
+            serviceCollection.AddLogHelper();
+            serviceCollection.AddJsonSerialize();
 
             return hostBuilderContext;
         }
@@ -210,6 +216,7 @@ namespace Common.ServiceCommon
         /// <param name="modelTypes"></param>
         /// <param name="searchQueryProvider"></param>
         /// <param name="editQueryProvider"></param>
+        /// <param name="dbResourceContentProvider"></param>
         public static void AddQuerys(this IServiceCollection serviceCollection, Type[] modelTypes, Func<Type, object> searchQueryProvider = null, Func<Type, object> editQueryProvider = null, Func<IDBResourceContent> dbResourceContentProvider = null)
         {
             if (dbResourceContentProvider != null)
@@ -264,13 +271,40 @@ namespace Common.ServiceCommon
         /// JSON序列化相关接口依赖注册
         /// </summary>
         /// <param name="serviceCollection"></param>
-        public static void AddJsonSerialize(this IServiceCollection serviceCollection)
+        private static void AddJsonSerialize(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddScoped<IJObjectSerializeService, JObjectSerializeService>();
             serviceCollection.AddScoped<IJObjectConverter, JObjectConverter>();
 
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
+        }
+
+        /// <summary>
+        /// 日志记录的依赖注入
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <param name="logHelperType"></param>
+        public static void AddLogHelper(this IServiceCollection serviceCollection, LogHelperTypeEnum? logHelperType = null)
+        {
+            if (m_logInit)
+                return;
+
+            switch (logHelperType)
+            {
+                case LogHelperTypeEnum.KafkaLog:
+                case null:
+                    serviceCollection.AddSingleton(sp => LogHelperFactory.GetKafkaLogHelper());
+                    break;
+                case LogHelperTypeEnum.Log4netLog:
+                    serviceCollection.AddSingleton(sp => LogHelperFactory.GetLog4netLogHelper());
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+
+            LogHelperFactory.LogHelperDefaultTypeConfig(logHelperType);
+            m_logInit = true;
         }
     }
 }
