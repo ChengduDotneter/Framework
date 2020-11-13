@@ -138,7 +138,7 @@ namespace Common
                     {
                         if (replayNum++ > MAX_REPLAY_RESOURCE_NUM)
                         {
-                            Console.WriteLine($"重试超过{MAX_REPLAY_RESOURCE_NUM}次 线程:{Environment.CurrentManagedThreadId.GetHashCode()}");
+                            //Console.WriteLine($"重试超过{MAX_REPLAY_RESOURCE_NUM}次 线程:{Environment.CurrentManagedThreadId.GetHashCode()}");
                             throw new DealException("资源池繁忙，请稍后再试。");
                         }
 
@@ -152,7 +152,7 @@ namespace Common
                 }
             }
 
-            Console.WriteLine($"当前资源数量：{m_instanceCount}");
+           // Console.WriteLine($"当前资源数量：{m_instanceCount}");
             return resourceInstance;
         }
     }

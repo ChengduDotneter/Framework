@@ -38,6 +38,88 @@ namespace TestWebAPI.Controllers
         [HttpGet]
         public async Task<Left> Get()
         {
+            Console.WriteLine("controller start");
+
+            var data = m_searchQuery.RedisCache().Get(238335829955582145);
+
+            return data;
+        }
+    }
+
+    [Route("aaaaa")]
+    [ApiController]
+    public class AAAAA : ControllerBase
+    {
+        private ISearchQuery<Left> m_searchQuery;
+        private IEditQuery<Left> m_editQuery;
+
+        public AAAAA(ISearchQuery<Left> searchQuery, IEditQuery<Left> editQuery)
+        {
+            m_searchQuery = searchQuery;
+            m_editQuery = editQuery;
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<Left>> Get()
+        {
+            Console.WriteLine("controller start");
+
+            var data = m_searchQuery.RedisCache().Search();
+
+            return data;
+        }
+    }
+
+    [Route("insert")]
+    [ApiController]
+    public class INSERT : ControllerBase
+    {
+        private ISearchQuery<Left> m_searchQuery;
+        private IEditQuery<Left> m_editQuery;
+        private ISSOUserService m_ssouserservice;
+
+        public INSERT(ISearchQuery<Left> searchQuery, IEditQuery<Left> editQuery, ISSOUserService ssouserservice)
+        {
+            m_searchQuery = searchQuery;
+            m_editQuery = editQuery;
+            m_ssouserservice = ssouserservice;
+        }
+
+        [HttpGet]
+        public async Task<Left> Get()
+        {
+            Console.WriteLine("controller start");
+
+            Random random = new Random();
+
+            Left data = new Left()
+            {
+                StudentName = $"studentName_{random.Next(1, 10000)}",
+                ClassID = 0,
+            }.GenerateInitialization(m_ssouserservice);
+
+            m_editQuery.RedisCache().Insert(null, data);
+            return data;
+        }
+    }
+
+
+    [Route("test")]
+    [ApiController]
+    public class TEST : ControllerBase
+    {
+        private ISearchQuery<Left> m_searchQuery;
+        private IEditQuery<Left> m_editQuery;
+
+        public TEST(ISearchQuery<Left> searchQuery, IEditQuery<Left> editQuery)
+        {
+            m_searchQuery = searchQuery;
+            m_editQuery = editQuery;
+        }
+
+        [HttpGet]
+        public async Task<Left> Get()
+        {
             m_searchQuery.RedisCache().Search();
             m_searchQuery.RedisCache().Search(item => !item.IsDeleted);
             m_searchQuery.RedisCache().Search(item => !item.IsDeleted, startIndex: 0);
@@ -58,39 +140,66 @@ namespace TestWebAPI.Controllers
         }
     }
 
-    [Route("tccdo")]
-    public class tccdocontroller : TransactionTCCController<TCCTestData, TCCTestData>
+    [Route("update")]
+    [ApiController]
+    public class UPDATE : ControllerBase
     {
-        private IEditQuery<TCCTestData> m_tccTestDataeditQuery;
-        private ISearchQuery<TCCTestData> m_searchQuery;
+        private ISearchQuery<Left> m_searchQuery;
+        private IEditQuery<Left> m_editQuery;
 
-        public tccdocontroller(IEditQuery<TCCTestData> tccTestDataeditQuery, ISearchQuery<TCCTestData> searchQuery, IHttpClientFactory httpContextFactory, IHttpContextAccessor httpContextAccessor, ITccTransactionManager tccTransactionManager) : base(tccTestDataeditQuery, httpContextFactory, httpContextAccessor, tccTransactionManager)
+        public UPDATE(ISearchQuery<Left> searchQuery, IEditQuery<Left> editQuery)
         {
-            m_tccTestDataeditQuery = tccTestDataeditQuery;
             m_searchQuery = searchQuery;
+            m_editQuery = editQuery;
         }
 
-        protected override async Task<object> DoTry(long tccID, ITransaction transaction, TCCTestData data)
+        [HttpGet]
+        public async Task<Left> Get()
         {
-            data.Data = $"{data.Data}:{data.ID}, tccID:{tccID}";
-            data.ID = IDGenerator.NextID();
-            //m_searchQuery.Count(transaction: transaction);
-            await m_tccTestDataeditQuery.InsertAsync(transaction, data);
-            //await Task.Delay(1000);
+            var data = m_searchQuery.RedisCache().Get(238335829955582145);
+            Random random = new Random();
+            data.StudentName = $"studentName_{random.Next(1,10000)}";
+
+            m_editQuery.RedisCache().Update(data);
 
             return data;
         }
     }
-    [ApiController]
-    [Route("tttessst")]
-    public class TestController : ControllerBase
-    {
-        [HttpGet]
-        public string ttt()
-        {
-            throw new DealException("123456");
-        }
-    }
+
+
+    //[Route("tccdo")]
+    //public class tccdocontroller : TransactionTCCController<TCCTestData, TCCTestData>
+    //{
+    //    private IEditQuery<TCCTestData> m_tccTestDataeditQuery;
+    //    private ISearchQuery<TCCTestData> m_searchQuery;
+
+    //    public tccdocontroller(IEditQuery<TCCTestData> tccTestDataeditQuery, ISearchQuery<TCCTestData> searchQuery, IHttpClientFactory httpContextFactory, IHttpContextAccessor httpContextAccessor, ITccTransactionManager tccTransactionManager) : base(tccTestDataeditQuery, httpContextFactory, httpContextAccessor, tccTransactionManager)
+    //    {
+    //        m_tccTestDataeditQuery = tccTestDataeditQuery;
+    //        m_searchQuery = searchQuery;
+    //    }
+
+    //    protected override async Task<object> DoTry(long tccID, ITransaction transaction, TCCTestData data)
+    //    {
+    //        data.Data = $"{data.Data}:{data.ID}, tccID:{tccID}";
+    //        data.ID = IDGenerator.NextID();
+    //        //m_searchQuery.Count(transaction: transaction);
+    //        await m_tccTestDataeditQuery.InsertAsync(transaction, data);
+    //        //await Task.Delay(1000);
+
+    //        return data;
+    //    }
+    //}
+    //[ApiController]
+    //[Route("tttessst")]
+    //public class TestController : ControllerBase
+    //{
+    //    [HttpGet]
+    //    public string ttt()
+    //    {
+    //        throw new DealException("123456");
+    //    }
+    //}
 
     public class TestService : IHostedService
     {
