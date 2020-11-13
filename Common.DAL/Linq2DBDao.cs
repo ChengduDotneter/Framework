@@ -20,6 +20,7 @@ namespace Common.DAL
         private const int DEFAULT_CONNECTION_COUNT = 10; //最大长连接数
         private const int DEFAULT_CONNECTION_WAITTIMEOUT = 8 * 60 * 60 * 1000;//8小时
         private const int DEFAULT_MAX_TEMP_CONNECTION_COUNT = 10; //最大临时连接数
+        private const int TEMP_CONNECTION_TIMEOUT = 60 * 10 * 1000; //临时连接数存活时间
         private static IDictionary<string, DataConnectResourcePool> m_connectionPool;
         private static ISet<string> m_tableNames;
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
@@ -74,7 +75,7 @@ namespace Common.DAL
             int.TryParse(ConfigManager.Configuration["TempConnectionTimeOut"], out int tempConnectionTimeOut);
 
             if (tempConnectionTimeOut <= 0)
-                tempConnectionTimeOut = 60 * 1000 * 10;
+                tempConnectionTimeOut = TEMP_CONNECTION_TIMEOUT;
 
             if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.ConnectionString))
             {
@@ -94,7 +95,7 @@ namespace Common.DAL
 
         private static DataConnectionInstance CreateSlaveDataConnection()
         {
-            return new DataConnectionInstance(0, m_slavelinqToDbConnectionOptions);
+            return new DataConnectionInstance(Environment.TickCount + m_dataConnectionOutTime, m_slavelinqToDbConnectionOptions);
         }
 
         private static void CloseDataConnection(DataConnectionInstance dataConnectionInstance)

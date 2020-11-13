@@ -116,7 +116,7 @@ namespace TestStorge.Controllers
             {
                 search = await m_stockInfoSearchQuery.FilterIsDeleted().SearchAsync(dbResourceContent: m_dbResourceContent);
 
-                //Thread.Sleep(500);
+                Thread.Sleep(500);
             }
 
             return Ok(search);
