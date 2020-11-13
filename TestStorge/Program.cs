@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Common.Log;
 
 namespace TestStorge
 {
@@ -33,6 +34,8 @@ namespace TestStorge
 
         private static void ConfigInit(HostBuilderContext hostBuilderContext, IServiceCollection services)
         {
+            services.DefaultLogHelperConfig(Common.Log.LogModel.LogHelperTypeEnum.Log4netLog);
+
             hostBuilderContext.ConfigInit(services);
             //hostBuilderContext.ConfigIgnite();
         }

@@ -73,7 +73,7 @@ namespace Common.ServiceCommon
             ThreadPool.GetMinThreads(out int workerThreads, out int completionPortThreads);
             ThreadPool.SetMinThreads(Math.Max(workerThreads, threadCount), Math.Max(completionPortThreads, threadCount));
 
-            serviceCollection.AddLogHelper();
+            serviceCollection.DefaultLogHelperConfig();
             serviceCollection.AddJsonSerialize();
 
             return hostBuilderContext;
@@ -278,33 +278,6 @@ namespace Common.ServiceCommon
 
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
-        }
-
-        /// <summary>
-        /// 日志记录的依赖注入
-        /// </summary>
-        /// <param name="serviceCollection"></param>
-        /// <param name="logHelperType"></param>
-        public static void AddLogHelper(this IServiceCollection serviceCollection, LogHelperTypeEnum? logHelperType = null)
-        {
-            if (m_logInit)
-                return;
-
-            switch (logHelperType)
-            {
-                case LogHelperTypeEnum.KafkaLog:
-                case null:
-                    serviceCollection.AddSingleton(sp => LogHelperFactory.GetKafkaLogHelper());
-                    break;
-                case LogHelperTypeEnum.Log4netLog:
-                    serviceCollection.AddSingleton(sp => LogHelperFactory.GetLog4netLogHelper());
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-
-            LogHelperFactory.LogHelperDefaultTypeConfig(logHelperType);
-            m_logInit = true;
         }
     }
 }
