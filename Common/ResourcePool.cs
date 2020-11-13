@@ -52,11 +52,11 @@ namespace Common
 
             public ResourceInstance(T instance, bool isTemp, int overTimeMilliseconds, ResourcePool<T> resourcePool)
             {
+                m_resourcePool = resourcePool;
+                m_resourcePool.m_instanceCount++;
                 Instance = instance;
                 IsTemp = isTemp;
                 OverTimeMilliseconds = overTimeMilliseconds;
-                m_resourcePool = resourcePool;
-                m_resourcePool.m_instanceCount++;
             }
 
             public void Dispose()

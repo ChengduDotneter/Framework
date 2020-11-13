@@ -870,10 +870,10 @@ namespace Common.DAL
                 return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
             }
 
-            public async Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+            public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
             {
                 IQueryable<T> queryable = GetCollection(m_slaveMongoDatabase).AsQueryable();
-                return new MongoQueryable<T>(GetCollection(m_slaveMongoDatabase).AsQueryable(), new MongoQueryableProvider(queryable.Provider));
+                return Task.FromResult<ISearchQueryable<T>>(new MongoQueryable<T>(GetCollection(m_slaveMongoDatabase).AsQueryable(), new MongoQueryableProvider(queryable.Provider)));
             }
         }
 

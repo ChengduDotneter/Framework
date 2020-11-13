@@ -41,7 +41,7 @@ namespace Common.DAL
             if (resourceInstance.Instance.OverTimeMilliseconds < Environment.TickCount)
             {
                 m_doDisposableInstance.Invoke(resourceInstance.Instance);
-                typeof(IResourceInstance<DataConnectionInstance>).GetProperty(nameof(resourceInstance.Instance)).SetValue(resourceInstance, m_doCreateInstance.Invoke());
+                resourceInstance.GetType().GetProperty(nameof(resourceInstance.Instance)).SetValue(resourceInstance, m_doCreateInstance.Invoke());
             }
 
             return resourceInstance;
