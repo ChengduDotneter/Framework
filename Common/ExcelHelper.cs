@@ -135,7 +135,7 @@ namespace Common
                 }
                 int lastPageItemCount = dt.Rows.Count % EXCEL03_MaxRow;
 
-                DataWrite2Sheet(dt, dt.Rows.Count - lastPageItemCount, lastPageItemCount, book, sheetName + page.ToString());
+                DataWrite2Sheet(dt, dt.Rows.Count - lastPageItemCount, dt.Rows.Count, book, sheetName + page.ToString());
             }
 
             MemoryStream ms = new MemoryStream();
