@@ -172,10 +172,8 @@ namespace Common.ServiceCommon
 
             if (JTokenHelper.GetIntValue(jObject["code"]) != 200)
                 throw new DealException($"{microServiceName}接口调用失败,原因:{JTokenHelper.GetStringValue(jObject["msg"])}");
-
             else if (!jObject["data"].HasValues)
                 throw new DealException($"{microServiceName}接口调用失败,无返回数据");
-
             else return JsonConvert.DeserializeObject<T>(jObject["data"].ToString());
         }
 

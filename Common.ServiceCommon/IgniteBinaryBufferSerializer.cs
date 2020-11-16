@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Apache.Ignite.Core.Binary;
+using Apache.Ignite.Core.Cache.Configuration;
+using Common.DAL;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using Apache.Ignite.Core.Binary;
-using Apache.Ignite.Core.Cache.Configuration;
-using Common.DAL;
 
 namespace Common.ServiceCommon
 {

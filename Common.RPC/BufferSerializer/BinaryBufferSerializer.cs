@@ -22,9 +22,13 @@ namespace Common.RPC.BufferSerializer
         }
 
         private static readonly DateTime MIN_TIME;
+
         private delegate int GetDataSize(IRPCData data, Encoding encoding);
+
         private delegate byte[] GetBuffer(IRPCData data, Encoding encoding);
+
         private delegate IRPCData CreateData(byte[] buffer, Encoding encoding, ref int offset);
+
         private static IDictionary<byte, SerializerContext> m_serializerContexts;
         private Encoding m_encoding;
 
@@ -78,6 +82,7 @@ namespace Common.RPC.BufferSerializer
                     }
                     valueType = ((FieldInfo)memberInfo).FieldType;
                     break;
+
                 case MemberTypes.Property:
                     if (!((PropertyInfo)memberInfo).CanWrite)
                     {
@@ -86,6 +91,7 @@ namespace Common.RPC.BufferSerializer
                     }
                     valueType = ((PropertyInfo)memberInfo).PropertyType;
                     break;
+
                 default:
                     {
                         valueType = null;
@@ -329,7 +335,6 @@ namespace Common.RPC.BufferSerializer
                         Expression ifTrue = Expression.Block(Expression.Assign(Expression.ArrayAccess(member, value), Expression.Convert(InitCreateDataHandler(elementType, encoding, buffer, offset), elementType)), Expression.AddAssign(value, Expression.Constant(1)));
                         Expression ifFalse = Expression.Break(breakTarget);
 
-
                         methods.Add(Expression.Block(new ParameterExpression[] { length, value }, lengthAssign, newArray, Expression.Loop(Expression.IfThenElse(Expression.LessThan(value, length), ifTrue, ifFalse), breakTarget)));
                     }
                     else
@@ -400,6 +405,7 @@ namespace Common.RPC.BufferSerializer
         }
 
         #region CopyBytes
+
         private static void CopyBytes(byte[] value, byte[] buffer, ref int offset)
         {
             Array.Copy(value, 0, buffer, offset, value.Length);
@@ -476,9 +482,11 @@ namespace Common.RPC.BufferSerializer
             long longValue = (long)(value - MIN_TIME).TotalMilliseconds;
             CopyBytes(longValue, buffer, ref offset);
         }
-        #endregion
+
+        #endregion CopyBytes
 
         #region GetData
+
         private static Array GetArray(byte[] buffer, int arrayLength, Type elementType, ref int offset)
         {
             Array array = Array.CreateInstance(elementType, arrayLength);
@@ -571,6 +579,7 @@ namespace Common.RPC.BufferSerializer
             DateTime data = MIN_TIME.AddMilliseconds(longValue);
             return data;
         }
-        #endregion
+
+        #endregion GetData
     }
 }

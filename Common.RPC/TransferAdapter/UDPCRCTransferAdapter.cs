@@ -1,5 +1,4 @@
 ﻿using Common.Log;
-using log4net;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;

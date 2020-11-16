@@ -26,6 +26,5 @@ namespace Common
 
             return ((DisplayAttribute)field.GetCustomAttributes(typeof(DisplayAttribute), true)[0])?.Name;
         }
-
     }
 }

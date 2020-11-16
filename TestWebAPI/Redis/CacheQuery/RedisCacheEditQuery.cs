@@ -9,7 +9,6 @@ namespace TestRedis.CacheQuery
 {
     public class RedisCacheEditQuery<T> : IEditQuery<T> where T : class, IEntity, new()
     {
-
         private readonly IEditQuery<T> m_editQuery;
         private readonly static IKeyValuePairCache m_redisValueCache;
 

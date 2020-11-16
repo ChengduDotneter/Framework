@@ -6,16 +6,16 @@ using Microsoft.Extensions.Logging;
 
 namespace TCCManager
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             IHostBuilder hostBuilder = CreateHostBuilder(args);
             IHost host = hostBuilder.Build();
             host.Run();
         }
 
-        static IHostBuilder CreateHostBuilder(string[] args)
+        private static IHostBuilder CreateHostBuilder(string[] args)
         {
             IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
 

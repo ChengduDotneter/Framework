@@ -1,7 +1,6 @@
 ﻿using Common.DAL;
 using Common.Model;
 using Common.Validation;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 

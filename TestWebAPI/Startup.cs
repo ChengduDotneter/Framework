@@ -1,5 +1,4 @@
 using Common;
-using Common.Compute;
 using Common.DAL;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Builder;
@@ -8,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Net.Http;
 using System.Reflection;
 using TestWebAPI.Controllers;
 
@@ -72,7 +70,6 @@ namespace TestWebAPI
             services.AddQuerys(modelTypes);
 
             services.AddSwagger();
-
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)

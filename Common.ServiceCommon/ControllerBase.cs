@@ -560,7 +560,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="ssoUserService"></param>
 #pragma warning disable IDE0060 // 删除未使用的参数
-        public MultipleGenericPostController(ISSOUserService ssoUserService) { }
+
+        public MultipleGenericPostController(ISSOUserService ssoUserService)
+        {
+        }
+
 #pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
@@ -608,7 +612,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="ssoUserService"></param>
 #pragma warning disable IDE0060 // 删除未使用的参数
-        public MultipleGenericPostController(ISSOUserService ssoUserService) { }
+
+        public MultipleGenericPostController(ISSOUserService ssoUserService)
+        {
+        }
+
 #pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
@@ -659,7 +667,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="ssoUserService"></param>
 #pragma warning disable IDE0060 // 删除未使用的参数
-        public MultipleGenericPostController(ISSOUserService ssoUserService) { }
+
+        public MultipleGenericPostController(ISSOUserService ssoUserService)
+        {
+        }
+
 #pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
@@ -710,7 +722,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="ssoUserService"></param>
 #pragma warning disable IDE0060 // 删除未使用的参数
-        public MultipleGenericPutController(ISSOUserService ssoUserService) { }
+
+        public MultipleGenericPutController(ISSOUserService ssoUserService)
+        {
+        }
+
 #pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
@@ -743,7 +759,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="ssoUserService"></param>
 #pragma warning disable IDE0060 // 删除未使用的参数
-        public MultipleGenericPutController(ISSOUserService ssoUserService) { }
+
+        public MultipleGenericPutController(ISSOUserService ssoUserService)
+        {
+        }
+
 #pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
@@ -779,7 +799,11 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="ssoUserService"></param>
 #pragma warning disable IDE0060 // 删除未使用的参数
-        public MultipleGenericPutController(ISSOUserService ssoUserService) { }
+
+        public MultipleGenericPutController(ISSOUserService ssoUserService)
+        {
+        }
+
 #pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>

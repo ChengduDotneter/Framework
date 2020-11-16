@@ -10,6 +10,7 @@ namespace Common.RPC.TransferAdapter
     internal class PackageSpliterTransferAdapter : ITransferAdapter, IDisposable
     {
         public event OnBufferRecievedHandler OnBufferRecieved;
+
         private const int SPLIT_PACKAGE_LENGTH = 1024; //1kb
         private const int CLEAR_TIME_SPAN = 1000;
         private const int CLEAR_TIME_OUT = 1000 * 30;
@@ -45,6 +46,7 @@ namespace Common.RPC.TransferAdapter
             public int PackageCount;
             public int TotalLength;
             public int Length;
+
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = SPLIT_PACKAGE_LENGTH)]
             public byte[] Buffer;
         }

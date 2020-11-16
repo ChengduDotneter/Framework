@@ -9,6 +9,7 @@
         /// Kafka的日志记录
         /// </summary>
         KafkaLog,
+
         /// <summary>
         /// Log4net本地日志记录
         /// </summary>

@@ -1,5 +1,5 @@
-﻿using System;
-using Apache.Ignite.Core;
+﻿using Apache.Ignite.Core;
+using System;
 
 namespace Common
 {

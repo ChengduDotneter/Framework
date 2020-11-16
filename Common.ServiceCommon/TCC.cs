@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using Common.DAL;
+﻿using Common.DAL;
 using Common.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Common.ServiceCommon
 {
@@ -492,7 +492,6 @@ namespace Common.ServiceCommon
 
                 if (tccNotify != null)
                     typeof(ITccNotify<>).MakeGenericType(data.GetType()).GetMethod("Notify").Invoke(tccNotify, (object[])state);
-
             }, new object[] { tccID, successed, data });
         }
     }

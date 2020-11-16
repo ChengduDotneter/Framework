@@ -148,6 +148,5 @@ namespace Common.Log
                         TranscationID = transcationID
                     });
         }
-
     }
 }

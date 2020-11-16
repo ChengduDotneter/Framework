@@ -1,4 +1,3 @@
-using System;
 using Common.Lock;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Builder;
@@ -6,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace TCCManager
 {
@@ -41,7 +41,6 @@ namespace TCCManager
                     .AllowAnyMethod()
                     .AllowCredentials();
                 });
-
             });
 
             IMvcBuilder mvcBuilder = services.AddControllers(new Type[0], new Type[0]);

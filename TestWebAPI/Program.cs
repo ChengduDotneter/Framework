@@ -1,23 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using Apache.Ignite.Core.Cache;
-using Common;
-using Common.DAL;
 using Common.Log;
 using Common.Model;
 using Common.ServiceCommon;
 using LinqToDB.Mapping;
-using MicroService.StorageService.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
+using System;
 
 namespace TestWebAPI
 {

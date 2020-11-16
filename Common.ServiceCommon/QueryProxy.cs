@@ -295,7 +295,7 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return await m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count,  dbResourceContent);
+            return await m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count, dbResourceContent);
         }
 
         public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
@@ -422,7 +422,7 @@ namespace Common.ServiceCommon
         where T : ViewModelBase, new()
     {
         private ISearchQuery<T> m_searchQuery;
-       
+
         public T Get(long id, ITransaction transaction)
         {
             T data = m_searchQuery.Get(id, transaction);
@@ -499,7 +499,7 @@ namespace Common.ServiceCommon
 
         public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
         {
-            return await m_searchQuery.CountAsync(transaction,query);
+            return await m_searchQuery.CountAsync(transaction, query);
         }
 
         public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)

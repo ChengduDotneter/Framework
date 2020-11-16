@@ -3,14 +3,12 @@ using Common.Compute;
 using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using TestRedis;
@@ -103,7 +101,6 @@ namespace TestWebAPI.Controllers
         }
     }
 
-
     [Route("test")]
     [ApiController]
     public class TEST : ControllerBase
@@ -158,14 +155,13 @@ namespace TestWebAPI.Controllers
         {
             var data = m_searchQuery.RedisCache().Get(238335829955582145);
             Random random = new Random();
-            data.StudentName = $"studentName_{random.Next(1,10000)}";
+            data.StudentName = $"studentName_{random.Next(1, 10000)}";
 
             m_editQuery.RedisCache().Update(data);
 
             return data;
         }
     }
-
 
     //[Route("tccdo")]
     //public class tccdocontroller : TransactionTCCController<TCCTestData, TCCTestData>

@@ -51,7 +51,6 @@ namespace Common.MessageQueueClient.Kafka
             {
                 throw new Exception($"Kafka创建Partitions失败: {ex.Message}");
             }
-
         }
 
         /// <summary>
@@ -82,7 +81,6 @@ namespace Common.MessageQueueClient.Kafka
 
                 await m_adminClient.CreateTopicsAsync(new TopicSpecification[] {
                         new TopicSpecification { Name = name, NumPartitions = numPartitions, ReplicationFactor = replicationFactor } });
-
             }
             catch (Exception ex)
             {

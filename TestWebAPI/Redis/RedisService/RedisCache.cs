@@ -42,7 +42,6 @@ namespace TestRedis.RedisService
             return Task.Factory.StartNew(() => ClearCacheByKey(key));
         }
 
-
         public void DeleteCacheByKey(params string[] keys)
         {
             DeleteCacheByRedisKey(keys.Select(item => new RedisKey(item)).ToArray());
@@ -62,7 +61,6 @@ namespace TestRedis.RedisService
         {
             return Task.Factory.StartNew(() => DeleteCacheByKey(keys));
         }
-
 
         public T GetValueByKey<T>(string key)
         {
@@ -106,7 +104,7 @@ namespace TestRedis.RedisService
 
         public Task SetValueByKeyAsync<T>(string key, T Value, int saveMilliseconds = SAVE_MILLISECONDS)
         {
-            return Task.Factory.StartNew(() => 
+            return Task.Factory.StartNew(() =>
             {
                 SetValueByKey(key, Value, saveMilliseconds);
             });

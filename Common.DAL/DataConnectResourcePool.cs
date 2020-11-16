@@ -23,10 +23,10 @@ namespace Common.DAL
         private readonly Action<DataConnectionInstance> m_doDisposableInstance;
 
         public DataConnectResourcePool(
-            int fixedNum, 
+            int fixedNum,
             int fixResetTimeMilliseconds,
             int temporaryNum,
-            int temporaryOverTimeMilliseconds, 
+            int temporaryOverTimeMilliseconds,
             Func<DataConnectionInstance> doCreateInstance,
             Action<DataConnectionInstance> doDisposableInstance) : base(fixedNum, fixResetTimeMilliseconds, temporaryNum, temporaryOverTimeMilliseconds, doCreateInstance, doDisposableInstance)
         {

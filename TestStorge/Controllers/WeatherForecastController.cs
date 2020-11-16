@@ -1,15 +1,11 @@
 ﻿using Apache.Ignite.Core.Cache.Configuration;
-using Common;
 using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
 using LinqToDB.Mapping;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -56,7 +52,6 @@ namespace TestStorge.Controllers
     //    }
     //}
 
-
     [Route("testssss")]
     public class TestssssController : ControllerBase
     {
@@ -65,7 +60,7 @@ namespace TestStorge.Controllers
         private readonly IDBResourceContent m_dbResourceContent;
 
         public TestssssController(ISearchQuery<StockInfo> stockInfoSearchQuery,
-            IEditQuery<StockInfo> stockInfoEditQuery, 
+            IEditQuery<StockInfo> stockInfoEditQuery,
             IDBResourceContent dbResourceContent)
         {
             m_stockInfoSearchQuery = stockInfoSearchQuery;
@@ -159,7 +154,6 @@ namespace TestStorge.Controllers
 
     public class StockInfo : ViewModelBase
     {
-
         [Column(CanBeNull = true)]
         [QuerySqlField]
         public decimal? Number { get; set; }

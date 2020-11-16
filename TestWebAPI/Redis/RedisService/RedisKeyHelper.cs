@@ -26,10 +26,13 @@ namespace TestRedis.RedisService
     {
         //NodrType配置项Key值
         private const string NODE_TYPE = "NodeType";
+
         //RedisKey的NodeType前缀
         private const string NODE_PROFIX = "NT";
+
         //业务分隔符
         private const string BUSINESS_SEPARATOR = ":";
+
         //Key与value的分隔符
         private const string KEY_VALUE_SEPARATOR = ".";
 

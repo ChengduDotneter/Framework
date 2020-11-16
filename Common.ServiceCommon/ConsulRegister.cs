@@ -1,7 +1,7 @@
-﻿using System;
-using Consul;
+﻿using Consul;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace Common.ServiceCommon
 {

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Common.Lock;
+using System;
 using System.Threading.Tasks;
-using Common.Lock;
 
 namespace Common.DAL.Transaction
 {

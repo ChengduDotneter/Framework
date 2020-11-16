@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Common;
+﻿using Common;
 using Common.Compute;
 using CsvHelper;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace IgniteCompute
 {
-    class Order
+    internal class Order
     {
         public string PddOrderNumber { get; set; }
         public string S2BOrderNumber { get; set; }
@@ -22,9 +22,9 @@ namespace IgniteCompute
         public bool InGW { get; set; }
     }
 
-    class Program
+    internal class Program
     {
-        static async Task Main()
+        private static async Task Main()
         {
             IList<Order> orders = new List<Order>();
 

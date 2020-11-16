@@ -66,9 +66,11 @@ namespace Common.Log
                 case null:
                     serviceCollection.AddSingleton(sp => GetKafkaLogHelper());
                     break;
+
                 case LogHelperTypeEnum.Log4netLog:
                     serviceCollection.AddSingleton(sp => GetLog4netLogHelper());
                     break;
+
                 default:
                     throw new NotSupportedException();
             }

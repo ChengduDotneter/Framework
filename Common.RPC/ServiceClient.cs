@@ -90,6 +90,7 @@ namespace Common.RPC
             m_logHelper = LogHelperFactory.GetLog4netLogHelper();
 #endif
         }
+
         /// <summary>
         /// 构造函数
         /// </summary>
