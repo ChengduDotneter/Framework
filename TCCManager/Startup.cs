@@ -49,7 +49,6 @@ namespace TCCManager
             services.AddSingleton((sp) => LockFactory.GetRedisLock());
             services.AddHttpContextAccessor();
             services.ConfigureValidation(mvcBuilder, 10);
-            services.AddJsonSerialize();
             services.AddSwagger();
         }
 

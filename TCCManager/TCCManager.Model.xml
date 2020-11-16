@@ -79,13 +79,14 @@
             TCCController
             </summary>
         </member>
-        <member name="M:TCCManager.Controllers.TCCController.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,System.Net.Http.IHttpClientFactory,Common.Lock.ILock)">
+        <member name="M:TCCManager.Controllers.TCCController.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,System.Net.Http.IHttpClientFactory,Common.Lock.ILock,Common.Log.ILogHelper)">
             <summary>
             构造函数
             </summary>
             <param name="httpContextAccessor"></param>
             <param name="httpClientFactory"></param>
             <param name="lock"></param>
+            <param name="logHelper"></param>
         </member>
         <member name="M:TCCManager.Controllers.TCCController.Post(TCCManager.Controllers.TCCModel)">
             <summary>

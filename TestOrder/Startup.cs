@@ -70,8 +70,6 @@ namespace TestOrder
             //        return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditIgniteQuery)).MakeGenericMethod(type).Invoke(null, null);
             //    });
 
-            services.AddJsonSerialize();
-
             services.AddSwagger();
 
             //System.Threading.Tasks.Task.Factory.StartNew(() =>

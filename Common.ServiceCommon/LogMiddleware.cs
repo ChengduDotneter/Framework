@@ -24,7 +24,7 @@ namespace Common.ServiceCommon
 
         static LogMiddleware()
         {
-            m_logHelper = LogHelperFactory.GetKafkaLogHelper();
+            m_logHelper = LogHelperFactory.GetDefaultLogHelper();
         }
 
         /// <summary>
