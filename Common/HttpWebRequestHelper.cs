@@ -157,7 +157,7 @@ namespace Common
                 {
                     if (i > 0)
                         builder.Append("&");
-                    builder.AppendFormat("{0}={1}", item.Key, buildValue == null ? buildValue.Invoke(item.Value) : item.Value);
+                    builder.AppendFormat("{0}={1}", item.Key, buildValue != null ? buildValue.Invoke(item.Value) : item.Value);
                     i++;
                 }
             }
