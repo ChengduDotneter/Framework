@@ -256,6 +256,8 @@ namespace Common.DAL
 
             public object Context { get { return m_dataConnectionTransaction; } }
 
+            public object ResourceInstance { get { return m_resourceInstance; } }
+
             public async void Dispose()
             {
                 await m_dataConnectionTransaction.DisposeAsync();
@@ -288,12 +290,14 @@ namespace Common.DAL
             where T : class, IEntity, new()
         {
             private ITable<T> m_table;
-            private bool m_inTransaction;
+            private bool m_notAutoRealse;
+            private IResourceInstance<DataConnectionInstance> m_resourceInstance;
 
-            public Linq2DBQueryable(ITable<T> table, bool inTransaction)
+            public Linq2DBQueryable(ITable<T> table, bool notAutoRealse, IResourceInstance<DataConnectionInstance>  resourceInstance)
             {
-                m_inTransaction = inTransaction;
+                m_notAutoRealse = notAutoRealse;
                 m_table = table;
+                m_resourceInstance = resourceInstance;
             }
 
             public Type ElementType => m_table.ElementType;
@@ -304,8 +308,8 @@ namespace Common.DAL
 
             public void Dispose()
             {
-                if (!m_inTransaction && m_table.DataContext is IResourceInstance<DataConnectionInstance> dataConnection)
-                    DisposeConnection(dataConnection);
+                if (!m_notAutoRealse && m_resourceInstance != null)
+                    DisposeConnection(m_resourceInstance);
             }
 
             public IEnumerator<T> GetEnumerator()
@@ -1031,36 +1035,48 @@ namespace Common.DAL
             {
                 ValidTransaction(transaction);
 
-                return new Linq2DBQueryable<T>(((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>(), true);
+                IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)((Linq2DBTransaction)transaction).ResourceInstance;
+
+                return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance);
             }
 
             public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
-                    return new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), false);
+                    IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
+
+                    return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false, resourceInstance);
                 }
                 else
                 {
-                    return new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), false);
+                    IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)dbResourceContent;
+
+                    return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance);
                 }
             }
 
             public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
             {
                 await ValidTransactionAsync(transaction);
-                return new Linq2DBQueryable<T>(((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>(), true);
+
+                IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)((Linq2DBTransaction)transaction).ResourceInstance;
+
+                return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance);
             }
 
             public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
-                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(CreateConnection(m_linqToDbConnectionOptions).Instance.GetTable<T>(), false));
+                    IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
+
+                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false,resourceInstance));
                 }
                 else
                 {
-                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>(), false));
+                    IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)dbResourceContent;
+                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false, resourceInstance));
                 }
             }
 
