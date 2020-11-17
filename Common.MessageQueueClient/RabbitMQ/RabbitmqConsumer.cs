@@ -77,9 +77,9 @@ namespace Common.MessageQueueClient.RabbitMQ
                 {
                     var message = args.Body;//接收到的消息
 
-                    callback(ConvertMessageToData(Encoding.UTF8.GetString(message)));
-                    //返回消息确认
-                    m_channel.BasicAck(args.DeliveryTag, true);
+                    if (callback.Invoke(ConvertMessageToData(Encoding.UTF8.GetString(message))))
+                        //返回消息确认
+                        m_channel.BasicAck(args.DeliveryTag, true);
                 };
                 //开启监听
                 m_channel.BasicConsume(queue: mQContext.MessageQueueName, autoAck: false, consumer: consumer);
