@@ -36,6 +36,9 @@ namespace Common.Validation
         {
             if (validationContext.ObjectInstance is IEntity entity)
             {
+                if (value == null)
+                    return true;
+
                 Type queryType = typeof(ISearchQuery<>).MakeGenericType(validationContext.ObjectType);
                 object searchQuery = validationContext.GetService(queryType);
 
