@@ -1076,7 +1076,7 @@ namespace Common.DAL
                 else
                 {
                     IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)dbResourceContent;
-                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false, resourceInstance));
+                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance));
                 }
             }
 
