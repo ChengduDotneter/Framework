@@ -99,6 +99,55 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
+        /// 微服务Put
+        /// </summary>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
+        /// <param name="httpContextAccessor">IHttpContextAccessor</param>
+        /// <param name="microServiceName">微服务名称</param>
+        /// <param name="functionName">接口名</param>
+        /// <param name="sendText">参数</param>
+        /// <returns></returns>
+        public static bool SendMicroServicePut(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
+        {
+            HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);
+
+            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPut(
+                                httpClientFactory,
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
+                                $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
+                                httpContent,
+                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                );
+
+            return ReturnEntity(microServiceName, httpResponseMessage);
+        }
+
+        /// <summary>
+        /// 微服务Put
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="httpClientFactory">HttpClient构造工厂</param>
+        /// <param name="httpContextAccessor">IHttpContextAccessor</param>
+        /// <param name="microServiceName">微服务名称</param>
+        /// <param name="functionName">接口名</param>
+        /// <param name="sendText">参数</param>
+        /// <returns></returns>
+        public static T SendMicroServicePut<T>(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
+        {
+            HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);
+
+            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPut(
+                                httpClientFactory,
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
+                                $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
+                                httpContent,
+                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                );
+
+            return ReturnEntity<T>(microServiceName, httpResponseMessage);
+        }
+
+        /// <summary>
         /// 微服务Get，通过ID
         /// </summary>
         /// <param name="httpClientFactory">HttpClient构造工厂</param>
