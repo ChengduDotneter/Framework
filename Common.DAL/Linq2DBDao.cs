@@ -164,7 +164,7 @@ namespace Common.DAL
                         }
                         finally
                         {
-                            dataConnection.Instance.Dispose();
+                            DisposeConnection(dataConnection);
                             m_tableNames.Add(tableName);
                         }
                     }

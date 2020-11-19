@@ -31,18 +31,24 @@ namespace Common.DAL.Cache
         /// <param name="condition"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        public IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
+        public IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue,IDBResourceContent dbResourceContent = null)
         {
             string conditionKey = $"{condition.ToString<T>()}_{startIndex}_{count}";
 
             if (!m_memoryCache.TryGetValue(conditionKey, out IEnumerable<T> result))
             {
-                result = m_searchQuery.Search(condition, startIndex: startIndex, count: count);
+                result = m_searchQuery.Search(condition, startIndex: startIndex, count: count, dbResourceContent: dbResourceContent);
                 m_memoryCache.Set(conditionKey, result);
             }
 
             return result;
+        }
+
+        public IEnumerable<T> Get(ITransaction transaction,Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
+        {
+            return m_searchQuery.Search(transaction, condition, startIndex: startIndex, count: count);
         }
     }
 }

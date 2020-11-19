@@ -14,17 +14,22 @@ namespace Common.DAL.Cache
             m_memoryCache = CacheFactory<T>.GetKeyMemoryCache();
         }
 
-        public T Get(long id)
+        public T Get(long id,IDBResourceContent dbResourceContent = null)
         {
             if (!m_memoryCache.TryGetValue(id, out T result))
             {
-                result = m_searchQuery.Get(id);
+                result = m_searchQuery.Get(id,dbResourceContent: dbResourceContent);
 
                 if (result != null)
                     m_memoryCache.Set(id, result);
             }
 
             return result;
+        }
+
+        public T Get(ITransaction transaction, long id)
+        {
+            return m_searchQuery.Get(id, transaction: transaction);
         }
     }
 }
