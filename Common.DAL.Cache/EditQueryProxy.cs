@@ -1,221 +1,349 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Common.DAL.Cache
 {
-    /// <summary>
-    /// 数据修改代理类
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class EditQueryProxy<T> : IEditQuery<T>
+    internal class TransactionProxy : ITransaction
+    {
+        private ITransaction m_transaction;
+        private ICache m_keyCache;
+        private ICache m_conditionCache;
+
+        public bool ClearKeyCache { get; set; }
+
+        public bool ClearConditionCache { get; set; }
+
+        public object Context { get { return m_transaction.Context; } }
+
+        public Queue<Task> TaskQueue { get; }
+
+        public TransactionProxy(ITransaction transaction, ICache keyCache, ICache conditionCache)
+        {
+            m_transaction = transaction;
+            m_keyCache = keyCache;
+            m_conditionCache = conditionCache;
+            TaskQueue = new Queue<Task>();
+        }
+
+        public void Dispose()
+        {
+            m_transaction.Dispose();
+        }
+
+        public void Rollback()
+        {
+            m_transaction.Rollback();
+        }
+
+        public Task RollbackAsync()
+        {
+            return m_transaction.RollbackAsync();
+        }
+
+        public void Submit()
+        {
+            m_transaction.Submit();
+
+            if (ClearKeyCache)
+                m_keyCache.Clear();
+
+            if (ClearConditionCache)
+                m_conditionCache.Clear();
+
+            if (!ClearKeyCache && !ClearConditionCache)
+            {
+                while (TaskQueue.Count > 0)
+                {
+                    Task task = TaskQueue.Dequeue();
+                    task.Start();
+                    task.Wait();
+                }
+            }
+        }
+
+        public async Task SubmitAsync()
+        {
+            await m_transaction.SubmitAsync();
+
+            IList<Task> tasks = new List<Task>();
+
+            tasks.Add(Task.Factory.StartNew(async () =>
+            {
+                if (ClearKeyCache)
+                    await m_keyCache.ClearAsync();
+            }));
+
+            tasks.Add(Task.Factory.StartNew(async () =>
+            {
+                if (ClearConditionCache)
+                    await m_conditionCache.ClearAsync();
+            }));
+
+            await Task.WhenAll(tasks);
+
+            if (!ClearKeyCache && !ClearConditionCache)
+            {
+                while (TaskQueue.Count > 0)
+                {
+                    Task task = TaskQueue.Dequeue();
+                    task.Start();
+                    await Task.WhenAll(task);
+                }
+            }
+        }
+    }
+
+    internal class EditQueryProxy<T> : IEditQuery<T>
          where T : class, IEntity, new()
     {
         private IEditQuery<T> m_editQuery;
-        private MemoryCache m_keyMemoryCache;
+        private ICache m_keyCache;
+        private ICache m_conditionCache;
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="editQuery"></param>
-        public EditQueryProxy(IEditQuery<T> editQuery)
+        public EditQueryProxy(IEditQuery<T> editQuery, ICache keyCache, ICache conditionCache)
         {
             m_editQuery = editQuery;
-            m_keyMemoryCache = CacheFactory<T>.GetKeyMemoryCache();
+            m_keyCache = keyCache;
+            m_conditionCache = conditionCache;
         }
 
-        /// <summary>
-        /// 开启事务
-        /// </summary>
-        /// <returns></returns>
         public ITransaction BeginTransaction(int weight = 0)
         {
-            return new TransactionProxy(m_editQuery.BeginTransaction(weight));
+            return new TransactionProxy(m_editQuery.BeginTransaction(weight), m_keyCache, m_conditionCache);
         }
 
-        /// <summary>
-        /// 开启事务
-        /// </summary>
-        /// <returns></returns>
         public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
         {
-            return new TransactionProxy(await m_editQuery.BeginTransactionAsync(weight));
+            return new TransactionProxy(await m_editQuery.BeginTransactionAsync(weight), m_keyCache, m_conditionCache);
         }
 
-        /// <summary>
-        /// 删除
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="ids"></param>
         public void Delete(ITransaction transaction = null, params long[] ids)
         {
             m_editQuery.Delete(transaction, ids);
 
-            DoAction(() =>
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
+            {
+                transactionProxy.ClearConditionCache = true;
+                transactionProxy.TaskQueue.Enqueue(new Task((state) =>
+                {
+                    long[] ids = (long[])state;
+
+                    for (int i = 0; i < ids.Length; i++)
+                        m_keyCache.Remove(ids[i]);
+                }, ids));
+            }
+            else
             {
                 for (int i = 0; i < ids.Length; i++)
-                    m_keyMemoryCache.Remove(ids[i]);
+                    m_keyCache.Remove(ids[i]);
 
-                CacheFactory<T>.ClearConditionMemoryCache();
-            });
+                m_conditionCache.Clear();
+            }
         }
 
-        /// <summary>
-        /// 删除
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="ids"></param>
         public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
         {
             await m_editQuery.DeleteAsync(transaction, ids);
 
-            DoAction(() =>
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
-                for (int i = 0; i < ids.Length; i++)
-                    m_keyMemoryCache.Remove(ids[i]);
+                transactionProxy.ClearConditionCache = true;
+                transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>
+                {
+                    IList<Task> tasks = new List<Task>();
 
-                CacheFactory<T>.ClearConditionMemoryCache();
-            });
+                    for (int i = 0; i < ids.Length; i++)
+                        tasks.Add(m_keyCache.RemoveAsync(ids[i]));
+
+                    tasks.Add(m_conditionCache.ClearAsync());
+                    await Task.WhenAll(tasks);
+                }, ids));
+            }
+            else
+            {
+                IList<Task> tasks = new List<Task>();
+
+                for (int i = 0; i < ids.Length; i++)
+                    tasks.Add(m_keyCache.RemoveAsync(ids[i]));
+
+                tasks.Add(m_conditionCache.ClearAsync());
+                await Task.WhenAll(tasks);
+            }
         }
 
-        /// <summary>
-        /// 插入
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="datas"></param>
         public void Insert(ITransaction transaction = null, params T[] datas)
         {
             m_editQuery.Insert(transaction, datas);
-            DoAction(CacheFactory<T>.ClearConditionMemoryCache);
+
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
+                transactionProxy.ClearConditionCache = true;
+            else
+                m_conditionCache.Clear();
         }
 
-        /// <summary>
-        /// 插入
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="datas"></param>
         public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
         {
             await m_editQuery.InsertAsync(transaction, datas);
-            DoAction(CacheFactory<T>.ClearConditionMemoryCache);
+
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
+                transactionProxy.ClearConditionCache = true;
+            else
+                await m_conditionCache.ClearAsync();
         }
 
-        /// <summary>
-        /// 合并
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="datas"></param>
         public void Merge(ITransaction transaction = null, params T[] datas)
         {
             m_editQuery.Merge(transaction, datas);
 
-            DoAction(() =>
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
+            {
+                transactionProxy.ClearConditionCache = true;
+
+                transactionProxy.TaskQueue.Enqueue(new Task((state) =>
+                {
+                    T[] datas = (T[])state;
+
+                    for (int i = 0; i < datas.Length; i++)
+                        if (m_keyCache.TryGetValue(datas[i].ID, out T _))
+                            m_keyCache.Set(datas[i].ID, datas[i]);
+                }, datas));
+            }
+            else
             {
                 for (int i = 0; i < datas.Length; i++)
-                    if (m_keyMemoryCache.TryGetValue(datas[i], out T _))
-                        m_keyMemoryCache.Set(datas[i].ID, datas[i]);
+                    if (m_keyCache.TryGetValue(datas[i].ID, out T _))
+                        m_keyCache.Set(datas[i].ID, datas[i]);
 
-                CacheFactory<T>.ClearConditionMemoryCache();
-            });
+                m_conditionCache.Clear();
+            }
         }
 
-        /// <summary>
-        /// 合并
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="datas"></param>
         public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
         {
             await m_editQuery.MergeAsync(transaction, datas);
 
-            DoAction(() =>
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
-                for (int i = 0; i < datas.Length; i++)
-                    if (m_keyMemoryCache.TryGetValue(datas[i], out T _))
-                        m_keyMemoryCache.Set(datas[i].ID, datas[i]);
+                transactionProxy.ClearConditionCache = true;
 
-                CacheFactory<T>.ClearConditionMemoryCache();
-            });
+                transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>
+                {
+                    T[] datas = (T[])state;
+
+                    IList<Task> tasks = new List<Task>();
+
+                    for (int i = 0; i < datas.Length; i++)
+                    {
+                        tasks.Add(Task.Factory.StartNew(async () =>
+                        {
+                            if (await m_keyCache.TryGetValueAsync(datas[i], out T _))
+                                await m_keyCache.SetAsync(datas[i].ID, datas[i]);
+                        }));
+                    }
+
+                    await Task.WhenAll(tasks);
+                }, datas));
+            }
+            else
+            {
+                IList<Task> tasks = new List<Task>();
+
+                for (int i = 0; i < datas.Length; i++)
+                {
+                    tasks.Add(Task.Factory.StartNew(async () =>
+                    {
+                        if (await m_keyCache.TryGetValueAsync(datas[i], out T _))
+                            await m_keyCache.SetAsync(datas[i].ID, datas[i]);
+                    }));
+                }
+
+                tasks.Add(m_conditionCache.ClearAsync());
+                await Task.WhenAll(tasks);
+            }
         }
 
-        /// <summary>
-        /// 修改
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="transaction"></param>
         public void Update(T data, ITransaction transaction = null)
         {
             m_editQuery.Update(data, transaction);
 
-            DoAction(() =>
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
-                if (m_keyMemoryCache.TryGetValue(data.ID, out T _))
-                    m_keyMemoryCache.Set(data.ID, data);
+                transactionProxy.ClearConditionCache = true;
 
-                CacheFactory<T>.ClearConditionMemoryCache();
-            });
+                transactionProxy.TaskQueue.Enqueue(new Task((state) =>
+                {
+                    T data = (T)state;
+
+                    if (m_keyCache.TryGetValue(data.ID, out T _))
+                        m_keyCache.Set(data.ID, data);
+                }, data));
+            }
+            else
+            {
+                if (m_keyCache.TryGetValue(data.ID, out T _))
+                    m_keyCache.Set(data.ID, data);
+
+                m_conditionCache.Clear();
+            }
         }
 
-        /// <summary>
-        /// 修改
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="transaction"></param>
         public async Task UpdateAsync(T data, ITransaction transaction = null)
         {
             await m_editQuery.UpdateAsync(data, transaction);
 
-            DoAction(() =>
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
-                if (m_keyMemoryCache.TryGetValue(data.ID, out T _))
-                    m_keyMemoryCache.Set(data.ID, data);
+                transactionProxy.ClearConditionCache = true;
 
-                CacheFactory<T>.ClearConditionMemoryCache();
-            });
+                transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>
+                {
+                    T data = (T)state;
+
+                    if (await m_keyCache.TryGetValueAsync(data.ID, out T _))
+                        await m_keyCache.SetAsync(data.ID, data);
+                }, data));
+            }
+            else
+            {
+                if (await m_keyCache.TryGetValueAsync(data.ID, out T _))
+                    await m_keyCache.SetAsync(data.ID, data);
+
+                await m_conditionCache.ClearAsync();
+            }
         }
 
-        /// <summary>
-        /// 修改
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="upateDictionary"></param>
-        /// <param name="transaction"></param>
         public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
         {
             m_editQuery.Update(predicate, upateDictionary, transaction);
 
-            DoAction(() =>
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
-                CacheFactory<T>.ClearKeyMemoryCache();
-                CacheFactory<T>.ClearConditionMemoryCache();
-            });
+                transactionProxy.ClearKeyCache = true;
+                transactionProxy.ClearConditionCache = true;
+            }
+            else
+            {
+                m_keyCache.Clear();
+                m_conditionCache.Clear();
+            }
         }
 
-        /// <summary>
-        /// 修改
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="upateDictionary"></param>
-        /// <param name="transaction"></param>
         public async Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
         {
             await m_editQuery.UpdateAsync(predicate, upateDictionary, transaction);
 
-            DoAction(() =>
+            if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
-                CacheFactory<T>.ClearKeyMemoryCache();
-                CacheFactory<T>.ClearConditionMemoryCache();
-            });
-        }
-
-        private static void DoAction(Action action)
-        {
-            if (TransactionProxy.InTransaction)
-                TransactionProxy.Instance.AddAction(action);
+                transactionProxy.ClearKeyCache = true;
+                transactionProxy.ClearConditionCache = true;
+            }
             else
-                action.Invoke();
+            {
+                await m_keyCache.ClearAsync();
+                await m_conditionCache.ClearAsync();
+            }
         }
     }
 }
