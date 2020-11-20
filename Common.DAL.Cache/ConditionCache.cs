@@ -46,7 +46,7 @@ namespace Common.DAL.Cache
             return result;
         }
 
-        public IEnumerable<T> Get(ITransaction transaction,Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
+        public IEnumerable<T> Get(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
         {
             return m_searchQuery.Search(transaction, condition, startIndex: startIndex, count: count);
         }
