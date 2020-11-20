@@ -268,7 +268,7 @@ namespace Common.ServiceCommon
                     m_defaultCacheProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
                            Expression.Call(typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateMemoryCacheProvider)).MakeGenericMethod(modelType))).Compile());
 
-                    serviceCollection.AddScoped(editQueryType, sp => m_defaultCacheProviderDic[modelType].Invoke());
+                    serviceCollection.AddScoped(cacheProviderType, sp => m_defaultCacheProviderDic[modelType].Invoke());
                 }
                 else
                 {
