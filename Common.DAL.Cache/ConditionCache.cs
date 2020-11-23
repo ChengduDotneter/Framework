@@ -20,8 +20,9 @@ namespace Common.DAL.Cache
         public IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
             string conditionKey = $"{condition.ToString<T>()}_{startIndex}_{count}";
+            (bool exists, IEnumerable<T> result) = m_cache.TryGetValue<IEnumerable<T>>(conditionKey);
 
-            if (!m_cache.TryGetValue(conditionKey, out IEnumerable<T> result))
+            if (!exists)
             {
                 result = m_searchQuery.Search(condition, startIndex: startIndex, count: count, dbResourceContent: dbResourceContent);
                 m_cache.Set(conditionKey, result);
@@ -38,8 +39,9 @@ namespace Common.DAL.Cache
         public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
             string conditionKey = $"{condition.ToString<T>()}_{startIndex}_{count}";
+            (bool exists, IEnumerable<T> result) = await m_cache.TryGetValueAsync<IEnumerable<T>>(conditionKey);
 
-            if (!await m_cache.TryGetValueAsync(conditionKey, out IEnumerable<T> result))
+            if (!exists)
             {
                 result = await m_searchQuery.SearchAsync(condition, startIndex: startIndex, count: count, dbResourceContent: dbResourceContent);
                 await m_cache.SetAsync(conditionKey, result);

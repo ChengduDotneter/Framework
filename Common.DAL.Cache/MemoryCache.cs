@@ -7,10 +7,10 @@ namespace Common.DAL.Cache
     internal class MemoryCacheProvider<T> : ICacheProvider<T>
         where T : class, IEntity, new()
     {
-        private MemoryCacheInstance m_keyCacheInstance;
-        private MemoryCacheInstance m_conditionCacheInstance;
+        private static MemoryCacheInstance m_keyCacheInstance;
+        private static MemoryCacheInstance m_conditionCacheInstance;
 
-        public MemoryCacheProvider()
+        static MemoryCacheProvider()
         {
             m_keyCacheInstance = new MemoryCacheInstance();
             m_conditionCacheInstance = new MemoryCacheInstance();
@@ -39,12 +39,10 @@ namespace Common.DAL.Cache
         private const double CACHE_COMPACTION_PERCENTAGE = 0.2;
         private const int CACHE_EXPIRATION = 60 * 2;
         private const int CACHE_SIZE = 1;
-        private static readonly object lockThis;
-        private static MemoryCache m_cache;
+        private MemoryCache m_cache;
 
-        static MemoryCacheInstance()
+        public MemoryCacheInstance()
         {
-            lockThis = new object();
             m_cache = CreateCache();
         }
 
@@ -63,14 +61,14 @@ namespace Common.DAL.Cache
             return new MemoryCache(cacheOps);
         }
 
-        public bool TryGetValue<T>(object key, out T result)
+        public Tuple<bool, T> TryGetValue<T>(object key)
         {
-            return m_cache.TryGetValue(key, out result);
+            return Tuple.Create(m_cache.TryGetValue(key, out T value), value);
         }
 
-        public Task<bool> TryGetValueAsync<T>(object key, out T result)
+        public Task<Tuple<bool, T>> TryGetValueAsync<T>(object key)
         {
-            return Task.FromResult(m_cache.TryGetValue(key, out result));
+            return Task.FromResult(Tuple.Create(m_cache.TryGetValue(key, out T value), value));
         }
 
         public T Set<T>(object key, T value)
@@ -104,7 +102,7 @@ namespace Common.DAL.Cache
 
         public void Clear()
         {
-            lock (lockThis)
+            lock (this)
             {
                 if (m_cache == null || m_cache.Count == 0)
                     return;
@@ -117,7 +115,7 @@ namespace Common.DAL.Cache
 
         public Task ClearAsync()
         {
-            lock (lockThis)
+            lock (this)
             {
                 if (m_cache != null && m_cache.Count > 0)
                 {

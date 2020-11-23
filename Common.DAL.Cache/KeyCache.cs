@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Common.DAL.Cache
 {
@@ -16,7 +17,9 @@ namespace Common.DAL.Cache
 
         public T Get(long id, IDBResourceContent dbResourceContent = null)
         {
-            if (!m_cache.TryGetValue(id, out T result))
+            (bool exists, T result) = m_cache.TryGetValue<T>(id);
+
+            if (!exists)
             {
                 result = m_searchQuery.Get(id, dbResourceContent: dbResourceContent);
 
@@ -34,7 +37,9 @@ namespace Common.DAL.Cache
 
         public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
         {
-            if (!await m_cache.TryGetValueAsync(id, out T result))
+            (bool exists, T result) = await m_cache.TryGetValueAsync<T>(id);
+
+            if (!exists)
             {
                 result = await m_searchQuery.GetAsync(id, dbResourceContent: dbResourceContent);
 

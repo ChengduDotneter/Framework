@@ -19,6 +19,8 @@ namespace Common.DAL.Cache
 
         public Queue<Task> TaskQueue { get; }
 
+        public ITransaction Transaction { get { return m_transaction; } }
+
         public TransactionProxy(ITransaction transaction, ICache keyCache, ICache conditionCache)
         {
             m_transaction = transaction;
@@ -83,7 +85,7 @@ namespace Common.DAL.Cache
 
             await Task.WhenAll(tasks);
 
-            if (!ClearKeyCache && !ClearConditionCache)
+            if (!ClearKeyCache || !ClearConditionCache)
             {
                 while (TaskQueue.Count > 0)
                 {
@@ -121,10 +123,9 @@ namespace Common.DAL.Cache
 
         public void Delete(ITransaction transaction = null, params long[] ids)
         {
-            m_editQuery.Delete(transaction, ids);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
+                m_editQuery.Delete(transactionProxy.Transaction, ids);
                 transactionProxy.ClearConditionCache = true;
                 transactionProxy.TaskQueue.Enqueue(new Task((state) =>
                 {
@@ -136,6 +137,8 @@ namespace Common.DAL.Cache
             }
             else
             {
+                m_editQuery.Delete(transaction, ids);
+
                 for (int i = 0; i < ids.Length; i++)
                     m_keyCache.Remove(ids[i]);
 
@@ -145,10 +148,10 @@ namespace Common.DAL.Cache
 
         public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
         {
-            await m_editQuery.DeleteAsync(transaction, ids);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
+                await m_editQuery.DeleteAsync(transactionProxy.Transaction, ids);
+
                 transactionProxy.ClearConditionCache = true;
                 transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>
                 {
@@ -163,6 +166,8 @@ namespace Common.DAL.Cache
             }
             else
             {
+                await m_editQuery.DeleteAsync(transaction, ids);
+
                 IList<Task> tasks = new List<Task>();
 
                 for (int i = 0; i < ids.Length; i++)
@@ -175,30 +180,37 @@ namespace Common.DAL.Cache
 
         public void Insert(ITransaction transaction = null, params T[] datas)
         {
-            m_editQuery.Insert(transaction, datas);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
+            {
+                m_editQuery.Insert(transactionProxy.Transaction, datas);
                 transactionProxy.ClearConditionCache = true;
+            }
             else
+            {
+                m_editQuery.Insert(transaction, datas);
                 m_conditionCache.Clear();
+            }
         }
 
         public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
         {
-            await m_editQuery.InsertAsync(transaction, datas);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
+            {
+                await m_editQuery.InsertAsync(transactionProxy.Transaction, datas);
                 transactionProxy.ClearConditionCache = true;
+            }
             else
+            {
+                await m_editQuery.InsertAsync(transaction, datas);
                 await m_conditionCache.ClearAsync();
+            }
         }
 
         public void Merge(ITransaction transaction = null, params T[] datas)
         {
-            m_editQuery.Merge(transaction, datas);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
+                m_editQuery.Merge(transactionProxy.Transaction, datas);
                 transactionProxy.ClearConditionCache = true;
 
                 transactionProxy.TaskQueue.Enqueue(new Task((state) =>
@@ -206,15 +218,25 @@ namespace Common.DAL.Cache
                     T[] datas = (T[])state;
 
                     for (int i = 0; i < datas.Length; i++)
-                        if (m_keyCache.TryGetValue(datas[i].ID, out T _))
+                    {
+                        (bool exists, T result) = m_keyCache.TryGetValue<T>(datas[i].ID);
+
+                        if (exists)
                             m_keyCache.Set(datas[i].ID, datas[i]);
+                    }
                 }, datas));
             }
             else
             {
+                m_editQuery.Merge(transaction, datas);
+
                 for (int i = 0; i < datas.Length; i++)
-                    if (m_keyCache.TryGetValue(datas[i].ID, out T _))
+                {
+                    (bool exists, T result) = m_keyCache.TryGetValue<T>(datas[i].ID);
+
+                    if (exists)
                         m_keyCache.Set(datas[i].ID, datas[i]);
+                }
 
                 m_conditionCache.Clear();
             }
@@ -222,10 +244,9 @@ namespace Common.DAL.Cache
 
         public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
         {
-            await m_editQuery.MergeAsync(transaction, datas);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
+                await m_editQuery.MergeAsync(transactionProxy.Transaction, datas);
                 transactionProxy.ClearConditionCache = true;
 
                 transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>
@@ -238,7 +259,9 @@ namespace Common.DAL.Cache
                     {
                         tasks.Add(Task.Factory.StartNew(async () =>
                         {
-                            if (await m_keyCache.TryGetValueAsync(datas[i], out T _))
+                            (bool exists, T result) = await m_keyCache.TryGetValueAsync<T>(datas[i].ID);
+
+                            if (exists)
                                 await m_keyCache.SetAsync(datas[i].ID, datas[i]);
                         }));
                     }
@@ -248,13 +271,17 @@ namespace Common.DAL.Cache
             }
             else
             {
+                await m_editQuery.MergeAsync(transaction, datas);
+
                 IList<Task> tasks = new List<Task>();
 
                 for (int i = 0; i < datas.Length; i++)
                 {
                     tasks.Add(Task.Factory.StartNew(async () =>
                     {
-                        if (await m_keyCache.TryGetValueAsync(datas[i], out T _))
+                        (bool exists, T result) = await m_keyCache.TryGetValueAsync<T>(datas[i].ID);
+
+                        if (exists)
                             await m_keyCache.SetAsync(datas[i].ID, datas[i]);
                     }));
                 }
@@ -266,23 +293,26 @@ namespace Common.DAL.Cache
 
         public void Update(T data, ITransaction transaction = null)
         {
-            m_editQuery.Update(data, transaction);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
+                m_editQuery.Update(data, transactionProxy.Transaction);
                 transactionProxy.ClearConditionCache = true;
 
                 transactionProxy.TaskQueue.Enqueue(new Task((state) =>
                 {
                     T data = (T)state;
+                    (bool exists, T result) = m_keyCache.TryGetValue<T>(data.ID);
 
-                    if (m_keyCache.TryGetValue(data.ID, out T _))
+                    if (exists)
                         m_keyCache.Set(data.ID, data);
                 }, data));
             }
             else
             {
-                if (m_keyCache.TryGetValue(data.ID, out T _))
+                m_editQuery.Update(data, transaction);
+                (bool exists, T result) = m_keyCache.TryGetValue<T>(data.ID);
+
+                if (exists)
                     m_keyCache.Set(data.ID, data);
 
                 m_conditionCache.Clear();
@@ -291,23 +321,26 @@ namespace Common.DAL.Cache
 
         public async Task UpdateAsync(T data, ITransaction transaction = null)
         {
-            await m_editQuery.UpdateAsync(data, transaction);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
+                await m_editQuery.UpdateAsync(data, transactionProxy.Transaction);
                 transactionProxy.ClearConditionCache = true;
 
                 transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>
                 {
                     T data = (T)state;
+                    (bool exists, T result) = await m_keyCache.TryGetValueAsync<T>(data.ID);
 
-                    if (await m_keyCache.TryGetValueAsync(data.ID, out T _))
+                    if (exists)
                         await m_keyCache.SetAsync(data.ID, data);
                 }, data));
             }
             else
             {
-                if (await m_keyCache.TryGetValueAsync(data.ID, out T _))
+                await m_editQuery.UpdateAsync(data, transaction);
+                (bool exists, T result) = await m_keyCache.TryGetValueAsync<T>(data.ID);
+
+                if (exists)
                     await m_keyCache.SetAsync(data.ID, data);
 
                 await m_conditionCache.ClearAsync();
@@ -316,15 +349,15 @@ namespace Common.DAL.Cache
 
         public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
         {
-            m_editQuery.Update(predicate, upateDictionary, transaction);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
+                m_editQuery.Update(predicate, upateDictionary, transactionProxy.Transaction);
                 transactionProxy.ClearKeyCache = true;
                 transactionProxy.ClearConditionCache = true;
             }
             else
             {
+                m_editQuery.Update(predicate, upateDictionary, transaction);
                 m_keyCache.Clear();
                 m_conditionCache.Clear();
             }
@@ -332,15 +365,15 @@ namespace Common.DAL.Cache
 
         public async Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
         {
-            await m_editQuery.UpdateAsync(predicate, upateDictionary, transaction);
-
             if (transaction != null && transaction is TransactionProxy transactionProxy)
             {
+                await m_editQuery.UpdateAsync(predicate, upateDictionary, transactionProxy.Transaction);
                 transactionProxy.ClearKeyCache = true;
                 transactionProxy.ClearConditionCache = true;
             }
             else
             {
+                await m_editQuery.UpdateAsync(predicate, upateDictionary, transaction);
                 await m_keyCache.ClearAsync();
                 await m_conditionCache.ClearAsync();
             }

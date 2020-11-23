@@ -131,16 +131,16 @@ namespace Common.DAL.Cache
         /// <param name="key"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        bool TryGetValue<T>(object key, out T result);
+        Tuple<bool, T> TryGetValue<T>(object key);
 
         /// <summary>
+        /// /// <summary>
         /// 异步获取数据
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
-        /// <param name="result"></param>
         /// <returns></returns>
-        Task<bool> TryGetValueAsync<T>(object key, out T result);
+        Task<Tuple<bool, T>> TryGetValueAsync<T>(object key);
 
         /// <summary>
         /// 设置数据
