@@ -1,5 +1,6 @@
 using Common;
 using Common.DAL;
+using Common.DAL.Cache;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

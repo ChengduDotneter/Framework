@@ -1,11 +1,41 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 
 namespace Common.DAL.Cache
 {
-    public class RedisCache : ICache
+    public class RedisCacheProvider<T> : ICacheProvider<T>
+        where T : class, IEntity, new()
+    {
+        private static string KeyCacheHashKeyGenerator()
+        {
+            return $"key_{typeof(T).FullName}";
+        }
+
+        private static string ConditionCacheHashKeyGenerator()
+        {
+            return $"condition_{typeof(T).FullName}";
+        }
+
+        public IConditionCache<T> CreateConditionCache(ISearchQuery<T> searchQuery)
+        {
+            return new ConditionCache<T>(searchQuery, new RedisCache(ConditionCacheHashKeyGenerator()));
+        }
+
+        public IEditQuery<T> CreateEditQueryCache(IEditQuery<T> editQuery)
+        {
+            return new EditQueryProxy<T>(editQuery, new RedisCache(KeyCacheHashKeyGenerator()), new RedisCache(ConditionCacheHashKeyGenerator()));
+        }
+
+        public IKeyCache<T> CreateKeyCache(ISearchQuery<T> searchQuery)
+        {
+            return new KeyCache<T>(searchQuery, new RedisCache(KeyCacheHashKeyGenerator()));
+        }
+    }
+
+    internal class RedisCache : ICache
     {
         private static ConnectionMultiplexer m_connectionMultiplexer;
         private static IDatabase m_redisClient;
@@ -47,16 +77,16 @@ namespace Common.DAL.Cache
 
         public T Set<T>(object key, T value)
         {
-            JObject jObject = JObject.FromObject(value);
-            m_redisClient.HashSet(new RedisKey(m_hashKey), new RedisValue(key.ToString()), new RedisValue(jObject.ToString()));
+            string valueString = JsonConvert.SerializeObject(value);
+            m_redisClient.HashSet(new RedisKey(m_hashKey), new RedisValue(key.ToString()), new RedisValue(valueString));
 
             return value;
         }
 
         public async Task<T> SetAsync<T>(object key, T value)
         {
-            JObject jObject = JObject.FromObject(value);
-            await m_redisClient.HashSetAsync(new RedisKey(m_hashKey), new RedisValue(key.ToString()), new RedisValue(jObject.ToString()));
+            string valueString = JsonConvert.SerializeObject(value);
+            await m_redisClient.HashSetAsync(new RedisKey(m_hashKey), new RedisValue(key.ToString()), new RedisValue(valueString));
 
             return value;
         }
@@ -68,7 +98,7 @@ namespace Common.DAL.Cache
             RedisValue redisValue = m_redisClient.HashGet(new RedisKey(m_hashKey), new RedisValue(key.ToString()));
 
             if (!redisValue.IsNullOrEmpty)
-                value = JObject.Parse(redisValue.ToString()).ToObject<T>();
+                value = JsonConvert.DeserializeObject<T>(redisValue.ToString());
 
             return Tuple.Create(!redisValue.IsNullOrEmpty, value);
         }
@@ -80,7 +110,7 @@ namespace Common.DAL.Cache
             RedisValue redisValue = await m_redisClient.HashGetAsync(new RedisKey(m_hashKey), new RedisValue(key.ToString()));
 
             if (!redisValue.IsNullOrEmpty)
-                value = JObject.Parse(redisValue.ToString()).ToObject<T>();
+                value = JsonConvert.DeserializeObject<T>(redisValue.ToString());
 
             return Tuple.Create(!redisValue.IsNullOrEmpty, value);
         }

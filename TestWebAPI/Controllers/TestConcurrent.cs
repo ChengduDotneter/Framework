@@ -331,6 +331,24 @@ namespace TestWebAPI.Controllers
         }
     }
 
+    [Route("ccs1")]
+    [ApiController]
+    public class CCS3 : ControllerBase
+    {
+        private ISearchQuery<Left> m_searchQuery;
+
+        public CCS3(ISearchQuery<Left> searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
+
+        [HttpGet("{name}")]
+        public async Task<Left> Get(string name)
+        {
+            return (await m_searchQuery.FilterIsDeleted().ConditionCache(HttpContext.RequestServices).GetAsync(item => item.StudentName == name)).FirstOrDefault();
+        }
+    }
+
     [Route("ccs2")]
     public class CCS2 : GenericGetController<StockInfo>
     {
