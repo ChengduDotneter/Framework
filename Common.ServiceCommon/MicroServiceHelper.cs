@@ -42,7 +42,7 @@ namespace Common.ServiceCommon
             else if (httpResponseMessage.StatusCode == HttpStatusCode.NotFound)
                 throw new DealException($"未发现{microServiceName}服务");
             else if (httpResponseMessage.StatusCode == HttpStatusCode.BadRequest)
-                throw new DealException($"{microServiceName}参数验证不通过，{httpResponseMessage?.Content?.ReadAsStringAsync()?.Result}");
+                throw new DealException($"{microServiceName}参数验证不通过");
             else if (httpResponseMessage.StatusCode == HttpStatusCode.InternalServerError)
                 throw new DealException($"{microServiceName}服务内部错误");
         }
