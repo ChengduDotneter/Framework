@@ -33,6 +33,9 @@ namespace Common.DAL.Cache
 
         public IEnumerable<T> Get(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
         {
+            if (transaction is TransactionProxy transactionProxy)
+                transaction = transactionProxy.Transaction;
+
             return m_searchQuery.Search(transaction, condition, startIndex: startIndex, count: count);
         }
 
@@ -52,6 +55,9 @@ namespace Common.DAL.Cache
 
         public Task<IEnumerable<T>> GetAsync(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
         {
+            if (transaction is TransactionProxy transactionProxy)
+                transaction = transactionProxy.Transaction;
+
             return m_searchQuery.SearchAsync(transaction, condition, startIndex: startIndex, count: count);
         }
     }

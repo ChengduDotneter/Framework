@@ -32,6 +32,9 @@ namespace Common.DAL.Cache
 
         public T Get(ITransaction transaction, long id)
         {
+            if (transaction is TransactionProxy transactionProxy)
+                transaction = transactionProxy.Transaction;
+
             return m_searchQuery.Get(id, transaction: transaction);
         }
 
@@ -52,6 +55,9 @@ namespace Common.DAL.Cache
 
         public Task<T> GetAsync(ITransaction transaction, long id)
         {
+            if (transaction is TransactionProxy transactionProxy)
+                transaction = transactionProxy.Transaction;
+
             return m_searchQuery.GetAsync(id, transaction: transaction);
         }
     }
