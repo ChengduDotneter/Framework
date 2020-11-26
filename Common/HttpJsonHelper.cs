@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Net;
 using System.Net.Http;
@@ -242,10 +243,43 @@ namespace Common
         {
             if (response.IsSuccessStatusCode)
                 return JsonConvert.DeserializeObject<T>(response.Content.ReadAsStringAsync().Result);
-            else if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.PaymentRequired)
+            else if (response.StatusCode == HttpStatusCode.PaymentRequired)
                 throw new DealException(response.Content.ReadAsStringAsync().Result);
+            else if (response.StatusCode == HttpStatusCode.BadRequest)
+                throw new DealException(GetBadRequestMessage(response.Content.ReadAsStringAsync().Result));
             else
                 throw new Exception(response.Content.ReadAsStringAsync().Result);
+        }
+
+        private static string GetBadRequestMessage(string @string)
+        {
+            string returnString = "";
+
+            if (string.IsNullOrWhiteSpace(@string))
+                returnString += "出现通讯错误。";
+            else
+            {
+                JObject responseJObject = JsonConvert.DeserializeObject<JObject>(@string);
+
+                if (responseJObject.ContainsKey("message"))
+                    returnString += responseJObject["message"].ToString();
+
+                if (responseJObject.ContainsKey("errors") && responseJObject.HasValues)
+                {
+                    foreach (JProperty jProperty in responseJObject["errors"].ToObject<JObject>().Properties())
+                    {
+                        if (jProperty.Value.HasValues)
+                        {
+                            foreach (string errorMessage in jProperty.Value.ToObject<string[]>())
+                            {
+                                returnString += $" {errorMessage} ";
+                            }
+                        }
+                    }
+                }
+            }
+
+            return returnString;
         }
 
         /// <summary>

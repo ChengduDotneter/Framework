@@ -16,18 +16,27 @@ namespace Common.MessageQueueClient.RabbitMQ
         private static IConnectionFactory m_connectionFactory;
         private static IConnection m_connection;
         private static IModel m_channel;
-        private static bool m_isGetMessage;
-        private string m_queueName;
+        private readonly ExChangeTypeEnum m_exChangeTypeEnum;
+        private readonly ISet<string> m_queueNames;
+
+        private EventingBasicConsumer m_consumer;
         private string m_routingKey;
-        private ExChangeTypeEnum m_exChangeTypeEnum;
 
         static RabbitmqConsumer()
         {
             try
             {
-                m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
-                m_connection = m_connectionFactory.CreateConnection();
-                m_channel = m_connection.CreateModel();
+                if (m_connectionFactory == null)
+                    m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
+
+                if (m_connection == null)
+                    m_connection = m_connectionFactory.CreateConnection();
+
+                if (m_channel == null)
+                    m_channel = m_connection.CreateModel();
+
+                //申明是否手动确认
+                m_channel.BasicQos(0, 1, false);
             }
             catch (Exception ex)
             {
@@ -38,23 +47,12 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="queueName">队列名</param>
-        /// <param name="routingKey">路由关键字</param>
         /// <param name="exChangeTypeEnum">数据分发模式</param>
-        public RabbitmqConsumer(string queueName, string routingKey, ExChangeTypeEnum exChangeTypeEnum)
+        public RabbitmqConsumer(ExChangeTypeEnum exChangeTypeEnum)
         {
-            if (m_connectionFactory == null)
-                m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
-
-            if (m_connection == null)
-                m_connection = m_connectionFactory.CreateConnection();
-
-            if (m_channel == null)
-                m_channel = m_connection.CreateModel();
-
-            m_queueName = queueName;
-            m_routingKey = routingKey;
             m_exChangeTypeEnum = exChangeTypeEnum;
+            m_queueNames = new HashSet<string>();
+            m_consumer = new EventingBasicConsumer(m_channel);
 
             AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
@@ -66,14 +64,10 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <param name="callback">消费回调</param>
         public void Consume(MQContext mQContext, Func<T, bool> callback)
         {
-            if (m_isGetMessage)
+            if (m_queueNames.Contains(mQContext.MessageQueueName))
             {
-                //声明为手动确认，每次只消费1条消息。
-                m_channel.BasicQos(0, 1, false);
-                //定义消费者
-                var consumer = new EventingBasicConsumer(m_channel);
                 //接收事件
-                consumer.Received += (eventSender, args) =>
+                m_consumer.Received += (eventSender, args) =>
                 {
                     var message = args.Body;//接收到的消息
 
@@ -81,8 +75,9 @@ namespace Common.MessageQueueClient.RabbitMQ
                         //返回消息确认
                         m_channel.BasicAck(args.DeliveryTag, true);
                 };
+
                 //开启监听
-                m_channel.BasicConsume(queue: mQContext.MessageQueueName, autoAck: false, consumer: consumer);
+                m_channel.BasicConsume(queue: mQContext.MessageQueueName, autoAck: false, consumer: m_consumer);
             }
         }
 
@@ -91,7 +86,29 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// </summary>
         public void DeSubscribe()
         {
-            m_isGetMessage = false;
+            try
+            {
+                m_queueNames.Clear();
+                Dispose();
+
+                if (m_connectionFactory == null)
+                    m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
+
+                if (m_connection == null)
+                    m_connection = m_connectionFactory.CreateConnection();
+
+                if (m_channel == null)
+                    m_channel = m_connection.CreateModel();
+
+                //申明是否手动确认
+                m_channel.BasicQos(0, 1, false);
+
+                m_consumer = new EventingBasicConsumer(m_channel);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"RabbitMQ参数配置初始化错误：{ex.Message}");
+            }
         }
 
         /// <summary>
@@ -112,13 +129,21 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <param name="mQContext"></param>
         public void Subscribe(MQContext mQContext)
         {
-            RabbitmqHelper.BindingQueues(
-                   mQContext.MessageQueueName,
-                   m_exChangeTypeEnum, m_channel,
-                   m_routingKey,
-                   new List<string>() { m_queueName });
+            if (mQContext.Context is RabbitMqContent rabbitMqContent)
+            {
+                if (string.IsNullOrWhiteSpace(m_routingKey) && !string.IsNullOrWhiteSpace(rabbitMqContent.RoutingKey))
+                    m_routingKey = rabbitMqContent.RoutingKey;
 
-            m_isGetMessage = true;
+                if (string.IsNullOrWhiteSpace(m_routingKey))
+                    throw new Exception("路由关键字出错。");
+
+                if (!m_queueNames.Contains(mQContext.MessageQueueName))
+                {
+                    m_queueNames.Add(mQContext.MessageQueueName);
+
+                    RabbitmqHelper.BindingQueues(mQContext.MessageQueueName, m_exChangeTypeEnum, m_channel, m_routingKey, m_queueNames);
+                }
+            }
         }
 
         /// <summary>
@@ -134,7 +159,7 @@ namespace Common.MessageQueueClient.RabbitMQ
             }
             catch
             {
-                return default;
+                throw new Exception($"RabbitMQ反序列化失败。message:{message}");
             }
         }
     }

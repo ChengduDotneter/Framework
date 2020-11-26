@@ -13,12 +13,13 @@ namespace Common.MessageQueueClient.RabbitMQ
     /// <typeparam name="T"></typeparam>
     public class RabbitmqProducer<T> : IMQProducer<T> where T : class, IMQData, new()
     {
-        private static IConnectionFactory m_connectionFactory;
-        private static IConnection m_connection;
-        private static IModel m_channel;
-        private IEnumerable<string> m_queueNames;
+        private readonly static IConnectionFactory m_connectionFactory;
+        private readonly static IConnection m_connection;
+        private readonly static IModel m_channel;
+        private readonly static IBasicProperties m_properties;
+        private readonly ISet<string> m_queueNames;
         private string m_routingKey;
-        private ExChangeTypeEnum m_exChangeTypeEnum;
+        private readonly ExChangeTypeEnum m_exChangeTypeEnum;
 
         /// <summary>
         /// 静态构造函数 新建RabbitMQ服务连接器
@@ -27,9 +28,20 @@ namespace Common.MessageQueueClient.RabbitMQ
         {
             try
             {
-                m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
-                m_connection = m_connectionFactory.CreateConnection();
-                m_channel = m_connection.CreateModel();
+                if (m_connectionFactory == null)
+                    m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
+
+                if (m_connection == null)
+                    m_connection = m_connectionFactory.CreateConnection();
+
+                if (m_channel == null)
+                    m_channel = m_connection.CreateModel();
+
+                if (m_properties == null)
+                {
+                    m_properties = m_channel.CreateBasicProperties();
+                    m_properties.Persistent = true;
+                }
             }
             catch (Exception ex)
             {
@@ -40,20 +52,10 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <summary>
         /// 构造函数
         /// </summary>
-        public RabbitmqProducer(IEnumerable<string> queueNames, string routingKey, ExChangeTypeEnum exChangeTypeEnum)
+        public RabbitmqProducer(ExChangeTypeEnum exChangeTypeEnum)
         {
-            if (m_connectionFactory == null)
-                m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
-
-            if (m_connection == null)
-                m_connection = m_connectionFactory.CreateConnection();
-
-            if (m_channel == null)
-                m_channel = m_connection.CreateModel();
-
-            m_queueNames = queueNames;
-            m_routingKey = routingKey;
             m_exChangeTypeEnum = exChangeTypeEnum;
+            m_queueNames = new HashSet<string>();
 
             AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
@@ -78,7 +80,7 @@ namespace Common.MessageQueueClient.RabbitMQ
         {
             return Task.Factory.StartNew(() =>
             {
-                ProduceData(m_channel, mQContext, message);
+                Produce(mQContext, message);
             });
         }
 
@@ -87,11 +89,8 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// </summary>
         public void Dispose()
         {
-            if (m_channel != null)
-                m_channel.Dispose();
-
-            if (m_connection != null)
-                m_connection.Dispose();
+            m_channel?.Dispose();
+            m_connection?.Dispose();
         }
 
         /// <summary>
@@ -110,7 +109,7 @@ namespace Common.MessageQueueClient.RabbitMQ
             }
             catch
             {
-                return message.ToString();
+                throw new Exception($"序列化失败。");
             }
         }
 
@@ -124,18 +123,23 @@ namespace Common.MessageQueueClient.RabbitMQ
         {
             try
             {
-                IBasicProperties properties = m_channel.CreateBasicProperties();
+                if (mQContext.Context is RabbitMqContent rabbitMqContent)
+                {
+                    if (string.IsNullOrWhiteSpace(m_routingKey) && !string.IsNullOrWhiteSpace(rabbitMqContent.RoutingKey))
+                        m_routingKey = rabbitMqContent.RoutingKey;
 
-                properties.Persistent = true;
+                    if (string.IsNullOrWhiteSpace(m_routingKey))
+                        throw new Exception("路由关键字出错。");
 
-                RabbitmqHelper.BindingQueues(mQContext.MessageQueueName, m_exChangeTypeEnum, m_channel, m_routingKey, m_queueNames);
+                    if (!m_queueNames.Contains(mQContext.MessageQueueName))
+                    {
+                        m_queueNames.Add(mQContext.MessageQueueName);
 
-                m_channel.BasicPublish(
-                    exchange: mQContext.MessageQueueName,
-                    routingKey: m_routingKey,
-                    mandatory: false,
-                    basicProperties: properties,
-                    body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
+                        RabbitmqHelper.BindingQueues(mQContext.MessageQueueName, m_exChangeTypeEnum, m_channel, m_routingKey, m_queueNames);
+                    }
+
+                    m_channel.BasicPublish(exchange: mQContext.MessageQueueName, routingKey: m_routingKey, mandatory: false, basicProperties: m_properties, body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
+                }
             }
             catch (Exception ex)
             {

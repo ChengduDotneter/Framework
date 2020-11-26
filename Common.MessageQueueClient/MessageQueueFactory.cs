@@ -14,9 +14,9 @@ namespace Common.MessageQueueClient
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IMQProducer<T> GetRabbitMQProducer<T>(IEnumerable<string> queueNames, string routingKey, ExChangeTypeEnum exChangeTypeEnum) where T : class, IMQData, new()
+        public static IMQProducer<T> GetRabbitMQProducer<T>(ExChangeTypeEnum exChangeTypeEnum) where T : class, IMQData, new()
         {
-            return new RabbitmqProducer<T>(queueNames, routingKey, exChangeTypeEnum);
+            return new RabbitmqProducer<T>(exChangeTypeEnum);
         }
 
         /// <summary>
@@ -24,9 +24,9 @@ namespace Common.MessageQueueClient
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IMQConsumer<T> GetRabbitMQConsumer<T>(string queueName, string routingKey, ExChangeTypeEnum exChangeTypeEnum) where T : class, IMQData, new()
+        public static IMQConsumer<T> GetRabbitMQConsumer<T>(ExChangeTypeEnum exChangeTypeEnum) where T : class, IMQData, new()
         {
-            return new RabbitmqConsumer<T>(queueName, routingKey, exChangeTypeEnum);
+            return new RabbitmqConsumer<T>(exChangeTypeEnum);
         }
 
         /// <summary>
