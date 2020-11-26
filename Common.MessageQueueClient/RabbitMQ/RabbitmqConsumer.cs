@@ -16,33 +16,11 @@ namespace Common.MessageQueueClient.RabbitMQ
         private static IConnectionFactory m_connectionFactory;
         private static IConnection m_connection;
         private static IModel m_channel;
-        private readonly ExChangeTypeEnum m_exChangeTypeEnum;
-        private readonly ISet<string> m_queueNames;
-
-        private EventingBasicConsumer m_consumer;
         private string m_routingKey;
+        private ISet<string> m_queueNames;
+        private EventingBasicConsumer m_consumer;
 
-        static RabbitmqConsumer()
-        {
-            try
-            {
-                if (m_connectionFactory == null)
-                    m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
-
-                if (m_connection == null)
-                    m_connection = m_connectionFactory.CreateConnection();
-
-                if (m_channel == null)
-                    m_channel = m_connection.CreateModel();
-
-                //申明是否手动确认
-                m_channel.BasicQos(0, 1, false);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"RabbitMQ参数配置初始化错误：{ex.Message}");
-            }
-        }
+        private readonly ExChangeTypeEnum m_exChangeTypeEnum;
 
         /// <summary>
         /// 构造函数
@@ -51,8 +29,8 @@ namespace Common.MessageQueueClient.RabbitMQ
         public RabbitmqConsumer(ExChangeTypeEnum exChangeTypeEnum)
         {
             m_exChangeTypeEnum = exChangeTypeEnum;
-            m_queueNames = new HashSet<string>();
-            m_consumer = new EventingBasicConsumer(m_channel);
+
+            RabbitMqConsumerInit();
 
             AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
@@ -88,27 +66,32 @@ namespace Common.MessageQueueClient.RabbitMQ
         {
             try
             {
-                m_queueNames.Clear();
                 Dispose();
-
-                if (m_connectionFactory == null)
-                    m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
-
-                if (m_connection == null)
-                    m_connection = m_connectionFactory.CreateConnection();
-
-                if (m_channel == null)
-                    m_channel = m_connection.CreateModel();
-
-                //申明是否手动确认
-                m_channel.BasicQos(0, 1, false);
-
-                m_consumer = new EventingBasicConsumer(m_channel);
+                RabbitMqConsumerInit();
             }
             catch (Exception ex)
             {
                 throw new Exception($"RabbitMQ参数配置初始化错误：{ex.Message}");
             }
+        }
+
+        private void RabbitMqConsumerInit()
+        {
+            m_queueNames = new HashSet<string>();
+
+            if (m_connectionFactory == null)
+                m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
+
+            if (m_connection == null)
+                m_connection = m_connectionFactory.CreateConnection();
+
+            if (m_channel == null)
+                m_channel = m_connection.CreateModel();
+
+            //申明是否手动确认
+            m_channel.BasicQos(0, 1, false);
+
+            m_consumer = new EventingBasicConsumer(m_channel);
         }
 
         /// <summary>

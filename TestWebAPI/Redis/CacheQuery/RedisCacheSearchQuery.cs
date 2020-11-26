@@ -97,7 +97,7 @@ namespace TestRedis.CacheSearchQuery
 
         public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
         {
-            string predicateString = nameof(Count) + predicate.ToString<T>();
+            string predicateString = nameof(Count) + predicate.ToLamdaString<T>();
             string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
 
             int cacheCount = m_redisValueCache.GetValueByKey<int>(cacheKey);
@@ -119,7 +119,7 @@ namespace TestRedis.CacheSearchQuery
 
         public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
         {
-            string predicateString = nameof(Count) + predicate.ToString<T>();
+            string predicateString = nameof(Count) + predicate.ToLamdaString<T>();
             string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
 
             int cacheCount = m_redisValueCache.GetValueByKey<int>(cacheKey);
@@ -141,7 +141,7 @@ namespace TestRedis.CacheSearchQuery
 
         public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
         {
-            string predicateString = nameof(Count) + predicate.ToString<T>();
+            string predicateString = nameof(Count) + predicate.ToLamdaString<T>();
             string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
 
             int cacheCount = m_redisValueCache.GetValueByKey<int>(cacheKey);
@@ -163,7 +163,7 @@ namespace TestRedis.CacheSearchQuery
 
         public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
         {
-            string predicateString = nameof(Count) + predicate.ToString<T>();
+            string predicateString = nameof(Count) + predicate.ToLamdaString<T>();
             string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
 
             int cacheCount = m_redisValueCache.GetValueByKey<int>(cacheKey);
@@ -186,7 +186,7 @@ namespace TestRedis.CacheSearchQuery
         public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
         {
             string queryOrderBiesString = queryOrderBies == null ? "" : string.Join("_", queryOrderBies.Select(item => item.Expression.ToString() + "_" + item.OrderByType.ToString()));
-            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToString<T>();
+            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToLamdaString<T>();
             string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
 
             IEnumerable<T> cacheDatas = m_redisValueCache.GetValueByKey<IEnumerable<T>>(cacheKey);
@@ -205,7 +205,7 @@ namespace TestRedis.CacheSearchQuery
         public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
             string queryOrderBiesString = queryOrderBies == null ? "" : string.Join("_", queryOrderBies.Select(item => item.Expression.ToString() + "_" + item.OrderByType.ToString()));
-            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToString<T>();
+            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToLamdaString<T>();
             string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
 
             IEnumerable<T> cacheDatas = m_redisValueCache.GetValueByKey<IEnumerable<T>>(cacheKey);
@@ -224,7 +224,7 @@ namespace TestRedis.CacheSearchQuery
         public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
         {
             string queryOrderBiesString = queryOrderBies == null ? "" : string.Join("_", queryOrderBies.Select(item => item.Expression.ToString() + "_" + item.OrderByType.ToString()));
-            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToString<T>();
+            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToLamdaString<T>();
             string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
 
             IEnumerable<T> cacheDatas = await m_redisValueCache.GetValueByKeyAsync<IEnumerable<T>>(cacheKey);
@@ -243,7 +243,7 @@ namespace TestRedis.CacheSearchQuery
         public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
             string queryOrderBiesString = queryOrderBies == null ? "" : string.Join("_", queryOrderBies.Select(item => item.Expression.ToString() + "_" + item.OrderByType.ToString()));
-            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToString<T>();
+            string predicateString = nameof(Search) + $"queryOrderBies:{queryOrderBiesString}startIndex:{startIndex}count:{count}" + predicate.ToLamdaString<T>();
             string cacheKey = RedisKeyHelper.GetConditionCacheKey(typeof(T).Name, predicateString);
 
             IEnumerable<T> cacheDatas = await m_redisValueCache.GetValueByKeyAsync<IEnumerable<T>>(cacheKey);

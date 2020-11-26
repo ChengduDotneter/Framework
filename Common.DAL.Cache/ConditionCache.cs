@@ -19,7 +19,7 @@ namespace Common.DAL.Cache
 
         public IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            string conditionKey = $"{condition.ToString<T>()}_{startIndex}_{count}";
+            string conditionKey = $"{condition.ToLamdaString<T>()}_{startIndex}_{count}";
             (bool exists, IEnumerable<T> result) = m_cache.TryGetValue<IEnumerable<T>>(conditionKey);
 
             if (!exists)
@@ -41,7 +41,7 @@ namespace Common.DAL.Cache
 
         public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            string conditionKey = $"{condition.ToString<T>()}_{startIndex}_{count}";
+            string conditionKey = $"{condition.ToLamdaString<T>()}_{startIndex}_{count}";
             (bool exists, IEnumerable<T> result) = await m_cache.TryGetValueAsync<IEnumerable<T>>(conditionKey);
 
             if (!exists)

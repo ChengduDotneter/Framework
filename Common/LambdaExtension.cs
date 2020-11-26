@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -200,12 +201,12 @@ namespace Common
         /// <typeparam name="T">需要转换的表达式参数类型</typeparam>
         /// <param name="expression">需要转换的表达式</param>
         /// <returns>转换后的表达式</returns>
-        public static string ToString<T>(this Expression<Func<T, bool>> expression)
+        public static string ToLamdaString<T>(this Expression<Func<T, bool>> expression)
         {
             if (expression == null)
                 return string.Empty;
 
-            ToStringVisitor toStringVisitor = new ToStringVisitor();
+            ToLamdaStringVisitor toStringVisitor = new ToLamdaStringVisitor();
             toStringVisitor.Visit(expression);
 
             return toStringVisitor.ToString(expression);
@@ -215,14 +216,14 @@ namespace Common
     /// <summary>
     /// 表达式转换为字符串转换器
     /// </summary>
-    public class ToStringVisitor : ExpressionVisitor
+    public class ToLamdaStringVisitor : ExpressionVisitor
     {
         private readonly StringBuilder m_parametersStringBuilder;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public ToStringVisitor()
+        public ToLamdaStringVisitor()
         {
             m_parametersStringBuilder = new StringBuilder();
         }
@@ -248,7 +249,7 @@ namespace Common
             if (memberNode.Expression.NodeType == ExpressionType.Constant)
             {
                 m_parametersStringBuilder.Append(memberNode.ToString());
-                m_parametersStringBuilder.Append(Expression.Lambda(memberNode).Compile().DynamicInvoke().ToString());
+                m_parametersStringBuilder.Append(JsonConvert.SerializeObject(Expression.Lambda(memberNode).Compile().DynamicInvoke()));
             }
 
             return base.VisitMember(memberNode);
