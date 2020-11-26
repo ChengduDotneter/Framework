@@ -131,19 +131,7 @@ namespace TestStorge.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            IEnumerable<StockInfo> search;
-
-            using (var queryable = m_stockInfoSearchQuery.GetQueryable())
-            {
-                var qquerable = from query111 in queryable
-                                select query111;
-
-                Thread.Sleep(500);
-
-                search = m_stockInfoSearchQuery.Search(qquerable).ToList();
-            }
-
-            return Ok(search);
+           return Ok( m_stockInfoSearchQuery.KeyCache(HttpContext.RequestServices).Get(456));
         }
     }
 

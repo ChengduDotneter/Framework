@@ -3,6 +3,7 @@ using Common.Compute;
 using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
+using MicroService.StorageService.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Primitives;
@@ -284,6 +285,83 @@ namespace TestWebAPI.Controllers
         {
             Console.WriteLine(parameter.RequestData);
             return new ComputeResult() { ResponseData = DateTime.Now.ToString("g") };
+        }
+    }
+
+    [Route("ccs")]
+    public class CCS : GenericPutController<Left>
+    {
+        private IEditQuery<Left> m_editQuery;
+
+        public CCS(IEditQuery<Left> editQuery, ISearchQuery<Left> searchQuery, ISSOUserService ssoUserService) : base(editQuery, searchQuery, ssoUserService)
+        {
+            m_editQuery = editQuery;
+        }
+
+        protected override async Task DoPut(Left request)
+        {
+            using (ITransaction transaction = await m_editQuery.FilterIsDeleted().Cache(HttpContext.RequestServices).BeginTransactionAsync())
+            {
+                try
+                {
+                    await m_editQuery.FilterIsDeleted().Cache(HttpContext.RequestServices).UpdateAsync(request, transaction);
+                    await transaction.SubmitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                }
+            }
+        }
+    }
+
+    [Route("ccs")]
+    public class CCS1 : GenericGetController<Left>
+    {
+        private ISearchQuery<Left> m_searchQuery;
+
+        public CCS1(ISearchQuery<Left> searchQuery) : base(searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
+
+        protected override async Task<Left> DoGet(long id)
+        {
+            return await m_searchQuery.FilterIsDeleted().KeyCache(HttpContext.RequestServices).GetAsync(id);
+        }
+    }
+
+    [Route("ccs1")]
+    [ApiController]
+    public class CCS3 : ControllerBase
+    {
+        private ISearchQuery<Left> m_searchQuery;
+
+        public CCS3(ISearchQuery<Left> searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
+
+        [HttpGet("{name}")]
+        public async Task<Left> Get(string name)
+        {
+            return (await m_searchQuery.FilterIsDeleted().ConditionCache(HttpContext.RequestServices).GetAsync(item => item.StudentName == name)).FirstOrDefault();
+        }
+    }
+
+    [Route("ccs2")]
+    public class CCS2 : GenericGetController<StockInfo>
+    {
+        private ISearchQuery<StockInfo> m_searchQuery;
+
+        public CCS2(ISearchQuery<StockInfo> searchQuery) : base(searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
+
+        protected override async Task<StockInfo> DoGet(long id)
+        {
+            return await m_searchQuery.FilterIsDeleted().KeyCache(HttpContext.RequestServices).GetAsync(id);
         }
     }
 

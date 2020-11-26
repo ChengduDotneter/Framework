@@ -34,18 +34,16 @@ namespace Common.ServiceCommon
         private static void CheckReturn(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
             if (httpResponseMessage.StatusCode == HttpStatusCode.PaymentRequired)
-                throw new DealException($"{microServiceName}接口调用失败,原因{httpResponseMessage.Content.ReadAsStringAsync().Result}");
-
-            if (httpResponseMessage.StatusCode == HttpStatusCode.Unauthorized)
+                throw new DealException($"{microServiceName}接口调用失败,原因{httpResponseMessage?.Content?.ReadAsStringAsync()?.Result}");
+            else if (httpResponseMessage.StatusCode == HttpStatusCode.Unauthorized)
                 throw new DealException($"{microServiceName}接口调用失败,原因未认证系统");
-
-            if (httpResponseMessage.StatusCode == HttpStatusCode.ServiceUnavailable)
+            else if (httpResponseMessage.StatusCode == HttpStatusCode.ServiceUnavailable)
                 throw new DealException($"{microServiceName}服务调用超时");
-
-            if (httpResponseMessage.StatusCode == HttpStatusCode.NotFound)
+            else if (httpResponseMessage.StatusCode == HttpStatusCode.NotFound)
                 throw new DealException($"未发现{microServiceName}服务");
-
-            if (httpResponseMessage.StatusCode == HttpStatusCode.InternalServerError)
+            else if (httpResponseMessage.StatusCode == HttpStatusCode.BadRequest)
+                throw new DealException($"{microServiceName}参数验证不通过");
+            else if (httpResponseMessage.StatusCode == HttpStatusCode.InternalServerError)
                 throw new DealException($"{microServiceName}服务内部错误");
         }
 

@@ -666,7 +666,7 @@ namespace Common.DAL
                 bool inTransaction = await ApplyAsync<T>(transaction);
 
                 if (!inTransaction)
-                    throw new DealException($"当前未查询到事务信息，请先使用{nameof(Linq2DBDaoInstance<T>.BeginTransaction)}开启事务。");
+                    throw new DealException($"当前未查询到事务信息，请先使用{nameof(Linq2DBDaoInstance<T>.BeginTransactionAsync)}开启事务。");
             }
 
             public T Get(long id, ITransaction transaction)

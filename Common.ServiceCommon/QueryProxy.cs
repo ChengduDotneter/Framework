@@ -1,5 +1,7 @@
 ﻿using Common.DAL;
+using Common.DAL.Cache;
 using Common.Model;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -37,6 +39,32 @@ namespace Common.ServiceCommon
         {
             return new OrderByIDDescSearchQueryProxy<T>(searchQuery);
         }
+
+        /// <summary>
+        /// 创建KeyCache扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="searchQuery"></param>
+        /// <param name="serviceProvider"></param>
+        /// <returns></returns>
+        public static IKeyCache<T> KeyCache<T>(this ISearchQuery<T> searchQuery, IServiceProvider serviceProvider)
+            where T : ViewModelBase, new()
+        {
+            return serviceProvider.GetRequiredService<ICacheProvider<T>>().CreateKeyCache(searchQuery);
+        }
+
+        /// <summary>
+        /// 创建ConditionCache扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="searchQuery"></param>
+        /// <param name="serviceProvider"></param>
+        /// <returns></returns>
+        public static IConditionCache<T> ConditionCache<T>(this ISearchQuery<T> searchQuery, IServiceProvider serviceProvider)
+            where T : ViewModelBase, new()
+        {
+            return serviceProvider.GetRequiredService<ICacheProvider<T>>().CreateConditionCache(searchQuery);
+        }
     }
 
     /// <summary>
@@ -54,6 +82,19 @@ namespace Common.ServiceCommon
             where T : ViewModelBase, new()
         {
             return new FilterIsDeletedEditQueryProxy<T>(editQuery);
+        }
+
+        /// <summary>
+        /// 创建Cache扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="editQuery"></param>
+        /// <param name="serviceProvider"></param>
+        /// <returns></returns>
+        public static IEditQuery<T> Cache<T>(this IEditQuery<T> editQuery, IServiceProvider serviceProvider)
+            where T : ViewModelBase, new()
+        {
+            return serviceProvider.GetRequiredService<ICacheProvider<T>>().CreateEditQueryCache(editQuery);
         }
     }
 

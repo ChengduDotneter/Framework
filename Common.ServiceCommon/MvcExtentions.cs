@@ -4,6 +4,7 @@ using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Static;
 using Common.DAL;
+using Common.DAL.Cache;
 using Common.Log;
 using Common.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
 
 namespace Common.ServiceCommon
 {
@@ -27,15 +27,16 @@ namespace Common.ServiceCommon
     public static class MvcExtentions
     {
         private const int DEFAULT_THREAD_COUNT = 200;
-        private static bool m_logInit;
         private static bool m_isCodeFirst;
         private static IDictionary<Type, Func<object>> m_defaultSearchQueryProviderDic;
         private static IDictionary<Type, Func<object>> m_defaultEditQueryProviderDic;
+        private static IDictionary<Type, Func<object>> m_defaultCacheProviderDic;
 
         static MvcExtentions()
         {
             m_defaultSearchQueryProviderDic = new Dictionary<Type, Func<object>>();
             m_defaultEditQueryProviderDic = new Dictionary<Type, Func<object>>();
+            m_defaultCacheProviderDic = new Dictionary<Type, Func<object>>();
         }
 
         /// <summary>
@@ -215,8 +216,14 @@ namespace Common.ServiceCommon
         /// <param name="modelTypes"></param>
         /// <param name="searchQueryProvider"></param>
         /// <param name="editQueryProvider"></param>
+        /// <param name="cacheProviderProvider"></param>
         /// <param name="dbResourceContentProvider"></param>
-        public static void AddQuerys(this IServiceCollection serviceCollection, Type[] modelTypes, Func<Type, object> searchQueryProvider = null, Func<Type, object> editQueryProvider = null, Func<IDBResourceContent> dbResourceContentProvider = null)
+        public static void AddQuerys(this IServiceCollection serviceCollection,
+                                     Type[] modelTypes,
+                                     Func<Type, object> searchQueryProvider = null,
+                                     Func<Type, object> editQueryProvider = null,
+                                     Func<Type, object> cacheProviderProvider = null,
+                                     Func<IDBResourceContent> dbResourceContentProvider = null)
         {
             if (dbResourceContentProvider != null)
                 serviceCollection.AddScoped(sp => dbResourceContentProvider.Invoke());
@@ -228,6 +235,7 @@ namespace Common.ServiceCommon
                 Type modelType = modelTypes[i];
                 Type searchQueryType = typeof(ISearchQuery<>).MakeGenericType(modelType);
                 Type editQueryType = typeof(IEditQuery<>).MakeGenericType(modelType);
+                Type cacheProviderType = typeof(ICacheProvider<>).MakeGenericType(modelType);
 
                 if (searchQueryProvider == null)
                 {
@@ -253,6 +261,18 @@ namespace Common.ServiceCommon
                 else
                 {
                     serviceCollection.AddScoped(editQueryType, sp => editQueryProvider.Invoke(modelType));
+                }
+
+                if (cacheProviderProvider == null)
+                {
+                    m_defaultCacheProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
+                           Expression.Call(typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateMemoryCacheProvider)).MakeGenericMethod(modelType))).Compile());
+
+                    serviceCollection.AddScoped(cacheProviderType, sp => m_defaultCacheProviderDic[modelType].Invoke());
+                }
+                else
+                {
+                    serviceCollection.AddScoped(cacheProviderType, sp => cacheProviderProvider.Invoke(modelType));
                 }
             }
         }

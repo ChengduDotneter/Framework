@@ -72,7 +72,7 @@ namespace Common.Lock
         /// <summary>
         /// Redis实例
         /// </summary>
-        public readonly static IDatabase m_redisClient;
+        private readonly static IDatabase m_redisClient;
 
         /// <summary>
         /// 线程等待
@@ -86,9 +86,7 @@ namespace Common.Lock
             ConfigurationOptions configurationOptions = new ConfigurationOptions();
             configurationOptions.EndPoints.Add(ConfigManager.Configuration["RedisEndPoint"]);
             configurationOptions.Password = ConfigManager.Configuration["RedisPassWord"];
-
             m_connectionMultiplexer = ConnectionMultiplexer.Connect(configurationOptions);
-
             m_redisClient = m_connectionMultiplexer.GetDatabase();
         }
 

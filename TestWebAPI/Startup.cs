@@ -1,5 +1,6 @@
 using Common;
 using Common.DAL;
+using Common.DAL.Cache;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -67,7 +68,12 @@ namespace TestWebAPI
             IMvcBuilder mvcBuilder = services.AddControllers(modelTypes, controllerTypes);
             services.ConfigureValidation(mvcBuilder, 10);
 
-            services.AddQuerys(modelTypes);
+            Func<Type, object> cacheProviderHandler = (type) =>
+            {
+                return typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateRedisCacheProvider)).MakeGenericMethod(type).Invoke(null, null);
+            };
+
+            services.AddQuerys(modelTypes, cacheProviderProvider: cacheProviderHandler);
 
             services.AddSwagger();
         }
