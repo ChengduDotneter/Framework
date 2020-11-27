@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Common
 {
@@ -27,6 +28,17 @@ namespace Common
 
                 index--;
             }
+        }
+
+        /// <summary>
+        /// 判断数据是否为空
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <returns></returns>
+        public static bool IsNullOrEmpty<T>(this IEnumerable<T> instance)
+        {
+            return instance == null || instance.Count() == 0;
         }
     }
 }
