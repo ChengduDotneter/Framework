@@ -75,7 +75,7 @@ namespace Common.ServiceCommon
                     }
 
                     Thread.Sleep(MONITOR_SPAN);
-                } 
+                }
             })
             {
                 IsBackground = true,
