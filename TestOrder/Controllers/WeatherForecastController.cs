@@ -21,7 +21,7 @@ namespace TestOrder.Controllers
         [HttpGet]
         public bool Test()
         {
-            MessageQueueFactory.GetRabbitMQProducer<MqSendMessage>(new List<string>() { "TestMQ" }, "TestMQ", ExChangeTypeEnum.fanout).Produce(new MQContext("TestMQ", ""), new MqSendMessage() { });
+            //MessageQueueFactory.GetRabbitMQProducer<MqSendMessage>(new List<string>() { "TestMQ" }, "TestMQ", ExChangeTypeEnum.fanout).Produce(new MQContext("TestMQ", ""), new MqSendMessage() { });
             return true;
         }
     }
