@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.Linq;
 using System.Web;
 
 namespace Common.ServiceCommon
@@ -23,12 +24,13 @@ namespace Common.ServiceCommon
         /// <summary>
         /// 默认空值
         /// </summary>
-        public readonly static SSOUserInfo Empty = new SSOUserInfo(-9999, "UNKNOWN");
+        public readonly static SSOUserInfo Empty = new SSOUserInfo(-9999, "UNKNOWN", "UNKNOWN");
 
-        internal SSOUserInfo(long id, string userName)
+        internal SSOUserInfo(long id, string userName, string phone)
         {
             ID = id;
             UserName = userName;
+            Phone = phone;
         }
 
         /// <summary>
@@ -40,6 +42,11 @@ namespace Common.ServiceCommon
         /// 用户姓名
         /// </summary>
         public string UserName { get; }
+
+        /// <summary>
+        /// 用户电话
+        /// </summary>
+        public string Phone { get; }
     }
 
     /// <summary>
@@ -66,12 +73,14 @@ namespace Common.ServiceCommon
         {
             IHeaderDictionary headers = m_httpContextAccessor.HttpContext?.Request?.Headers;
 
-            //TODO: 可能存在下游服务失去User相关信息或验证
-            if (headers["id"].Count == 0 || headers["userName"].Count == 0)
+            if (headers == null || headers["id"].Count == 0 || headers["userName"].Count == 0)
                 return SSOUserInfo.Empty;
 
+            string phone = HttpUtility.UrlDecode(headers["phone"].FirstOrDefault() ?? "UNKNOWN");
+
             return new SSOUserInfo(long.Parse(HttpUtility.UrlDecode(headers["id"].ToString())),
-                                   HttpUtility.UrlDecode(headers["userName"].ToString()));
+                                   HttpUtility.UrlDecode(headers["userName"].ToString()),
+                                   phone);
         }
     }
 }

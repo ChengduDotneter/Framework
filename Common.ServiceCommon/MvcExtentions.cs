@@ -7,14 +7,18 @@ using Common.DAL;
 using Common.DAL.Cache;
 using Common.Log;
 using Common.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -65,7 +69,19 @@ namespace Common.ServiceCommon
             ConfigManager.Init(hostBuilderContext.HostingEnvironment.EnvironmentName);
             m_isCodeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
 
-            serviceCollection.AddHttpClient();
+            serviceCollection.AddHttpClient(Options.DefaultName, (serviceProvider, httpClient) =>
+            {
+                IHttpContextAccessor httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
+
+                if (httpContextAccessor != null)
+                {
+                    SSOUserInfo ssoUserInfo = new SSOUserService(httpContextAccessor).GetUser();
+
+                    httpClient.DefaultRequestHeaders.Add("userName", ssoUserInfo.UserName);
+                    httpClient.DefaultRequestHeaders.Add("id", ssoUserInfo.ID.ToString());
+                    httpClient.DefaultRequestHeaders.Add("phone", ssoUserInfo.Phone);
+                }
+            });
 
             if (!int.TryParse(ConfigManager.Configuration["MinThreadCount"], out int threadCount))
                 threadCount = DEFAULT_THREAD_COUNT;
