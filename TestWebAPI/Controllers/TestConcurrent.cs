@@ -10,6 +10,7 @@ using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using TestRedis;
@@ -409,6 +410,78 @@ namespace TestWebAPI.Controllers
             }
 
             return mapReduceSplitJobs;
+        }
+    }
+
+    [Route("cache")]
+    [ApiController]
+    public class TestController : ControllerBase
+    {
+        [HttpPost]
+        public IActionResult Post()
+        {
+            return Ok();
+        }
+
+        [HttpGet]
+        public string Get()
+        {
+            return DateTime.Now.ToString("yyyyy-MM-dd HH:mm:ss");
+        }
+
+        [HttpGet("cross")]
+        public async Task<string> Cross([FromServices] IHttpClientFactory httpClientFactory)
+        {
+            HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpGetByAbsoluteUriAsync(httpClientFactory, "http://192.168.10.56:7788/cross", HttpContext.Request.Headers["Authorization"]);
+            return await httpResponseMessage.Content.ReadAsStringAsync();
+        }
+    }
+
+    [Route("cross")]
+    [ApiController]
+    public class CrossMicroServiceController : ControllerBase
+    {
+        [HttpPost]
+        public IActionResult Post()
+        {
+            return Ok();
+        }
+
+        [HttpGet]
+        public string Get([FromServices] ISSOUserService ssoUserService)
+        {
+            SSOUserInfo ssoUserInfo = ssoUserService.GetUser();
+            return $"userName: {ssoUserInfo.UserName}, id: {ssoUserInfo.ID}, phone: {ssoUserInfo.Phone}";
+        }
+    }
+
+    public class CrossService : IHostedService
+    {
+        private readonly IHttpClientFactory m_httpClientFactory;
+
+        public CrossService(IHttpClientFactory httpClientFactory)
+        {
+            m_httpClientFactory = httpClientFactory;
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            return Task.Factory.StartNew(async () =>
+            {
+                await Task.Delay(5000);
+
+                while (true)
+                {
+                    HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpGetByAbsoluteUriAsync(m_httpClientFactory, "http://192.168.10.56:7788/cross");
+                    Console.WriteLine(await httpResponseMessage.Content.ReadAsStringAsync());
+                    await Task.Delay(100);
+                }
+            });
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 }
