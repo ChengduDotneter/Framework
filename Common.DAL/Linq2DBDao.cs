@@ -42,13 +42,13 @@ namespace Common.DAL
 
             masterLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
             {
-                if (traceInfo.TraceInfoStep == TraceInfoStep.Completed || traceInfo.TraceInfoStep == TraceInfoStep.Error)
+                if (traceInfo.TraceInfoStep == TraceInfoStep.AfterExecute || traceInfo.TraceInfoStep == TraceInfoStep.Error)
                     DaoFactory.LogHelper.Info("linq2DB_master", traceInfo.SqlText);
             });
 
             slaveLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
             {
-                if (traceInfo.TraceInfoStep == TraceInfoStep.Completed || traceInfo.TraceInfoStep == TraceInfoStep.Error)
+                if (traceInfo.TraceInfoStep == TraceInfoStep.AfterExecute || traceInfo.TraceInfoStep == TraceInfoStep.Error)
                     DaoFactory.LogHelper.Info("linq2DB_slave", traceInfo.SqlText);
             });
 
