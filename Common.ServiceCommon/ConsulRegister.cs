@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Linq;
+using System.Threading;
 
 namespace Common.ServiceCommon
 {
@@ -12,6 +14,8 @@ namespace Common.ServiceCommon
     /// </summary>
     public static class ConsulRegister
     {
+        private const int MONITOR_SPAN = 1000 * 10;
+
         /// <summary>
         /// 初始化服务发现
         /// </summary>
@@ -57,6 +61,27 @@ namespace Common.ServiceCommon
 
             //服务启动时注册，内部实现其实就是使用 Consul API 进行注册（HttpClient发起）
             consulClient.Agent.ServiceRegister(registration).Wait();
+
+            //后台监控Consul注册情况 如果Consul失去注册  则退出当前进程。
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    if (Convert.ToBoolean(ConfigManager.Configuration["ConsulService:IsConsulMonitor"]))
+                    {
+                        QueryResult<CatalogService[]> queryResult = consulClient.Catalog.Service(registration.Name).Result;
+
+                        if (queryResult == null || queryResult.Response == null || queryResult.Response.Length == 0 || queryResult.Response.Count(item => item.ServiceID == registration.ID) == 0)
+                            Environment.Exit(0);
+                    }
+
+                    Thread.Sleep(MONITOR_SPAN);
+                }
+            })
+            {
+                IsBackground = true,
+                Name = "ConsulMonitor"
+            }.Start();
 
             lifetime.ApplicationStopping.Register(() =>
             {
