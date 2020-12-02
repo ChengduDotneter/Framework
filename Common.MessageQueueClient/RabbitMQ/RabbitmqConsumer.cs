@@ -47,9 +47,17 @@ namespace Common.MessageQueueClient.RabbitMQ
                 //接收事件
                 m_consumer.Received += (eventSender, args) =>
                 {
-                    var message = args.Body;//接收到的消息
+                    byte[] message = args.Body;//接收到的消息
 
-                    if (callback.Invoke(ConvertMessageToData(Encoding.UTF8.GetString(message))))
+                    T data = ConvertMessageToData(Encoding.UTF8.GetString(message));
+
+                    if (data == null)
+                    {
+                        m_channel.BasicAck(args.DeliveryTag, true);
+                        return;
+                    }
+
+                    if (callback.Invoke(data))
                         //返回消息确认
                         m_channel.BasicAck(args.DeliveryTag, true);
                 };
@@ -142,7 +150,8 @@ namespace Common.MessageQueueClient.RabbitMQ
             }
             catch
             {
-                throw new Exception($"RabbitMQ反序列化失败。message:{message}");
+                Log4netCreater.CreateLog("RabbitmqConsumer").Error($"RabbitMQConsum序列化失败：{message}。");
+                return null;
             }
         }
     }
