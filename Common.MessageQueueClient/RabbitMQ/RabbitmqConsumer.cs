@@ -51,12 +51,6 @@ namespace Common.MessageQueueClient.RabbitMQ
 
                     T data = ConvertMessageToData(Encoding.UTF8.GetString(message));
 
-                    if (data == null)
-                    {
-                        m_channel.BasicAck(args.DeliveryTag, true);
-                        return;
-                    }
-
                     if (callback.Invoke(data))
                         //返回消息确认
                         m_channel.BasicAck(args.DeliveryTag, true);
@@ -150,8 +144,10 @@ namespace Common.MessageQueueClient.RabbitMQ
             }
             catch
             {
-                Log4netCreater.CreateLog("RabbitmqConsumer").Error($"RabbitMQConsum序列化失败：{message}。");
-                return null;
+                string errorMessage = $"RabbitMQConsum序列化失败：{message}。";
+
+                Log4netCreater.CreateLog("RabbitmqConsumer").Error(errorMessage);
+                throw new Exception(errorMessage);
             }
         }
     }
