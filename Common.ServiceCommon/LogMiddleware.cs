@@ -82,7 +82,7 @@ namespace Common.ServiceCommon
             {
                 httpContext.Response.StatusCode = StatusCodes.Status402PaymentRequired;
 
-                await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, "资源繁忙，请稍后再试。", Encoding.UTF8);
+                await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, "系统繁忙，请稍后再试。", Encoding.UTF8);
 
                 await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo, exception.StackTrace);
             }
