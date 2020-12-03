@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -70,8 +71,24 @@ namespace Common.ServiceCommon
                     {
                         QueryResult<CatalogService[]> queryResult = consulClient.Catalog.Service(registration.Name).Result;
 
+                        if (queryResult != null && queryResult.Response != null && queryResult.Response.Length > 0)
+                        {
+                            IEnumerable<CatalogService> oldNodes = queryResult.Response.Where(item => item.Address == $"{registration.Address}:{registration.Port}" && item.ServiceID != registration.ID);
+
+                            if (oldNodes.Count() > 0)
+                            {
+                                foreach (CatalogService oldNode in oldNodes)
+                                {
+                                    consulClient.Agent.ServiceDeregister(oldNode.ServiceID).Wait();
+                                }
+                            }
+                        }
+
                         if (queryResult == null || queryResult.Response == null || queryResult.Response.Length == 0 || queryResult.Response.Count(item => item.ServiceID == registration.ID) == 0)
+                        {
+                            consulClient.Agent.ServiceDeregister(registration.ID).Wait();
                             Environment.Exit(0);
+                        }
                     }
 
                     Thread.Sleep(MONITOR_SPAN);

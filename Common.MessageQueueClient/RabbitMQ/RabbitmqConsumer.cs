@@ -66,6 +66,8 @@ namespace Common.MessageQueueClient.RabbitMQ
                         if (callback.Invoke(data))
                             //返回消息确认
                             m_channel.BasicAck(args.DeliveryTag, true);
+                        else
+                            m_channel.BasicReject(args.DeliveryTag, true);
                     }
                     catch
                     {
