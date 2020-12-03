@@ -185,8 +185,7 @@ namespace Common.DAL
                     if (TransactionResourceHelper.ApplayResource(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
                         linq2DBTransaction.TransactionTables.Add(table);
                     else
-                        //throw new DealException($"申请事务资源{table.FullName}失败。");
-                        throw new DealException($"系统繁忙，请稍后再试");
+                        throw new ResourceException($"申请事务资源{table.FullName}失败。");
                 }
             }
 
@@ -206,8 +205,7 @@ namespace Common.DAL
                     if (await TransactionResourceHelper.ApplayResourceAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
                         linq2DBTransaction.TransactionTables.Add(table);
                     else
-                        // throw new DealException($"申请事务资源{table.FullName}失败。");
-                        throw new DealException($"系统繁忙，请稍后再试");
+                        throw new ResourceException($"申请事务资源{table.FullName}失败。");
                 }
             }
 
@@ -295,7 +293,7 @@ namespace Common.DAL
             private bool m_notAutoRealse;
             private IResourceInstance<DataConnectionInstance> m_resourceInstance;
 
-            public Linq2DBQueryable(ITable<T> table, bool notAutoRealse, IResourceInstance<DataConnectionInstance>  resourceInstance)
+            public Linq2DBQueryable(ITable<T> table, bool notAutoRealse, IResourceInstance<DataConnectionInstance> resourceInstance)
             {
                 m_notAutoRealse = notAutoRealse;
                 m_table = table;
@@ -1073,7 +1071,7 @@ namespace Common.DAL
                 {
                     IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
 
-                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false,resourceInstance));
+                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false, resourceInstance));
                 }
                 else
                 {

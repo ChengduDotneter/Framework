@@ -82,7 +82,7 @@ namespace Common.Lock
             ConfigManager.Configuration.Bind("ConsulService", serviceEntity);
 
             if (string.IsNullOrWhiteSpace(serviceEntity.ConsulIP) || serviceEntity.ConsulPort == 0)
-                throw new DealException("ConsulIP和ConsulPort不能为空。");
+                throw new Exception("ConsulIP和ConsulPort不能为空。");
 
             m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));
         }

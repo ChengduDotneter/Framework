@@ -78,6 +78,14 @@ namespace Common.ServiceCommon
 
                 await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo, exception.StackTrace);
             }
+            catch (ResourceException exception)
+            {
+                httpContext.Response.StatusCode = StatusCodes.Status402PaymentRequired;
+
+                await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, "资源繁忙，请稍后再试。", Encoding.UTF8);
+
+                await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo, exception.StackTrace);
+            }
             catch (Exception exception)
             {
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
