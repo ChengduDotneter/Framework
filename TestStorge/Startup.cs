@@ -100,6 +100,8 @@ namespace TestStorge
 
             //    Console.WriteLine("Transform Done.");
             //});
+
+            services.AddHostedService<Controllers.MBCloudCommodityDownLoad>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
