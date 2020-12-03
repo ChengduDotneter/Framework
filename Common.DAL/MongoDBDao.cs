@@ -36,8 +36,7 @@ namespace Common.DAL
                     if (TransactionResourceHelper.ApplayResource(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight))
                         mongoDBTransaction.TransactionTables.Add(table);
                     else
-                        //throw new DealException($"申请事务资源{table.FullName}失败。");
-                        throw new DealException($"系统繁忙，请稍后再试");
+                        throw new ResourceException($"申请事务资源{table.FullName}失败。");
                 }
             }
 
@@ -57,8 +56,7 @@ namespace Common.DAL
                     if (await TransactionResourceHelper.ApplayResourceAsync(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight))
                         mongoDBTransaction.TransactionTables.Add(table);
                     else
-                        // throw new DealException($"申请事务资源{table.FullName}失败。");
-                        throw new DealException($"系统繁忙，请稍后再试");
+                        throw new ResourceException($"申请事务资源{table.FullName}失败。");
                 }
             }
 
