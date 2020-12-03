@@ -22,14 +22,14 @@ namespace TestRedis.CacheQuery
             m_editQuery = editQuery;
         }
 
-        public ITransaction BeginTransaction(int weight = 0)
+        public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
         {
-            return m_editQuery.BeginTransaction(weight);
+            return m_editQuery.BeginTransaction(distributedLock, weight);
         }
 
-        public Task<ITransaction> BeginTransactionAsync(int weight = 0)
+        public Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
         {
-            return m_editQuery.BeginTransactionAsync(weight);
+            return m_editQuery.BeginTransactionAsync(distributedLock, weight);
         }
 
         public void Delete(ITransaction transaction = null, params long[] ids)

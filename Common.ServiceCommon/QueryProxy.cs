@@ -612,18 +612,18 @@ namespace Common.ServiceCommon
         /// 开始事务
         /// </summary>
         /// <returns></returns>
-        public ITransaction BeginTransaction(int weight = 0)
+        public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
         {
-            return m_editQuery.BeginTransaction(weight);
+            return m_editQuery.BeginTransaction(distributedLock, weight);
         }
 
         /// <summary>
         /// 开始事务
         /// </summary>
         /// <returns></returns>
-        public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
+        public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
         {
-            return await m_editQuery.BeginTransactionAsync(weight);
+            return await m_editQuery.BeginTransactionAsync(distributedLock, weight);
         }
 
         /// <summary>

@@ -27,7 +27,7 @@ namespace Common.DAL
         {
             MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;
 
-            if (mongoDBTransaction != null)
+            if (mongoDBTransaction != null && mongoDBTransaction.DistributedLock)
             {
                 Type table = typeof(TResource);
 
@@ -47,7 +47,7 @@ namespace Common.DAL
         {
             MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;
 
-            if (mongoDBTransaction != null)
+            if (mongoDBTransaction != null && mongoDBTransaction.DistributedLock)
             {
                 Type table = typeof(TResource);
 
@@ -73,11 +73,13 @@ namespace Common.DAL
             public HashSet<Type> TransactionTables { get; }
             public string Identity { get; }
             public int Weight { get; }
+            public bool DistributedLock { get; }
 
-            public MongoDBTransaction(int weight)
+            public MongoDBTransaction(int weight, bool distributedLock)
             {
                 Identity = Guid.NewGuid().ToString("D");
                 Weight = weight;
+                DistributedLock = distributedLock;
                 TransactionTables = new HashSet<Type>();
                 ClientSessionHandle = m_masterMongoDatabase.Client.StartSession();
                 ClientSessionHandle.StartTransaction();
@@ -424,14 +426,14 @@ namespace Common.DAL
             private static readonly IDictionary<IMongoDatabase, IMongoCollection<T>> m_collection;
             private static readonly MethodInfo m_countMethodInfo;
 
-            public ITransaction BeginTransaction(int weight = 0)
+            public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
             {
-                return new MongoDBTransaction(weight);
+                return new MongoDBTransaction(weight, distributedLock);
             }
 
-            public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
+            public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
             {
-                return await Task.FromResult(new MongoDBTransaction(weight));
+                return await Task.FromResult(new MongoDBTransaction(weight, distributedLock));
             }
 
             public void Delete(ITransaction transaction = null, params long[] ids)

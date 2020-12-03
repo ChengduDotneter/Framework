@@ -176,7 +176,7 @@ namespace Common.DAL
         {
             Linq2DBTransaction linq2DBTransaction = transaction as Linq2DBTransaction;
 
-            if (linq2DBTransaction != null)
+            if (linq2DBTransaction != null && linq2DBTransaction.DistributedLock)
             {
                 Type table = typeof(TResource);
 
@@ -196,7 +196,7 @@ namespace Common.DAL
         {
             Linq2DBTransaction linq2DBTransaction = transaction as Linq2DBTransaction;
 
-            if (linq2DBTransaction != null)
+            if (linq2DBTransaction != null && linq2DBTransaction.DistributedLock)
             {
                 Type table = typeof(TResource);
 
@@ -244,11 +244,13 @@ namespace Common.DAL
             public HashSet<Type> TransactionTables { get; }
             public string Identity { get; }
             public int Weight { get; }
+            public bool DistributedLock { get; }
 
-            public Linq2DBTransaction(DataConnectionTransaction dataConnectionTransaction, int weight, IResourceInstance<DataConnectionInstance> resourceInstance)
+            public Linq2DBTransaction(DataConnectionTransaction dataConnectionTransaction, bool distributedLock, int weight, IResourceInstance<DataConnectionInstance> resourceInstance)
             {
                 Identity = Guid.NewGuid().ToString("D");
                 Weight = weight;
+                DistributedLock = distributedLock;
                 m_resourceInstance = resourceInstance;
                 TransactionTables = new HashSet<Type>();
                 m_dataConnectionTransaction = dataConnectionTransaction;
@@ -330,16 +332,16 @@ namespace Common.DAL
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
             private bool m_codeFirst;
 
-            public ITransaction BeginTransaction(int weight = 0)
+            public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
             {
                 IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
-                return new Linq2DBTransaction(resourceInstance.Instance.BeginTransaction(), weight, resourceInstance);
+                return new Linq2DBTransaction(resourceInstance.Instance.BeginTransaction(), distributedLock, weight, resourceInstance);
             }
 
-            public async Task<ITransaction> BeginTransactionAsync(int weight = 0)
+            public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
             {
                 IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
-                return new Linq2DBTransaction(await resourceInstance.Instance.BeginTransactionAsync(), weight, resourceInstance);
+                return new Linq2DBTransaction(await resourceInstance.Instance.BeginTransactionAsync(), distributedLock, weight, resourceInstance);
             }
 
             public void Delete(ITransaction transaction = null, params long[] ids)

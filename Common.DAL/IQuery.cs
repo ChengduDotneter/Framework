@@ -87,14 +87,16 @@ namespace Common.DAL
         /// <summary>
         /// 开启事务
         /// </summary>
+        /// <param name="distributedLock">是否启用分布式事务锁</param>
         /// <param name="weight">事务权重</param>
-        ITransaction BeginTransaction(int weight = 0);
+        ITransaction BeginTransaction(bool distributedLock = true, int weight = 0);
 
         /// <summary>
         /// 开启事务
         /// </summary>
+        /// <param name="distributedLock">是否启用分布式事务锁</param>
         /// <param name="weight">事务权重</param>
-        Task<ITransaction> BeginTransactionAsync(int weight = 0);
+        Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0);
     }
 
     /// <summary>
