@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -70,6 +71,19 @@ namespace Common.ServiceCommon
                     if (Convert.ToBoolean(ConfigManager.Configuration["ConsulService:IsConsulMonitor"]))
                     {
                         QueryResult<CatalogService[]> queryResult = consulClient.Catalog.Service(registration.Name).Result;
+
+                        if (queryResult != null && queryResult.Response != null && queryResult.Response.Length > 0)
+                        {
+                            IEnumerable<CatalogService> oldNodes = queryResult.Response.Where(item => item.ServiceAddress == registration.Address && item.ServicePort == registration.Port && item.ServiceID != registration.ID);
+
+                            if (oldNodes.Count() > 0)
+                            {
+                                foreach (CatalogService oldNode in oldNodes)
+                                {
+                                    consulClient.Agent.ServiceDeregister(oldNode.ServiceID).Wait();
+                                }
+                            }
+                        }
 
                         if (queryResult == null || queryResult.Response == null || queryResult.Response.Length == 0 || queryResult.Response.Count(item => item.ServiceID == registration.ID) == 0)
                             Environment.Exit(0);
