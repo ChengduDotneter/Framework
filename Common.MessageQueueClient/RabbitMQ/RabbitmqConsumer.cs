@@ -48,12 +48,31 @@ namespace Common.MessageQueueClient.RabbitMQ
                 m_consumer.Received += (eventSender, args) =>
                 {
                     byte[] message = args.Body;//接收到的消息
+                    T data = null;
 
-                    T data = ConvertMessageToData(Encoding.UTF8.GetString(message));
+                    try
+                    {
+                        data = ConvertMessageToData(Encoding.UTF8.GetString(message));
+                    }
+                    catch
+                    {
+                        //数据convert失败时，直接删除该数据
+                        m_channel.BasicReject(args.DeliveryTag,false);
+                        throw;
+                    }
 
-                    if (callback.Invoke(data))
-                        //返回消息确认
-                        m_channel.BasicAck(args.DeliveryTag, true);
+                    try
+                    {
+                        if (callback.Invoke(data))
+                            //返回消息确认
+                            m_channel.BasicAck(args.DeliveryTag, true);
+                    }
+                    catch
+                    {
+                        //处理逻辑失败时，该消息扔回消息队列
+                        m_channel.BasicReject(args.DeliveryTag, true);
+                        throw;
+                    }
                 };
 
                 //开启监听
