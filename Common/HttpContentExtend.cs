@@ -18,6 +18,9 @@ namespace Common
         /// <returns></returns>
         public static HttpClient AddAuthorizationHeader(this HttpClient httpClient, string authorization)
         {
+            if (string.IsNullOrEmpty(authorization))
+                return httpClient;
+
             if (httpClient.DefaultRequestHeaders.Contains(AUTHORIZATION_HEADER_NAME))
                 httpClient.DefaultRequestHeaders.Remove(AUTHORIZATION_HEADER_NAME);
 

@@ -1,3 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Configuration;
@@ -12,16 +20,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Net.Http;
-using System.Reflection;
-using System.Text;
-using System.Threading;
 
 namespace Common.ServiceCommon
 {
@@ -35,6 +33,7 @@ namespace Common.ServiceCommon
         private static IDictionary<Type, Func<object>> m_defaultSearchQueryProviderDic;
         private static IDictionary<Type, Func<object>> m_defaultEditQueryProviderDic;
         private static IDictionary<Type, Func<object>> m_defaultCacheProviderDic;
+        private static string m_clientID;
 
         static MvcExtentions()
         {
@@ -68,7 +67,9 @@ namespace Common.ServiceCommon
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             ConfigManager.Init(hostBuilderContext.HostingEnvironment.EnvironmentName);
             m_isCodeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
+            m_clientID = ConfigManager.Configuration["ClientID"];
 
+            serviceCollection.AddSingleton<IClientAccessTokenManager, ClientAccessTokenManager>();
             serviceCollection.AddHttpClient(Options.DefaultName, (serviceProvider, httpClient) =>
             {
                 IHttpContextAccessor httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
@@ -77,10 +78,23 @@ namespace Common.ServiceCommon
                 {
                     SSOUserInfo ssoUserInfo = new SSOUserService(httpContextAccessor).GetUser();
 
-                    httpClient.DefaultRequestHeaders.Add("userName", ssoUserInfo.UserName);
-                    httpClient.DefaultRequestHeaders.Add("id", ssoUserInfo.ID.ToString());
-                    httpClient.DefaultRequestHeaders.Add("phone", ssoUserInfo.Phone);
+                    if (ssoUserInfo != SSOUserInfo.Empty)
+                    {
+                        httpClient.DefaultRequestHeaders.Add("userName", ssoUserInfo.UserName);
+                        httpClient.DefaultRequestHeaders.Add("id", ssoUserInfo.ID.ToString());
+                        httpClient.DefaultRequestHeaders.Add("phone", ssoUserInfo.Phone);
+                    }
+                    else
+                    {
+                        (bool hasToken, string token) = serviceProvider.GetService<IClientAccessTokenManager>().GetToken();
+
+                        if (hasToken)
+                            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+                    }
                 }
+
+                if (!string.IsNullOrEmpty(m_clientID))
+                    httpClient.DefaultRequestHeaders.Add("ClientID", m_clientID);
             });
 
             if (!int.TryParse(ConfigManager.Configuration["MinThreadCount"], out int threadCount))

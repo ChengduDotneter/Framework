@@ -76,6 +76,7 @@ namespace TestWebAPI
             services.AddQuerys(modelTypes, cacheProviderProvider: cacheProviderHandler);
 
             services.AddSwagger();
+            //services.AddHostedService<CrossService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)

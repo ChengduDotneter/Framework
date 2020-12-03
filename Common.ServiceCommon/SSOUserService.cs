@@ -47,6 +47,34 @@ namespace Common.ServiceCommon
         /// 用户电话
         /// </summary>
         public string Phone { get; }
+
+        public override bool Equals(object other)
+        {
+            if (other is SSOUserInfo user)
+                return ID == user.ID;
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return ID.GetHashCode();
+        }
+
+        public static bool operator ==(SSOUserInfo a, SSOUserInfo b)
+        {
+            return a.ID == b.ID;
+        }
+
+        public static bool operator !=(SSOUserInfo a, SSOUserInfo b)
+        {
+            return a.ID != b.ID;
+        }
+
+        public override string ToString()
+        {
+            return $"{ID}, {UserName}, {Phone}";
+        }
     }
 
     /// <summary>

@@ -151,36 +151,33 @@ namespace Common
         /// </summary>
         /// <param name="httpWebRequest"></param>
         /// <returns></returns>
-        public static Task<HttpWebResponseResult> GetResponseDataAsync(this HttpWebRequest httpWebRequest)
+        public static async Task<HttpWebResponseResult> GetResponseDataAsync(this HttpWebRequest httpWebRequest)
         {
-            return Task.Factory.StartNew(() =>
+            HttpWebResponse httpWebResponse;
+
+            try
             {
-                HttpWebResponse httpWebResponse;
+                httpWebResponse = (HttpWebResponse)await httpWebRequest.GetResponseAsync();
+            }
+            catch (WebException ex)
+            {
+                httpWebResponse = (HttpWebResponse)ex.Response;
+            }
 
-                try
-                {
-                    httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                }
-                catch (WebException ex)
-                {
-                    httpWebResponse = (HttpWebResponse)ex.Response;
-                }
+            if (httpWebResponse == null)
+                throw new Exception($"{httpWebRequest.Address.AbsoluteUri}请求调用失败");
 
-                if (httpWebResponse == null)
-                    throw new Exception($"{httpWebRequest.Address.AbsoluteUri}请求调用失败");
+            Stream stream = httpWebResponse.GetResponseStream();
 
-                Stream stream = httpWebResponse.GetResponseStream();
+            string returnString = null;
 
-                string returnString = null;
+            //获取响应内容
+            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+            {
+                returnString = await reader.ReadToEndAsync();
+            }
 
-                //获取响应内容
-                using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
-                {
-                    returnString = reader.ReadToEnd();
-                }
-
-                return new HttpWebResponseResult(httpWebResponse.StatusCode, returnString);
-            });
+            return new HttpWebResponseResult(httpWebResponse.StatusCode, returnString);
         }
     }
 

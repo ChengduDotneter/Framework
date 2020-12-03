@@ -432,7 +432,8 @@ namespace TestWebAPI.Controllers
         [HttpGet("cross")]
         public async Task<string> Cross([FromServices] IHttpClientFactory httpClientFactory)
         {
-            HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpGetByAbsoluteUriAsync(httpClientFactory, "http://192.168.10.56:7788/cross", HttpContext.Request.Headers["Authorization"]);
+            HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpGetByAbsoluteUriAsync(httpClientFactory, "http://localhost:5001/testservice/cross", HttpContext.Request.Headers["Authorization"]);
+
             return await httpResponseMessage.Content.ReadAsStringAsync();
         }
     }
@@ -472,9 +473,9 @@ namespace TestWebAPI.Controllers
 
                 while (true)
                 {
-                    HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpGetByAbsoluteUriAsync(m_httpClientFactory, "http://192.168.10.56:7788/cross");
+                    HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpGetByAbsoluteUriAsync(m_httpClientFactory, "http://localhost:5001/testservice/cross");
                     Console.WriteLine(await httpResponseMessage.Content.ReadAsStringAsync());
-                    await Task.Delay(100);
+                    await Task.Delay(2000);
                 }
             });
         }
