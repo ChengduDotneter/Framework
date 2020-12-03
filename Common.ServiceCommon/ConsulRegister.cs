@@ -73,7 +73,7 @@ namespace Common.ServiceCommon
 
                         if (queryResult != null && queryResult.Response != null && queryResult.Response.Length > 0)
                         {
-                            IEnumerable<CatalogService> oldNodes = queryResult.Response.Where(item => item.Address == $"{registration.Address}:{registration.Port}" && item.ServiceID != registration.ID);
+                            IEnumerable<CatalogService> oldNodes = queryResult.Response.Where(item => item.ServiceAddress == registration.Address && item.ServicePort == registration.Port && item.ServiceID != registration.ID);
 
                             if (oldNodes.Count() > 0)
                             {

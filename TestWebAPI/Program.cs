@@ -42,12 +42,12 @@ namespace TestWebAPI
 
         public static void Main(string[] args)
         {
-            string[] abc = new string[] { "a1", "b1", "c1" };
+            //string[] abc = new string[] { "a1", "b1", "c1" };
 
-            Expression<Func<Left, bool>> expression = item => abc.Contains(item.StudentName);
+            //Expression<Func<Left, bool>> expression = item => abc.Contains(item.StudentName);
 
 
-            string ddd = expression.ToLamdaString<Left>();
+            //string ddd = expression.ToLamdaString<Left>();
 
 
 
