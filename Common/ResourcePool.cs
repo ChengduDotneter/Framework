@@ -138,7 +138,6 @@ namespace Common
                     {
                         if (replayNum++ > MAX_REPLAY_RESOURCE_NUM)
                         {
-                            //Console.WriteLine($"重试超过{MAX_REPLAY_RESOURCE_NUM}次 线程:{Environment.CurrentManagedThreadId.GetHashCode()}");
                             throw new ResourceException("资源池已满，申请失败。");
                         }
 
