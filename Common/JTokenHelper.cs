@@ -4,7 +4,7 @@ using System;
 namespace Common
 {
     /// <summary>
-    /// JToken相关Helper类1
+    /// JToken相关Helper类
     /// </summary>
     public class JTokenHelper
     {
