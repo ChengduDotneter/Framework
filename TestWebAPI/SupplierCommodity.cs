@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace MicroService.StorageService.Model
 {
     /// <summary>
-    /// 第三方供应商商品
+    /// 第三方供应商商品 
     /// </summary>
     [LinqSearch(typeof(SupplierCommoditySearch), nameof(GetSearchLinq))]
     [IgnoreBuildController(ignoreGet: true, ignoreDelete: true, ignorePost: true, ignorePut: true, ignoreSearch: true)]
