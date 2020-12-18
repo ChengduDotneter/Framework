@@ -8,21 +8,21 @@
         /// <summary>
         /// 关键字匹配
         /// </summary>
-        direct,
+        Direct,
 
         /// <summary>
         /// 数据分发
         /// </summary>
-        fanout,
+        Fanout,
 
         /// <summary>
         /// 关键字模糊匹配
         /// </summary>
-        topic,
+        Topic,
 
         /// <summary>
         /// 键值对匹配
         /// </summary>
-        headers
+        Headers
     }
 }

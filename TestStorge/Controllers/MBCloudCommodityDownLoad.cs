@@ -55,7 +55,7 @@ namespace TestStorge.Controllers
 
             if (m_mQConsumer == null)
             {
-                m_mQConsumer = MessageQueueFactory.GetRabbitMQConsumer<CommodityMQData>(ExChangeTypeEnum.direct);
+                m_mQConsumer = MessageQueueFactory.GetRabbitMQConsumer<CommodityMQData>(ExChangeTypeEnum.Direct);
                 m_mQConsumer.Subscribe(m_mQContext);
 
                 ConsumeDatas();

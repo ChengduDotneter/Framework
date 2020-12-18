@@ -20,7 +20,7 @@
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger/index.html",
-      "applicationUrl": "http://192.168.10.69:7788",
+      "applicationUrl": "http://192.168.10.56:7788",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
