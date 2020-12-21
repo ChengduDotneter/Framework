@@ -18,7 +18,7 @@ namespace Common.DAL
             //表名小写配置
             MappingSchema.EntityDescriptorCreatedCallback += (mappingSchema, entityDescriptor) =>
             {
-                if (!Convert.ToBoolean(ConfigManager.Configuration["IsLowerTableName"]))
+                if (!Convert.ToBoolean(ConfigManager.Configuration["IsNotLowerTableName"]))
                     entityDescriptor.TableName = entityDescriptor.TableName.ToLower();
             };
         }
