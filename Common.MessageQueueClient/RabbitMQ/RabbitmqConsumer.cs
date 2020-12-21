@@ -14,8 +14,8 @@ namespace Common.MessageQueueClient.RabbitMQ
     public class RabbitmqConsumer<T> : IMQConsumer<T> where T : class, IMQData, new()
     {
         private static IConnectionFactory m_connectionFactory;
-        private static IConnection m_connection;
-        private static IModel m_channel;
+        private IConnection m_connection;
+        private IModel m_channel;
         private string m_routingKey;
         private ISet<string> m_queueNames;
         private EventingBasicConsumer m_consumer;
@@ -90,7 +90,6 @@ namespace Common.MessageQueueClient.RabbitMQ
             try
             {
                 Dispose();
-                RabbitMqConsumerInit();
             }
             catch (Exception ex)
             {

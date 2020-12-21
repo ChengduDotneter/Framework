@@ -10,16 +10,17 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
 using TestWebAPI.Controllers;
+using TestWebAPI.Lock;
 
 namespace TestWebAPI
 {
-    internal class TestTCCNotify : ITccNotify<TCCTestData>
-    {
-        public void Notify(long tccID, bool successed, TCCTestData data)
-        {
-            Console.WriteLine(data.Data);
-        }
-    }
+    //internal class TestTCCNotify : ITccNotify<TCCTestData>
+    //{
+    //    public void Notify(long tccID, bool successed, TCCTestData data)
+    //    {
+    //        Console.WriteLine(data.Data);
+    //    }
+    //}
 
     public class Startup
     {
@@ -76,6 +77,7 @@ namespace TestWebAPI
             services.AddQuerys(modelTypes, cacheProviderProvider: cacheProviderHandler);
 
             services.AddSwagger();
+            services.AddScoped<ILockHelper, RedisLockHelper>();
             //services.AddHostedService<CrossService>();
         }
 
@@ -105,7 +107,7 @@ namespace TestWebAPI
 
             //服务发现
             //if (!env.IsDevelopment())
-                app.RegisterConsul(lifetime, m_configuration);
+            //    app.RegisterConsul(lifetime, m_configuration);
         }
     }
 }

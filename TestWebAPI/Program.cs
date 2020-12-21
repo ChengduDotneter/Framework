@@ -7,9 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
-using System.Linq.Expressions;
-using Common;
 
 namespace TestWebAPI
 {
@@ -42,25 +39,6 @@ namespace TestWebAPI
 
         public static void Main(string[] args)
         {
-            //string[] abc = new string[] { "a1", "b1", "c1" };
-
-            //Expression<Func<Left, bool>> expression = item => abc.Contains(item.StudentName);
-
-
-            //string ddd = expression.ToLamdaString<Left>();
-
-
-
-
-
-
-
-
-
-
-
-
-
             IHostBuilder hostBuilder = CreateHostBuilder(args);
             IHost host = hostBuilder.Build();
 
@@ -92,7 +70,7 @@ namespace TestWebAPI
         private static void LoggingConfig(HostBuilderContext hostBuilderContext, ILoggingBuilder loggingBuilder)
         {
             loggingBuilder.ClearProviders();
-            loggingBuilder.AddConsole();
+            //loggingBuilder.AddConsole();
         }
     }
 }
