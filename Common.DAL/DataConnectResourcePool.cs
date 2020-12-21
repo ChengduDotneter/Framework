@@ -14,6 +14,13 @@ namespace Common.DAL
         public DataConnectionInstance(int overTimeMilliseconds, LinqToDbConnectionOptions linqToDbConnectionOptions) : base(linqToDbConnectionOptions)
         {
             OverTimeMilliseconds = overTimeMilliseconds;
+
+            //表名小写配置
+            MappingSchema.EntityDescriptorCreatedCallback += (mappingSchema, entityDescriptor) =>
+            {
+                if (!Convert.ToBoolean(ConfigManager.Configuration["IsLowerTableName"]))
+                    entityDescriptor.TableName = entityDescriptor.TableName.ToLower();
+            };
         }
     }
 

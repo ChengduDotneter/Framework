@@ -46,6 +46,7 @@ namespace Common.Model
         /// <summary>
         /// 是否删除
         /// </summary>
+        [LinqToDB.Mapping.Column(CanBeNull = false)]
         public bool IsDeleted { set; get; }
     }
 }
