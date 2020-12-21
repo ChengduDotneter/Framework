@@ -19,7 +19,7 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <param name="queuesName">队列名称</param>
         public static void BindingQueues(string exchangeName, ExChangeTypeEnum exchangeType, IModel channel, string routingKey, IEnumerable<string> queuesName)
         {
-            channel.ExchangeDeclare(exchange: exchangeName, type: exchangeType.ToString(), durable: true, autoDelete: false, null);//设置交换器类型
+            channel.ExchangeDeclare(exchange: exchangeName, type: exchangeType.ToString().ToLower(), durable: true, autoDelete: false, null);//设置交换器类型
 
             foreach (var queueName in queuesName)
             {
