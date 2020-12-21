@@ -156,7 +156,7 @@ namespace Common.DAL
 
                         try
                         {
-                            dataConnection.Instance.CreateTable<T>(tableName);
+                            dataConnection.Instance.CreateTable<T>(dataConnection.Instance.MappingSchema.GetEntityDescriptor(typeof(T)).TableName);
                         }
                         catch
                         {
