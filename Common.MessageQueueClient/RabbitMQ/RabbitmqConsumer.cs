@@ -14,8 +14,8 @@ namespace Common.MessageQueueClient.RabbitMQ
     public class RabbitmqConsumer<T> : IMQConsumer<T> where T : class, IMQData, new()
     {
         private static IConnectionFactory m_connectionFactory;
-        private static IConnection m_connection;
-        private static IModel m_channel;
+        private IConnection m_connection;
+        private IModel m_channel;
         private string m_routingKey;
         private ISet<string> m_queueNames;
         private EventingBasicConsumer m_consumer;
@@ -57,7 +57,7 @@ namespace Common.MessageQueueClient.RabbitMQ
                     catch
                     {
                         //数据convert失败时，直接删除该数据
-                        m_channel.BasicReject(args.DeliveryTag,false);
+                        m_channel.BasicReject(args.DeliveryTag, false);
                         throw;
                     }
 
@@ -87,15 +87,7 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// </summary>
         public void DeSubscribe()
         {
-            try
-            {
-                Dispose();
-                RabbitMqConsumerInit();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"RabbitMQ参数配置初始化错误：{ex.Message}");
-            }
+            Dispose();
         }
 
         private void RabbitMqConsumerInit()
@@ -122,11 +114,8 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// </summary>
         public void Dispose()
         {
-            if (m_channel != null)
-                m_channel.Dispose();
-
-            if (m_connection != null)
-                m_connection.Dispose();
+            m_channel?.Dispose();
+            m_connection?.Dispose();
         }
 
         /// <summary>

@@ -14,9 +14,9 @@ namespace Common.MessageQueueClient.RabbitMQ
     public class RabbitmqProducer<T> : IMQProducer<T> where T : class, IMQData, new()
     {
         private static IConnectionFactory m_connectionFactory;
-        private static IConnection m_connection;
-        private static IModel m_channel;
-        private static IBasicProperties m_properties;
+        private IConnection m_connection;
+        private IModel m_channel;
+        private IBasicProperties m_properties;
         private ISet<string> m_queueNames;
         private string m_routingKey;
 
