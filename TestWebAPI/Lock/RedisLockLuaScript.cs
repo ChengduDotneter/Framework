@@ -104,17 +104,39 @@ if( lock_resources_length > 0 ) then
 end";
 
         public const string SAVE_DB_LOCK = @"-- 锁维持
-local transcation_id = KEYS[1] -- 事务ID
-local monitor_time = tonumber(KEYS[2]) -- 监测时间 单位 毫秒
-local exp_time = KEYS[3] -- 监测时间 单位 毫秒
-local lock_resources_length = tonumber(KEYS[4]) --锁的资源长度
+local monitor_time = tonumber(KEYS[1]) -- 监测时间 单位 毫秒
+local exp_time = KEYS[2] -- 监测时间 单位 毫秒
+local lock_resources_length = tonumber(KEYS[3]) --锁的资源长度
 
 if( lock_resources_length > 0) then
-	for i = 5,5 + lock_resources_length - 1  do -- 对需要释放的表的读锁资源进行循环
+	for i = 4,4 + lock_resources_length - 1  do -- 对需要释放的表的读锁资源进行循环
+		if(redis.call('EXISTS', KEYS[i]) == 0) then
+			return 0
+		end
+
 		if(redis.call('PTTL', KEYS[i]) <= monitor_time) then
 			redis.call('PEXPIRE',KEYS[i],exp_time)
 		end
 	end
-end";
+end
+
+return 1
+";
+
+        //		public const string SAVE_DB_LOCK = @"-- 锁维持
+        //local monitor_time = tonumber(KEYS[1]) -- 监测时间 单位 毫秒
+        //local exp_time = KEYS[2] -- 监测时间 单位 毫秒
+        //local lock_resources_length = tonumber(KEYS[3]) --锁的资源长度
+
+        //if( lock_resources_length > 0) then
+        //	for i = 4,4 + lock_resources_length - 1  do -- 对需要释放的表的读锁资源进行循环
+        //		if(redis.call('PTTL', KEYS[i]) <= monitor_time) then
+        //			redis.call('PEXPIRE',KEYS[i],exp_time)
+        //		end
+        //	end
+        //end
+
+        //return 1
+        //";
     }
 }

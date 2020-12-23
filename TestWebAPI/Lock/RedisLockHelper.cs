@@ -26,7 +26,7 @@ namespace TestWebAPI.Lock
             public ISet<RedisKey> ReadWriteLocks { get; }
             public bool Running { get; private set; }
 
-            public LockInstance(string identity)
+            public LockInstance(string identity, IDatabase m_saveRedisClient)
             {
                 m_cancellationTokenSource = new CancellationTokenSource();
                 Token = new RedisValue(identity);
@@ -42,48 +42,43 @@ namespace TestWebAPI.Lock
                         {
                             IList<Task> tasks = new List<Task>();
 
+                            Task<RedisResult> readWriteLockTask = null;
+
                             lock (MutexLocks)
                             {
                                 foreach (RedisKey item in MutexLocks)
-                                    tasks.Add(m_redisClient.LockExtendAsync(item, Token, TTL));
+                                    tasks.Add(m_saveRedisClient.LockExtendAsync(item, Token, TTL));
                             }
-
-
-                            await Task.WhenAll(tasks);
-                            await Task.Delay((int)TTL.TotalMilliseconds / 2, m_cancellationTokenSource.Token);
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-                    }
-                }, TaskCreationOptions.LongRunning);
-
-                Task.Factory.StartNew(async () =>
-                {
-                    while (Running)
-                    {
-                        try
-                        {
-                            IList<RedisKey> evaluatParameters = new List<RedisKey>();
-
-                            evaluatParameters.Add(identity);
-                            evaluatParameters.Add((TTL.TotalMilliseconds / 1.5).ToString());
-                            evaluatParameters.Add(TTL.TotalMilliseconds.ToString());
 
                             lock (ReadWriteLocks)
                             {
-                                if (ReadWriteLocks.Count() == 0)
-                                    continue;
+                                if (ReadWriteLocks.Count() > 0)
+                                {
+                                    IList<RedisKey> evaluatParameters = new List<RedisKey>();
 
-                                evaluatParameters.Add(ReadWriteLocks.Count().ToString());
+                                    evaluatParameters.Add((TTL.TotalMilliseconds / 1.5).ToString());
+                                    evaluatParameters.Add(TTL.TotalMilliseconds.ToString());
+                                    evaluatParameters.Add(ReadWriteLocks.Count().ToString());
+                                    evaluatParameters.AddRange(ReadWriteLocks);
 
-                                evaluatParameters.AddRange(ReadWriteLocks);
+                                    readWriteLockTask = m_saveRedisClient.ScriptEvaluateAsync(SAVE_DB_LOCK_HASH, evaluatParameters.ToArray());
+
+                                    tasks.Add(readWriteLockTask);
+                                }
                             }
 
-                            await m_redisClient.ScriptEvaluateAsync(SAVE_DB_LOCK_HASH, evaluatParameters.ToArray());
+                            await Task.WhenAll(tasks);
 
-                            await Task.Delay((int)TTL.TotalMilliseconds / 2, m_cancellationTokenSource.Token);
+                            if (readWriteLockTask != null && readWriteLockTask.Result.ToString() != "1")
+                                throw new ResourceException("读写锁续锁失败。");
+
+                            await Task.Delay((int)TTL.TotalMilliseconds / 3, m_cancellationTokenSource.Token);
+                        }
+                        catch (ResourceException resourceException)
+                        {
+                            Close();
+                            LogHelperFactory.GetLog4netLogHelper().Error("RedisLockInstance", $"续锁失败，{resourceException.Message} {resourceException.StackTrace}");
+                            throw;
                         }
                         catch (Exception exception)
                         {
@@ -91,7 +86,6 @@ namespace TestWebAPI.Lock
                             continue;
                         }
                     }
-
                 }, TaskCreationOptions.LongRunning);
             }
 
@@ -110,17 +104,12 @@ namespace TestWebAPI.Lock
         /// <summary>
         /// TTL
         /// </summary>
-        private readonly static TimeSpan TTL = TimeSpan.FromMilliseconds(10 * 1000);
+        private readonly static TimeSpan TTL = TimeSpan.FromMilliseconds(6 * 1000);
 
         /// <summary>
         /// 连接工具
         /// </summary>
-        private readonly static ConnectionMultiplexer m_connectionMultiplexer;
-
-        /// <summary>
-        /// Redis实例
-        /// </summary>
-        private readonly static IDatabase m_redisClient;
+        private readonly static ConcurrentQueue<ConnectionMultiplexer> m_connectionMultiplexerQueue;
 
         /// <summary>
         /// 读写锁读锁建前缀
@@ -145,6 +134,8 @@ namespace TestWebAPI.Lock
 
         private static byte[] Release_DB_LOCK_HASH;
 
+        private static int m_maxLockCount;
+
         static RedisLockHelper()
         {
             m_lockInstances = new ConcurrentDictionary<string, LockInstance>();
@@ -152,15 +143,48 @@ namespace TestWebAPI.Lock
             ConfigurationOptions configurationOptions = new ConfigurationOptions();
             configurationOptions.EndPoints.Add(ConfigManager.Configuration["RedisEndPoint"]);
             configurationOptions.Password = ConfigManager.Configuration["RedisPassWord"];
-            m_connectionMultiplexer = ConnectionMultiplexer.Connect(configurationOptions);
-            m_redisClient = m_connectionMultiplexer.GetDatabase();
 
-            IServer server = m_connectionMultiplexer.GetServer(ConfigManager.Configuration["RedisEndPoint"]);
+            ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(configurationOptions);
+
+            IServer server = connectionMultiplexer.GetServer(ConfigManager.Configuration["RedisEndPoint"]);
 
             ACQUIRE_NREAD_NWRITE_LOCK_HASH = server.ScriptLoad(RedisLockLuaScript.ACQUIRE_NREAD_NWRITE_LOCK);
             ACQUIRE_NREAD_ONEWRITE_LOCK_HASH = server.ScriptLoad(RedisLockLuaScript.ACQUIRE_NREAD_ONEWRITE_LOCK);
             SAVE_DB_LOCK_HASH = server.ScriptLoad(RedisLockLuaScript.SAVE_DB_LOCK);
             Release_DB_LOCK_HASH = server.ScriptLoad(RedisLockLuaScript.Release_DB_LOCK);
+
+            m_connectionMultiplexerQueue = new ConcurrentQueue<ConnectionMultiplexer>();
+            m_connectionMultiplexerQueue.Enqueue(connectionMultiplexer);
+
+            for (int i = 0; i < 10; i++)
+            {
+                m_connectionMultiplexerQueue.Enqueue(ConnectionMultiplexer.Connect(configurationOptions));
+            }
+
+            m_maxLockCount = Convert.ToInt32(ConfigManager.Configuration["MaxLockCount"]) == 0 ? 1000 : Convert.ToInt32(ConfigManager.Configuration["MaxLockCount"]);
+        }
+
+        private LockInstance GetLockInstance(string identity,IDatabase database)
+        {
+            if (!m_lockInstances.ContainsKey(identity))
+            {
+                lock (m_lockInstances)
+                {
+                    if (m_lockInstances.Count() < m_maxLockCount)
+                        m_lockInstances.TryAdd(identity, new LockInstance(identity, database));
+                    else
+                        throw new ResourceException("锁资源已满。");
+                }
+            }
+
+            return m_lockInstances[identity];
+        }
+
+        private IDatabase GetDatabase()
+        {
+            m_connectionMultiplexerQueue.TryDequeue(out ConnectionMultiplexer connectionMultiplexer);
+            m_connectionMultiplexerQueue.Enqueue(connectionMultiplexer);
+            return connectionMultiplexer.GetDatabase();
         }
 
         /// <summary>
@@ -173,18 +197,15 @@ namespace TestWebAPI.Lock
         /// <returns></returns>
         bool ILockHelper.AcquireMutex(string key, string identity, int weight, int timeOut)
         {
-            if (!m_lockInstances.ContainsKey(identity))
-                m_lockInstances.TryAdd(identity, new LockInstance(identity));
-
-            LockInstance lockInstance = m_lockInstances[identity];
-
+            IDatabase database = GetDatabase();
+            LockInstance lockInstance = GetLockInstance(identity, database);
 
             try
             {
                 RedisKey redisKey = new RedisKey(key);
                 int time = Environment.TickCount;
 
-                while (!m_redisClient.LockTake(redisKey, lockInstance.Token, TTL))
+                while (!database.LockTake(redisKey, lockInstance.Token, TTL))
                 {
                     if (Environment.TickCount - time > timeOut)
                         return false;
@@ -213,17 +234,15 @@ namespace TestWebAPI.Lock
         /// <returns></returns>
         async Task<bool> ILockHelper.AcquireMutexAsync(string key, string identity, int weight, int timeOut)
         {
-            if (!m_lockInstances.ContainsKey(identity))
-                m_lockInstances.TryAdd(identity, new LockInstance(identity));
-
-            LockInstance lockInstance = m_lockInstances[identity];
+            IDatabase database = GetDatabase();
+            LockInstance lockInstance = GetLockInstance(identity, database);
 
             try
             {
                 RedisKey redisKey = new RedisKey(key);
                 int time = Environment.TickCount;
 
-                while (!await m_redisClient.LockTakeAsync(redisKey, lockInstance.Token, TTL))
+                while (!await database.LockTakeAsync(redisKey, lockInstance.Token, TTL))
                 {
                     if (Environment.TickCount - time > timeOut)
                         return false;
@@ -246,8 +265,8 @@ namespace TestWebAPI.Lock
         /// <param name="identity">锁ID</param>
         void ILockHelper.Release(string identity)
         {
-            if (!m_lockInstances.TryGetValue(identity, out LockInstance lockInstance))
-                return;
+            IDatabase database = GetDatabase();
+            LockInstance lockInstance = GetLockInstance(identity, database);
 
             lockInstance.Close();
 
@@ -263,7 +282,7 @@ namespace TestWebAPI.Lock
             {
                 try
                 {
-                    m_redisClient.LockRelease(locks[i], lockInstance.Token);
+                    database.LockRelease(locks[i], lockInstance.Token);
                 }
                 catch
                 {
@@ -278,7 +297,7 @@ namespace TestWebAPI.Lock
                 evaluatParameters.Add(lockInstance.ReadWriteLocks.Count().ToString());
                 evaluatParameters.AddRange(lockInstance.ReadWriteLocks);
 
-                m_redisClient.ScriptEvaluate(Release_DB_LOCK_HASH, evaluatParameters.ToArray());
+                database.ScriptEvaluate(Release_DB_LOCK_HASH, evaluatParameters.ToArray());
             }
         }
 
@@ -289,8 +308,8 @@ namespace TestWebAPI.Lock
         /// <returns></returns>
         async Task ILockHelper.ReleaseAsync(string identity)
         {
-            if (!m_lockInstances.TryGetValue(identity, out LockInstance lockInstance))
-                return;
+            IDatabase database = GetDatabase();
+            LockInstance lockInstance = GetLockInstance(identity, database);
 
             lockInstance.Close();
 
@@ -305,11 +324,11 @@ namespace TestWebAPI.Lock
                 evaluatParameters.Add(lockInstance.ReadWriteLocks.Count().ToString());
                 evaluatParameters.AddRange(lockInstance.ReadWriteLocks);
 
-                tasks.Add(m_redisClient.ScriptEvaluateAsync(Release_DB_LOCK_HASH, evaluatParameters.ToArray()));
+                tasks.Add(database.ScriptEvaluateAsync(Release_DB_LOCK_HASH, evaluatParameters.ToArray()));
             }
 
             for (int i = 0; i < locks.Length; i++)
-                tasks.Add(m_redisClient.LockReleaseAsync(locks[i], lockInstance.Token));
+                tasks.Add(database.LockReleaseAsync(locks[i], lockInstance.Token));
 
             try
             {
@@ -376,10 +395,8 @@ namespace TestWebAPI.Lock
 
         private async Task<bool> AcquireReadWriteLockWithGroupKey(string groupKey, string identity, int weight, int timeOut, LockMode lockMode)
         {
-            if (!m_lockInstances.ContainsKey(identity))
-                m_lockInstances.TryAdd(identity, new LockInstance(identity));
-
-            LockInstance lockInstance = m_lockInstances[identity];
+            IDatabase database = GetDatabase();
+            LockInstance lockInstance = GetLockInstance(identity, database);
 
             try
             {
@@ -395,20 +412,20 @@ namespace TestWebAPI.Lock
                 evaluatParameters.Add(writeGroupKey);
                 evaluatParameters.Add(((int)lockMode).ToString());
 
+                while ((await database.ScriptEvaluateAsync(ACQUIRE_NREAD_NWRITE_LOCK_HASH, evaluatParameters.ToArray())).ToString() != "1")
+                {
+                    if (Environment.TickCount - time > timeOut)
+                        return false;
+                    else
+                        Thread.Sleep(THREAD_TIME_SPAN);
+                }
+
                 lock (lockInstance.ReadWriteLocks)
                 {
                     if (lockMode == LockMode.WriteLock)
                         lockInstance.ReadWriteLocks.Add(writeGroupKey);
                     else if (lockMode == LockMode.ReadLock)
                         lockInstance.ReadWriteLocks.Add(readGroupKey);
-                }
-
-                while ((await m_redisClient.ScriptEvaluateAsync(ACQUIRE_NREAD_NWRITE_LOCK_HASH, evaluatParameters.ToArray())).ToString() != "1")
-                {
-                    if (Environment.TickCount - time > timeOut)
-                        return false;
-                    else
-                        Thread.Sleep(THREAD_TIME_SPAN);
                 }
 
                 return true;
@@ -478,10 +495,8 @@ namespace TestWebAPI.Lock
 
         private async Task<bool> AcquireReadWriteLockWithResourceKeys(string groupKey, string identity, int weight, int timeOut, LockMode lockMode, params string[] resourceKeys)
         {
-            if (!m_lockInstances.ContainsKey(identity))
-                m_lockInstances.TryAdd(identity, new LockInstance(identity));
-
-            LockInstance lockInstance = m_lockInstances[identity];
+            IDatabase database = GetDatabase();
+            LockInstance lockInstance = GetLockInstance(identity, database);
 
             try
             {
@@ -515,6 +530,14 @@ namespace TestWebAPI.Lock
                     evaluatParameters.Add(GetWriteReasouceKey(groupKey, item));
                 }
 
+                while ((await database.ScriptEvaluateAsync(ACQUIRE_NREAD_ONEWRITE_LOCK_HASH, evaluatParameters.ToArray())).ToString() != "1")
+                {
+                    if (Environment.TickCount - time > timeOut)
+                        return false;
+                    else
+                        Thread.Sleep(THREAD_TIME_SPAN);
+                }
+
                 lock (lockInstance.ReadWriteLocks)
                 {
                     lockInstance.ReadWriteLocks.Add(readGroupKey);
@@ -526,14 +549,6 @@ namespace TestWebAPI.Lock
                             lockInstance.ReadWriteLocks.Add(needLockedResourceKey);
                         }
                     }
-                }
-
-                while ((await m_redisClient.ScriptEvaluateAsync(ACQUIRE_NREAD_ONEWRITE_LOCK_HASH, evaluatParameters.ToArray())).ToString() != "1")
-                {
-                    if (Environment.TickCount - time > timeOut)
-                        return false;
-                    else
-                        Thread.Sleep(THREAD_TIME_SPAN);
                 }
 
                 return true;
