@@ -38,11 +38,52 @@ namespace TestWebAPI.Controllers
         [HttpGet]
         public async Task<Left> Get()
         {
-            Console.WriteLine("controller start");
+            Left data = null;
 
-            var data = m_searchQuery.RedisCache().Get(238335829955582145);
+            using (ITransaction transaction = m_editQuery.BeginTransaction())
+            {
+                try
+                {
+                    Random random = new Random();
+
+                    var datas = m_searchQuery.FilterIsDeleted().Search(transaction, item => item.ClassID == 262179144828190721);
+
+                    Sleep();
+
+                    data = m_searchQuery.FilterIsDeleted().Get(datas.FirstOrDefault().ID, transaction);
+
+                    Sleep();
+
+                    data.UpdateUserID = random.Next(1000, 9999);
+                    data.UpdateTime = DateTime.Now;
+
+                    Sleep();
+                    m_editQuery.Update(data, transaction);
+
+                    Sleep();
+                    m_editQuery.Delete(transaction, data.ID);
+
+                    Sleep();
+                    data.ID = IDGenerator.NextID();
+
+                    m_editQuery.Insert(transaction, data);
+                    Sleep();
+
+                    transaction.Submit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
 
             return data;
+        }
+
+        private void Sleep()
+        {
+            Thread.Sleep(5000);
         }
     }
 

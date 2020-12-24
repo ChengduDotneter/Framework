@@ -31,13 +31,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!mongoDBTransaction.TransactionTables.Contains(table))
-                {
-                    if (TransactionResourceHelper.ApplayTableResource(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight))
-                        mongoDBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}失败。");
-                }
+                if (!TransactionResourceHelper.ApplayTableResource(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight))
+                    throw new ResourceException($"申请事务资源{table.FullName}失败。");
             }
 
             return mongoDBTransaction != null;
@@ -51,13 +46,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!mongoDBTransaction.TransactionTables.Contains(table))
-                {
-                    if (await TransactionResourceHelper.ApplayTableResourceAsync(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight))
-                        mongoDBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}失败。");
-                }
+                if (!await TransactionResourceHelper.ApplayTableResourceAsync(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight))
+                    throw new ResourceException($"申请事务资源{table.FullName}失败。");
             }
 
             return mongoDBTransaction != null;
@@ -71,13 +61,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!mongoDBTransaction.TransactionTables.Contains(table))
-                {
-                    if (TransactionResourceHelper.ApplayRowResourceWithWrite(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight, ids))
-                        mongoDBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
-                }
+                if (!TransactionResourceHelper.ApplayRowResourceWithWrite(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight, ids))
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return mongoDBTransaction != null;
@@ -91,13 +76,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!mongoDBTransaction.TransactionTables.Contains(table))
-                {
-                    if (await TransactionResourceHelper.ApplayRowResourceWithWriteAsync(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight, ids))
-                        mongoDBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
-                }
+                if (!await TransactionResourceHelper.ApplayRowResourceWithWriteAsync(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight, ids))
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return mongoDBTransaction != null;
@@ -111,13 +91,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!mongoDBTransaction.TransactionTables.Contains(table))
-                {
-                    if (TransactionResourceHelper.ApplayRowResourceWithRead(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight, ids))
-                        mongoDBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
-                }
+                if (!TransactionResourceHelper.ApplayRowResourceWithRead(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight, ids))
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return mongoDBTransaction != null;
@@ -131,13 +106,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!mongoDBTransaction.TransactionTables.Contains(table))
-                {
-                    if (await TransactionResourceHelper.ApplayRowResourceWithReadAsync(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight, ids))
-                        mongoDBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
-                }
+                if (!await TransactionResourceHelper.ApplayRowResourceWithReadAsync(table, mongoDBTransaction.Identity, mongoDBTransaction.Weight, ids))
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return mongoDBTransaction != null;
@@ -150,7 +120,6 @@ namespace Common.DAL
 
         private class MongoDBTransaction : ITransaction
         {
-            public HashSet<Type> TransactionTables { get; }
             public string Identity { get; }
             public int Weight { get; }
             public bool DistributedLock { get; }
@@ -160,7 +129,6 @@ namespace Common.DAL
                 Identity = Guid.NewGuid().ToString("D");
                 Weight = weight;
                 DistributedLock = distributedLock;
-                TransactionTables = new HashSet<Type>();
                 ClientSessionHandle = m_masterMongoDatabase.Client.StartSession();
                 ClientSessionHandle.StartTransaction();
             }

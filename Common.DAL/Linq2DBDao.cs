@@ -1,5 +1,4 @@
 ﻿using Common.DAL.Transaction;
-using Common.Lock;
 using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
@@ -181,13 +180,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!linq2DBTransaction.TransactionTables.Contains(table))
-                {
-                    if (TransactionResourceHelper.ApplayTableResource(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
-                        linq2DBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}失败。");
-                }
+                if (!TransactionResourceHelper.ApplayTableResource(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
+                    throw new ResourceException($"申请事务资源{table.FullName}失败。");
             }
 
             return linq2DBTransaction != null;
@@ -201,13 +195,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!linq2DBTransaction.TransactionTables.Contains(table))
-                {
-                    if (await TransactionResourceHelper.ApplayTableResourceAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
-                        linq2DBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}失败。");
-                }
+                if (!await TransactionResourceHelper.ApplayTableResourceAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
+                    throw new ResourceException($"申请事务资源{table.FullName}失败。");
             }
 
             return linq2DBTransaction != null;
@@ -221,13 +210,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!linq2DBTransaction.TransactionTables.Contains(table))
-                {
-                    if (TransactionResourceHelper.ApplayRowResourceWithWrite(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
-                        linq2DBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
-                }
+                if (!TransactionResourceHelper.ApplayRowResourceWithWrite(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return linq2DBTransaction != null;
@@ -241,13 +225,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!linq2DBTransaction.TransactionTables.Contains(table))
-                {
-                    if (await TransactionResourceHelper.ApplayRowResourceWithWriteAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
-                        linq2DBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
-                }
+                if (!await TransactionResourceHelper.ApplayRowResourceWithWriteAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return linq2DBTransaction != null;
@@ -261,13 +240,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!linq2DBTransaction.TransactionTables.Contains(table))
-                {
-                    if (TransactionResourceHelper.ApplayRowResourceWithRead(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
-                        linq2DBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
-                }
+                if (!TransactionResourceHelper.ApplayRowResourceWithRead(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return linq2DBTransaction != null;
@@ -281,13 +255,8 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!linq2DBTransaction.TransactionTables.Contains(table))
-                {
-                    if (await TransactionResourceHelper.ApplayRowResourceWithReadAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
-                        linq2DBTransaction.TransactionTables.Add(table);
-                    else
-                        throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
-                }
+                if (!await TransactionResourceHelper.ApplayRowResourceWithReadAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return linq2DBTransaction != null;
@@ -322,7 +291,6 @@ namespace Common.DAL
             private DataConnectionTransaction m_dataConnectionTransaction;
             private readonly IResourceInstance<DataConnectionInstance> m_resourceInstance;
 
-            public HashSet<Type> TransactionTables { get; }
             public string Identity { get; }
             public int Weight { get; }
             public bool DistributedLock { get; }
@@ -333,7 +301,6 @@ namespace Common.DAL
                 Weight = weight;
                 DistributedLock = distributedLock;
                 m_resourceInstance = resourceInstance;
-                TransactionTables = new HashSet<Type>();
                 m_dataConnectionTransaction = dataConnectionTransaction;
             }
 
