@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using Common.Log;
+using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -68,7 +69,8 @@ namespace Common.Lock
                         }
                         catch (ResourceException)
                         {
-                            Close();
+                            Close(true);
+                            LogHelperFactory.GetDefaultLogHelper().Error("LockSave","锁未能维持成功。");
                             throw;
                         }
                         catch (Exception)
@@ -79,10 +81,10 @@ namespace Common.Lock
                 }, TaskCreationOptions.LongRunning);
             }
 
-            public void Close()
+            public void Close(bool isCancelClose)
             {
                 Running = false;
-                m_cancellationTokenSource.Cancel(false);
+                m_cancellationTokenSource.Cancel(isCancelClose);
             }
         }
 
@@ -154,7 +156,7 @@ namespace Common.Lock
             m_maxLockCount = Convert.ToInt32(ConfigManager.Configuration["MaxLockCount"]) == 0 ? 1000 : Convert.ToInt32(ConfigManager.Configuration["MaxLockCount"]);
         }
 
-        private LockInstance GetLockInstance(string identity, IDatabase database)
+        private LockInstance GetOrAddLockInstance(string identity, IDatabase database)
         {
             if (!m_lockInstances.ContainsKey(identity))
             {
@@ -166,6 +168,14 @@ namespace Common.Lock
                         throw new ResourceException("锁资源已满。");
                 }
             }
+
+            return m_lockInstances[identity];
+        }
+
+        private LockInstance GetLockInstance(string identity)
+        {
+            if (!m_lockInstances.ContainsKey(identity))
+                throw new ResourceException($"未找到锁ID{identity}");
 
             return m_lockInstances[identity];
         }
@@ -188,7 +198,7 @@ namespace Common.Lock
         bool ILock.AcquireMutex(string key, string identity, int weight, int timeOut)
         {
             IDatabase database = GetDatabase();
-            LockInstance lockInstance = GetLockInstance(identity, database);
+            LockInstance lockInstance = GetOrAddLockInstance(identity, database);
 
             try
             {
@@ -225,7 +235,7 @@ namespace Common.Lock
         async Task<bool> ILock.AcquireMutexAsync(string key, string identity, int weight, int timeOut)
         {
             IDatabase database = GetDatabase();
-            LockInstance lockInstance = GetLockInstance(identity, database);
+            LockInstance lockInstance = GetOrAddLockInstance(identity, database);
 
             try
             {
@@ -256,9 +266,9 @@ namespace Common.Lock
         void ILock.Release(string identity)
         {
             IDatabase database = GetDatabase();
-            LockInstance lockInstance = GetLockInstance(identity, database);
+            LockInstance lockInstance = GetLockInstance(identity);
 
-            lockInstance.Close();
+            lockInstance.Close(false);
 
             Task.Factory.StartNew(() =>
             {
@@ -299,9 +309,9 @@ namespace Common.Lock
         async Task ILock.ReleaseAsync(string identity)
         {
             IDatabase database = GetDatabase();
-            LockInstance lockInstance = GetLockInstance(identity, database);
+            LockInstance lockInstance = GetLockInstance(identity);
 
-            lockInstance.Close();
+            lockInstance.Close(false);
 
             RedisKey[] locks = lockInstance.MutexLocks.ToArray();
 
@@ -386,7 +396,7 @@ namespace Common.Lock
         private async Task<bool> AcquireReadWriteLockWithGroupKey(string groupKey, string identity, int weight, int timeOut, ReadWriteLockMode lockMode)
         {
             IDatabase database = GetDatabase();
-            LockInstance lockInstance = GetLockInstance(identity, database);
+            LockInstance lockInstance = GetOrAddLockInstance(identity, database);
 
             try
             {
@@ -486,7 +496,7 @@ namespace Common.Lock
         private async Task<bool> AcquireReadWriteLockWithResourceKeys(string groupKey, string identity, int weight, int timeOut, ReadWriteLockMode lockMode, params string[] resourceKeys)
         {
             IDatabase database = GetDatabase();
-            LockInstance lockInstance = GetLockInstance(identity, database);
+            LockInstance lockInstance = GetOrAddLockInstance(identity, database);
 
             try
             {

@@ -85,6 +85,7 @@ namespace TestWebAPI
 
         private static void ConfigInit(HostBuilderContext hostBuilderContext, IServiceCollection services)
         {
+            services.DefaultLogHelperConfig(Common.Log.LogModel.LogHelperTypeEnum.Log4netLog);
             //hostBuilderContext.ConfigIgnite();
             hostBuilderContext.ConfigInit(services);
         }

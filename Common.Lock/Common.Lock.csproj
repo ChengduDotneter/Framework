@@ -15,6 +15,7 @@
     <PackageReference Include="StackExchange.Redis" Version="2.1.58" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common.Log\Common.Log.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
   </ItemGroup>
 </Project>

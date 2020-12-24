@@ -40,34 +40,32 @@ namespace TestWebAPI.Controllers
         {
             Left data = null;
 
+            var datas = m_searchQuery.FilterIsDeleted().Search().ToArray();
+
+            Random random = new Random();
+
+            long id = datas[random.Next(0, datas.Length - 1)].ID;
+
+
             using (ITransaction transaction = m_editQuery.BeginTransaction())
             {
                 try
                 {
-                    Random random = new Random();
+                    data = m_searchQuery.FilterIsDeleted().Get(id, transaction);
 
-                    var datas = m_searchQuery.FilterIsDeleted().Search(transaction, item => item.ClassID == 262179144828190721);
+                    if (data == null)
+                        return data;
 
-                    Sleep();
-
-                    data = m_searchQuery.FilterIsDeleted().Get(datas.FirstOrDefault().ID, transaction);
-
-                    Sleep();
+                    var datas2 = m_searchQuery.FilterIsDeleted().Search(transaction, item => item.ClassID == data.ClassID);
 
                     data.UpdateUserID = random.Next(1000, 9999);
                     data.UpdateTime = DateTime.Now;
 
-                    Sleep();
                     m_editQuery.Update(data, transaction);
 
-                    Sleep();
-                    m_editQuery.Delete(transaction, data.ID);
+                    m_editQuery.FilterIsDeleted().Delete(transaction, data.ID);
 
-                    Sleep();
-                    data.ID = IDGenerator.NextID();
-
-                    m_editQuery.Insert(transaction, data);
-                    Sleep();
+                    m_editQuery.Update(item => item.ID == data.ID, new Dictionary<string, object>() { [nameof(Left.IsDeleted)] = false },transaction);
 
                     transaction.Submit();
                 }
