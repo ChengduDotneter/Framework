@@ -129,7 +129,6 @@ namespace Common.DAL.Cache
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
-        /// <param name="result"></param>
         /// <returns></returns>
         Tuple<bool, T> TryGetValue<T>(object key);
 
