@@ -12,6 +12,9 @@ using System.Reflection;
 
 namespace Common
 {
+    /// <summary>
+    /// Log4net日志实例创建
+    /// </summary>
     public class Log4netCreater
     {
         private readonly static IDictionary<string, ILoggerRepository> m_loggerRepositorys;

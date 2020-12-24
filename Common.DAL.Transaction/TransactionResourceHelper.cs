@@ -1,5 +1,7 @@
 ﻿using Common.Lock;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Common.DAL.Transaction
@@ -25,27 +27,95 @@ namespace Common.DAL.Transaction
         private readonly static ILock m_lock;
 
         /// <summary>
-        /// 申请事务资源
+        /// 申请事务资源 表锁
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
         /// <param name="identity">事务线程ID</param>
         /// <param name="weight">事务权重</param>
         /// <returns></returns>
-        public static bool ApplayResource(Type table, string identity, int weight)
+        public static bool ApplayTableResource(Type table, string identity, int weight)
         {
-            return m_lock.Acquire(table.FullName, identity, weight, m_timeOut);
+            return m_lock.AcquireWriteLockWithGroupKey(table.FullName, identity, weight, m_timeOut);
         }
 
         /// <summary>
-        /// 申请事务资源，异步
+        /// 异步申请事务资源 表锁
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
         /// <param name="identity">事务线程ID</param>
         /// <param name="weight">事务权重</param>
         // <returns></returns>
-        public static async Task<bool> ApplayResourceAsync(Type table, string identity, int weight)
+        public static async Task<bool> ApplayTableResourceAsync(Type table, string identity, int weight)
         {
-            return await m_lock.AcquireAsync(table.FullName, identity, weight, m_timeOut);
+            return await m_lock.AcquireWriteLockWithGroupKeyAsync(table.FullName, identity, weight, m_timeOut);
+        }
+
+        /// <summary>
+        /// 申请事务资源 行写锁
+        /// </summary>
+        /// <param name="table">所需申请的表类型</param>
+        /// <param name="identity">事务线程ID</param>
+        /// <param name="weight">事务权重</param>
+        /// <param name="readWriteLockMode">读写锁模式</param>
+        /// <param name="ids">行id</param>
+        /// <returns></returns>
+        public static bool ApplayRowResourceWithWrite(Type table, string identity, int weight, IEnumerable<long> ids)
+        {
+            if (ids == null || ids.Count() == 0)
+                return false;
+
+            return m_lock.AcquireWriteLockWithResourceKeys(table.FullName, identity, weight, m_timeOut, ids.Select(item => item.ToString()).ToArray());
+        }
+
+        /// <summary>
+        /// 异步申请事务资源 行写锁
+        /// </summary>
+        /// <param name="table">所需申请的表类型</param>
+        /// <param name="identity">事务线程ID</param>
+        /// <param name="weight">事务权重</param>
+        /// <param name="readWriteLockMode">读写锁模式</param>
+        /// <param name="ids">行id</param>
+        // <returns></returns>
+        public static async Task<bool> ApplayRowResourceWithWriteAsync(Type table, string identity, int weight, IEnumerable<long> ids)
+        {
+            if (ids == null || ids.Count() == 0)
+                return false;
+
+            return await m_lock.AcquireWriteLockWithResourceKeysAsync(table.FullName, identity, weight, m_timeOut, ids.Select(item => item.ToString()).ToArray());
+        }
+
+        /// <summary>
+        /// 申请事务资源 行读锁
+        /// </summary>
+        /// <param name="table">所需申请的表类型</param>
+        /// <param name="identity">事务线程ID</param>
+        /// <param name="weight">事务权重</param>
+        /// <param name="readWriteLockMode">读写锁模式</param>
+        /// <param name="ids">行id</param>
+        /// <returns></returns>
+        public static bool ApplayRowResourceWithRead(Type table, string identity, int weight, IEnumerable<long> ids)
+        {
+            if (ids == null || ids.Count() == 0)
+                return false;
+
+            return m_lock.AcquireReadLockWithResourceKeys(table.FullName, identity, weight, m_timeOut, ids.Select(item => item.ToString()).ToArray());
+        }
+
+        /// <summary>
+        /// 异步申请事务资源 行读锁
+        /// </summary>
+        /// <param name="table">所需申请的表类型</param>
+        /// <param name="identity">事务线程ID</param>
+        /// <param name="weight">事务权重</param>
+        /// <param name="readWriteLockMode">读写锁模式</param>
+        /// <param name="ids">行id</param>
+        // <returns></returns>
+        public static async Task<bool> ApplayRowResourceWithReadAsync(Type table, string identity, int weight, IEnumerable<long> ids)
+        {
+            if (ids == null || ids.Count() == 0)
+                return false;
+
+            return await m_lock.AcquireReadLockWithResourceKeysAsync(table.FullName, identity, weight, m_timeOut, ids.Select(item => item.ToString()).ToArray());
         }
 
         /// <summary>

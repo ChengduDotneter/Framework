@@ -17,8 +17,15 @@ namespace Common
         IResourceInstance<T> ApplyInstance();
     }
 
+    /// <summary>
+    /// 资源实例接口
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IResourceInstance<T> : IDisposable
     {
+        /// <summary>
+        /// 资源实例
+        /// </summary>
         T Instance { get; }
     }
 
@@ -97,6 +104,8 @@ namespace Common
         /// <param name="fixResetTimeMilliseconds">固定资源重置时间（毫秒）</param>
         /// <param name="temporaryNum">临时资源数量</param>
         /// <param name="temporaryOverTimeMilliseconds">临时资源释放时间（毫秒） 最后一次使用后释放</param>
+        /// <param name="doCreateInstance"></param>
+        /// <param name="doDisposableInstance"></param>
         public ResourcePool(int fixedNum, int fixResetTimeMilliseconds, int temporaryNum, int temporaryOverTimeMilliseconds, Func<T> doCreateInstance, Action<T> doDisposableInstance)
         {
             m_instanceCount = 0;
@@ -121,6 +130,10 @@ namespace Common
             }
         }
 
+        /// <summary>
+        /// 申请资源实例
+        /// </summary>
+        /// <returns></returns>
         public virtual IResourceInstance<T> ApplyInstance()
         {
             int replayNum = 0;

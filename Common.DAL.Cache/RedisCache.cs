@@ -48,7 +48,7 @@ namespace Common.DAL.Cache
             ILock @lock = LockFactory.GetRedisLock();
             string identity = IDGenerator.NextID().ToString();
 
-            if (!@lock.Acquire(TABLE_LOCK_NAME, identity, 0, 10000))
+            if (!@lock.AcquireMutex(TABLE_LOCK_NAME, identity, 0, 10000))
                 throw new Exception("读取redis表配置信息失败。");
 
             try

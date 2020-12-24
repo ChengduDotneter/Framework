@@ -134,7 +134,7 @@ namespace TCCManager.Controllers
             tccModel.TimeOut = Math.Max(tccModel.TimeOut, MIN_TIMEOUT);
             tccModel.ID = IDGenerator.NextID();
 
-            await m_lock.AcquireAsync(tccModel.DeadLockFlag, tccModel.ID.ToString(), 0, tccModel.TimeOut);
+            await m_lock.AcquireMutexAsync(tccModel.DeadLockFlag, tccModel.ID.ToString(), 0, tccModel.TimeOut);
 
             IEnumerable<NodeResult> errorNodeResults;
             IList<Func<Task<NodeResult>>> tryTasks = new List<Func<Task<NodeResult>>>();

@@ -87,7 +87,7 @@ namespace Common.Lock
             m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));
         }
 
-        bool ILock.Acquire(string key, string identity, int weight, int timeOut)
+        bool ILock.AcquireMutex(string key, string identity, int weight, int timeOut)
         {
             string lockKey = $"{LOCK_PREFIX}/{key}";
 
@@ -129,7 +129,7 @@ namespace Common.Lock
             }
         }
 
-        async Task<bool> ILock.AcquireAsync(string key, string identity, int weight, int timeOut)
+        async Task<bool> ILock.AcquireMutexAsync(string key, string identity, int weight, int timeOut)
         {
             string lockKey = $"{LOCK_PREFIX}/{key}";
 
@@ -207,6 +207,46 @@ namespace Common.Lock
 
             lock (lockInstance)
                 lockInstance.Dispose();
+        }
+
+        bool ILock.AcquireReadLockWithGroupKey(string groupKey, string identity, int weight, int timeOut)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> ILock.AcquireReadLockWithGroupKeyAsync(string groupKey, string identity, int weight, int timeOut)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool ILock.AcquireWriteLockWithGroupKey(string groupKey, string identity, int weight, int timeOut)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> ILock.AcquireWriteLockWithGroupKeyAsync(string groupKey, string identity, int weight, int timeOut)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool ILock.AcquireReadLockWithResourceKeys(string groupKey, string identity, int weight, int timeOut, params string[] resourceKeys)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> ILock.AcquireReadLockWithResourceKeysAsync(string groupKey, string identity, int weight, int timeOut, params string[] resourceKeys)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool ILock.AcquireWriteLockWithResourceKeys(string groupKey, string identity, int weight, int timeOut, params string[] resourceKeys)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> ILock.AcquireWriteLockWithResourceKeysAsync(string groupKey, string identity, int weight, int timeOut, params string[] resourceKeys)
+        {
+            throw new NotImplementedException();
         }
     }
 }
