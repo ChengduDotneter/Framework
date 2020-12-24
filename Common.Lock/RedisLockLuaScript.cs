@@ -46,12 +46,13 @@ local lock_group_read = KEYS[4] -- 表的读锁Key
 local lock_group_write = KEYS[5] -- 表的写锁Key
 local lock_resource_length = tonumber(KEYS[6]) -- 需要上锁的资源数
 
-local is_locked = 0 -- 标识整个锁操作的成功与失败
+local is_locked = 1 -- 标识整个锁操作的成功与失败
 
 if( redis.call('EXISTS',lock_group_write) == 0 or ( redis.call('HLEN',lock_group_write) == 1 and redis.call('HEXISTS',lock_group_write,transcation_id) == 1 ) ) then  -- 如果该表的写键不存在 或者 该写锁键存在且仅有一条记录，并且该记录能与当前事务ID匹配时 可进行行锁申请
 	redis.call('HSETNX',lock_group_read,transcation_id,1) -- 向表的读锁hash中添加一条记录
 	redis.call('PEXPIRE',lock_group_read,exp_time) -- 为该hash键设置生命时间
 else 
+	is_locked = 0
 	return is_locked
 end
 
@@ -64,7 +65,6 @@ if( lock_resource_length > 0 ) then
 			if( redis.call('EXISTS',lock_resource_write) == 0 or  ( redis.call('HLEN',lock_resource_write) == 1 and redis.call('HEXISTS',lock_resource_write,transcation_id) == 1 ) ) then -- 判断读锁互斥的写锁键不存在 或者 该写锁键存在且仅有一条记录，并且该记录能与当前事务ID匹配时
 				redis.call('HSETNX',lock_resource_read,transcation_id,1) -- 向行的读锁hash中添加一条记录
 				redis.call('PEXPIRE',lock_resource_read,exp_time) -- 为该hash键设置生命时间
-				is_locked = 1 -- 将上锁标识置为1
 			else  -- 否则就返回申请行锁失败
 				is_locked = 0 -- 将上锁标识置为0
 				return is_locked
@@ -80,7 +80,6 @@ if( lock_resource_length > 0 ) then
 				if( redis.call('EXISTS',lock_resource_write) == 0 or ( redis.call('HLEN',lock_resource_write) == 1 and redis.call('HEXISTS',lock_resource_write,transcation_id) == 1 ) ) then -- 判断写锁互斥的写锁键不存在 或者 该写锁键存在且仅有一条记录，并且该记录能与当前事务ID匹配时
 					redis.call('HSETNX',lock_resource_write,transcation_id, 1) -- 向行的写锁hash中添加一条记录,并刷新其存活时间
 					redis.call('PEXPIRE',lock_resource_write,exp_time) -- 为该hash键设置生命时间
-					is_locked = 1 -- 将上锁标识置为1
 				else  -- 如果存在该资源的写锁 且不是当前线程 则向表的写锁键添加一条记录
 					is_locked = 0 -- 将上锁标识置为0
 					return is_locked
@@ -91,8 +90,6 @@ if( lock_resource_length > 0 ) then
 			end
 		end
 	end
-	else 
-		is_locked = 0
 end
 
 return is_locked";
