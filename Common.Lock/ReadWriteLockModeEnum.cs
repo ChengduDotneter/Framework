@@ -3,7 +3,7 @@
     /// <summary>
     /// 读写锁类型枚举
     /// </summary>
-    public enum ReadWriteLockMode
+    internal enum ReadWriteLockMode
     {
         /// <summary>
         /// 读锁
