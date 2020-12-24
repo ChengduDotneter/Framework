@@ -502,22 +502,30 @@ namespace Common.Lock
                 evaluatParameters.Add(((int)lockMode).ToString());
                 evaluatParameters.Add(readGroupKey);
                 evaluatParameters.Add(writeGroupKey);
-                evaluatParameters.Add(resourceKeys.Length.ToString());
 
-                foreach (string item in resourceKeys)
+                if (resourceKeys != null)
                 {
-                    if (lockMode == ReadWriteLockMode.ReadLock)
-                        needLockedResourceKeys.Add(GetReadReasouceKey(groupKey, item));
+                    evaluatParameters.Add(resourceKeys.Length.ToString());
 
-                    evaluatParameters.Add(GetReadReasouceKey(groupKey, item));
+                    foreach (string item in resourceKeys)
+                    {
+                        if (lockMode == ReadWriteLockMode.ReadLock)
+                            needLockedResourceKeys.Add(GetReadReasouceKey(groupKey, item));
+
+                        evaluatParameters.Add(GetReadReasouceKey(groupKey, item));
+                    }
+
+                    foreach (string item in resourceKeys)
+                    {
+                        if (lockMode == ReadWriteLockMode.WriteLock)
+                            needLockedResourceKeys.Add(GetWriteReasouceKey(groupKey, item));
+
+                        evaluatParameters.Add(GetWriteReasouceKey(groupKey, item));
+                    }
                 }
-
-                foreach (string item in resourceKeys)
+                else
                 {
-                    if (lockMode == ReadWriteLockMode.WriteLock)
-                        needLockedResourceKeys.Add(GetWriteReasouceKey(groupKey, item));
-
-                    evaluatParameters.Add(GetWriteReasouceKey(groupKey, item));
+                    evaluatParameters.Add("0");
                 }
 
                 while ((await database.ScriptEvaluateAsync(ACQUIRE_NREAD_ONEWRITE_LOCK_HASH, evaluatParameters.ToArray())).ToString() != "1")
