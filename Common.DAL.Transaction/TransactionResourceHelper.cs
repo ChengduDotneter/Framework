@@ -62,7 +62,7 @@ namespace Common.DAL.Transaction
         public static bool ApplayRowResourceWithWrite(Type table, string identity, int weight, IEnumerable<long> ids)
         {
             if (ids == null || ids.Count() == 0)
-                return false;
+                return true;
 
             return m_lock.AcquireWriteLockWithResourceKeys(table.FullName, identity, weight, m_timeOut, ids.Select(item => item.ToString()).ToArray());
         }
@@ -79,7 +79,7 @@ namespace Common.DAL.Transaction
         public static async Task<bool> ApplayRowResourceWithWriteAsync(Type table, string identity, int weight, IEnumerable<long> ids)
         {
             if (ids == null || ids.Count() == 0)
-                return false;
+                return true;
 
             return await m_lock.AcquireWriteLockWithResourceKeysAsync(table.FullName, identity, weight, m_timeOut, ids.Select(item => item.ToString()).ToArray());
         }
@@ -96,7 +96,7 @@ namespace Common.DAL.Transaction
         public static bool ApplayRowResourceWithRead(Type table, string identity, int weight, IEnumerable<long> ids)
         {
             if (ids == null || ids.Count() == 0)
-                return false;
+                return true;
 
             return m_lock.AcquireReadLockWithResourceKeys(table.FullName, identity, weight, m_timeOut, ids.Select(item => item.ToString()).ToArray());
         }
@@ -113,7 +113,7 @@ namespace Common.DAL.Transaction
         public static async Task<bool> ApplayRowResourceWithReadAsync(Type table, string identity, int weight, IEnumerable<long> ids)
         {
             if (ids == null || ids.Count() == 0)
-                return false;
+                return true;
 
             return await m_lock.AcquireReadLockWithResourceKeysAsync(table.FullName, identity, weight, m_timeOut, ids.Select(item => item.ToString()).ToArray());
         }
