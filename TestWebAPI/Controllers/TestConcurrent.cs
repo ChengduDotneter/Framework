@@ -1,17 +1,13 @@
 ﻿using Common;
-using Common.Compute;
 using Common.DAL;
 using Common.Lock;
 using Common.Log;
 using Common.Model;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,11 +19,13 @@ namespace TestWebAPI.Controllers
     }
 
 
-    public class CommodityInfo : ViewModelBase
+    public class OrderInfo : ViewModelBase
     {
-        public string CommodityName { get; set; }
+        public long CommodityID { get; set; }
 
+        public int Count { get; set; }
     }
+
     public class StockInfo : ViewModelBase
     {
         public int Count { get; set; }
@@ -42,69 +40,70 @@ namespace TestWebAPI.Controllers
     {
         private readonly ISearchQuery<StockInfo> m_searchQuery;
         private readonly IEditQuery<StockInfo> m_editQuery;
+        private readonly IEditQuery<OrderInfo> m_orderInfoEditQuery;
 
         public TestTranscation(ISearchQuery<StockInfo> searchQuery,
-                               IEditQuery<StockInfo> editQuery)
+                               IEditQuery<StockInfo> editQuery,
+                               IEditQuery<OrderInfo> orderInfoEditQuery)
         {
             m_editQuery = editQuery;
             m_searchQuery = searchQuery;
+            m_orderInfoEditQuery = orderInfoEditQuery;
         }
 
         [HttpGet]
         public async Task Do()
         {
-            Random random = new Random();
-            int randInt = random.Next(0, 100) % 3;
-
-            using (ITransaction transaction = m_editQuery.BeginTransaction())
+            using (ITransaction transaction = await m_editQuery.BeginTransactionAsync())
             {
                 try
                 {
-                    //if (randInt == 1)
-                    //{
-                    //    StockInfo stockInfo = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 1)).FirstOrDefault();
+                    Random random = new Random();
 
-                    //    if (stockInfo.Count < 4)
-                    //        throw new DealException("1 库存不够。");
+                    int index = random.Next(0, 1000);
 
-                    //    stockInfo.Count -= 4;
+                    IList<OrderInfo> orderInfds = new List<OrderInfo>();
 
-                    //    await m_editQuery.UpdateAsync(stockInfo, transaction);
-                    //}
-                    //else if (randInt == 2)
-                    //{
-                    //    StockInfo stockInfo = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 2)).FirstOrDefault();
+                    switch (index % 2)
+                    {
+                        case 0:
+                            StockInfo stockInfo_1 = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 1, forUpdate: true)).FirstOrDefault();
+                            OrderInfo order_1 = new OrderInfo()
+                            {
+                                ID = IDGenerator.NextID(),
+                                CreateUserID = -9999,
+                                CreateTime = DateTime.Now,
+                                CommodityID = stockInfo_1.CommodityID,
+                                Count = 4,
+                                //Count = random.Next(1, 9)
+                            };
+                            if (stockInfo_1.Count < order_1.Count )
+                                throw new DealException("1 库存不够。");
+                            stockInfo_1.Count -= order_1.Count;
+                            orderInfds.Add(order_1);
+                            await m_editQuery.UpdateAsync(stockInfo_1, transaction);
+                            await m_orderInfoEditQuery.InsertAsync(transaction, orderInfds.ToArray());
+                            break;
+                        case 1:
+                            StockInfo stockInfo_2 = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 2, forUpdate: true)).FirstOrDefault();
+                            OrderInfo order_2 = new OrderInfo()
+                            {
+                                ID = IDGenerator.NextID(),
+                                CreateUserID = -9999,
+                                CreateTime = DateTime.Now,
+                                CommodityID = stockInfo_2.CommodityID,
+                                Count = 4,
+                                //Count = random.Next(1, 9)
+                            };
+                            if (stockInfo_2.Count < order_2.Count)
+                                throw new DealException("2 库存不够。");
+                            stockInfo_2.Count -= order_2.Count;
+                            orderInfds.Add(order_2);
+                            await m_editQuery.UpdateAsync(stockInfo_2, transaction);
+                            await m_orderInfoEditQuery.InsertAsync(transaction, orderInfds.ToArray());
+                            break;
 
-
-                    //    if (stockInfo.Count < 4)
-                    //        throw new DealException("2 库存不够。");
-
-                    //    stockInfo.Count -= 4;
-
-                    //    await m_editQuery.UpdateAsync(stockInfo, transaction);
-                    //}
-                    //else if (randInt == 0)
-                    //{
-                    StockInfo stockInfo_1 = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 1, forUpdate: true)).FirstOrDefault();
-                    //StockInfo stockInfo_2 = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 2, forUpdate: true)).FirstOrDefault();
-
-                    //Thread.Sleep(1000);
-
-                    if (stockInfo_1.Count < 4 /*|| stockInfo_2.Count < 4*/)
-                        throw new DealException("1,2 库存不够。");
-
-                    stockInfo_1.Count -= 4;
-                    //stockInfo_2.Count -= 4;
-
-                    await LogHelperFactory.GetLog4netLogHelper().Info("testtranscation", $"{stockInfo_1.Count}");
-
-                    await m_editQuery.UpdateAsync(stockInfo_1, transaction);
-
-                    //var datas = m_searchQuery.GetQueryable().ToList();
-
-                    //var datas_2 = m_searchQuery.GetQueryable(transaction).ToList();
-                    //await m_editQuery.UpdateAsync(stockInfo_2, transaction);
-                    //}
+                    }
 
                     transaction.Submit();
                 }

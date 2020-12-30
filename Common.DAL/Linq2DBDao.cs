@@ -1,14 +1,13 @@
 ﻿using Common.DAL.Transaction;
-using Common.Log;
 using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Linq;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -386,13 +385,13 @@ namespace Common.DAL
             public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
             {
                 IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
-                return new Linq2DBTransaction(resourceInstance.Instance.BeginTransaction(), distributedLock, weight, resourceInstance);
+                return new Linq2DBTransaction(resourceInstance.Instance.BeginTransaction(IsolationLevel.ReadCommitted), distributedLock, weight, resourceInstance);
             }
 
             public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
             {
                 IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
-                return new Linq2DBTransaction(await resourceInstance.Instance.BeginTransactionAsync(), distributedLock, weight, resourceInstance);
+                return new Linq2DBTransaction(await resourceInstance.Instance.BeginTransactionAsync(IsolationLevel.ReadCommitted), distributedLock, weight, resourceInstance);
             }
 
             public void Delete(ITransaction transaction = null, params long[] ids)
@@ -889,7 +888,9 @@ namespace Common.DAL
                     }
                 }
 
-                IEnumerable<long> ids = query.Select(item => item.ID).Skip(startIndex).Take(count).ToList();
+                IQueryable<long> queryaa = query.Select(item => item.ID).Skip(startIndex).Take(count);
+
+                IEnumerable<long> ids = queryaa.ToList();
 
                 ValidTransaction(transaction, ids, forUpdate);
 
