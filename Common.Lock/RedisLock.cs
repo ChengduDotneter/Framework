@@ -27,6 +27,7 @@ namespace Common.Lock
                 ReadWriteLocks = new HashSet<RedisKey>();
                 Running = true;
 
+                //TODO: 
                 Task.Factory.StartNew(async () =>
                 {
                     while (Running)
@@ -70,7 +71,7 @@ namespace Common.Lock
                         catch (ResourceException)
                         {
                             Close(true);
-                            LogHelperFactory.GetDefaultLogHelper().Error("LockSave","锁未能维持成功。");
+                            await LogHelperFactory.GetDefaultLogHelper().Error("LockSave", "锁未能维持成功。");
                             throw;
                         }
                         catch (Exception)
@@ -175,7 +176,7 @@ namespace Common.Lock
         private LockInstance GetLockInstance(string identity)
         {
             if (!m_lockInstances.ContainsKey(identity))
-                throw new ResourceException($"未找到锁ID{identity}");
+                return null;
 
             return m_lockInstances[identity];
         }
@@ -268,6 +269,9 @@ namespace Common.Lock
             IDatabase database = GetDatabase();
             LockInstance lockInstance = GetLockInstance(identity);
 
+            if (lockInstance == null)
+                return;
+
             lockInstance.Close(false);
 
             Task.Factory.StartNew(() =>
@@ -310,6 +314,9 @@ namespace Common.Lock
         {
             IDatabase database = GetDatabase();
             LockInstance lockInstance = GetLockInstance(identity);
+
+            if (lockInstance == null)
+                return;
 
             lockInstance.Close(false);
 
@@ -495,17 +502,19 @@ namespace Common.Lock
 
         private async Task<bool> AcquireReadWriteLockWithResourceKeys(string groupKey, string identity, int weight, int timeOut, ReadWriteLockMode lockMode, params string[] resourceKeys)
         {
+            bool isLocked = true;
+
             IDatabase database = GetDatabase();
             LockInstance lockInstance = GetOrAddLockInstance(identity, database);
+            IList<RedisKey> needLockedResourceKeys = new List<RedisKey>();
+
+            string readGroupKey = GetReadReasouceKey(groupKey);
+            string writeGroupKey = GetWriteReasouceKey(groupKey);
 
             try
             {
                 int time = Environment.TickCount;
 
-                string readGroupKey = GetReadReasouceKey(groupKey);
-                string writeGroupKey = GetWriteReasouceKey(groupKey);
-
-                IList<RedisKey> needLockedResourceKeys = new List<RedisKey>();
                 IList<RedisKey> evaluatParameters = new List<RedisKey>();
                 evaluatParameters.Add(identity);
                 evaluatParameters.Add(TTL.TotalMilliseconds.ToString());
@@ -513,8 +522,9 @@ namespace Common.Lock
                 evaluatParameters.Add(readGroupKey);
                 evaluatParameters.Add(writeGroupKey);
 
-                if (resourceKeys != null)
+                if (resourceKeys != null && resourceKeys.Count() > 0)
                 {
+                    needLockedResourceKeys.Add(readGroupKey);
                     evaluatParameters.Add(resourceKeys.Length.ToString());
 
                     foreach (string item in resourceKeys)
@@ -541,11 +551,20 @@ namespace Common.Lock
                 while ((await database.ScriptEvaluateAsync(ACQUIRE_NREAD_ONEWRITE_LOCK_HASH, evaluatParameters.ToArray())).ToString() != "1")
                 {
                     if (Environment.TickCount - time > timeOut)
-                        return false;
+                    {
+                        isLocked = false;
+                        break;
+                    }
                     else
                         Thread.Sleep(THREAD_TIME_SPAN);
                 }
-
+            }
+            catch
+            {
+                isLocked = false;
+            }
+            finally
+            {
                 lock (lockInstance.ReadWriteLocks)
                 {
                     lockInstance.ReadWriteLocks.Add(readGroupKey);
@@ -558,13 +577,8 @@ namespace Common.Lock
                         }
                     }
                 }
-
-                return true;
             }
-            catch
-            {
-                return false;
-            }
+            return isLocked;
         }
 
         private string GetReadReasouceKey(string groupKey)

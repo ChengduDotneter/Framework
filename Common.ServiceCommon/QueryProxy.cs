@@ -251,9 +251,9 @@ namespace Common.ServiceCommon
     {
         private ISearchQuery<T> m_searchQuery;
 
-        public T Get(long id, ITransaction transaction)
+        public T Get(long id, ITransaction transaction, bool forUpdate = false)
         {
-            return m_searchQuery.Get(id, transaction);
+            return m_searchQuery.Get(id, transaction, forUpdate);
         }
 
         public T Get(long id, IDBResourceContent dbResourceContent = null)
@@ -261,9 +261,9 @@ namespace Common.ServiceCommon
             return m_searchQuery.Get(id, dbResourceContent);
         }
 
-        public async Task<T> GetAsync(long id, ITransaction transaction)
+        public async Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
         {
-            return await m_searchQuery.GetAsync(id, transaction);
+            return await m_searchQuery.GetAsync(id, transaction, forUpdate);
         }
 
         public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
@@ -271,9 +271,9 @@ namespace Common.ServiceCommon
             return await m_searchQuery.GetAsync(id, dbResourceContent);
         }
 
-        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
         {
-            return m_searchQuery.Count(transaction, predicate);
+            return m_searchQuery.Count(transaction, predicate, forUpdate);
         }
 
         public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
@@ -281,9 +281,9 @@ namespace Common.ServiceCommon
             return m_searchQuery.Count(predicate, dbResourceContent);
         }
 
-        public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+        public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
         {
-            return await m_searchQuery.CountAsync(transaction, predicate);
+            return await m_searchQuery.CountAsync(transaction, predicate, forUpdate);
         }
 
         public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
@@ -291,7 +291,7 @@ namespace Common.ServiceCommon
             return await m_searchQuery.CountAsync(predicate, dbResourceContent);
         }
 
-        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
+        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
         {
             IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
 
@@ -300,7 +300,7 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return m_searchQuery.Search(transaction, predicate, queryOrderBies, startIndex, count);
+            return m_searchQuery.Search(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
         }
 
         public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
@@ -315,7 +315,7 @@ namespace Common.ServiceCommon
             return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
+        public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
         {
             IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
 
@@ -324,7 +324,7 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return await m_searchQuery.SearchAsync(transaction, predicate, queryOrderBies, startIndex, count);
+            return await m_searchQuery.SearchAsync(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
         }
 
         public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
@@ -464,9 +464,9 @@ namespace Common.ServiceCommon
     {
         private ISearchQuery<T> m_searchQuery;
 
-        public T Get(long id, ITransaction transaction)
+        public T Get(long id, ITransaction transaction, bool forUpdate = false)
         {
-            T data = m_searchQuery.Get(id, transaction);
+            T data = m_searchQuery.Get(id, transaction, forUpdate);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
@@ -476,9 +476,9 @@ namespace Common.ServiceCommon
             return !data?.IsDeleted ?? false ? data : null;
         }
 
-        public async Task<T> GetAsync(long id, ITransaction transaction)
+        public async Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
         {
-            T data = await m_searchQuery.GetAsync(id, transaction);
+            T data = await m_searchQuery.GetAsync(id, transaction, forUpdate);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
@@ -488,9 +488,9 @@ namespace Common.ServiceCommon
             return !data?.IsDeleted ?? false ? data : null;
         }
 
-        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
         {
-            return m_searchQuery.Count(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate));
+            return m_searchQuery.Count(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), forUpdate);
         }
 
         public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
@@ -498,9 +498,9 @@ namespace Common.ServiceCommon
             return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(predicate), dbResourceContent);
         }
 
-        public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null)
+        public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
         {
-            return await m_searchQuery.CountAsync(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate));
+            return await m_searchQuery.CountAsync(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), forUpdate);
         }
 
         public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
@@ -508,9 +508,9 @@ namespace Common.ServiceCommon
             return await m_searchQuery.CountAsync(QueryProxyHelper.GetIsDeletedCondition(predicate), dbResourceContent);
         }
 
-        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
+        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
         {
-            return m_searchQuery.Search(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count);
+            return m_searchQuery.Search(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, forUpdate);
         }
 
         public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
@@ -518,9 +518,9 @@ namespace Common.ServiceCommon
             return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue)
+        public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
         {
-            return await m_searchQuery.SearchAsync(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count);
+            return await m_searchQuery.SearchAsync(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, forUpdate);
         }
 
         public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)

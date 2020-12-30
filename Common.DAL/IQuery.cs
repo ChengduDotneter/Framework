@@ -110,8 +110,9 @@ namespace Common.DAL
         /// </summary>
         /// <param name="id"></param>
         /// <param name="transaction"></param>
+        /// <param name="forUpdate"></param>
         /// <returns></returns>
-        T Get(long id, ITransaction transaction);
+        T Get(long id, ITransaction transaction, bool forUpdate = false);
 
         /// <summary>
         /// 根据ID查询
@@ -126,8 +127,9 @@ namespace Common.DAL
         /// </summary>
         /// <param name="id"></param>
         /// <param name="transaction"></param>
+        /// <param name="forUpdate"></param>
         /// <returns></returns>
-        Task<T> GetAsync(long id, ITransaction transaction);
+        Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false);
 
         /// <summary>
         /// 根据ID查询（异步）
@@ -142,8 +144,9 @@ namespace Common.DAL
         /// </summary>
         /// <param name="transaction"></param>
         /// <param name="predicate"></param>
+        /// <param name="forUpdate"></param>
         /// <returns></returns>
-        int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null);
+        int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询条数
@@ -158,8 +161,9 @@ namespace Common.DAL
         /// </summary>
         /// <param name="transaction"></param>
         /// <param name="predicate"></param>
+        /// <param name="forUpdate"></param>
         /// <returns></returns>
-        Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null);
+        Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询条数（异步）
@@ -183,7 +187,7 @@ namespace Common.DAL
             Expression<Func<T, bool>> predicate = null,
             IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
             int startIndex = 0,
-            int count = int.MaxValue);
+            int count = int.MaxValue, bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询
@@ -215,7 +219,7 @@ namespace Common.DAL
             Expression<Func<T, bool>> predicate = null,
             IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
             int startIndex = 0,
-            int count = int.MaxValue);
+            int count = int.MaxValue, bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询（异步）

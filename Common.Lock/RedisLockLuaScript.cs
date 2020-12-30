@@ -48,15 +48,15 @@ local lock_resource_length = tonumber(KEYS[6]) -- 需要上锁的资源数
 
 local is_locked = 1 -- 标识整个锁操作的成功与失败
 
-if( redis.call('EXISTS',lock_group_write) == 0 or ( redis.call('HLEN',lock_group_write) == 1 and redis.call('HEXISTS',lock_group_write,transcation_id) == 1 ) ) then  -- 如果该表的写键不存在 或者 该写锁键存在且仅有一条记录，并且该记录能与当前事务ID匹配时 可进行行锁申请
-	redis.call('HSETNX',lock_group_read,transcation_id,1) -- 向表的读锁hash中添加一条记录
-	redis.call('PEXPIRE',lock_group_read,exp_time) -- 为该hash键设置生命时间
-else 
-	is_locked = 0
-	return is_locked
-end
-
 if( lock_resource_length > 0 ) then
+	if( redis.call('EXISTS',lock_group_write) == 0 or ( redis.call('HLEN',lock_group_write) == 1 and redis.call('HEXISTS',lock_group_write,transcation_id) == 1 ) ) then  -- 如果该表的写键不存在 或者 该写锁键存在且仅有一条记录，并且该记录能与当前事务ID匹配时 可进行行锁申请
+		redis.call('HSETNX',lock_group_read,transcation_id,1) -- 向表的读锁hash中添加一条记录
+		redis.call('PEXPIRE',lock_group_read,exp_time) -- 为该hash键设置生命时间
+	else 
+		is_locked = 0
+		return is_locked
+	end
+
 	if( lock_mode == '0' ) then -- 如果申请的锁为读锁
 		for i = 7,7 + lock_resource_length - 1 do -- 对需要锁的资源进行循环
 			local lock_resource_read = KEYS[i]  -- 构建行的读锁键
@@ -130,20 +130,5 @@ if( lock_resources_length > 0) then
 end
 
 return 1";
-        //		public const string SAVE_DB_LOCK = @"-- 锁维持
-        //local monitor_time = tonumber(KEYS[1]) -- 监测时间 单位 毫秒
-        //local exp_time = KEYS[2] -- 监测时间 单位 毫秒
-        //local lock_resources_length = tonumber(KEYS[3]) --锁的资源长度
-
-        //if( lock_resources_length > 0) then
-        //	for i = 4,4 + lock_resources_length - 1  do -- 对需要释放的表的读锁资源进行循环
-        //		if(redis.call('PTTL', KEYS[i]) <= monitor_time) then
-        //			redis.call('PEXPIRE',KEYS[i],exp_time)
-        //		end
-        //	end
-        //end
-
-        //return 1
-        //";
     }
 }
