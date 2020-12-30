@@ -213,7 +213,7 @@ namespace Common.DAL
                 Type table = typeof(TResource);
 
                 if (!TransactionResourceHelper.ApplayRowResourceWithWrite(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
-                    throw new ResourceException($"申请事务资源{linq2DBTransaction.Identity}:{string.Join(",", ids)}失败。");
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
 
             }
 
@@ -229,7 +229,7 @@ namespace Common.DAL
                 Type table = typeof(TResource);
 
                 if (!await TransactionResourceHelper.ApplayRowResourceWithWriteAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
-                    throw new ResourceException($"申请事务资源{linq2DBTransaction.Identity}:{string.Join(",", ids)}失败。");
+                    throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return linq2DBTransaction != null;
