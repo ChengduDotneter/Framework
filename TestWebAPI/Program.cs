@@ -10,6 +10,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using Common;
+using Newtonsoft.Json.Linq;
 
 namespace TestWebAPI
 {
@@ -42,25 +43,6 @@ namespace TestWebAPI
 
         public static void Main(string[] args)
         {
-            //string[] abc = new string[] { "a1", "b1", "c1" };
-
-            //Expression<Func<Left, bool>> expression = item => abc.Contains(item.StudentName);
-
-
-            //string ddd = expression.ToLamdaString<Left>();
-
-
-
-
-
-
-
-
-
-
-
-
-
             IHostBuilder hostBuilder = CreateHostBuilder(args);
             IHost host = hostBuilder.Build();
 

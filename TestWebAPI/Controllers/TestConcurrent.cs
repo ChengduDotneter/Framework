@@ -62,47 +62,18 @@ namespace TestWebAPI.Controllers
 
                     int index = random.Next(0, 1000);
 
-                    IList<OrderInfo> orderInfds = new List<OrderInfo>();
-
-                    switch (index % 2)
+                    switch (index % 3)
                     {
                         case 0:
-                            StockInfo stockInfo_1 = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 1, forUpdate: true)).FirstOrDefault();
-                            OrderInfo order_1 = new OrderInfo()
-                            {
-                                ID = IDGenerator.NextID(),
-                                CreateUserID = -9999,
-                                CreateTime = DateTime.Now,
-                                CommodityID = stockInfo_1.CommodityID,
-                                Count = 4,
-                                //Count = random.Next(1, 9)
-                            };
-                            if (stockInfo_1.Count < order_1.Count )
-                                throw new DealException("1 库存不够。");
-                            stockInfo_1.Count -= order_1.Count;
-                            orderInfds.Add(order_1);
-                            await m_editQuery.UpdateAsync(stockInfo_1, transaction);
-                            await m_orderInfoEditQuery.InsertAsync(transaction, orderInfds.ToArray());
+                            Test1(transaction);
                             break;
                         case 1:
-                            StockInfo stockInfo_2 = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 2, forUpdate: true)).FirstOrDefault();
-                            OrderInfo order_2 = new OrderInfo()
-                            {
-                                ID = IDGenerator.NextID(),
-                                CreateUserID = -9999,
-                                CreateTime = DateTime.Now,
-                                CommodityID = stockInfo_2.CommodityID,
-                                Count = 4,
-                                //Count = random.Next(1, 9)
-                            };
-                            if (stockInfo_2.Count < order_2.Count)
-                                throw new DealException("2 库存不够。");
-                            stockInfo_2.Count -= order_2.Count;
-                            orderInfds.Add(order_2);
-                            await m_editQuery.UpdateAsync(stockInfo_2, transaction);
-                            await m_orderInfoEditQuery.InsertAsync(transaction, orderInfds.ToArray());
+                            Test2(transaction);
                             break;
-
+                        case 2:
+                            Test1(transaction);
+                            Test2(transaction);
+                            break;
                     }
 
                     transaction.Submit();
@@ -114,6 +85,49 @@ namespace TestWebAPI.Controllers
                 }
             }
         }
+
+        private async void Test1(ITransaction transaction)
+        {
+            Random random = new Random();
+
+            StockInfo stockInfo_1 = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 1, forUpdate: true)).FirstOrDefault();
+            OrderInfo order_1 = new OrderInfo()
+            {
+                ID = IDGenerator.NextID(),
+                CreateUserID = -9999,
+                CreateTime = DateTime.Now,
+                CommodityID = stockInfo_1.CommodityID,
+                //Count = 4,
+                Count = random.Next(1, 9)
+            };
+            if (stockInfo_1.Count < order_1.Count)
+                throw new DealException("1 库存不够。");
+            stockInfo_1.Count -= order_1.Count;
+            await m_editQuery.UpdateAsync(stockInfo_1, transaction);
+            await m_orderInfoEditQuery.InsertAsync(transaction, order_1);
+        }
+
+        private async void Test2(ITransaction transaction)
+        {
+            Random random = new Random();
+
+            StockInfo stockInfo_2 = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 2, forUpdate: true)).FirstOrDefault();
+            OrderInfo order_2 = new OrderInfo()
+            {
+                ID = IDGenerator.NextID(),
+                CreateUserID = -9999,
+                CreateTime = DateTime.Now,
+                CommodityID = stockInfo_2.CommodityID,
+                //Count = 4,
+                Count = random.Next(1, 9)
+            };
+            if (stockInfo_2.Count < order_2.Count)
+                throw new DealException("2 库存不够。");
+            stockInfo_2.Count -= order_2.Count;
+            await m_editQuery.UpdateAsync(stockInfo_2, transaction);
+            await m_orderInfoEditQuery.InsertAsync(transaction, order_2);
+        }
+
     }
 
     [ApiController]
