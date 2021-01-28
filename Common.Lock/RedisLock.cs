@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using Common.Log;
+using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,6 +17,13 @@ namespace Common.Lock
             public RedisValue Token { get; }
             public ISet<RedisKey> Locks { get; }
             public bool Running { get; private set; }
+
+            private static ILogHelper m_logHelper;
+
+            static LockInstance()
+            {
+                m_logHelper = LogHelperFactory.GetDefaultLogHelper();
+            }
 
             public LockInstance(string identity)
             {
@@ -39,8 +47,12 @@ namespace Common.Lock
                             await Task.WhenAll(tasks);
                             await Task.Delay((int)TTL.TotalMilliseconds / 2, m_cancellationTokenSource.Token);
                         }
-                        catch
+                        catch (AggregateException exception)
                         {
+                            IEnumerable<string> errorMessages = exception.InnerExceptions.Select(item => $"{item.InnerException}。{item.StackTrace}");
+
+                            await m_logHelper.Error(nameof(LockInstance), string.Join(Environment.NewLine, errorMessages));
+
                             continue;
                         }
                     }
