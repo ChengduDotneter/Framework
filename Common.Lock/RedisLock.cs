@@ -42,16 +42,24 @@ namespace Common.Lock
                             Task[] tasks = new Task[redisKeys.Length];
 
                             for (int i = 0; i < redisKeys.Length; i++)
-                                tasks[i] = m_redisClient.LockExtendAsync(redisKeys[i], Token, TTL);
+                            {
+                                try
+                                {
+                                    tasks[i] = m_redisClient.LockExtendAsync(redisKeys[i], Token, TTL);
+                                }
+                                catch (Exception exception)
+                                {
+                                    await m_logHelper.Error("LockInstanceTask", $"ErrorMessage:{exception.InnerException}{Environment.NewLine}StackTrace:{exception.StackTrace}");
+                                }
+                            }
 
                             await Task.WhenAll(tasks);
+
                             await Task.Delay((int)TTL.TotalMilliseconds / 2, m_cancellationTokenSource.Token);
                         }
-                        catch (AggregateException exception)
+                        catch (Exception exception)
                         {
-                            IEnumerable<string> errorMessages = exception.InnerExceptions.Select(item => $"{item.InnerException}。{item.StackTrace}");
-
-                            await m_logHelper.Error(nameof(LockInstance), string.Join(Environment.NewLine, errorMessages));
+                            await m_logHelper.Error(nameof(LockInstance), $"ExceptionType:{exception.GetType().FullName}  ErrorMessage:{exception.InnerException}{Environment.NewLine}StackTrace:{exception.StackTrace}");
 
                             continue;
                         }

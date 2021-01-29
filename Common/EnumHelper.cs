@@ -15,10 +15,11 @@ namespace Common
         /// <param name="enumType"></param>
         /// <param name="thisValue"></param>
         /// <returns></returns>
-        public static string GetEnumDisplayName(Type enumType, object thisValue)
+        public static string GetEnumDisplayName(object thisValue)
         {
             string displayName = "";
 
+            Type enumType = thisValue.GetType();
             FieldInfo field = enumType.GetField(Enum.GetName(enumType, thisValue));
 
             if (field == null)
