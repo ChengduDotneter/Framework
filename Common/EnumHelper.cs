@@ -12,17 +12,15 @@ namespace Common
         /// <summary>
         /// 获取枚举值得Display
         /// </summary>
-        /// <param name="enumType"></param>
         /// <param name="thisValue"></param>
         /// <returns></returns>
-        public static string GetEnumDisplayName(Type enumType, object thisValue)
+        public static string GetEnumDisplayName(object thisValue)
         {
-            string displayName = "";
-
+            Type enumType = thisValue.GetType();
             FieldInfo field = enumType.GetField(Enum.GetName(enumType, thisValue));
 
             if (field == null)
-                return displayName;
+                return string.Empty;
 
             return ((DisplayAttribute)field.GetCustomAttributes(typeof(DisplayAttribute), true)[0])?.Name;
         }
