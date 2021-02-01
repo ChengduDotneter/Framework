@@ -69,10 +69,11 @@ namespace Common.MessageQueueClient.RabbitMQ
                         else
                             m_channel.BasicReject(args.DeliveryTag, true);
                     }
-                    catch
+                    catch (Exception exception)
                     {
                         //处理逻辑失败时，该消息扔回消息队列
                         m_channel.BasicReject(args.DeliveryTag, true);
+                        Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
                         throw;
                     }
                 };
