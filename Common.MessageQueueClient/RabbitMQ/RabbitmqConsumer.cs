@@ -58,6 +58,7 @@ namespace Common.MessageQueueClient.RabbitMQ
                     {
                         //数据convert失败时，直接删除该数据
                         m_channel.BasicReject(args.DeliveryTag, false);
+                        Log4netCreater.CreateLog("RabbitmqConsumer").Error($"RabbitMQConsum序列化失败：{message}。");
                         throw;
                     }
 
@@ -69,10 +70,11 @@ namespace Common.MessageQueueClient.RabbitMQ
                         else
                             m_channel.BasicReject(args.DeliveryTag, true);
                     }
-                    catch
+                    catch (Exception exception)
                     {
                         //处理逻辑失败时，该消息扔回消息队列
                         m_channel.BasicReject(args.DeliveryTag, true);
+                        Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
                         throw;
                     }
                 };
@@ -148,17 +150,7 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <returns></returns>
         private T ConvertMessageToData(string message)
         {
-            try
-            {
-                return JsonConvert.DeserializeObject<T>(message);
-            }
-            catch
-            {
-                string errorMessage = $"RabbitMQConsum序列化失败：{message}。";
-
-                Log4netCreater.CreateLog("RabbitmqConsumer").Error(errorMessage);
-                throw new Exception(errorMessage);
-            }
+            return JsonConvert.DeserializeObject<T>(message);
         }
     }
 }
