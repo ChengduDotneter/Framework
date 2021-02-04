@@ -38,19 +38,24 @@ namespace Common.Lock
                     {
                         try
                         {
-                            RedisKey[] redisKeys = Locks.ToArray();
-                            Task[] tasks = new Task[redisKeys.Length];
+                            RedisKey[] redisKeys = null;
 
-                            for (int i = 0; i < redisKeys.Length; i++)
+                            lock (Locks)
+                                redisKeys = Locks.ToArray();
+
+                            Task[] tasks = new Task[redisKeys.Length];
+                            try
                             {
-                                try
+                                for (int i = 0; i < redisKeys.Length; i++)
                                 {
+
                                     tasks[i] = m_redisClient.LockExtendAsync(redisKeys[i], Token, TTL);
+
                                 }
-                                catch (Exception exception)
-                                {
-                                    await m_logHelper.Error("LockInstanceTask", $"ErrorMessage:{exception.InnerException}{Environment.NewLine}StackTrace:{exception.StackTrace}");
-                                }
+                            }
+                            catch (Exception exception)
+                            {
+                                await m_logHelper.Error("LockInstanceTask", $"ErrorMessage:{exception.InnerException}{Environment.NewLine}StackTrace:{exception.StackTrace}");
                             }
 
                             await Task.WhenAll(tasks);
@@ -160,8 +165,8 @@ namespace Common.Lock
                     else
                         await Task.Delay(THREAD_TIME_SPAN);
                 }
-
-                lockInstance.Locks.Add(redisKey);
+                lock (lockInstance.Locks)
+                    lockInstance.Locks.Add(redisKey);
                 return true;
             }
             catch
@@ -183,7 +188,10 @@ namespace Common.Lock
                     Thread.Sleep(THREAD_TIME_SPAN);
             });
 
-            RedisKey[] locks = lockInstance.Locks.ToArray();
+            RedisKey[] locks = null;
+
+            lock (lockInstance.Locks)
+                locks = lockInstance.Locks.ToArray();
 
             for (int i = 0; i < locks.Length; i++)
             {
@@ -205,7 +213,10 @@ namespace Common.Lock
 
             lockInstance.Close();
 
-            RedisKey[] locks = lockInstance.Locks.ToArray();
+            RedisKey[] locks = null;
+
+            lock (lockInstance.Locks)
+                locks = lockInstance.Locks.ToArray();
 
             IList<Task> tasks = new List<Task>();
 
