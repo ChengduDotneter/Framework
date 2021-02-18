@@ -260,8 +260,28 @@ namespace Common.Model
         public override void Write(Utf8JsonWriter writer, DateTime? value, JsonSerializerOptions options)
         {
             if (value.HasValue)
-                writer.WriteStringValue(value.Value);
+                writer.WriteStringValue(value.Value.ToString("yyyy-MM-dd HH:mm:ss"));
             else writer.WriteNullValue();
+        }
+    }
+
+    /// <summary>
+    /// 可为空的DateTime转换类
+    /// </summary>
+    public class DateTimeConverter : JsonConverter<DateTime>
+    {
+        public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
+
+            if (string.IsNullOrWhiteSpace(stringValue))
+                return DateTime.MinValue;
+            return Convert.ToDateTime(stringValue);
+        }
+
+        public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString("yyyy-MM-dd HH:mm:ss"));
         }
     }
 }

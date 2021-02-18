@@ -21,6 +21,7 @@ namespace Common.Model
         /// 创建时间
         /// </summary>
         [LinqToDB.Mapping.Column(SkipOnUpdate = true)]
+        [JsonConverter(typeof(DateTimeConverter))]
         public DateTime CreateTime { set; get; }
 
         /// <summary>
@@ -34,6 +35,7 @@ namespace Common.Model
         /// 修改时间
         /// </summary>
         [LinqToDB.Mapping.Column(CanBeNull = true)]
+        [JsonConverter(typeof(DateTimeNullableConverter))]
         public DateTime? UpdateTime { set; get; }
 
         /// <summary>
