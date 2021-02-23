@@ -16,7 +16,7 @@ namespace Common
 
         public static HttpResponse SetHTMLContentType(this HttpResponse httpResponse)
         {
-            return httpResponse.SetContentType("text/html;utf8");
+            return httpResponse.SetContentType("text/html; charset=utf-8");
         }
 
         internal static HttpResponse SetContentType(this HttpResponse httpResponse, string contentType)

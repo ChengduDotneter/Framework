@@ -92,7 +92,9 @@ namespace Common.ServiceCommon
         /// <param name="context"></param>
         public override void ExecuteResult(ActionContext context)
         {
-            context.HttpContext.Response.ContentType = string.IsNullOrEmpty(ContentType) ? "application/json" : ContentType;
+            if (string.IsNullOrEmpty(ContentType))
+                context.HttpContext.Response.SetJsonContentType();
+
             context.HttpContext.Response.StatusCode = StatusCode ?? StatusCodes.Status400BadRequest;
 
             if (Value != null)
@@ -107,7 +109,9 @@ namespace Common.ServiceCommon
         {
             return Task.Factory.StartNew(async () =>
             {
-                context.HttpContext.Response.ContentType = string.IsNullOrEmpty(ContentType) ? "application/json" : ContentType;
+                if (string.IsNullOrEmpty(ContentType))
+                    context.HttpContext.Response.SetJsonContentType();
+
                 context.HttpContext.Response.StatusCode = StatusCode ?? StatusCodes.Status400BadRequest;
 
                 if (Value != null)

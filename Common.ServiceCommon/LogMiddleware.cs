@@ -73,26 +73,28 @@ namespace Common.ServiceCommon
             }
             catch (DealException exception)
             {
-                httpContext.Response.StatusCode = StatusCodes.Status402PaymentRequired;
-                await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, ExceptionHelper.GetMessage(exception), Encoding.UTF8);
-
-                await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo, exception.StackTrace);
+                await ExceptionHandling(httpContext, controllerActionDescriptor, exception, parameterInfo, StatusCodes.Status402PaymentRequired);
             }
             catch (ResourceException exception)
             {
-                httpContext.Response.StatusCode = StatusCodes.Status402PaymentRequired;
-
-                await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, "系统繁忙，请稍后再试。", Encoding.UTF8);
-
-                await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo, exception.StackTrace);
+                await ExceptionHandling(httpContext, controllerActionDescriptor, exception, parameterInfo, StatusCodes.Status402PaymentRequired, "系统繁忙，请稍后再试。");
             }
             catch (Exception exception)
             {
-                httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                await HttpResponseWritingExtensions.WriteAsync(httpContext.Response, "内部异常", Encoding.UTF8);
-
-                await m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, ExceptionHelper.GetMessage(exception), controllerActionDescriptor.ActionName, parameterInfo, exception.StackTrace);
+                await ExceptionHandling(httpContext, controllerActionDescriptor, exception, parameterInfo, StatusCodes.Status500InternalServerError, "内部异常");
             }
+        }
+
+        private static Task ExceptionHandling(HttpContext httpContext, ControllerActionDescriptor controllerActionDescriptor, Exception exception, string parameterInfo, int statusCode, string returnMessage = "")
+        {
+            string errorMessage = ExceptionHelper.GetMessage(exception);
+
+            httpContext.Response.StatusCode = statusCode;
+            httpContext.Response.SetHTMLContentType();
+
+            m_logHelper.Error(controllerActionDescriptor.ControllerName, httpContext.Request.Method, httpContext.Response.StatusCode, errorMessage, controllerActionDescriptor.ActionName, parameterInfo, exception.StackTrace);
+
+            return HttpResponseWritingExtensions.WriteAsync(httpContext.Response, string.IsNullOrWhiteSpace(returnMessage) ? errorMessage : returnMessage, Encoding.UTF8);
         }
 
         private static async Task<string> GetCallParameter(HttpContext httpContext)
