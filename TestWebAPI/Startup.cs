@@ -9,18 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
-using TestWebAPI.Controllers;
 
 namespace TestWebAPI
 {
-    internal class TestTCCNotify : ITccNotify<TCCTestData>
-    {
-        public void Notify(long tccID, bool successed, TCCTestData data)
-        {
-            Console.WriteLine(data.Data);
-        }
-    }
-
     public class Startup
     {
         private IConfiguration m_configuration;
@@ -76,7 +67,8 @@ namespace TestWebAPI
             services.AddQuerys(modelTypes, cacheProviderProvider: cacheProviderHandler);
 
             services.AddSwagger();
-            //services.AddHostedService<CrossService>();
+
+            services.AddComputeFactory();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
@@ -96,6 +88,13 @@ namespace TestWebAPI
 
             app.UseMiddleware<LogMiddleware>(env.IsDevelopment());
 
+            //app.Use(async (context, next) =>
+            //{
+            //    context.Response.ContentType = "text/html; charset=utf-8";
+
+            //    await next.Invoke();
+            //});
+
             app.UseCors("any");
 
             app.UseEndpoints(endpoints =>
@@ -105,7 +104,7 @@ namespace TestWebAPI
 
             //服务发现
             //if (!env.IsDevelopment())
-                app.RegisterConsul(lifetime, m_configuration);
+            app.RegisterConsul(lifetime, m_configuration);
         }
     }
 }

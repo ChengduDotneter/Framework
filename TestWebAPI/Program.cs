@@ -1,46 +1,14 @@
 using Common.Log;
-using Common.Model;
 using Common.ServiceCommon;
-using LinqToDB.Mapping;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Linq.Expressions;
-using Common;
-using Newtonsoft.Json.Linq;
 
 namespace TestWebAPI
 {
-    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
-    public class Left : ViewModelBase
-    {
-        [Column]
-        public string StudentName { get; set; }
-
-        [Column]
-        public long ClassID { get; set; }
-    }
-
-    [MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
-    public class Right : ViewModelBase
-    {
-        [Column]
-        public string ClassName { get; set; }
-    }
-
-    public class TestData : ViewModelBase
-    {
-        public string Data { get; set; }
-        public DateTime AC { get; set; }
-    }
-
     public class Program
     {
-        private static ILogHelper logHelper = LogHelperFactory.GetKafkaLogHelper();
-
         public static void Main(string[] args)
         {
             IHostBuilder hostBuilder = CreateHostBuilder(args);
