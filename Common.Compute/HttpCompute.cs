@@ -13,26 +13,60 @@ using System.Threading.Tasks;
 
 namespace Common.Compute
 {
+    /// <summary>
+    /// HTTP并行计算参数
+    /// </summary>
     public class HttpComputeParameter
     {
+        /// <summary>
+        /// 程序集名称
+        /// </summary>
         public string AssemblyName { get; set; }
+
+        /// <summary>
+        /// 程序集版本
+        /// </summary>
         public string AssemblyVersion { get; set; }
+
+        /// <summary>
+        /// 类名
+        /// </summary>
         public string ClassName { get; set; }
 
+        /// <summary>
+        /// 请求参数
+        /// </summary>
         [JsonConverter(typeof(JTokenConverter))]
         public JToken Parameter { get; set; }
     }
 
+    /// <summary>
+    /// HTTP并行计算结果
+    /// </summary>
     public class HttpComputeResult
     {
+        /// <summary>
+        /// 结果返回节点
+        /// </summary>
         public string ResponseEndpoint { get; set; }
 
+        /// <summary>
+        /// 返回结果
+        /// </summary>
         [JsonConverter(typeof(JTokenConverter))]
         public JToken Result { get; set; }
     }
 
+    /// <summary>
+    /// 并行计算服务名称构建器
+    /// </summary>
     public static class HttpComputeServiceNameGenerator
     {
+        /// <summary>
+        /// 根据类型构建并行计算名称
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static string GeneratName(Type type)
         {
             return $"compute_service: {type.FullName}";
