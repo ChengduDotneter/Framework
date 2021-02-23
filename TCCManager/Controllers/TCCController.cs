@@ -1,4 +1,5 @@
 using Common;
+using Common.Const;
 using Common.Lock;
 using Common.Log;
 using Common.Model;
@@ -163,7 +164,7 @@ namespace TCCManager.Controllers
                                     m_httpClientFactory,
                                     $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{tryUrl}/{tccModel.ID}/{tccModel.TimeOut}",
                                     tccNode.TryContent,
-                                    m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
+                                    m_httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]);
 
                         NodeResult nodeResult = new NodeResult() { Success = true };
 
@@ -182,7 +183,7 @@ namespace TCCManager.Controllers
                                     m_httpClientFactory,
                                     $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{cancelUrl}/{tccModel.ID}",
                                     null,
-                                    bearerToken: m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
+                                    bearerToken: m_httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]);
 
                         NodeResult nodeResult = new NodeResult() { Success = true };
 
@@ -201,7 +202,7 @@ namespace TCCManager.Controllers
                                     m_httpClientFactory,
                                     $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/{commitUrl}/{tccModel.ID}",
                                     null,
-                                    m_httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
+                                    m_httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]);
 
                         NodeResult nodeResult = new NodeResult() { Success = true };
 

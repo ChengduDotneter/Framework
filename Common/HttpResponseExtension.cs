@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Common.Const;
+using Microsoft.AspNetCore.Http;
 
 namespace Common
 {
@@ -6,17 +7,17 @@ namespace Common
     {
         public static HttpResponse SetJsonContentType(this HttpResponse httpResponse)
         {
-            return httpResponse.SetContentType("application/json");
+            return httpResponse.SetContentType(ContentTypeConst.APPLICATION_JSON);
         }
 
         public static HttpResponse SetXMLContentType(this HttpResponse httpResponse)
         {
-            return httpResponse.SetContentType("application/xml");
+            return httpResponse.SetContentType(ContentTypeConst.APPLICATION_XML);
         }
 
         public static HttpResponse SetHTMLContentType(this HttpResponse httpResponse)
         {
-            return httpResponse.SetContentType("text/html; charset=utf-8");
+            return httpResponse.SetContentType(ContentTypeConst.TEXT_HTML_UTF8);
         }
 
         internal static HttpResponse SetContentType(this HttpResponse httpResponse, string contentType)

@@ -1,4 +1,5 @@
-﻿using Common.Log;
+﻿using Common.Const;
+using Common.Log;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Routing;
@@ -62,7 +63,7 @@ namespace Common.ServiceCommon
                 controllerActionDescriptor != null &&
                (m_logSearchAction ||
                (httpMethodMetadata.HttpMethods.Count == 1 &&
-                httpMethodMetadata.HttpMethods[0] != "Get")))
+                httpMethodMetadata.HttpMethods[0].ToUpper() != HttpMethodConst.GET_UPPER)))
             {
                 if (controllerActionDescriptor.ControllerName != "Health")
                     await m_logHelper.Info(controllerActionDescriptor.ControllerName, httpContext.Request.Method, controllerActionDescriptor.ActionName, parameterInfo);
@@ -102,7 +103,7 @@ namespace Common.ServiceCommon
             StringBuilder parameter = new StringBuilder();
             string path = httpContext.Request.Path;
 
-            if (httpContext.Request.Method == "GET" || httpContext.Request.Method == "DELETE")
+            if (httpContext.Request.Method == HttpMethodConst.GET_UPPER || httpContext.Request.Method == HttpMethodConst.DELETE_UPPER)
             {
                 if (httpContext.Request.RouteValues.ContainsKey("id"))
                 {
@@ -121,7 +122,7 @@ namespace Common.ServiceCommon
                 else
                     parameter.Append("NULL");
             }
-            else if (httpContext.Request.ContentType != null && httpContext.Request.ContentType.Contains("application/json") && httpContext.Request.ContentLength.HasValue && httpContext.Request.ContentLength.Value < MAX_JSON_LOG_SIZE)
+            else if (httpContext.Request.ContentType != null && httpContext.Request.ContentType.Contains(ContentTypeConst.APPLICATION_JSON) && httpContext.Request.ContentLength.HasValue && httpContext.Request.ContentLength.Value < MAX_JSON_LOG_SIZE)
                 parameter.AppendLine(await LoadJsonFromBody(httpContext));
             else
                 parameter.Append("UNKNOWN");

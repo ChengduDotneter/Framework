@@ -1,4 +1,5 @@
-﻿using Common.DAL;
+﻿using Common.Const;
+using Common.DAL;
 using Common.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -211,7 +212,7 @@ namespace Common.ServiceCommon
 
         private static async Task Post(string ip, int port, string url, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
-            HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpPostByAbsoluteUriAsync(httpClientFactory, $"http://{ip}:{port}/{url}", httpContextAccessor.HttpContext?.Request.Headers["Authorization"]);
+            HttpResponseMessage httpResponseMessage = await HttpJsonHelper.HttpPostByAbsoluteUriAsync(httpClientFactory, $"http://{ip}:{port}/{url}", httpContextAccessor.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]);
 
             if (httpResponseMessage.StatusCode != HttpStatusCode.OK)
                 throw new DealException(httpResponseMessage.Content.ReadAsStringAsync().Result);
