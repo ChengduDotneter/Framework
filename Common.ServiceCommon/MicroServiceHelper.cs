@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Common.Const;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
@@ -66,7 +67,7 @@ namespace Common.ServiceCommon
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
                                 httpContent,
-                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]
                                 );
 
             return ReturnEntity<T>(microServiceName, httpResponseMessage);
@@ -90,7 +91,7 @@ namespace Common.ServiceCommon
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
                                 httpContent,
-                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]
                                 );
 
             return ReturnEntity(microServiceName, httpResponseMessage);
@@ -114,7 +115,7 @@ namespace Common.ServiceCommon
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
                                 httpContent,
-                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]
                                 );
 
             return ReturnEntity(microServiceName, httpResponseMessage);
@@ -139,7 +140,7 @@ namespace Common.ServiceCommon
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
                                 httpContent,
-                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]
                                 );
 
             return ReturnEntity<T>(microServiceName, httpResponseMessage);
@@ -160,7 +161,7 @@ namespace Common.ServiceCommon
                                 httpClientFactory,
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}/{parameter}",
-                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
+                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]);
 
             return ReturnEntity<JObject>(microServiceName, httpResponseMessage);
         }
@@ -180,7 +181,7 @@ namespace Common.ServiceCommon
                                 httpClientFactory,
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}/{functionName}?{parameter}",
-                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
+                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]);
 
             return ReturnEntity<JObject>(microServiceName, httpResponseMessage);
         }
@@ -239,7 +240,7 @@ namespace Common.ServiceCommon
                                 httpClientFactory,
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}?{parameter}",
-                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]);
+                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]);
 
             return ReturnEntity<T>(microServiceName, httpResponseMessage);
         }
@@ -262,7 +263,7 @@ namespace Common.ServiceCommon
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
                                 $"{ConfigManager.Configuration[microServiceName]}",
                                 httpContent,
-                                httpContextAccessor?.HttpContext?.Request.Headers["Authorization"]
+                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]
                                 );
 
             return ReturnEntity<T>(microServiceName, httpResponseMessage);

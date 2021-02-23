@@ -1,16 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using System.Threading;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Binary;
 using Apache.Ignite.Core.Configuration;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Static;
+using Common.Const;
 using Common.DAL;
 using Common.DAL.Cache;
 using Common.Log;
@@ -20,6 +13,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 
 namespace Common.ServiceCommon
 {
@@ -89,7 +90,7 @@ namespace Common.ServiceCommon
                         (bool hasToken, string token) = serviceProvider.GetService<IClientAccessTokenManager>().GetToken();
 
                         if (hasToken)
-                            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+                            httpClient.DefaultRequestHeaders.Add(HttpHeaderConst.AUTHORIZATION, token);
                     }
                 }
 

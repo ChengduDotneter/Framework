@@ -1,7 +1,7 @@
-﻿using Common.Model;
+﻿using Common.Const;
+using Common.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Buffers;
@@ -194,21 +194,6 @@ namespace Common.ServiceCommon
         }
     }
 
-    internal static class MediaTypeHeaderValues
-    {
-        public static readonly MediaTypeHeaderValue ApplicationJson
-            = MediaTypeHeaderValue.Parse("application/json").CopyAsReadOnly();
-
-        public static readonly MediaTypeHeaderValue TextJson
-            = MediaTypeHeaderValue.Parse("text/json").CopyAsReadOnly();
-
-        public static readonly MediaTypeHeaderValue ApplicationJsonPatch
-            = MediaTypeHeaderValue.Parse("application/json-patch+json").CopyAsReadOnly();
-
-        public static readonly MediaTypeHeaderValue ApplicationAnyJsonSyntax
-            = MediaTypeHeaderValue.Parse("application/*+json").CopyAsReadOnly();
-    }
-
     /// <summary>
     /// JArray输出序列化
     /// </summary>
@@ -221,9 +206,9 @@ namespace Common.ServiceCommon
         {
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationJson);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.TextJson);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationAnyJsonSyntax);
+            SupportedMediaTypes.Add(ContentTypeConst.APPLICATION_JSON);
+            SupportedMediaTypes.Add(ContentTypeConst.TEXT_JSON);
+            SupportedMediaTypes.Add(ContentTypeConst.APPLICATION_ANY_JSON_SYNTAX);
         }
 
         /// <summary>
@@ -313,9 +298,9 @@ namespace Common.ServiceCommon
         {
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationJson);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.TextJson);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationAnyJsonSyntax);
+            SupportedMediaTypes.Add(ContentTypeConst.APPLICATION_JSON);
+            SupportedMediaTypes.Add(ContentTypeConst.TEXT_JSON);
+            SupportedMediaTypes.Add(ContentTypeConst.APPLICATION_ANY_JSON_SYNTAX);
         }
 
         /// <summary>

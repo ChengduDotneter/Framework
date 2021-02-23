@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Common.Const;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -39,7 +40,7 @@ namespace Common.ServiceCommon
         public void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
             if (!actionExecutingContext.ModelState.IsValid &&
-                 actionExecutingContext.HttpContext.Request.Method != "GET" &&
+                 actionExecutingContext.HttpContext.Request.Method != HttpMethodConst.GET_UPPER &&
                  actionExecutingContext.Controller.GetType().GetCustomAttributes(typeof(SkipValidationAttribute), false).Count() == 0)
             {
                 IDictionary<string, object> error = new Dictionary<string, object>();

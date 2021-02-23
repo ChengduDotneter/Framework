@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.Const;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -12,27 +13,6 @@ namespace Common
     /// </summary>
     public static class HttpWebRequestExtend
     {
-        //Authorization 请求头名称
-        private const string AUTHORIZATION_HEADER_NAME = "Authorization";
-
-        //Content-Type值（Json）
-        private const string CONTENT_TYPE_JSON = "application/json";
-
-        //Content-Type值（Form表单）
-        private const string CONTENT_TYPE_FORM = "application/x-www-form-urlencoded";
-
-        //http请求方式GET
-        private const string HTTP_METHOD_GET = "GET";
-
-        //http请求方式POST
-        private const string HTTP_METHOD_POST = "POST";
-
-        //http请求方式DELETE
-        private const string HTTP_METHOD_DELETE = "DELETE";
-
-        //http请求方式PUT
-        private const string HTTP_METHOD_PUT = "PUT";
-
         /// <summary>
         /// 添加JsonContenttype
         /// </summary>
@@ -41,7 +21,7 @@ namespace Common
 
         public static HttpWebRequest AddJsonContentType(this HttpWebRequest httpWebRequest)
         {
-            httpWebRequest.ContentType = CONTENT_TYPE_JSON;
+            httpWebRequest.ContentType = ContentTypeConst.APPLICATION_JSON;
             return httpWebRequest;
         }
 
@@ -52,7 +32,7 @@ namespace Common
         /// <returns></returns>
         public static HttpWebRequest AddFormContentType(this HttpWebRequest httpWebRequest)
         {
-            httpWebRequest.ContentType = CONTENT_TYPE_FORM;
+            httpWebRequest.ContentType = ContentTypeConst.APPLICATION_FORM_URLENCODED;
             return httpWebRequest;
         }
 
@@ -63,7 +43,7 @@ namespace Common
         /// <returns></returns>
         public static HttpWebRequest AddPostMethod(this HttpWebRequest httpWebRequest)
         {
-            httpWebRequest.Method = HTTP_METHOD_POST;
+            httpWebRequest.Method = HttpMethodConst.POST_UPPER;
             return httpWebRequest;
         }
 
@@ -74,7 +54,7 @@ namespace Common
         /// <returns></returns>
         public static HttpWebRequest AddGetMethod(this HttpWebRequest httpWebRequest)
         {
-            httpWebRequest.Method = HTTP_METHOD_GET;
+            httpWebRequest.Method = HttpMethodConst.GET_UPPER;
             return httpWebRequest;
         }
 
@@ -85,7 +65,7 @@ namespace Common
         /// <returns></returns>
         public static HttpWebRequest AddDeleteMethod(this HttpWebRequest httpWebRequest)
         {
-            httpWebRequest.Method = HTTP_METHOD_DELETE;
+            httpWebRequest.Method = HttpMethodConst.DELETE_UPPER;
             return httpWebRequest;
         }
 
@@ -96,7 +76,7 @@ namespace Common
         /// <returns></returns>
         public static HttpWebRequest AddPutMethod(this HttpWebRequest httpWebRequest)
         {
-            httpWebRequest.Method = HTTP_METHOD_PUT;
+            httpWebRequest.Method = HttpMethodConst.PUT_UPPER;
             return httpWebRequest;
         }
 
@@ -108,11 +88,11 @@ namespace Common
         /// <returns></returns>
         public static HttpWebRequest AddAuthorizationHeader(this HttpWebRequest httpWebRequest, string authorization)
         {
-            if (httpWebRequest.Headers.AllKeys.Contains(AUTHORIZATION_HEADER_NAME))
-                httpWebRequest.Headers.Remove(AUTHORIZATION_HEADER_NAME);
+            if (httpWebRequest.Headers.AllKeys.Contains(HttpHeaderConst.AUTHORIZATION))
+                httpWebRequest.Headers.Remove(HttpHeaderConst.AUTHORIZATION);
 
             if (!string.IsNullOrWhiteSpace(authorization))
-                httpWebRequest.Headers.Add(AUTHORIZATION_HEADER_NAME, authorization);
+                httpWebRequest.Headers.Add(HttpHeaderConst.AUTHORIZATION, authorization);
 
             return httpWebRequest;
         }

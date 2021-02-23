@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.Const;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
@@ -107,9 +108,9 @@ namespace Common
             byte[] postData = Encoding.UTF8.GetBytes(builder.ToString());
 
             HttpWebRequest _webRequest = (HttpWebRequest)WebRequest.Create(url);
-            _webRequest.Method = "POST";
+            _webRequest.Method = HttpMethodConst.POST_UPPER;
             //内容类型
-            _webRequest.ContentType = "application/x-www-form-urlencoded";
+            _webRequest.ContentType = ContentTypeConst.APPLICATION_FORM_URLENCODED;
             _webRequest.Timeout = timeOut * 1000;
             _webRequest.ContentLength = postData.Length;
 
