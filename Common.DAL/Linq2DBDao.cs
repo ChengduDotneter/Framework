@@ -3,6 +3,7 @@ using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Linq;
+using LinqToDB.Mapping;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections;
@@ -32,6 +33,7 @@ namespace Common.DAL
         static Linq2DBDao()
         {
             m_tableNames = new HashSet<string>();
+
             LinqToDbConnectionOptionsBuilder masterLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
             LinqToDbConnectionOptionsBuilder slaveLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
 
@@ -1122,7 +1124,6 @@ namespace Common.DAL
             public ISearchQueryable<T> GetQueryable(ITransaction transaction)
             {
                 IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)((Linq2DBTransaction)transaction).ResourceInstance;
-
                 return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance);
             }
 
@@ -1131,20 +1132,19 @@ namespace Common.DAL
                 if (dbResourceContent == null)
                 {
                     IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
-
                     return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false, resourceInstance);
                 }
                 else
                 {
                     IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)dbResourceContent;
-
                     return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance);
                 }
             }
 
             public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
             {
-                return Task.Factory.StartNew(() => GetQueryable(transaction));
+                IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)((Linq2DBTransaction)transaction).ResourceInstance;
+                return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance));
             }
 
             public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
@@ -1152,7 +1152,6 @@ namespace Common.DAL
                 if (dbResourceContent == null)
                 {
                     IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
-
                     return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false, resourceInstance));
                 }
                 else
