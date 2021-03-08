@@ -693,6 +693,9 @@ namespace Common.DAL
             {
                 bool inTransaction = false;
 
+                if (ids == null || ids.Count() == 0)
+                    return;
+
                 if (forUpdate)
                     inTransaction = WriteApply<T>(transaction, ids);
                 else
@@ -705,6 +708,9 @@ namespace Common.DAL
             private async static Task ValidTransactionAsync(ITransaction transaction, IEnumerable<long> ids, bool forUpdate = false)
             {
                 bool inTransaction = false;
+
+                if (ids == null || ids.Count() == 0)
+                    return;
 
                 if (forUpdate)
                     inTransaction = await WriteApplyAsync<T>(transaction, ids);
@@ -782,6 +788,8 @@ namespace Common.DAL
 
                 IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
 
+                IEnumerable<long> ids = null;
+
                 if (queryOrderBies != null)
                 {
                     IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
@@ -794,10 +802,12 @@ namespace Common.DAL
                             sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
                     }
 
-                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList();
+                    ids = findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList().Select(item => item.ID);
                 }
-
-                IEnumerable<long> ids = findFluent.As<IEntity>().Skip(startIndex).Limit(count).ToList().Select(item => item.ID);
+                else
+                {
+                    ids = findFluent.Skip(startIndex).Limit(count).ToList().Select(item => item.ID);
+                }
 
                 ValidTransaction(transaction, ids, forUpdate);
 
@@ -836,6 +846,8 @@ namespace Common.DAL
 
                 IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
 
+                IEnumerable<long> ids = null;
+
                 if (queryOrderBies != null)
                 {
                     IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
@@ -848,10 +860,12 @@ namespace Common.DAL
                             sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
                     }
 
-                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList();
+                    ids = findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList().Select(item => item.ID);
                 }
-
-                IEnumerable<long> ids = (await findFluent.As<IEntity>().Skip(startIndex).Limit(count).ToListAsync()).Select(item => item.ID);
+                else
+                {
+                    ids = (await findFluent.Skip(startIndex).Limit(count).ToListAsync()).Select(item => item.ID);
+                }
 
                 await ValidTransactionAsync(transaction, ids, forUpdate);
 

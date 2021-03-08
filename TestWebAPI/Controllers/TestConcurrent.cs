@@ -86,6 +86,15 @@ namespace TestWebAPI.Controllers
             }
         }
 
+        [HttpGet("insert")]
+        public async Task DoInsert()
+        {
+            StockInfo[] stockInfos = new StockInfo[] { new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 1, Count = 400 },
+                                                       new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 2, Count = 400 } };
+
+            m_editQuery.Insert(null, stockInfos);
+        }
+
         private async void Test1(ITransaction transaction)
         {
             Random random = new Random();
