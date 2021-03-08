@@ -968,10 +968,10 @@ namespace Common.DAL
                 return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
             }
 
-            public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
+            public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
             {
                 IQueryable<T> queryable = GetCollection(m_masterMongoDatabase).AsQueryable(((MongoDBTransaction)transaction).ClientSessionHandle);
-                return new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider));
+                return Task.FromResult<ISearchQueryable<T>>(new MongoQueryable<T>(queryable, new MongoQueryableProvider(queryable.Provider)));
             }
 
             public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)

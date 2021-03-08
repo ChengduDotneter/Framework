@@ -1,5 +1,6 @@
 ﻿using LinqToDB.Configuration;
 using LinqToDB.Data;
+using LinqToDB.Mapping;
 using System;
 
 namespace Common.DAL
@@ -16,11 +17,13 @@ namespace Common.DAL
             OverTimeMilliseconds = overTimeMilliseconds;
 
             //表名小写配置
-            MappingSchema.EntityDescriptorCreatedCallback += (mappingSchema, entityDescriptor) =>
-            {
-                if (!Convert.ToBoolean(ConfigManager.Configuration["IsNotLowerTableName"]))
-                    entityDescriptor.TableName = entityDescriptor.TableName.ToLower();
-            };
+            MappingSchema.EntityDescriptorCreatedCallback += EntityDescriptorConfig;
+        }
+
+        private static void EntityDescriptorConfig(MappingSchema mappingSchema, IEntityChangeDescriptor entityChangeDescriptor)
+        {
+            if (!Convert.ToBoolean(ConfigManager.Configuration["IsNotLowerTableName"]))
+                entityChangeDescriptor.TableName = entityChangeDescriptor.TableName.ToLower();
         }
     }
 

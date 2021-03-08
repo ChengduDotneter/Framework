@@ -180,7 +180,7 @@ namespace TestWebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<Left> Get()
+        public Task<Left> Get()
         {
             Left data = null;
 
@@ -220,7 +220,7 @@ namespace TestWebAPI.Controllers
                 }
             }
 
-            return data;
+            return Task.FromResult(data);
         }
 
         private void Sleep()
