@@ -581,12 +581,12 @@ namespace Common.DAL
                 {
                     using (ISearchQueryable<T> queryable = GetQueryable())
                     {
-                        ids = queryable.Where(predicate).Select(item => item.ID);
+                        ids = queryable.Where(predicate).Select(item => item.ID).ToList();
                     }
                 }
                 else
                 {
-                    ids = GetQueryable(transaction).Where(predicate).Select(item => item.ID);
+                    ids = GetQueryable(transaction).Where(predicate).Select(item => item.ID).ToList();
                 }
 
                 if (ids == null || ids.Count() == 0)
@@ -631,12 +631,12 @@ namespace Common.DAL
                 {
                     using (ISearchQueryable<T> queryable = await GetQueryableAsync())
                     {
-                        ids = queryable.Where(predicate).Select(item => item.ID);
+                        ids = queryable.Where(predicate).Select(item => item.ID).ToList();
                     }
                 }
                 else
                 {
-                    ids = (await GetQueryableAsync(transaction)).Where(predicate).Select(item => item.ID);
+                    ids = (await GetQueryableAsync(transaction)).Where(predicate).Select(item => item.ID).ToList();
                 }
 
                 if (ids == null || ids.Count() == 0)

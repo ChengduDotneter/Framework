@@ -70,10 +70,10 @@ namespace TestWebAPI.Controllers
                         case 1:
                             await Test2(transaction);
                             break;
-                            //case 2:
-                            //    Test1(transaction);
-                            //    Test2(transaction);
-                            //    break;
+                        case 2:
+                            await Test1(transaction);
+                            await Test2(transaction);
+                            break;
                     }
 
                     transaction.Submit();
@@ -106,8 +106,8 @@ namespace TestWebAPI.Controllers
                 CreateUserID = -9999,
                 CreateTime = DateTime.Now,
                 CommodityID = stockInfo_1.CommodityID,
-                //Count = 4,
-                Count = random.Next(1, 9)
+                Count = 4,
+                //Count = random.Next(1, 9)
             };
             if (stockInfo_1.Count < order_1.Count)
                 throw new DealException("1 库存不够。");
@@ -127,8 +127,8 @@ namespace TestWebAPI.Controllers
                 CreateUserID = -9999,
                 CreateTime = DateTime.Now,
                 CommodityID = stockInfo_2.CommodityID,
-                //Count = 4,
-                Count = random.Next(1, 9)
+                Count = 4,
+                //Count = random.Next(1, 9)
             };
             if (stockInfo_2.Count < order_2.Count)
                 throw new DealException("2 库存不够。");
@@ -203,13 +203,12 @@ namespace TestWebAPI.Controllers
                     var datas2 = m_searchQuery.FilterIsDeleted().Search(transaction, item => item.ClassID == data.ClassID);
 
                     data.UpdateUserID = random.Next(1000, 9999);
-                    data.UpdateTime = DateTime.Now;
 
                     m_editQuery.Update(data, transaction);
 
                     m_editQuery.FilterIsDeleted().Delete(transaction, data.ID);
 
-                    m_editQuery.Update(item => item.ID == data.ID, new Dictionary<string, object>() { [nameof(Left.IsDeleted)] = false }, transaction);
+                    m_editQuery.Update(item => item.ID == data.ID, new Dictionary<string, object>() { [nameof(Left.UpdateTime)] = DateTime.Now }, transaction);
 
                     m_editQuery.Insert(transaction, new Left() { ID = IDGenerator.NextID(), ClassID = random.Next(0, 100), CreateTime = DateTime.Now, CreateUserID = -9999, StudentName = Guid.NewGuid().ToString() });
 
