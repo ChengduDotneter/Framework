@@ -65,15 +65,15 @@ namespace TestWebAPI.Controllers
                     switch (index % 3)
                     {
                         case 0:
-                            Test1(transaction);
+                            await Test1(transaction);
                             break;
                         case 1:
-                            Test2(transaction);
+                            await Test2(transaction);
                             break;
-                        case 2:
-                            Test1(transaction);
-                            Test2(transaction);
-                            break;
+                        //case 2:
+                        //    Test1(transaction);
+                        //    Test2(transaction);
+                        //    break;
                     }
 
                     transaction.Submit();
@@ -95,7 +95,7 @@ namespace TestWebAPI.Controllers
             m_editQuery.Insert(null, stockInfos);
         }
 
-        private async void Test1(ITransaction transaction)
+        private async Task Test1(ITransaction transaction)
         {
             Random random = new Random();
 
@@ -116,7 +116,7 @@ namespace TestWebAPI.Controllers
             await m_orderInfoEditQuery.InsertAsync(transaction, order_1);
         }
 
-        private async void Test2(ITransaction transaction)
+        private async Task Test2(ITransaction transaction)
         {
             Random random = new Random();
 
