@@ -70,10 +70,10 @@ namespace TestWebAPI.Controllers
                         case 1:
                             await Test2(transaction);
                             break;
-                        //case 2:
-                        //    Test1(transaction);
-                        //    Test2(transaction);
-                        //    break;
+                            //case 2:
+                            //    Test1(transaction);
+                            //    Test2(transaction);
+                            //    break;
                     }
 
                     transaction.Submit();
@@ -210,6 +210,8 @@ namespace TestWebAPI.Controllers
                     m_editQuery.FilterIsDeleted().Delete(transaction, data.ID);
 
                     m_editQuery.Update(item => item.ID == data.ID, new Dictionary<string, object>() { [nameof(Left.IsDeleted)] = false }, transaction);
+
+                    m_editQuery.Insert(transaction, new Left() { ID = IDGenerator.NextID(), ClassID = random.Next(0, 100), CreateTime = DateTime.Now, CreateUserID = -9999, StudentName = Guid.NewGuid().ToString() });
 
                     transaction.Submit();
                 }
