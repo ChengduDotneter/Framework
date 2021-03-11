@@ -6,9 +6,93 @@ using System.Threading.Tasks;
 
 namespace Common.DAL
 {
+    /// <summary>
+    /// 分区修改操作接口
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface ISystemPartitionEditQuery<T> where T : class, IEntity, new()
     {
+        /// <summary>
+        /// 新增
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction"></param>
+        /// <param name="datas"></param>
         void Insert(string systemID, ITransaction transaction = null, params T[] datas);
+
+        /// <summary>
+        /// 新增
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction">执行的事务</param>
+        /// <param name="datas"></param>
+        Task InsertAsync(string systemID, ITransaction transaction = null, params T[] datas);
+
+        /// <summary>
+        /// 合并
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction">执行的事务</param>
+        /// <param name="datas"></param>
+        void Merge(string systemID, ITransaction transaction = null, params T[] datas);
+
+        /// <summary>
+        /// 合并
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction">执行的事务</param>
+        /// <param name="datas"></param>
+        Task MergeAsync(string systemID, ITransaction transaction = null, params T[] datas);
+
+        /// <summary>
+        /// 修改
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="data"></param>
+        /// <param name="transaction">执行的事务</param>
+        void Update(string systemID, T data, ITransaction transaction = null);
+
+        /// <summary>
+        /// 修改
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="data"></param>
+        /// <param name="transaction">执行的事务</param>
+        Task UpdateAsync(string systemID, T data, ITransaction transaction = null);
+
+        /// <summary>
+        /// 修改
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="predicate"></param>
+        /// <param name="upateDictionary"></param>
+        /// <param name="transaction">执行的事务</param>
+        void Update(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null);
+
+        /// <summary>
+        /// 修改
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="predicate"></param>
+        /// <param name="upateDictionary"></param>
+        /// <param name="transaction">执行的事务</param>
+        Task UpdateAsync(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null);
+
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction">执行的事务</param>
+        /// <param name="ids"></param>
+        void Delete(string systemID, ITransaction transaction = null, params long[] ids);
+
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction">执行的事务</param>
+        /// <param name="ids"></param>
+        Task DeleteAsync(string systemID, ITransaction transaction = null, params long[] ids);
     }
 
     /// <summary>
@@ -104,6 +188,190 @@ namespace Common.DAL
         Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0);
     }
 
+
+    /// <summary>
+    /// 分区数据查询接口
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface ISystemPartitionSearchQuery<T> where T : class, IEntity, new()
+    {
+        /// <summary>
+        /// 事务中根据ID查询
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="id"></param>
+        /// <param name="transaction"></param>
+        /// <param name="forUpdate"></param>
+        /// <returns></returns>
+        T Get(string systemID, long id, ITransaction transaction, bool forUpdate = false);
+
+        /// <summary>
+        /// 根据ID查询
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="id"></param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        T Get(string systemID, long id, IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中根据ID查询（异步）
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="id"></param>
+        /// <param name="transaction"></param>
+        /// <param name="forUpdate"></param>
+        /// <returns></returns>
+        Task<T> GetAsync(string systemID, long id, ITransaction transaction, bool forUpdate = false);
+
+        /// <summary>
+        /// 根据ID查询（异步）
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="id"></param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        Task<T> GetAsync(string systemID, long id, IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中根据Linq筛选条件查询条数
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction"></param>
+        /// <param name="predicate"></param>
+        /// <param name="forUpdate"></param>
+        /// <returns></returns>
+        int Count(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false);
+
+        /// <summary>
+        /// 根据Linq筛选条件查询条数
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="predicate"></param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        int Count(string systemID, Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中根据Linq筛选条件查询条数（异步）
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction"></param>
+        /// <param name="predicate"></param>
+        /// <param name="forUpdate"></param>
+        /// <returns></returns>
+        Task<int> CountAsync(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false);
+
+        /// <summary>
+        /// 根据Linq筛选条件查询条数（异步）
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="predicate"></param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        Task<int> CountAsync(string systemID, Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中根据Linq筛选条件查询
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction"></param>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        IEnumerable<T> Search(string systemID,
+                              ITransaction transaction,
+                              Expression<Func<T, bool>> predicate = null,
+                              IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                              int startIndex = 0,
+                              int count = int.MaxValue, bool forUpdate = false);
+
+        /// <summary>
+        /// 根据Linq筛选条件查询
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        IEnumerable<T> Search(string systemID,
+                              Expression<Func<T, bool>> predicate = null,
+                              IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                              int startIndex = 0,
+                              int count = int.MaxValue,
+                              IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中根据Linq筛选条件查询（异步）
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction"></param>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        Task<IEnumerable<T>> SearchAsync(string systemID,
+                                         ITransaction transaction,
+                                         Expression<Func<T, bool>> predicate = null,
+                                         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue, bool forUpdate = false);
+
+        /// <summary>
+        /// 根据Linq筛选条件查询（异步）
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="predicate"></param>
+        /// <param name="queryOrderBies"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        Task<IEnumerable<T>> SearchAsync(string systemID,
+                                         Expression<Func<T, bool>> predicate = null,
+                                         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue,
+                                         IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中获取Linq查询接口
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        ISearchQueryable<T> GetQueryable(string systemID, ITransaction transaction);
+
+        /// <summary>
+        /// 获取Linq查询接口
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        ISearchQueryable<T> GetQueryable(string systemID, IDBResourceContent dbResourceContent = null);
+
+        /// <summary>
+        /// 事务中获取Linq查询接口（异步）
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<ISearchQueryable<T>> GetQueryableAsync(string systemID, ITransaction transaction);
+
+        /// <summary>
+        /// 获取Linq查询接口（异步）
+        /// </summary>
+        /// <param name="systemID">系统ID</param>
+        /// <param name="dbResourceContent"></param>
+        /// <returns></returns>
+        Task<ISearchQueryable<T>> GetQueryableAsync(string systemID, IDBResourceContent dbResourceContent = null);
+    }
+
     /// <summary>
     /// 数据查询接口
     /// </summary>
@@ -187,12 +455,11 @@ namespace Common.DAL
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        IEnumerable<T> Search(
-            ITransaction transaction,
-            Expression<Func<T, bool>> predicate = null,
-            IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-            int startIndex = 0,
-            int count = int.MaxValue, bool forUpdate = false);
+        IEnumerable<T> Search(ITransaction transaction,
+                              Expression<Func<T, bool>> predicate = null,
+                              IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                              int startIndex = 0,
+                              int count = int.MaxValue, bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询
@@ -203,12 +470,11 @@ namespace Common.DAL
         /// <param name="count"></param>
         /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        IEnumerable<T> Search(
-         Expression<Func<T, bool>> predicate = null,
-         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-         int startIndex = 0,
-         int count = int.MaxValue,
-         IDBResourceContent dbResourceContent = null);
+        IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
+                              IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                              int startIndex = 0,
+                              int count = int.MaxValue,
+                              IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 事务中根据Linq筛选条件查询（异步）
@@ -219,12 +485,11 @@ namespace Common.DAL
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        Task<IEnumerable<T>> SearchAsync(
-            ITransaction transaction,
-            Expression<Func<T, bool>> predicate = null,
-            IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-            int startIndex = 0,
-            int count = int.MaxValue, bool forUpdate = false);
+        Task<IEnumerable<T>> SearchAsync(ITransaction transaction,
+                                         Expression<Func<T, bool>> predicate = null,
+                                         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue, bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询（异步）
@@ -235,12 +500,11 @@ namespace Common.DAL
         /// <param name="count"></param>
         /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        Task<IEnumerable<T>> SearchAsync(
-            Expression<Func<T, bool>> predicate = null,
-            IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-            int startIndex = 0,
-            int count = int.MaxValue,
-            IDBResourceContent dbResourceContent = null);
+        Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
+                                         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue,
+                                         IDBResourceContent dbResourceContent = null);
 
         /// <summary>
         /// 事务中根据LinqQueryable筛选条件联查条数
@@ -315,7 +579,6 @@ namespace Common.DAL
         /// <param name="query"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
-        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
         Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
 

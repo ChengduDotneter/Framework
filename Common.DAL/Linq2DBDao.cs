@@ -1,4 +1,10 @@
-﻿using System;
+﻿using Common.DAL.Transaction;
+using LinqToDB;
+using LinqToDB.Configuration;
+using LinqToDB.Data;
+using LinqToDB.Linq;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -7,12 +13,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
-using Common.DAL.Transaction;
-using LinqToDB;
-using LinqToDB.Configuration;
-using LinqToDB.Data;
-using LinqToDB.Linq;
-using Microsoft.Extensions.Configuration;
 
 namespace Common.DAL
 {
@@ -29,10 +29,16 @@ namespace Common.DAL
 
         private static readonly int m_dataConnectionOutTime;
 
-        private static ITable<T> TableName<T>(this ITable<T> table, string systemID)
+        private static ITable<T> TableName<T>(this ITable<T> table, string systemID) where T : class, IEntity, new()
+        {
+            CreateTable(table, Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]));
+            return LinqExtensions.TableName(table, GetPartitionTableName<T>(systemID));
+        }
+
+        private static string GetPartitionTableName<T>(string systemID)
         {
             string tablePostFix = string.IsNullOrEmpty(systemID) ? string.Empty : $"_{systemID}";
-            return LinqExtensions.TableName(table, $"{table.TableName.ToLower()}{tablePostFix}");
+            return Convert.ToBoolean(ConfigManager.Configuration["IsNotLowerTableName"]) ? $"{typeof(T).Name}{tablePostFix}" : $"{typeof(T).Name}{tablePostFix}".ToLower();
         }
 
         static Linq2DBDao()
@@ -125,13 +131,13 @@ namespace Common.DAL
         public static ISearchQuery<T> GetLinq2DBSearchQuery<T>(bool codeFirst)
             where T : class, IEntity, new()
         {
-            return new Linq2DBDaoInstance<T>(m_slavelinqToDbConnectionOptions, codeFirst);
+            return new Linq2DBDaoInstance<T>(m_slavelinqToDbConnectionOptions);
         }
 
         public static IEditQuery<T> GetLinq2DBEditQuery<T>(bool codeFirst)
              where T : class, IEntity, new()
         {
-            return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions, codeFirst);
+            return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
         }
 
         public static IDBResourceContent GetDBResourceContent()
@@ -139,8 +145,7 @@ namespace Common.DAL
             return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].ApplyInstance());
         }
 
-        private static void CreateTable<T>(ITable<T> table, bool codeFirst)
-             where T : class, IEntity, new()
+        private static void CreateTable<T>(ITable<T> table, bool codeFirst) where T : class, IEntity, new()
         {
             if (!codeFirst)
                 return;
@@ -362,12 +367,11 @@ namespace Common.DAL
             }
         }
 
-        private class Linq2DBDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>
+        private class Linq2DBDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>, ISystemPartitionSearchQuery<T>, ISystemPartitionEditQuery<T>
             where T : class, IEntity, new()
         {
             private LinqToDbConnectionOptions m_linqToDbConnectionOptions;
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
-            private bool m_codeFirst;
 
             public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
             {
@@ -400,18 +404,18 @@ namespace Common.DAL
                 }
                 else
                 {
-                    ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Delete(item => ids.Contains(item.ID));
+                    ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().TableName(systemID).Delete(item => ids.Contains(item.ID));
                 }
             }
 
             public void Delete(ITransaction transaction = null, params long[] ids)
             {
-
+                Delete(string.Empty, transaction, ids);
             }
 
-            public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
+            public async Task DeleteAsync(string systemID, ITransaction transaction = null, params long[] ids)
             {
-                bool inTransaction = await WriteApplyAsync<T>(transaction, ids);
+                bool inTransaction = await WriteApplyAsync<T>(transaction, systemID, ids);
 
                 if (!inTransaction)
                 {
@@ -419,7 +423,7 @@ namespace Common.DAL
 
                     try
                     {
-                        await dataConnection.Instance.GetTable<T>().DeleteAsync(item => ids.Contains(item.ID));
+                        await dataConnection.Instance.GetTable<T>().TableName(systemID).DeleteAsync(item => ids.Contains(item.ID));
                     }
                     finally
                     {
@@ -428,13 +432,47 @@ namespace Common.DAL
                 }
                 else
                 {
-                    await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().DeleteAsync(item => ids.Contains(item.ID));
+                    await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().TableName(systemID).DeleteAsync(item => ids.Contains(item.ID));
+                }
+            }
+
+            public Task DeleteAsync(ITransaction transaction = null, params long[] ids)
+            {
+                return DeleteAsync(string.Empty, transaction, ids);
+            }
+
+            public void Insert(string systemID, ITransaction transaction = null, params T[] datas)
+            {
+                bool inTransaction = Apply<T>(transaction, systemID);
+
+                if (!inTransaction)
+                {
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        dataConnection.Instance.GetTable<T>().TableName(systemID).BulkCopy(datas);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                {
+                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
+                    dataConnection.GetTable<T>().TableName(systemID).BulkCopy(datas);
                 }
             }
 
             public void Insert(ITransaction transaction = null, params T[] datas)
             {
-                bool inTransaction = Apply<T>(transaction);
+                Insert(string.Empty, transaction, datas);
+            }
+
+            public async Task InsertAsync(string systemID, ITransaction transaction = null, params T[] datas)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction, systemID);
 
                 if (!inTransaction)
                 {
@@ -442,7 +480,7 @@ namespace Common.DAL
 
                     try
                     {
-                        dataConnection.Instance.GetTable<T>().BulkCopy(datas);
+                        await dataConnection.Instance.GetTable<T>().TableName(systemID).BulkCopyAsync(datas);
                     }
                     finally
                     {
@@ -452,37 +490,18 @@ namespace Common.DAL
                 else
                 {
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
-                    dataConnection.GetTable<T>().BulkCopy(datas);
+                    await dataConnection.GetTable<T>().TableName(systemID).BulkCopyAsync(datas);
                 }
             }
 
-            public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
+            public Task InsertAsync(ITransaction transaction = null, params T[] datas)
             {
-                bool inTransaction = await ApplyAsync<T>(transaction);
-
-                if (!inTransaction)
-                {
-                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    try
-                    {
-                        await dataConnection.Instance.GetTable<T>().BulkCopyAsync(datas);
-                    }
-                    finally
-                    {
-                        DisposeConnection(dataConnection);
-                    }
-                }
-                else
-                {
-                    DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
-                    await dataConnection.GetTable<T>().BulkCopyAsync(datas);
-                }
+                return InsertAsync(string.Empty, transaction, datas);
             }
 
-            public void Merge(ITransaction transaction = null, params T[] datas)
+            public void Merge(string systemID, ITransaction transaction = null, params T[] datas)
             {
-                bool inTransaction = Apply<T>(transaction) && WriteApply<T>(transaction, datas.Select(item => item.ID));
+                bool inTransaction = Apply<T>(transaction, systemID) && WriteApply<T>(transaction, systemID, datas.Select(item => item.ID));
 
                 if (!inTransaction)
                 {
@@ -491,7 +510,7 @@ namespace Common.DAL
                     try
                     {
                         for (int i = 0; i < datas.Length; i++)
-                            dataConnection.Instance.InsertOrReplace(datas[i]);
+                            dataConnection.Instance.InsertOrReplace(datas[i], GetPartitionTableName<T>(systemID));
                     }
                     finally
                     {
@@ -503,13 +522,18 @@ namespace Common.DAL
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
 
                     for (int i = 0; i < datas.Length; i++)
-                        dataConnection.InsertOrReplace(datas[i]);
+                        dataConnection.InsertOrReplace(datas[i], GetPartitionTableName<T>(systemID));
                 }
             }
 
-            public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
+            public void Merge(ITransaction transaction = null, params T[] datas)
             {
-                bool inTransaction = await ApplyAsync<T>(transaction) && await WriteApplyAsync<T>(transaction, datas.Select(item => item.ID));
+                Merge(string.Empty, transaction, datas);
+            }
+
+            public async Task MergeAsync(string systemID, ITransaction transaction = null, params T[] datas)
+            {
+                bool inTransaction = await ApplyAsync<T>(transaction, systemID) && await WriteApplyAsync<T>(transaction, systemID, datas.Select(item => item.ID));
 
                 Task[] tasks = new Task[datas.Length];
 
@@ -521,7 +545,7 @@ namespace Common.DAL
                     {
                         for (int i = 0; i < datas.Length; i++)
                         {
-                            tasks[i] = dataConnection.Instance.InsertOrReplaceAsync(datas[i]);
+                            tasks[i] = dataConnection.Instance.InsertOrReplaceAsync(datas[i], GetPartitionTableName<T>(systemID));
                         }
                         await Task.WhenAll(tasks);
                     }
@@ -535,15 +559,20 @@ namespace Common.DAL
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
 
                     for (int i = 0; i < datas.Length; i++)
-                        tasks[i] = dataConnection.InsertOrReplaceAsync(datas[i]);
+                        tasks[i] = dataConnection.InsertOrReplaceAsync(datas[i], GetPartitionTableName<T>(systemID));
 
                     await Task.WhenAll(tasks);
                 }
             }
 
-            public void Update(T data, ITransaction transaction = null)
+            public Task MergeAsync(ITransaction transaction = null, params T[] datas)
             {
-                bool inTransaction = WriteApply<T>(transaction, new long[] { data.ID });
+                return MergeAsync(string.Empty, transaction, datas);
+            }
+
+            public void Update(string systemID, T data, ITransaction transaction = null)
+            {
+                bool inTransaction = WriteApply<T>(transaction, systemID, new long[] { data.ID });
 
                 if (!inTransaction)
                 {
@@ -551,7 +580,7 @@ namespace Common.DAL
 
                     try
                     {
-                        dataConnection.Instance.Update(data);
+                        dataConnection.Instance.Update(data, GetPartitionTableName<T>(systemID));
                     }
                     finally
                     {
@@ -561,40 +590,45 @@ namespace Common.DAL
                 else
                 {
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
-                    dataConnection.Update(data);
+                    dataConnection.Update(data, GetPartitionTableName<T>(systemID));
                 }
             }
 
-            public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
+            public void Update(T data, ITransaction transaction = null)
+            {
+                Update(string.Empty, data, transaction);
+            }
+
+            public void Update(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
                 ParameterExpression parameter = Expression.Parameter(typeof(T));
                 IList<Tuple<Type, LambdaExpression, object>> updates = new List<Tuple<Type, LambdaExpression, object>>();
 
-                foreach (var item in upateDictionary)
+                foreach (var item in updateDictionary)
                     updates.Add(Tuple.Create(typeof(T).GetProperty(item.Key).PropertyType, Expression.Lambda(Expression.Property(parameter, item.Key), parameter), item.Value));
 
                 IEnumerable<long> ids = null;
 
                 if (transaction == null)
                 {
-                    using (ISearchQueryable<T> queryable = GetQueryable())
+                    using (ISearchQueryable<T> queryable = GetQueryable(systemID))
                     {
                         ids = queryable.Where(predicate).Select(item => item.ID).ToList();
                     }
                 }
                 else
                 {
-                    ids = GetQueryable(transaction).Where(predicate).Select(item => item.ID).ToList();
+                    ids = GetQueryable(systemID, transaction).Where(predicate).Select(item => item.ID).ToList();
                 }
 
                 if (ids == null || ids.Count() == 0)
                     return;
 
-                bool inTransaction = WriteApply<T>(transaction, ids);
+                bool inTransaction = WriteApply<T>(transaction, systemID, ids);
 
                 if (!inTransaction)
                 {
-                    using (ISearchQueryable<T> queryable = GetQueryable())
+                    using (ISearchQueryable<T> queryable = GetQueryable(systemID))
                     {
                         IUpdatable<T> updatable = queryable.Where(item => ids.Contains(item.ID)).AsUpdatable();
 
@@ -614,7 +648,7 @@ namespace Common.DAL
                 }
                 else
                 {
-                    IUpdatable<T> updatable = GetQueryable(transaction).Where(item => ids.Contains(item.ID)).AsUpdatable();
+                    IUpdatable<T> updatable = GetQueryable(systemID, transaction).Where(item => ids.Contains(item.ID)).AsUpdatable();
 
                     foreach (var update in updates)
                     {
@@ -630,9 +664,14 @@ namespace Common.DAL
                 }
             }
 
-            public async Task UpdateAsync(T data, ITransaction transaction = null)
+            public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
-                bool inTransaction = await WriteApplyAsync<T>(transaction, new long[] { data.ID });
+                Update(string.Empty, predicate, updateDictionary, transaction);
+            }
+
+            public async Task UpdateAsync(string systemID, T data, ITransaction transaction = null)
+            {
+                bool inTransaction = await WriteApplyAsync<T>(transaction, systemID, new long[] { data.ID });
 
                 if (!inTransaction)
                 {
@@ -640,7 +679,7 @@ namespace Common.DAL
 
                     try
                     {
-                        await dataConnection.Instance.UpdateAsync(data);
+                        await dataConnection.Instance.UpdateAsync(data, GetPartitionTableName<T>(systemID));
                     }
                     finally
                     {
@@ -650,40 +689,45 @@ namespace Common.DAL
                 else
                 {
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
-                    await dataConnection.UpdateAsync(data);
+                    await dataConnection.UpdateAsync(data, GetPartitionTableName<T>(systemID));
                 }
             }
 
-            public async Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
+            public Task UpdateAsync(T data, ITransaction transaction = null)
+            {
+                return UpdateAsync(string.Empty, data, transaction);
+            }
+
+            public async Task UpdateAsync(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
                 ParameterExpression parameter = Expression.Parameter(typeof(T));
                 IList<Tuple<Type, LambdaExpression, object>> updates = new List<Tuple<Type, LambdaExpression, object>>();
 
-                foreach (var item in upateDictionary)
+                foreach (var item in updateDictionary)
                     updates.Add(Tuple.Create(typeof(T).GetProperty(item.Key).PropertyType, Expression.Lambda(Expression.Property(parameter, item.Key), parameter), item.Value));
 
                 IEnumerable<long> ids = null;
 
                 if (transaction == null)
                 {
-                    using (ISearchQueryable<T> queryable = await GetQueryableAsync())
+                    using (ISearchQueryable<T> queryable = await GetQueryableAsync(systemID))
                     {
                         ids = queryable.Where(predicate).Select(item => item.ID).ToList();
                     }
                 }
                 else
                 {
-                    ids = (await GetQueryableAsync(transaction)).Where(predicate).Select(item => item.ID).ToList();
+                    ids = (await GetQueryableAsync(systemID, transaction)).Where(predicate).Select(item => item.ID).ToList();
                 }
 
                 if (ids == null || ids.Count() == 0)
                     return;
 
-                bool inTransaction = await WriteApplyAsync<T>(transaction, ids);
+                bool inTransaction = await WriteApplyAsync<T>(transaction, systemID, ids);
 
                 if (!inTransaction)
                 {
-                    using (ISearchQueryable<T> queryable = await GetQueryableAsync())
+                    using (ISearchQueryable<T> queryable = await GetQueryableAsync(systemID))
                     {
                         IUpdatable<T> updatable = queryable.Where(item => ids.Contains(item.ID)).AsUpdatable();
 
@@ -703,7 +747,7 @@ namespace Common.DAL
                 }
                 else
                 {
-                    IUpdatable<T> updatable = (await GetQueryableAsync(transaction)).Where(item => ids.Contains(item.ID)).AsUpdatable();
+                    IUpdatable<T> updatable = (await GetQueryableAsync(systemID, transaction)).Where(item => ids.Contains(item.ID)).AsUpdatable();
 
                     foreach (var update in updates)
                     {
@@ -719,64 +763,84 @@ namespace Common.DAL
                 }
             }
 
-            private static void ValidTransaction(ITransaction transaction, IEnumerable<long> ids, bool forUpdate = false)
+            public Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
+            {
+                return UpdateAsync(string.Empty, predicate, updateDictionary, transaction);
+            }
+
+            private static void ValidTransaction(string systemID, ITransaction transaction, IEnumerable<long> ids, bool forUpdate = false)
             {
                 bool inTransaction = false;
 
                 if (forUpdate)
-                    inTransaction = WriteApply<T>(transaction, ids);
-                else inTransaction = ReadApply<T>(transaction, ids);
+                    inTransaction = WriteApply<T>(transaction, systemID, ids);
+                else inTransaction = ReadApply<T>(transaction, systemID, ids);
 
                 if (!inTransaction)
                     throw new DealException($"当前未查询到事务信息，请先使用{nameof(Linq2DBDaoInstance<T>.BeginTransaction)}开启事务。");
             }
 
-            private async static Task ValidTransactionAsync(ITransaction transaction, IEnumerable<long> ids, bool forUpdate = false)
+            private async static Task ValidTransactionAsync(string systemID, ITransaction transaction, IEnumerable<long> ids, bool forUpdate = false)
             {
                 bool inTransaction = false;
 
                 if (forUpdate)
-                    inTransaction = await WriteApplyAsync<T>(transaction, ids);
-                else inTransaction = await ReadApplyAsync<T>(transaction, ids);
+                    inTransaction = await WriteApplyAsync<T>(transaction, systemID, ids);
+                else inTransaction = await ReadApplyAsync<T>(transaction, systemID, ids);
 
                 if (!inTransaction)
                     throw new DealException($"当前未查询到事务信息，请先使用{nameof(Linq2DBDaoInstance<T>.BeginTransactionAsync)}开启事务。");
             }
 
+            public T Get(string systemID, long id, ITransaction transaction, bool forUpdate = false)
+            {
+                ValidTransaction(systemID, transaction, new long[] { id }, forUpdate);
+
+                return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().TableName(systemID).SingleOrDefault(item => item.ID == id);
+            }
+
             public T Get(long id, ITransaction transaction, bool forUpdate = false)
             {
-                ValidTransaction(transaction, new long[] { id }, forUpdate);
+                return Get(string.Empty, id, transaction, forUpdate);
+            }
 
-                return ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().SingleOrDefault(item => item.ID == id);
+            public T Get(string systemID, long id, IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
+
+                    try
+                    {
+                        return dataConnection.Instance.GetTable<T>().TableName(systemID).SingleOrDefault(item => item.ID == id);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().TableName(systemID).SingleOrDefault(item => item.ID == id);
             }
 
             public T Get(long id, IDBResourceContent dbResourceContent = null)
             {
-                if (dbResourceContent == null)
-                {
-                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    try
-                    {
-                        return dataConnection.Instance.GetTable<T>().SingleOrDefault(item => item.ID == id);
-                    }
-                    finally
-                    {
-                        DisposeConnection(dataConnection);
-                    }
-                }
-                else
-                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().SingleOrDefault(item => item.ID == id);
+                return Get(string.Empty, id, dbResourceContent);
             }
 
-            public async Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
+            public async Task<T> GetAsync(string systemID, long id, ITransaction transaction, bool forUpdate = false)
             {
-                await ValidTransactionAsync(transaction, new long[] { id }, forUpdate);
+                await ValidTransactionAsync(systemID, transaction, new long[] { id }, forUpdate);
 
-                return await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
+                return await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().TableName(systemID).SingleOrDefaultAsync(item => item.ID == id);
             }
 
-            public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
+            public Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
+            {
+                return GetAsync(string.Empty, id, transaction, forUpdate);
+            }
+
+            public async Task<T> GetAsync(string systemID, long id, IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
@@ -784,7 +848,7 @@ namespace Common.DAL
 
                     try
                     {
-                        return await dataConnection.Instance.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
+                        return await dataConnection.Instance.GetTable<T>().TableName(systemID).SingleOrDefaultAsync(item => item.ID == id);
                     }
                     finally
                     {
@@ -792,47 +856,67 @@ namespace Common.DAL
                     }
                 }
                 else
-                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().SingleOrDefaultAsync(item => item.ID == id);
+                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().TableName(systemID).SingleOrDefaultAsync(item => item.ID == id);
+            }
+
+            public Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
+            {
+                return GetAsync(string.Empty, id, dbResourceContent);
+            }
+
+            public int Count(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+            {
+                IEnumerable<long> ids = GetQueryable(systemID, transaction).Where(predicate ?? EMPTY_PREDICATE).Select(item => item.ID);
+
+                ValidTransaction(systemID, transaction, ids, forUpdate);
+
+                return ids.Count();
             }
 
             public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
             {
-                IEnumerable<long> ids = GetQueryable(transaction).Where(predicate ?? EMPTY_PREDICATE).Select(item => item.ID);
+                return Count(string.Empty, transaction, predicate, forUpdate);
+            }
 
-                ValidTransaction(transaction, ids, forUpdate);
+            public int Count(string systemID, Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
 
-                return ids.Count();
+                    try
+                    {
+                        return dataConnection.Instance.GetTable<T>().TableName(systemID).Count(predicate ?? EMPTY_PREDICATE);
+                    }
+                    finally
+                    {
+                        DisposeConnection(dataConnection);
+                    }
+                }
+                else
+                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().TableName(systemID).Count(predicate ?? EMPTY_PREDICATE);
             }
 
             public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
             {
-                if (dbResourceContent == null)
-                {
-                    IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(m_linqToDbConnectionOptions);
-
-                    try
-                    {
-                        return dataConnection.Instance.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
-                    }
-                    finally
-                    {
-                        DisposeConnection(dataConnection);
-                    }
-                }
-                else
-                    return ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Count(predicate ?? EMPTY_PREDICATE);
+                return Count(string.Empty, predicate, dbResourceContent);
             }
 
-            public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+            public async Task<int> CountAsync(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
             {
-                IEnumerable<long> ids = (await GetQueryableAsync(transaction)).Where(predicate ?? EMPTY_PREDICATE).Select(item => item.ID);
+                IEnumerable<long> ids = (await GetQueryableAsync(systemID, transaction)).Where(predicate ?? EMPTY_PREDICATE).Select(item => item.ID);
 
-                await ValidTransactionAsync(transaction, ids, forUpdate);
+                await ValidTransactionAsync(systemID, transaction, ids, forUpdate);
 
                 return ids.Count();
             }
 
-            public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+            public Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+            {
+                return CountAsync(string.Empty, transaction, predicate, forUpdate);
+            }
+
+            public async Task<int> CountAsync(string systemID, Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
@@ -840,7 +924,7 @@ namespace Common.DAL
 
                     try
                     {
-                        return await dataConnection.Instance.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
+                        return await dataConnection.Instance.GetTable<T>().TableName(systemID).CountAsync(predicate ?? EMPTY_PREDICATE);
                     }
                     finally
                     {
@@ -848,12 +932,17 @@ namespace Common.DAL
                     }
                 }
                 else
-                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().CountAsync(predicate ?? EMPTY_PREDICATE);
+                    return await ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().TableName(systemID).CountAsync(predicate ?? EMPTY_PREDICATE);
             }
 
-            public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            public Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
             {
-                IQueryable<T> query = GetQueryable(transaction).Where(predicate ?? EMPTY_PREDICATE);
+                return CountAsync(string.Empty, predicate, dbResourceContent);
+            }
+
+            public IEnumerable<T> Search(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            {
+                IQueryable<T> query = GetQueryable(systemID, transaction).Where(predicate ?? EMPTY_PREDICATE);
 
                 bool orderd = false;
 
@@ -884,12 +973,17 @@ namespace Common.DAL
 
                 IEnumerable<long> ids = queryaa.ToList();
 
-                ValidTransaction(transaction, ids, forUpdate);
+                ValidTransaction(systemID, transaction, ids, forUpdate);
 
-                return GetQueryable(transaction).Where(item => ids.Contains(item.ID)).ToList();
+                return GetQueryable(systemID, transaction).Where(item => ids.Contains(item.ID)).ToList();
             }
 
-            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            {
+                return Search(string.Empty, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+            }
+
+            public IEnumerable<T> Search(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
@@ -897,7 +991,7 @@ namespace Common.DAL
 
                     try
                     {
-                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().TableName(systemID).Where(predicate ?? EMPTY_PREDICATE);
                         bool orderd = false;
 
                         if (queryOrderBies != null)
@@ -932,7 +1026,7 @@ namespace Common.DAL
                 }
                 else
                 {
-                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().TableName(systemID).Where(predicate ?? EMPTY_PREDICATE);
                     bool orderd = false;
 
                     if (queryOrderBies != null)
@@ -962,9 +1056,14 @@ namespace Common.DAL
                 }
             }
 
-            public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
             {
-                IQueryable<T> query = (await GetQueryableAsync(transaction)).Where(predicate ?? EMPTY_PREDICATE);
+                return Search(string.Empty, predicate, queryOrderBies, startIndex, count, dbResourceContent);
+            }
+
+            public async Task<IEnumerable<T>> SearchAsync(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            {
+                IQueryable<T> query = (await GetQueryableAsync(systemID, transaction)).Where(predicate ?? EMPTY_PREDICATE);
 
                 bool orderd = false;
 
@@ -993,12 +1092,17 @@ namespace Common.DAL
 
                 IEnumerable<long> ids = query.Select(item => item.ID).Skip(startIndex).Take(count).ToList();
 
-                await ValidTransactionAsync(transaction, ids, forUpdate);
+                await ValidTransactionAsync(systemID, transaction, ids, forUpdate);
 
-                return (await GetQueryableAsync(transaction)).Where(item => ids.Contains(item.ID)).ToList();
+                return (await GetQueryableAsync(systemID, transaction)).Where(item => ids.Contains(item.ID)).ToList();
             }
 
-            public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            {
+                return SearchAsync(string.Empty, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+            }
+
+            public async Task<IEnumerable<T>> SearchAsync(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
@@ -1006,7 +1110,7 @@ namespace Common.DAL
 
                     try
                     {
-                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                        IQueryable<T> query = dataConnection.Instance.GetTable<T>().TableName(systemID).Where(predicate ?? EMPTY_PREDICATE);
                         bool orderd = false;
 
                         if (queryOrderBies != null)
@@ -1041,7 +1145,7 @@ namespace Common.DAL
                 }
                 else
                 {
-                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().Where(predicate ?? EMPTY_PREDICATE);
+                    IQueryable<T> query = ((IResourceInstance<DataConnectionInstance>)dbResourceContent).Instance.GetTable<T>().TableName(systemID).Where(predicate ?? EMPTY_PREDICATE);
                     bool orderd = false;
 
                     if (queryOrderBies != null)
@@ -1069,6 +1173,11 @@ namespace Common.DAL
 
                     return await query.Skip(startIndex).Take(count).ToListAsync();
                 }
+            }
+
+            public Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            {
+                return SearchAsync(string.Empty, predicate, queryOrderBies, startIndex, count, dbResourceContent);
             }
 
             public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
@@ -1111,50 +1220,69 @@ namespace Common.DAL
                 return await query.Skip(startIndex).Take(count).ToListAsync();
             }
 
-            public ISearchQueryable<T> GetQueryable(ITransaction transaction)
+            public ISearchQueryable<T> GetQueryable(string systemID, ITransaction transaction)
             {
                 IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)((Linq2DBTransaction)transaction).ResourceInstance;
-                return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance);
+                return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>().TableName(systemID), true, resourceInstance);
+            }
+
+            public ISearchQueryable<T> GetQueryable(ITransaction transaction)
+            {
+                return GetQueryable(string.Empty, transaction);
+            }
+
+            public ISearchQueryable<T> GetQueryable(string systemID, IDBResourceContent dbResourceContent = null)
+            {
+                if (dbResourceContent == null)
+                {
+                    IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
+                    return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>().TableName(systemID), false, resourceInstance);
+                }
+                else
+                {
+                    IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)dbResourceContent;
+                    return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>().TableName(systemID), true, resourceInstance);
+                }
             }
 
             public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
             {
-                if (dbResourceContent == null)
-                {
-                    IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
-                    return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false, resourceInstance);
-                }
-                else
-                {
-                    IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)dbResourceContent;
-                    return new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance);
-                }
+                return GetQueryable(string.Empty, dbResourceContent);
+            }
+
+            public Task<ISearchQueryable<T>> GetQueryableAsync(string systemID, ITransaction transaction)
+            {
+                IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)((Linq2DBTransaction)transaction).ResourceInstance;
+                return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>().TableName(systemID), true, resourceInstance));
             }
 
             public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
             {
-                IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)((Linq2DBTransaction)transaction).ResourceInstance;
-                return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance));
+                return GetQueryableAsync(string.Empty, transaction);
             }
 
-            public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+            public Task<ISearchQueryable<T>> GetQueryableAsync(string systemID, IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
                     IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
-                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), false, resourceInstance));
+                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>().TableName(systemID), false, resourceInstance));
                 }
                 else
                 {
                     IResourceInstance<DataConnectionInstance> resourceInstance = (IResourceInstance<DataConnectionInstance>)dbResourceContent;
-                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>(), true, resourceInstance));
+                    return Task.FromResult<ISearchQueryable<T>>(new Linq2DBQueryable<T>(resourceInstance.Instance.GetTable<T>().TableName(systemID), true, resourceInstance));
                 }
             }
 
-            public Linq2DBDaoInstance(LinqToDbConnectionOptions linqToDbConnectionOptions, bool codeFirst)
+            public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+            {
+                return GetQueryableAsync(string.Empty, dbResourceContent);
+            }
+
+            public Linq2DBDaoInstance(LinqToDbConnectionOptions linqToDbConnectionOptions)
             {
                 m_linqToDbConnectionOptions = linqToDbConnectionOptions;
-                m_codeFirst = codeFirst;
             }
 
             static Linq2DBDaoInstance()
