@@ -65,14 +65,14 @@ namespace TestWebAPI.Controllers
                     switch (index % 3)
                     {
                         case 0:
-                            Test1(transaction);
+                            await Test1(transaction);
                             break;
                         case 1:
-                            Test2(transaction);
+                            await Test2(transaction);
                             break;
                         case 2:
-                            Test1(transaction);
-                            Test2(transaction);
+                            await Test1(transaction);
+                            await Test2(transaction);
                             break;
                     }
 
@@ -86,7 +86,16 @@ namespace TestWebAPI.Controllers
             }
         }
 
-        private async void Test1(ITransaction transaction)
+        [HttpGet("insert")]
+        public async Task DoInsert()
+        {
+            StockInfo[] stockInfos = new StockInfo[] { new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 1, Count = 400 },
+                                                       new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 2, Count = 400 } };
+
+            m_editQuery.Insert(null, stockInfos);
+        }
+
+        private async Task Test1(ITransaction transaction)
         {
             Random random = new Random();
 
@@ -97,8 +106,8 @@ namespace TestWebAPI.Controllers
                 CreateUserID = -9999,
                 CreateTime = DateTime.Now,
                 CommodityID = stockInfo_1.CommodityID,
-                //Count = 4,
-                Count = random.Next(1, 9)
+                Count = 4,
+                //Count = random.Next(1, 9)
             };
             if (stockInfo_1.Count < order_1.Count)
                 throw new DealException("1 库存不够。");
@@ -107,7 +116,7 @@ namespace TestWebAPI.Controllers
             await m_orderInfoEditQuery.InsertAsync(transaction, order_1);
         }
 
-        private async void Test2(ITransaction transaction)
+        private async Task Test2(ITransaction transaction)
         {
             Random random = new Random();
 
@@ -118,8 +127,8 @@ namespace TestWebAPI.Controllers
                 CreateUserID = -9999,
                 CreateTime = DateTime.Now,
                 CommodityID = stockInfo_2.CommodityID,
-                //Count = 4,
-                Count = random.Next(1, 9)
+                Count = 4,
+                //Count = random.Next(1, 9)
             };
             if (stockInfo_2.Count < order_2.Count)
                 throw new DealException("2 库存不够。");
@@ -196,13 +205,14 @@ namespace TestWebAPI.Controllers
                     var datas2 = m_searchQuery.FilterIsDeleted().Search(transaction, item => item.ClassID == data.ClassID);
 
                     data.UpdateUserID = random.Next(1000, 9999);
-                    data.UpdateTime = DateTime.Now;
 
                     m_editQuery.Update(data, transaction);
 
                     m_editQuery.FilterIsDeleted().Delete(transaction, data.ID);
 
-                    m_editQuery.Update(item => item.ID == data.ID, new Dictionary<string, object>() { [nameof(Left.IsDeleted)] = false }, transaction);
+                    m_editQuery.Update(item => item.ID == data.ID, new Dictionary<string, object>() { [nameof(Left.UpdateTime)] = DateTime.Now }, transaction);
+
+                    m_editQuery.Insert(transaction, new Left() { ID = IDGenerator.NextID(), ClassID = random.Next(0, 100), CreateTime = DateTime.Now, CreateUserID = -9999, StudentName = Guid.NewGuid().ToString() });
 
                     transaction.Submit();
                 }

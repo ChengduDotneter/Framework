@@ -592,12 +592,12 @@ namespace Common.DAL
                 {
                     using (ISearchQueryable<T> queryable = GetQueryable())
                     {
-                        ids = queryable.Where(predicate).Select(item => item.ID);
+                        ids = queryable.Where(predicate).Select(item => item.ID).ToList();
                     }
                 }
                 else
                 {
-                    ids = GetQueryable(transaction).Where(predicate).Select(item => item.ID);
+                    ids = GetQueryable(transaction).Where(predicate).Select(item => item.ID).ToList();
                 }
 
                 if (ids == null || ids.Count() == 0)
@@ -642,12 +642,12 @@ namespace Common.DAL
                 {
                     using (ISearchQueryable<T> queryable = await GetQueryableAsync())
                     {
-                        ids = queryable.Where(predicate).Select(item => item.ID);
+                        ids = queryable.Where(predicate).Select(item => item.ID).ToList();
                     }
                 }
                 else
                 {
-                    ids = (await GetQueryableAsync(transaction)).Where(predicate).Select(item => item.ID);
+                    ids = (await GetQueryableAsync(transaction)).Where(predicate).Select(item => item.ID).ToList();
                 }
 
                 if (ids == null || ids.Count() == 0)
@@ -704,6 +704,9 @@ namespace Common.DAL
             {
                 bool inTransaction = false;
 
+                if (ids == null || ids.Count() == 0)
+                    return;
+
                 if (forUpdate)
                     inTransaction = WriteApply<T>(transaction, ids);
                 else
@@ -716,6 +719,9 @@ namespace Common.DAL
             private async static Task ValidTransactionAsync(ITransaction transaction, IEnumerable<long> ids, bool forUpdate = false)
             {
                 bool inTransaction = false;
+
+                if (ids == null || ids.Count() == 0)
+                    return;
 
                 if (forUpdate)
                     inTransaction = await WriteApplyAsync<T>(transaction, ids);
@@ -791,24 +797,9 @@ namespace Common.DAL
             {
                 DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
-                IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
+                IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
 
-                if (queryOrderBies != null)
-                {
-                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
-
-                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                    {
-                        if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
-                        else
-                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
-                    }
-
-                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList();
-                }
-
-                IEnumerable<long> ids = findFluent.As<IEntity>().Skip(startIndex).Limit(count).ToList().Select(item => item.ID);
+                IEnumerable<long> ids = findFluent.GetIDProjectFluent().Skip(startIndex).Limit(count).ToList().Select(item => item.ID);
 
                 ValidTransaction(transaction, ids, forUpdate);
 
@@ -819,50 +810,18 @@ namespace Common.DAL
             {
                 DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
-                IFindFluent<T, T> findFluent = GetCollection(m_slaveMongoDatabase).Find(predicate ?? EMPTY_PREDICATE);
-
-                if (queryOrderBies != null)
-                {
-                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
-
-                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                    {
-                        if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
-                        else
-                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
-                    }
-
-                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList();
-                }
+                IFindFluent<T, T> findFluent = GetCollection(m_slaveMongoDatabase).Find(predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
 
                 return findFluent.Skip(startIndex).Limit(count).ToList();
-
-                throw new NotImplementedException();
             }
 
             public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
             {
                 await DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
-                IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE);
+                IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase).Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
 
-                if (queryOrderBies != null)
-                {
-                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
-
-                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                    {
-                        if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
-                        else
-                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
-                    }
-
-                    return findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToList();
-                }
-
-                IEnumerable<long> ids = (await findFluent.As<IEntity>().Skip(startIndex).Limit(count).ToListAsync()).Select(item => item.ID);
+                IEnumerable<long> ids = (await findFluent.GetIDProjectFluent().Skip(startIndex).Limit(count).ToListAsync()).Select(item => item.ID);
 
                 await ValidTransactionAsync(transaction, ids, forUpdate);
 
@@ -873,22 +832,7 @@ namespace Common.DAL
             {
                 await DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
-                IFindFluent<T, T> findFluent = GetCollection(m_slaveMongoDatabase).Find(predicate ?? EMPTY_PREDICATE);
-
-                if (queryOrderBies != null)
-                {
-                    IList<SortDefinition<T>> sortDefinitions = new List<SortDefinition<T>>();
-
-                    foreach (QueryOrderBy<T> queryOrderBy in queryOrderBies)
-                    {
-                        if (queryOrderBy.OrderByType == OrderByType.Asc)
-                            sortDefinitions.Add(Builders<T>.Sort.Ascending(queryOrderBy.Expression));
-                        else
-                            sortDefinitions.Add(Builders<T>.Sort.Descending(queryOrderBy.Expression));
-                    }
-
-                    return await findFluent.Sort(Builders<T>.Sort.Combine(sortDefinitions)).Skip(startIndex).Limit(count).ToListAsync();
-                }
+                IFindFluent<T, T> findFluent = GetCollection(m_slaveMongoDatabase).Find(predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
 
                 return await findFluent.Skip(startIndex).Limit(count).ToListAsync();
             }
