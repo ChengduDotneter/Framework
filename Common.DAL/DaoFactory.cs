@@ -38,9 +38,9 @@ namespace Common.DAL
         /// <typeparam name="T"></typeparam>
         /// <param name="codeFirst"></param>
         /// <returns></returns>
-        public static ISearchQuery<T> GetSearchLinq2DBQuery<T>(bool codeFirst) where T : class, IEntity, new()
+        public static ISearchQuery<T> GetSearchLinq2DBQuery<T>() where T : class, IEntity, new()
         {
-            return Linq2DBDao.GetLinq2DBSearchQuery<T>(codeFirst);
+            return Linq2DBDao.GetLinq2DBSearchQuery<T>();
         }
 
         /// <summary>
@@ -49,9 +49,9 @@ namespace Common.DAL
         /// <typeparam name="T"></typeparam>
         /// <param name="codeFirst"></param>
         /// <returns></returns>
-        public static IEditQuery<T> GetEditLinq2DBQuery<T>(bool codeFirst) where T : class, IEntity, new()
+        public static IEditQuery<T> GetEditLinq2DBQuery<T>() where T : class, IEntity, new()
         {
-            return Linq2DBDao.GetLinq2DBEditQuery<T>(codeFirst);
+            return Linq2DBDao.GetLinq2DBEditQuery<T>();
         }
 
         /// <summary>

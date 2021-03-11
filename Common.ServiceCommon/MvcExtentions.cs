@@ -30,7 +30,6 @@ namespace Common.ServiceCommon
     public static class MvcExtentions
     {
         private const int DEFAULT_THREAD_COUNT = 200;
-        private static bool m_isCodeFirst;
         private static IDictionary<Type, Func<object>> m_defaultSearchQueryProviderDic;
         private static IDictionary<Type, Func<object>> m_defaultEditQueryProviderDic;
         private static IDictionary<Type, Func<object>> m_defaultCacheProviderDic;
@@ -67,7 +66,6 @@ namespace Common.ServiceCommon
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             ConfigManager.Init(hostBuilderContext.HostingEnvironment.EnvironmentName);
-            m_isCodeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
             m_clientID = ConfigManager.Configuration["ClientID"];
 
             serviceCollection.AddSingleton<IClientAccessTokenManager, ClientAccessTokenManager>();
@@ -271,8 +269,7 @@ namespace Common.ServiceCommon
                 if (searchQueryProvider == null)
                 {
                     m_defaultSearchQueryProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
-                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchLinq2DBQuery)).MakeGenericMethod(modelType),
-                                           Expression.Constant(m_isCodeFirst, typeof(bool)))).Compile());
+                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchLinq2DBQuery)).MakeGenericMethod(modelType))).Compile());
 
                     serviceCollection.AddScoped(searchQueryType, sp => m_defaultSearchQueryProviderDic[modelType].Invoke());
                 }
@@ -284,8 +281,7 @@ namespace Common.ServiceCommon
                 if (editQueryProvider == null)
                 {
                     m_defaultEditQueryProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
-                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditLinq2DBQuery)).MakeGenericMethod(modelType),
-                                           Expression.Constant(m_isCodeFirst, typeof(bool)))).Compile());
+                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditLinq2DBQuery)).MakeGenericMethod(modelType))).Compile());
 
                     serviceCollection.AddScoped(editQueryType, sp => m_defaultEditQueryProviderDic[modelType].Invoke());
                 }
