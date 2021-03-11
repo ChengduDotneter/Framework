@@ -6,105 +6,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Common.DAL.Transaction;
 using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Linq;
-using LinqToDB.Mapping;
 using Microsoft.Extensions.Configuration;
 
 namespace Common.DAL
 {
-    //internal static class Linq2DBDaoTableExtend
-    //{
-    //    public static ITable<T> SplitBySystemID<T>(this ITable<T> table, string systemID) where T : class, IEntity, new()
-    //    {
-    //        return new Linq2DBTable<T>(table, systemID);
-    //    }
-    //}
-
-    //internal class Linq2DBTable<T> : ITable<T> where T : class, IEntity, new()
-    //{
-    //    private ITable<T> m_table;
-    //    private string m_systemID;
-
-    //    public Linq2DBTable(ITable<T> table, string systemID)
-    //    {
-    //        m_table = table;
-    //        m_systemID = systemID;
-    //    }
-
-    //    public string ServerName => m_table.ServerName;
-
-    //    public string DatabaseName => m_table.DatabaseName;
-
-    //    public string SchemaName => m_table.SchemaName;
-
-    //    public string TableName => $"{m_table.TableName}_{m_systemID}";
-
-    //    public Expression Expression { get => m_table.Expression; set => m_table.Expression = value; }
-
-    //    public Type ElementType => m_table.ElementType;
-
-    //    public IQueryProvider Provider => m_table.Provider;
-
-    //    public string SqlText => m_table.SqlText;
-
-    //    public IDataContext DataContext => m_table.DataContext;
-
-    //    Expression IQueryable.Expression => ((IQueryable)m_table).Expression;
-
-    //    Expression IExpressionQuery.Expression => ((IExpressionQuery)m_table).Expression;
-
-    //    public IQueryable CreateQuery(Expression expression)
-    //    {
-    //        return m_table.CreateQuery(expression);
-    //    }
-
-    //    public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
-    //    {
-    //        return m_table.CreateQuery<TElement>(expression);
-    //    }
-
-    //    public object Execute(Expression expression)
-    //    {
-    //        return m_table.Execute(expression);
-    //    }
-
-    //    public TResult Execute<TResult>(Expression expression)
-    //    {
-    //        return m_table.Execute<TResult>(expression);
-    //    }
-
-    //    public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken token)
-    //    {
-    //        return m_table.ExecuteAsync<TResult>(expression, token);
-    //    }
-
-    //    public Task<IAsyncEnumerable<TResult>> ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken token)
-    //    {
-    //        return m_table.ExecuteAsyncEnumerable<TResult>(expression, token);
-    //    }
-
-    //    public IEnumerator<T> GetEnumerator()
-    //    {
-    //        return m_table.GetEnumerator();
-    //    }
-
-    //    public string GetTableName()
-    //    {
-    //        return $"{m_table.GetTableName()}_{m_systemID}";
-    //    }
-
-    //    IEnumerator IEnumerable.GetEnumerator()
-    //    {
-    //        return ((IEnumerable)m_table).GetEnumerator();
-    //    }
-    //}
-
     internal static class Linq2DBDao
     {
         private const int DEFAULT_CONNECTION_COUNT = 10; //最大长连接数
@@ -117,6 +28,12 @@ namespace Common.DAL
         private static LinqToDbConnectionOptions m_slavelinqToDbConnectionOptions;
 
         private static readonly int m_dataConnectionOutTime;
+
+        private static ITable<T> TableName<T>(this ITable<T> table, string systemID)
+        {
+            string tablePostFix = string.IsNullOrEmpty(systemID) ? string.Empty : $"_{systemID}";
+            return LinqExtensions.TableName(table, $"{table.TableName.ToLower()}{tablePostFix}");
+        }
 
         static Linq2DBDao()
         {
@@ -208,23 +125,13 @@ namespace Common.DAL
         public static ISearchQuery<T> GetLinq2DBSearchQuery<T>(bool codeFirst)
             where T : class, IEntity, new()
         {
-            Linq2DBDaoInstance<T> linq2DBDaoInstance = new Linq2DBDaoInstance<T>(m_slavelinqToDbConnectionOptions, codeFirst);
-
-            if (codeFirst)
-                CreateTable<T>(m_slavelinqToDbConnectionOptions);
-
-            return linq2DBDaoInstance;
+            return new Linq2DBDaoInstance<T>(m_slavelinqToDbConnectionOptions, codeFirst);
         }
 
         public static IEditQuery<T> GetLinq2DBEditQuery<T>(bool codeFirst)
              where T : class, IEntity, new()
         {
-            Linq2DBDaoInstance<T> linq2DBDaoInstance = new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions, codeFirst);
-
-            if (codeFirst)
-                CreateTable<T>(m_masterlinqToDbConnectionOptions);
-
-            return linq2DBDaoInstance;
+            return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions, codeFirst);
         }
 
         public static IDBResourceContent GetDBResourceContent()
@@ -232,9 +139,12 @@ namespace Common.DAL
             return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].ApplyInstance());
         }
 
-        private static void CreateTable<T>(LinqToDbConnectionOptions linqToDbConnectionOptions)
+        private static void CreateTable<T>(ITable<T> table, bool codeFirst)
              where T : class, IEntity, new()
         {
+            if (!codeFirst)
+                return;
+
             string tableName = typeof(T).Name;
 
             if (!m_tableNames.Contains(tableName))
@@ -243,27 +153,14 @@ namespace Common.DAL
                 {
                     if (!m_tableNames.Contains(tableName))
                     {
-                        IResourceInstance<DataConnectionInstance> dataConnection = CreateConnection(linqToDbConnectionOptions);
-
-                        try
-                        {
-                            dataConnection.Instance.CreateTable<T>(dataConnection.Instance.MappingSchema.GetEntityDescriptor(typeof(T)).TableName);
-                        }
-                        catch
-                        {
-                            return;
-                        }
-                        finally
-                        {
-                            DisposeConnection(dataConnection);
-                            m_tableNames.Add(tableName);
-                        }
+                        table.DataContext.CreateTable<T>();
+                        m_tableNames.Add(tableName);
                     }
                 }
             }
         }
 
-        private static bool Apply<TResource>(ITransaction transaction) where TResource : class, IEntity
+        private static bool Apply<TResource>(ITransaction transaction, string systemID) where TResource : class, IEntity
         {
             Linq2DBTransaction linq2DBTransaction = transaction as Linq2DBTransaction;
 
@@ -271,14 +168,14 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!TransactionResourceHelper.ApplayTableResource(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
+                if (!TransactionResourceHelper.ApplayTableResource(table, systemID, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
                     throw new ResourceException($"申请事务资源{table.FullName}失败。");
             }
 
             return linq2DBTransaction != null;
         }
 
-        private static async Task<bool> ApplyAsync<TResource>(ITransaction transaction) where TResource : class, IEntity
+        private static async Task<bool> ApplyAsync<TResource>(ITransaction transaction, string systemID) where TResource : class, IEntity
         {
             Linq2DBTransaction linq2DBTransaction = transaction as Linq2DBTransaction;
 
@@ -286,14 +183,14 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!await TransactionResourceHelper.ApplayTableResourceAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
+                if (!await TransactionResourceHelper.ApplayTableResourceAsync(table, systemID, linq2DBTransaction.Identity, linq2DBTransaction.Weight))
                     throw new ResourceException($"申请事务资源{table.FullName}失败。");
             }
 
             return linq2DBTransaction != null;
         }
 
-        private static bool WriteApply<TResource>(ITransaction transaction, IEnumerable<long> ids) where TResource : class, IEntity
+        private static bool WriteApply<TResource>(ITransaction transaction, string systemID, IEnumerable<long> ids) where TResource : class, IEntity
         {
             Linq2DBTransaction linq2DBTransaction = transaction as Linq2DBTransaction;
 
@@ -301,7 +198,7 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!TransactionResourceHelper.ApplayRowResourceWithWrite(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
+                if (!TransactionResourceHelper.ApplayRowResourceWithWrite(table, systemID, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
                     throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
 
             }
@@ -309,7 +206,7 @@ namespace Common.DAL
             return linq2DBTransaction != null;
         }
 
-        private static async Task<bool> WriteApplyAsync<TResource>(ITransaction transaction, IEnumerable<long> ids) where TResource : class, IEntity
+        private static async Task<bool> WriteApplyAsync<TResource>(ITransaction transaction, string systemID, IEnumerable<long> ids) where TResource : class, IEntity
         {
             Linq2DBTransaction linq2DBTransaction = transaction as Linq2DBTransaction;
 
@@ -317,14 +214,14 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!await TransactionResourceHelper.ApplayRowResourceWithWriteAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
+                if (!await TransactionResourceHelper.ApplayRowResourceWithWriteAsync(table, systemID, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
                     throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return linq2DBTransaction != null;
         }
 
-        private static bool ReadApply<TResource>(ITransaction transaction, IEnumerable<long> ids) where TResource : class, IEntity
+        private static bool ReadApply<TResource>(ITransaction transaction, string systemID, IEnumerable<long> ids) where TResource : class, IEntity
         {
             Linq2DBTransaction linq2DBTransaction = transaction as Linq2DBTransaction;
 
@@ -332,14 +229,14 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!TransactionResourceHelper.ApplayRowResourceWithRead(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
+                if (!TransactionResourceHelper.ApplayRowResourceWithRead(table, systemID, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
                     throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
             return linq2DBTransaction != null;
         }
 
-        private static async Task<bool> ReadApplyAsync<TResource>(ITransaction transaction, IEnumerable<long> ids) where TResource : class, IEntity
+        private static async Task<bool> ReadApplyAsync<TResource>(ITransaction transaction, string systemID, IEnumerable<long> ids) where TResource : class, IEntity
         {
             Linq2DBTransaction linq2DBTransaction = transaction as Linq2DBTransaction;
 
@@ -347,7 +244,7 @@ namespace Common.DAL
             {
                 Type table = typeof(TResource);
 
-                if (!await TransactionResourceHelper.ApplayRowResourceWithReadAsync(table, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
+                if (!await TransactionResourceHelper.ApplayRowResourceWithReadAsync(table, systemID, linq2DBTransaction.Identity, linq2DBTransaction.Weight, ids))
                     throw new ResourceException($"申请事务资源{table.FullName}:{string.Join(",", ids)}失败。");
             }
 
@@ -484,9 +381,9 @@ namespace Common.DAL
                 return new Linq2DBTransaction(await resourceInstance.Instance.BeginTransactionAsync(IsolationLevel.ReadCommitted), distributedLock, weight, resourceInstance);
             }
 
-            public void Delete(ITransaction transaction = null, params long[] ids)
+            public void Delete(string systemID, ITransaction transaction = null, params long[] ids)
             {
-                bool inTransaction = WriteApply<T>(transaction, ids);
+                bool inTransaction = WriteApply<T>(transaction, systemID, ids);
 
                 if (!inTransaction)
                 {
@@ -494,7 +391,7 @@ namespace Common.DAL
 
                     try
                     {
-                        dataConnection.Instance.GetTable<T>().Delete(item => ids.Contains(item.ID));
+                        dataConnection.Instance.GetTable<T>().TableName(systemID).Delete(item => ids.Contains(item.ID));
                     }
                     finally
                     {
@@ -505,6 +402,11 @@ namespace Common.DAL
                 {
                     ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().Delete(item => ids.Contains(item.ID));
                 }
+            }
+
+            public void Delete(ITransaction transaction = null, params long[] ids)
+            {
+
             }
 
             public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)

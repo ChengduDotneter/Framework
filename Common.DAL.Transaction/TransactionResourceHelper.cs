@@ -30,76 +30,82 @@ namespace Common.DAL.Transaction
         /// 申请事务资源 表锁
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
+        /// <param name="systemID">申请资源的系统ID</param>
         /// <param name="identity">事务线程ID</param>
         /// <param name="weight">事务权重</param>
         /// <returns></returns>
-        public static bool ApplayTableResource(Type table, string identity, int weight)
+        public static bool ApplayTableResource(Type table, string systemID, string identity, int weight)
         {
-            return m_lock.AcquireWriteLockWithGroupKey(table.FullName, identity, weight, m_timeOut);
+            return m_lock.AcquireWriteLockWithGroupKey(GetTableName(table, systemID), identity, weight, m_timeOut);
         }
 
         /// <summary>
         /// 异步申请事务资源 表锁
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
+        /// <param name="systemID">申请资源的系统ID</param>
         /// <param name="identity">事务线程ID</param>
         /// <param name="weight">事务权重</param>
         // <returns></returns>
-        public static async Task<bool> ApplayTableResourceAsync(Type table, string identity, int weight)
+        public static async Task<bool> ApplayTableResourceAsync(Type table, string systemID, string identity, int weight)
         {
-            return await m_lock.AcquireWriteLockWithGroupKeyAsync(table.FullName, identity, weight, m_timeOut);
+            return await m_lock.AcquireWriteLockWithGroupKeyAsync(GetTableName(table, systemID), identity, weight, m_timeOut);
         }
 
         /// <summary>
         /// 申请事务资源 行写锁
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
+        /// <param name="systemID">申请资源的系统ID</param>
         /// <param name="identity">事务线程ID</param>
         /// <param name="weight">事务权重</param>
         /// <param name="ids">行id</param>
         /// <returns></returns>
-        public static bool ApplayRowResourceWithWrite(Type table, string identity, int weight, IEnumerable<long> ids)
+        public static bool ApplayRowResourceWithWrite(Type table, string systemID, string identity, int weight, IEnumerable<long> ids)
         {
-            return m_lock.AcquireWriteLockWithResourceKeys(table.FullName, identity, weight, m_timeOut, ids?.Select(item => item.ToString()).ToArray());
+            return m_lock.AcquireWriteLockWithResourceKeys(GetTableName(table, systemID), identity, weight, m_timeOut, ids?.Select(item => item.ToString()).ToArray());
         }
 
         /// <summary>
         /// 异步申请事务资源 行写锁
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
+        /// <param name="systemID">申请资源的系统ID</param>
         /// <param name="identity">事务线程ID</param>
         /// <param name="weight">事务权重</param>
         /// <param name="ids">行id</param>
         // <returns></returns>
-        public static async Task<bool> ApplayRowResourceWithWriteAsync(Type table, string identity, int weight, IEnumerable<long> ids)
+        public static async Task<bool> ApplayRowResourceWithWriteAsync(Type table, string systemID, string identity, int weight, IEnumerable<long> ids)
         {
-            return await m_lock.AcquireWriteLockWithResourceKeysAsync(table.FullName, identity, weight, m_timeOut, ids?.Select(item => item.ToString()).ToArray());
+            return await m_lock.AcquireWriteLockWithResourceKeysAsync(GetTableName(table, systemID), identity, weight, m_timeOut, ids?.Select(item => item.ToString()).ToArray());
         }
 
         /// <summary>
         /// 申请事务资源 行读锁
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
+        /// <param name="systemID">申请资源的系统ID</param>
         /// <param name="identity">事务线程ID</param>
         /// <param name="weight">事务权重</param>
         /// <param name="ids">行id</param>
         /// <returns></returns>
-        public static bool ApplayRowResourceWithRead(Type table, string identity, int weight, IEnumerable<long> ids)
+        public static bool ApplayRowResourceWithRead(Type table, string systemID, string identity, int weight, IEnumerable<long> ids)
         {
-            return m_lock.AcquireReadLockWithResourceKeys(table.FullName, identity, weight, m_timeOut, ids?.Select(item => item.ToString()).ToArray());
+            return m_lock.AcquireReadLockWithResourceKeys(GetTableName(table, systemID), identity, weight, m_timeOut, ids?.Select(item => item.ToString()).ToArray());
         }
 
         /// <summary>
         /// 异步申请事务资源 行读锁
         /// </summary>
         /// <param name="table">所需申请的表类型</param>
+        /// <param name="systemID">申请资源的系统ID</param>
         /// <param name="identity">事务线程ID</param>
         /// <param name="weight">事务权重</param>
         /// <param name="ids">行id</param>
         // <returns></returns>
-        public static async Task<bool> ApplayRowResourceWithReadAsync(Type table, string identity, int weight, IEnumerable<long> ids)
+        public static async Task<bool> ApplayRowResourceWithReadAsync(Type table, string systemID, string identity, int weight, IEnumerable<long> ids)
         {
-            return await m_lock.AcquireReadLockWithResourceKeysAsync(table.FullName, identity, weight, m_timeOut, ids?.Select(item => item.ToString()).ToArray());
+            return await m_lock.AcquireReadLockWithResourceKeysAsync(GetTableName(table, systemID), identity, weight, m_timeOut, ids?.Select(item => item.ToString()).ToArray());
         }
 
         /// <summary>
@@ -118,6 +124,12 @@ namespace Common.DAL.Transaction
         public static async Task ReleaseResourceAsync(string identity)
         {
             await m_lock.ReleaseAsync(identity);
+        }
+
+        private static string GetTableName(Type table, string systemID)
+        {
+            string tablePostFix = string.IsNullOrEmpty(systemID) ? string.Empty : $"_{systemID}";
+            return $"{table.FullName}{tablePostFix}";
         }
 
         /// <summary>

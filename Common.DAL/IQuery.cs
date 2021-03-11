@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace Common.DAL
 {
+    public interface ISystemPartitionEditQuery<T> where T : class, IEntity, new()
+    {
+        void Insert(string systemID, ITransaction transaction = null, params T[] datas);
+    }
+
     /// <summary>
     /// 数据修改接口
     /// </summary>
