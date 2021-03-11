@@ -1,4 +1,4 @@
-﻿using Common.DAL.Transaction;
+using Common.DAL.Transaction;
 using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;

@@ -1,4 +1,4 @@
-﻿using Common.Log;
+using Common.Log;
 
 namespace Common.DAL
 {
