@@ -33,25 +33,63 @@ namespace Common.DAL
         }
 
         /// <summary>
+        /// 获取查询的MongoDB分区操作实体
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static ISystemPartitionSearchQuery<T> GetSystemPartitionSearchMongoDBQuery<T>() where T : class, IEntity, new()
+        {
+            return MongoDBDao.GetMongoDBSystemPartitionSearchQuery<T>();
+        }
+
+        /// <summary>
+        /// 获取修改的MongoDB分区操作实体
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static ISystemPartitionEditQuery<T> GetSystemPartitionEditMongoDBQuery<T>() where T : class, IEntity, new()
+        {
+            return MongoDBDao.GetMongoDBSystemPartitionEditQuery<T>();
+        }
+
+        /// <summary>
         /// 获取查询的Linq2DB操作实体
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="codeFirst"></param>
         /// <returns></returns>
-        public static ISearchQuery<T> GetSearchLinq2DBQuery<T>(bool codeFirst) where T : class, IEntity, new()
+        public static ISearchQuery<T> GetSearchLinq2DBQuery<T>() where T : class, IEntity, new()
         {
-            return Linq2DBDao.GetLinq2DBSearchQuery<T>(codeFirst);
+            return Linq2DBDao.GetLinq2DBSearchQuery<T>();
         }
 
         /// <summary>
         /// 获取修改的Linq2DB操作实体
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="codeFirst"></param>
         /// <returns></returns>
-        public static IEditQuery<T> GetEditLinq2DBQuery<T>(bool codeFirst) where T : class, IEntity, new()
+        public static IEditQuery<T> GetEditLinq2DBQuery<T>() where T : class, IEntity, new()
         {
-            return Linq2DBDao.GetLinq2DBEditQuery<T>(codeFirst);
+            return Linq2DBDao.GetLinq2DBEditQuery<T>();
+        }
+
+        /// <summary>
+        /// 获取查询的Linq2DB分区操作实体
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static ISystemPartitionSearchQuery<T> GetSystemPartitionSearchLinq2DBQuery<T>() where T : class, IEntity, new()
+        {
+            return Linq2DBDao.GetLinq2DBSystemPartitionSearchQuery<T>();
+        }
+
+        /// <summary>
+        /// 获取修改的Linq2DB分区操作实体
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static ISystemPartitionEditQuery<T> GetSystemPartitionEditLinq2DBQuery<T>() where T : class, IEntity, new()
+        {
+            return Linq2DBDao.GetLinq2DBSystemPartitionEditQuery<T>();
         }
 
         /// <summary>

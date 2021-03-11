@@ -128,13 +128,25 @@ namespace Common.DAL
             resourceInstance.Dispose();
         }
 
-        public static ISearchQuery<T> GetLinq2DBSearchQuery<T>(bool codeFirst)
+        public static ISearchQuery<T> GetLinq2DBSearchQuery<T>()
             where T : class, IEntity, new()
         {
             return new Linq2DBDaoInstance<T>(m_slavelinqToDbConnectionOptions);
         }
 
-        public static IEditQuery<T> GetLinq2DBEditQuery<T>(bool codeFirst)
+        public static IEditQuery<T> GetLinq2DBEditQuery<T>()
+             where T : class, IEntity, new()
+        {
+            return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
+        }
+
+        public static ISystemPartitionSearchQuery<T> GetLinq2DBSystemPartitionSearchQuery<T>()
+            where T : class, IEntity, new()
+        {
+            return new Linq2DBDaoInstance<T>(m_slavelinqToDbConnectionOptions);
+        }
+
+        public static ISystemPartitionEditQuery<T> GetLinq2DBSystemPartitionEditQuery<T>()
              where T : class, IEntity, new()
         {
             return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
