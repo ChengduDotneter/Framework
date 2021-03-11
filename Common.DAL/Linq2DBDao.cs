@@ -3,7 +3,6 @@ using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Linq;
-using LinqToDB.Mapping;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections;
