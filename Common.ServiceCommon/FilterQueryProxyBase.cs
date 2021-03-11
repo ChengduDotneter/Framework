@@ -137,24 +137,24 @@ namespace Common.ServiceCommon
             return m_searchQuery.SearchAsync(GetExpressionProxy(predicate), queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        public int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+        public int Count<TResult>(IQueryable<TResult> query)
         {
-            return m_searchQuery.Count(query, dbResourceContent);
+            return m_searchQuery.Count(query);
         }
 
-        public Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+        public Task<int> CountAsync<TResult>(IQueryable<TResult> query)
         {
-            return m_searchQuery.CountAsync(query, dbResourceContent);
+            return m_searchQuery.CountAsync(query);
         }
 
-        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
         {
-            return m_searchQuery.Search(query, startIndex, count, dbResourceContent);
+            return m_searchQuery.Search(query, startIndex, count);
         }
 
-        public Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        public Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
         {
-            return m_searchQuery.SearchAsync(query, startIndex, count, dbResourceContent);
+            return m_searchQuery.SearchAsync(query, startIndex, count);
         }
 
         public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
