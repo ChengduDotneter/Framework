@@ -38,7 +38,7 @@ namespace Common.ServiceCommon
         protected abstract Expression<Func<T, bool>> GetExpressionProxy(Expression<Func<T, bool>> predicate = null);
 
         /// <summary>
-        /// 为
+        /// 为queryable添加装饰者的过滤条件
         /// </summary>
         /// <param name="queryable"></param>
         /// <returns></returns>
