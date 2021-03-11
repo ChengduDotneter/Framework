@@ -1,11 +1,4 @@
-﻿using Common.DAL.Transaction;
-using LinqToDB;
-using LinqToDB.Configuration;
-using LinqToDB.Data;
-using LinqToDB.Linq;
-using LinqToDB.Mapping;
-using Microsoft.Extensions.Configuration;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -13,10 +6,105 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
+using Common.DAL.Transaction;
+using LinqToDB;
+using LinqToDB.Configuration;
+using LinqToDB.Data;
+using LinqToDB.Linq;
+using LinqToDB.Mapping;
+using Microsoft.Extensions.Configuration;
 
 namespace Common.DAL
 {
+    //internal static class Linq2DBDaoTableExtend
+    //{
+    //    public static ITable<T> SplitBySystemID<T>(this ITable<T> table, string systemID) where T : class, IEntity, new()
+    //    {
+    //        return new Linq2DBTable<T>(table, systemID);
+    //    }
+    //}
+
+    //internal class Linq2DBTable<T> : ITable<T> where T : class, IEntity, new()
+    //{
+    //    private ITable<T> m_table;
+    //    private string m_systemID;
+
+    //    public Linq2DBTable(ITable<T> table, string systemID)
+    //    {
+    //        m_table = table;
+    //        m_systemID = systemID;
+    //    }
+
+    //    public string ServerName => m_table.ServerName;
+
+    //    public string DatabaseName => m_table.DatabaseName;
+
+    //    public string SchemaName => m_table.SchemaName;
+
+    //    public string TableName => $"{m_table.TableName}_{m_systemID}";
+
+    //    public Expression Expression { get => m_table.Expression; set => m_table.Expression = value; }
+
+    //    public Type ElementType => m_table.ElementType;
+
+    //    public IQueryProvider Provider => m_table.Provider;
+
+    //    public string SqlText => m_table.SqlText;
+
+    //    public IDataContext DataContext => m_table.DataContext;
+
+    //    Expression IQueryable.Expression => ((IQueryable)m_table).Expression;
+
+    //    Expression IExpressionQuery.Expression => ((IExpressionQuery)m_table).Expression;
+
+    //    public IQueryable CreateQuery(Expression expression)
+    //    {
+    //        return m_table.CreateQuery(expression);
+    //    }
+
+    //    public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+    //    {
+    //        return m_table.CreateQuery<TElement>(expression);
+    //    }
+
+    //    public object Execute(Expression expression)
+    //    {
+    //        return m_table.Execute(expression);
+    //    }
+
+    //    public TResult Execute<TResult>(Expression expression)
+    //    {
+    //        return m_table.Execute<TResult>(expression);
+    //    }
+
+    //    public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken token)
+    //    {
+    //        return m_table.ExecuteAsync<TResult>(expression, token);
+    //    }
+
+    //    public Task<IAsyncEnumerable<TResult>> ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken token)
+    //    {
+    //        return m_table.ExecuteAsyncEnumerable<TResult>(expression, token);
+    //    }
+
+    //    public IEnumerator<T> GetEnumerator()
+    //    {
+    //        return m_table.GetEnumerator();
+    //    }
+
+    //    public string GetTableName()
+    //    {
+    //        return $"{m_table.GetTableName()}_{m_systemID}";
+    //    }
+
+    //    IEnumerator IEnumerable.GetEnumerator()
+    //    {
+    //        return ((IEnumerable)m_table).GetEnumerator();
+    //    }
+    //}
+
     internal static class Linq2DBDao
     {
         private const int DEFAULT_CONNECTION_COUNT = 10; //最大长连接数
@@ -1086,7 +1174,7 @@ namespace Common.DAL
                 return query.Count();
             }
 
-            public int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+            public int Count<TResult>(IQueryable<TResult> query)
             {
                 return query.Count();
             }
@@ -1096,7 +1184,7 @@ namespace Common.DAL
                 return await query.CountAsync();
             }
 
-            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query)
             {
                 return await query.CountAsync();
             }
@@ -1106,7 +1194,7 @@ namespace Common.DAL
                 return query.Skip(startIndex).Take(count).ToList();
             }
 
-            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
             {
                 return query.Skip(startIndex).Take(count).ToList();
             }
@@ -1116,7 +1204,7 @@ namespace Common.DAL
                 return await query.Skip(startIndex).Take(count).ToListAsync();
             }
 
-            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
             {
                 return await query.Skip(startIndex).Take(count).ToListAsync();
             }

@@ -23,6 +23,12 @@ namespace Common.DAL
         private static IMongoDatabase m_masterMongoDatabase;
         private static IMongoDatabase m_slaveMongoDatabase;
 
+        private class MongoDbResourceContent : IDBResourceContent
+        {
+            public object Content { get { return m_slaveMongoDatabase; } }
+            public void Dispose() { }
+        }
+
         private static bool Apply<TResource>(ITransaction transaction) where TResource : class, IEntity
         {
             MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;
@@ -51,6 +57,11 @@ namespace Common.DAL
             }
 
             return mongoDBTransaction != null;
+        }
+
+        internal static IDBResourceContent GetDBResourceContent()
+        {
+            return new MongoDbResourceContent();
         }
 
         private static bool WriteApply<TResource>(ITransaction transaction, IEnumerable<long> ids) where TResource : class, IEntity
@@ -888,7 +899,7 @@ namespace Common.DAL
                 return queryable.Count();
             }
 
-            public int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+            public int Count<TResult>(IQueryable<TResult> query)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 return queryable.Count();
@@ -900,7 +911,7 @@ namespace Common.DAL
                 return await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<int>(Expression.Call(m_countMethodInfo.MakeGenericMethod(typeof(TResult)), queryable.Expression));
             }
 
-            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null)
+            public async Task<int> CountAsync<TResult>(IQueryable<TResult> query)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 return await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<int>(Expression.Call(m_countMethodInfo.MakeGenericMethod(typeof(TResult)), queryable.Expression));
@@ -912,7 +923,7 @@ namespace Common.DAL
                 return queryable.Skip(startIndex).Take(count).ToList();
             }
 
-            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 return queryable.Skip(startIndex).Take(count).ToList();
@@ -930,7 +941,7 @@ namespace Common.DAL
                 return results;
             }
 
-            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 IAsyncCursor<TResult> asyncCursor = await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<IAsyncCursor<TResult>>(queryable.Expression);
