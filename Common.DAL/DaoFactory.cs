@@ -63,6 +63,15 @@ namespace Common.DAL
             return Linq2DBDao.GetDBResourceContent();
         }
 
+        /// <summary>
+        /// 获取MongoDb的数据库连接资源上下文
+        /// </summary>
+        /// <returns></returns>
+        public static IDBResourceContent GetMongoDbResourceContent()
+        {
+            return MongoDBDao.GetDBResourceContent();
+        }
+
         static DaoFactory()
         {
             LogHelper = LogHelperFactory.GetDefaultLogHelper();

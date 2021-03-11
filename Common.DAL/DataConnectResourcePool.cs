@@ -5,7 +5,7 @@ using System;
 
 namespace Common.DAL
 {
-    public class DataConnectionInstance : DataConnection
+    internal class DataConnectionInstance : DataConnection
     {
         /// <summary>
         /// 资源过期时间
@@ -27,7 +27,7 @@ namespace Common.DAL
         }
     }
 
-    public class DataConnectResourcePool : ResourcePool<DataConnectionInstance>
+    internal class DataConnectResourcePool : ResourcePool<DataConnectionInstance>
     {
         private readonly Func<DataConnectionInstance> m_doCreateInstance;
         private readonly Action<DataConnectionInstance> m_doDisposableInstance;

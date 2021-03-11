@@ -251,9 +251,8 @@ namespace Common.DAL
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
-        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        int Count<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null);
+        int Count<TResult>(IQueryable<TResult> query);
 
         /// <summary>
         /// 事务中根据LinqQueryable筛选条件联查条数（异步）
@@ -269,9 +268,8 @@ namespace Common.DAL
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
-        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        Task<int> CountAsync<TResult>(IQueryable<TResult> query, IDBResourceContent dbResourceContent = null);
+        Task<int> CountAsync<TResult>(IQueryable<TResult> query);
 
         /// <summary>
         /// 事务中根据LinqQueryable筛选条件联查数据
@@ -291,9 +289,8 @@ namespace Common.DAL
         /// <param name="query"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
-        /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null);
+        IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
 
         /// <summary>
         /// 事务中根据LinqQueryable筛选条件联查数据（异步）
@@ -315,7 +312,7 @@ namespace Common.DAL
         /// <param name="count"></param>
         /// <param name="dbResourceContent"></param>
         /// <returns></returns>
-        Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null);
+        Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
 
         /// <summary>
         /// 事务中获取Linq查询接口

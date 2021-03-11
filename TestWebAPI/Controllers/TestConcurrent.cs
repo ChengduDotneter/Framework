@@ -186,6 +186,8 @@ namespace TestWebAPI.Controllers
 
             var datas = m_searchQuery.FilterIsDeleted().Search().ToArray();
 
+            return null;
+
             Random random = new Random();
 
             long id = datas[random.Next(0, datas.Length - 1)].ID;
