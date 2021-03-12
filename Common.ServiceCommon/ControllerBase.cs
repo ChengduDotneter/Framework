@@ -149,7 +149,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         protected virtual Task<TResponse> DoGet(long id)
         {
-            return m_searchQuery.FilterIsDeleted().GetAsync(id);
+            return m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().GetAsync(id);
         }
 
         /// <summary>
@@ -233,7 +233,7 @@ namespace Common.ServiceCommon
         {
             Expression<Func<TResponse, bool>> linq = GetBaseLinq(pageQuery.Condition);
 
-            return Tuple.Create(await m_searchQuery.FilterIsDeleted().OrderByIDDesc().SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), await m_searchQuery.FilterIsDeleted().CountAsync(linq));
+            return Tuple.Create(await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().OrderByIDDesc().SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().CountAsync(linq));
         }
 
         /// <summary>
@@ -347,7 +347,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         protected virtual async Task DoPost(long id, TRequest request)
         {
-            await m_editQuery.FilterIsDeleted().InsertAsync(datas: request);
+            await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().InsertAsync(datas: request);
         }
 
         /// <summary>
@@ -382,7 +382,7 @@ namespace Common.ServiceCommon
         [HttpPut]
         public virtual async Task<IActionResult> Put([FromBody] TRequest request)
         {
-            if (m_searchQuery.FilterIsDeleted().Count(item => item.ID == request.ID) > 0)
+            if (m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().Count(item => item.ID == request.ID) > 0)
             {
                 request.AddUpdateUser(m_ssoUserService);
                 await DoPut(request);
@@ -399,7 +399,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         protected virtual async Task DoPut(TRequest request)
         {
-            await m_editQuery.FilterIsDeleted().UpdateAsync(request);
+            await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().UpdateAsync(request);
         }
 
         /// <summary>
@@ -435,7 +435,7 @@ namespace Common.ServiceCommon
         [HttpDelete("{id}")]
         public virtual async Task<IActionResult> Delete(long id)
         {
-            if (await m_searchQuery.FilterIsDeleted().CountAsync(item => item.ID == id) > 0)
+            if (await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().CountAsync(item => item.ID == id) > 0)
             {
                 await DoDelete(id);
                 return Ok();
@@ -450,7 +450,7 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         protected virtual async Task DoDelete(long id)
         {
-            await m_editQuery.FilterIsDeleted().DeleteAsync(ids: id);
+            await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().DeleteAsync(ids: id);
         }
 
         /// <summary>

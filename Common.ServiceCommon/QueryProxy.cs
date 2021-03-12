@@ -1,6 +1,7 @@
 ﻿using Common.DAL;
 using Common.DAL.Cache;
 using Common.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections;
@@ -65,8 +66,241 @@ namespace Common.ServiceCommon
         {
             return serviceProvider.GetRequiredService<ICacheProvider<T>>().CreateConditionCache(searchQuery);
         }
+
+        /// <summary>
+        /// 分区扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="searchQuery"></param>
+        /// <param name="systemID"></param>
+        /// <returns></returns>
+        public static ISearchQuery<T> SplitBySystemID<T>(this ISearchQuery<T> searchQuery, string systemID)
+            where T : ViewModelBase, new()
+        {
+            return new SplitBySystemIDSearchQuery<T>(searchQuery, systemID);
+        }
+
+        /// <summary>
+        /// 分区扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="searchQuery"></param>
+        /// <param name="httpContext"></param>
+        /// <returns></returns>
+        public static ISearchQuery<T> SplitBySystemID<T>(this ISearchQuery<T> searchQuery, HttpContext httpContext)
+            where T : ViewModelBase, new()
+        {
+            string systemID = httpContext.Request.Headers["systemID"].FirstOrDefault();
+            return new SplitBySystemIDSearchQuery<T>(searchQuery, systemID ?? string.Empty);
+        }
     }
 
+    /// <summary>
+    /// IEditQuery扩展
+    /// </summary>
+    public static class IEditQueryExtention
+    {
+        /// <summary>
+        /// 逻辑删除扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="editQuery"></param>
+        /// <returns></returns>
+        public static IEditQuery<T> FilterIsDeleted<T>(this IEditQuery<T> editQuery)
+            where T : ViewModelBase, new()
+        {
+            return new FilterIsDeletedEditQueryProxy<T>(editQuery);
+        }
+
+        /// <summary>
+        /// 创建Cache扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="editQuery"></param>
+        /// <param name="serviceProvider"></param>
+        /// <returns></returns>
+        public static IEditQuery<T> Cache<T>(this IEditQuery<T> editQuery, IServiceProvider serviceProvider)
+            where T : ViewModelBase, new()
+        {
+            return serviceProvider.GetRequiredService<ICacheProvider<T>>().CreateEditQueryCache(editQuery);
+        }
+
+        /// <summary>
+        /// 分区扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="editQuery"></param>
+        /// <param name="systemID"></param>
+        /// <returns></returns>
+        public static IEditQuery<T> SplitBySystemID<T>(this IEditQuery<T> editQuery, string systemID)
+            where T : ViewModelBase, new()
+        {
+            return new SplitBySystemIDEditQuery<T>(editQuery, systemID);
+        }
+
+        /// <summary>
+        /// 分区扩展
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="editQuery"></param>
+        /// <param name="httpContext"></param>
+        /// <returns></returns>
+        public static IEditQuery<T> SplitBySystemID<T>(this IEditQuery<T> editQuery, HttpContext httpContext)
+            where T : ViewModelBase, new()
+        {
+            string systemID = httpContext.Request.Headers["systemID"].FirstOrDefault();
+            return new SplitBySystemIDEditQuery<T>(editQuery, systemID ?? string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// ViewModelBase扩展
+    /// </summary>
+    public static class ViewModelBaseExtention
+    {
+        /// <summary>
+        /// 添加操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserService"></param>
+        /// <returns></returns>
+        public static T AddUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase, new()
+        {
+            if (viewModelBase.CreateUserID == 0)
+                return viewModelBase.AddCreateUser(ssoUserService);
+            else
+                return viewModelBase.AddUpdateUser(ssoUserService);
+        }
+
+        /// <summary>
+        /// 添加创建及修改操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserService"></param>
+        /// <returns></returns>
+        public static T AddBothUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase, new()
+        {
+            SSOUserInfo ssoUserInfo = ssoUserService.GetUser();
+
+            SetCreateUser(viewModelBase, ssoUserInfo);
+            SetUpdateUser(viewModelBase, ssoUserInfo);
+
+            return viewModelBase;
+        }
+
+        /// <summary>
+        /// 添加创建操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserService"></param>
+        /// <returns></returns>
+        public static T AddCreateUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase, new()
+        {
+            return SetCreateUser(viewModelBase, ssoUserService.GetUser());
+        }
+
+        /// <summary>
+        /// 添加创建操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserService"></param>
+        /// <returns></returns>
+        public static T AddUpdateUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase, new()
+        {
+            return SetUpdateUser(viewModelBase, ssoUserService.GetUser());
+        }
+
+        /// <summary>
+        /// 设置创建操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserInfo"></param>
+        /// <returns></returns>
+        public static T SetCreateUser<T>(T viewModelBase, SSOUserInfo ssoUserInfo)
+            where T : ViewModelBase, new()
+        {
+            viewModelBase.CreateUserID = ssoUserInfo.ID;
+            viewModelBase.CreateTime = DateTime.Now;
+
+            return viewModelBase;
+        }
+
+        /// <summary>
+        /// 设置修改操作者信息
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="viewModelBase"></param>
+        /// <param name="ssoUserInfo"></param>
+        /// <returns></returns>
+        public static T SetUpdateUser<T>(T viewModelBase, SSOUserInfo ssoUserInfo)
+            where T : ViewModelBase, new()
+        {
+            viewModelBase.UpdateTime = DateTime.Now;
+            viewModelBase.UpdateUserID = ssoUserInfo.ID;
+
+            return viewModelBase;
+        }
+
+        public static T GenerateInitialization<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase
+        {
+            viewModelBase.ID = IDGenerator.NextID();
+            viewModelBase.CreateTime = DateTime.Now;
+            viewModelBase.CreateUserID = ssoUserService.GetUser().ID;
+            viewModelBase.IsDeleted = false;
+
+            return viewModelBase;
+        }
+
+        public static T UpdateInitialization<T>(this T viewModelBase, ISSOUserService ssoUserService)
+            where T : ViewModelBase
+        {
+            viewModelBase.UpdateTime = DateTime.Now;
+            viewModelBase.UpdateUserID = ssoUserService.GetUser().ID;
+            viewModelBase.IsDeleted = false;
+
+            return viewModelBase;
+        }
+    }
+
+    /// <summary>
+    /// QueryProxyHelper
+    /// </summary>
+    internal static class QueryProxyHelper
+    {
+        public static Expression<Func<T, bool>> GetIsDeletedCondition<T>(Expression<Func<T, bool>> predicate)
+            where T : ViewModelBase, new()
+        {
+            if (predicate == null)
+            {
+                ParameterExpression parameter = Expression.Parameter(typeof(T));
+                return Expression.Lambda<Func<T, bool>>(
+                 Expression.Equal(Expression.Property(parameter, nameof(ViewModelBase.IsDeleted)), Expression.Constant(false, typeof(bool))),
+                 parameter);
+            }
+
+            Expression<Func<T, bool>> expression =
+                Expression.Lambda<Func<T, bool>>(
+                    Expression.Equal(Expression.Property(predicate.Parameters[0], nameof(ViewModelBase.IsDeleted)), Expression.Constant(false, typeof(bool))),
+                    predicate.Parameters);
+
+            return predicate.AndAlso(expression);
+        }
+    }
+
+    /// <summary>
+    /// IEditQuery代理抽象类
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class EditQueryProxy<T> : IEditQuery<T> where T : ViewModelBase, new()
     {
         private IEditQuery<T> m_editQuery;
@@ -187,6 +421,10 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// ISearchQuery代理抽象类
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class SearchQueryProxy<T> : ISearchQuery<T> where T : ViewModelBase, new()
     {
         private ISearchQuery<T> m_searchQuery;
@@ -394,181 +632,6 @@ namespace Common.ServiceCommon
         public virtual Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
         {
             return m_searchQuery.SearchAsync(query, startIndex, count);
-        }
-    }
-
-    /// <summary>
-    /// IEditQuery扩展
-    /// </summary>
-    public static class IEditQueryExtention
-    {
-        /// <summary>
-        /// 逻辑删除扩展
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="editQuery"></param>
-        /// <returns></returns>
-        public static IEditQuery<T> FilterIsDeleted<T>(this IEditQuery<T> editQuery)
-            where T : ViewModelBase, new()
-        {
-            return new FilterIsDeletedEditQueryProxy<T>(editQuery);
-        }
-
-        /// <summary>
-        /// 创建Cache扩展
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="editQuery"></param>
-        /// <param name="serviceProvider"></param>
-        /// <returns></returns>
-        public static IEditQuery<T> Cache<T>(this IEditQuery<T> editQuery, IServiceProvider serviceProvider)
-            where T : ViewModelBase, new()
-        {
-            return serviceProvider.GetRequiredService<ICacheProvider<T>>().CreateEditQueryCache(editQuery);
-        }
-    }
-
-    /// <summary>
-    /// ViewModelBase扩展
-    /// </summary>
-    public static class ViewModelBaseExtention
-    {
-        /// <summary>
-        /// 添加操作者信息
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="viewModelBase"></param>
-        /// <param name="ssoUserService"></param>
-        /// <returns></returns>
-        public static T AddUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
-            where T : ViewModelBase, new()
-        {
-            if (viewModelBase.CreateUserID == 0)
-                return viewModelBase.AddCreateUser(ssoUserService);
-            else
-                return viewModelBase.AddUpdateUser(ssoUserService);
-        }
-
-        /// <summary>
-        /// 添加创建及修改操作者信息
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="viewModelBase"></param>
-        /// <param name="ssoUserService"></param>
-        /// <returns></returns>
-        public static T AddBothUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
-            where T : ViewModelBase, new()
-        {
-            SSOUserInfo ssoUserInfo = ssoUserService.GetUser();
-
-            SetCreateUser(viewModelBase, ssoUserInfo);
-            SetUpdateUser(viewModelBase, ssoUserInfo);
-
-            return viewModelBase;
-        }
-
-        /// <summary>
-        /// 添加创建操作者信息
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="viewModelBase"></param>
-        /// <param name="ssoUserService"></param>
-        /// <returns></returns>
-        public static T AddCreateUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
-            where T : ViewModelBase, new()
-        {
-            return SetCreateUser(viewModelBase, ssoUserService.GetUser());
-        }
-
-        /// <summary>
-        /// 添加创建操作者信息
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="viewModelBase"></param>
-        /// <param name="ssoUserService"></param>
-        /// <returns></returns>
-        public static T AddUpdateUser<T>(this T viewModelBase, ISSOUserService ssoUserService)
-            where T : ViewModelBase, new()
-        {
-            return SetUpdateUser(viewModelBase, ssoUserService.GetUser());
-        }
-
-        /// <summary>
-        /// 设置创建操作者信息
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="viewModelBase"></param>
-        /// <param name="ssoUserInfo"></param>
-        /// <returns></returns>
-        public static T SetCreateUser<T>(T viewModelBase, SSOUserInfo ssoUserInfo)
-            where T : ViewModelBase, new()
-        {
-            viewModelBase.CreateUserID = ssoUserInfo.ID;
-            viewModelBase.CreateTime = DateTime.Now;
-
-            return viewModelBase;
-        }
-
-        /// <summary>
-        /// 设置修改操作者信息
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="viewModelBase"></param>
-        /// <param name="ssoUserInfo"></param>
-        /// <returns></returns>
-        public static T SetUpdateUser<T>(T viewModelBase, SSOUserInfo ssoUserInfo)
-            where T : ViewModelBase, new()
-        {
-            viewModelBase.UpdateTime = DateTime.Now;
-            viewModelBase.UpdateUserID = ssoUserInfo.ID;
-
-            return viewModelBase;
-        }
-
-        public static T GenerateInitialization<T>(this T viewModelBase, ISSOUserService ssoUserService)
-            where T : ViewModelBase
-        {
-            viewModelBase.ID = IDGenerator.NextID();
-            viewModelBase.CreateTime = DateTime.Now;
-            viewModelBase.CreateUserID = ssoUserService.GetUser().ID;
-            viewModelBase.IsDeleted = false;
-
-            return viewModelBase;
-        }
-
-        public static T UpdateInitialization<T>(this T viewModelBase, ISSOUserService ssoUserService)
-            where T : ViewModelBase
-        {
-            viewModelBase.UpdateTime = DateTime.Now;
-            viewModelBase.UpdateUserID = ssoUserService.GetUser().ID;
-            viewModelBase.IsDeleted = false;
-
-            return viewModelBase;
-        }
-    }
-
-    /// <summary>
-    /// QueryProxyHelper
-    /// </summary>
-    internal static class QueryProxyHelper
-    {
-        public static Expression<Func<T, bool>> GetIsDeletedCondition<T>(Expression<Func<T, bool>> predicate)
-            where T : ViewModelBase, new()
-        {
-            if (predicate == null)
-            {
-                ParameterExpression parameter = Expression.Parameter(typeof(T));
-                return Expression.Lambda<Func<T, bool>>(
-                 Expression.Equal(Expression.Property(parameter, nameof(ViewModelBase.IsDeleted)), Expression.Constant(false, typeof(bool))),
-                 parameter);
-            }
-
-            Expression<Func<T, bool>> expression =
-                Expression.Lambda<Func<T, bool>>(
-                    Expression.Equal(Expression.Property(predicate.Parameters[0], nameof(ViewModelBase.IsDeleted)), Expression.Constant(false, typeof(bool))),
-                    predicate.Parameters);
-
-            return predicate.AndAlso(expression);
         }
     }
 
@@ -821,216 +884,165 @@ namespace Common.ServiceCommon
         }
     }
 
-    //public static class QueryProxy
-    //{
-    //    public static ISearchQuery<T> SplitBySystemID<T>(this ISearchQuery<T> searchQuery, string systemID) where T : class, IEntity, new()
-    //    {
-    //        return new SplitBySystemIDSearchQuery<T>(searchQuery);
-    //    }
+    /// <summary>
+    /// 分区查询装饰者
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class SplitBySystemIDSearchQuery<T> : SearchQueryProxy<T> where T : ViewModelBase, new()
+    {
+        private ISearchQuery<T> m_searchQuery;
+        private string m_systemID;
 
-    //    public static IEditQuery<T> SplitBySystemID<T>(this IEditQuery<T> editQuery, string systemID) where T : class, IEntity, new()
-    //    {
-    //        return new SplitBySystemIDEditQuery<T>(editQuery);
-    //    }
-    //}
+        public SplitBySystemIDSearchQuery(ISearchQuery<T> searchQuery, string systemID) : base(searchQuery)
+        {
+            m_searchQuery = searchQuery;
+            m_systemID = systemID;
+        }
 
-    //internal class SplitBySystemIDSearchQuery<T> : ISearchQuery<T> where T : class, IEntity, new()
-    //{
-    //    private ISearchQuery<T> m_searchQuery;
+        public override int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+        {
+            return m_searchQuery.Count(m_systemID, transaction, predicate, forUpdate);
+        }
 
-    //    public SplitBySystemIDSearchQuery(ISearchQuery<T> searchQuery)
-    //    {
-    //        m_searchQuery = searchQuery;
-    //    }
+        public override int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Count(m_systemID, predicate, dbResourceContent);
+        }
 
-    //    public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
-    //    {
-    //        return m_searchQuery.Count(transaction, predicate, forUpdate);
-    //    }
+        public override Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+        {
+            return m_searchQuery.CountAsync(m_systemID, transaction, predicate, forUpdate);
+        }
 
-    //    public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
-    //    {
-    //        return m_searchQuery.Count(predicate, dbResourceContent);
-    //    }
+        public override Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.CountAsync(m_systemID, predicate, dbResourceContent);
+        }
 
-    //    public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
-    //    {
-    //        return m_searchQuery.Count(transaction, query);
-    //    }
+        public override T Get(long id, ITransaction transaction, bool forUpdate = false)
+        {
+            return m_searchQuery.Get(m_systemID, id, transaction, forUpdate);
+        }
 
-    //    public int Count<TResult>(IQueryable<TResult> query)
-    //    {
-    //        return m_searchQuery.Count(query);
-    //    }
+        public override T Get(long id, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Get(m_systemID, id, dbResourceContent);
+        }
 
-    //    public Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
-    //    {
-    //        return m_searchQuery.CountAsync(transaction, predicate, forUpdate);
-    //    }
+        public override Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
+        {
+            return m_searchQuery.GetAsync(m_systemID, id, transaction, forUpdate);
+        }
 
-    //    public Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
-    //    {
-    //        return m_searchQuery.CountAsync(predicate, dbResourceContent);
-    //    }
+        public override Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetAsync(m_systemID, id, dbResourceContent);
+        }
 
-    //    public Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
-    //    {
-    //        return m_searchQuery.CountAsync(transaction, query);
-    //    }
+        public override ISearchQueryable<T> GetQueryable(ITransaction transaction)
+        {
+            return m_searchQuery.GetQueryable(m_systemID, transaction);
+        }
 
-    //    public Task<int> CountAsync<TResult>(IQueryable<TResult> query)
-    //    {
-    //        return m_searchQuery.CountAsync(query);
-    //    }
+        public override ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetQueryable(m_systemID, dbResourceContent);
+        }
 
-    //    public T Get(long id, ITransaction transaction, bool forUpdate = false)
-    //    {
-    //        return m_searchQuery.Get(id, transaction, forUpdate);
-    //    }
+        public override Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
+        {
+            return m_searchQuery.GetQueryableAsync(m_systemID, transaction);
+        }
 
-    //    public T Get(long id, IDBResourceContent dbResourceContent = null)
-    //    {
-    //        return m_searchQuery.Get(id, dbResourceContent);
-    //    }
+        public override Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetQueryableAsync(m_systemID, dbResourceContent);
+        }
 
-    //    public Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
-    //    {
-    //        return m_searchQuery.GetAsync(id, transaction, forUpdate);
-    //    }
+        public override IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        {
+            return m_searchQuery.Search(m_systemID, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+        }
 
-    //    public Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
-    //    {
-    //        return m_searchQuery.GetAsync(id, dbResourceContent);
-    //    }
+        public override IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Search(m_systemID, predicate, queryOrderBies, startIndex, count, dbResourceContent);
+        }
 
-    //    public ISearchQueryable<T> GetQueryable(ITransaction transaction)
-    //    {
-    //        return m_searchQuery.GetQueryable(transaction);
-    //    }
+        public override Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return base.SearchAsync(m_systemID, predicate, queryOrderBies, startIndex, count, dbResourceContent);
+        }
 
-    //    public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
-    //    {
-    //        return m_searchQuery.GetQueryable(dbResourceContent);
-    //    }
+        public override Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        {
+            return base.SearchAsync(m_systemID, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+        }
+    }
 
-    //    public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
-    //    {
-    //        return m_searchQuery.GetQueryableAsync(transaction);
-    //    }
+    /// <summary>
+    /// 分区编辑装饰者
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class SplitBySystemIDEditQuery<T> : EditQueryProxy<T> where T : ViewModelBase, new()
+    {
+        private IEditQuery<T> m_editQuery;
+        private string m_systemID;
 
-    //    public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
-    //    {
-    //        return m_searchQuery.GetQueryableAsync(dbResourceContent);
-    //    }
+        public SplitBySystemIDEditQuery(IEditQuery<T> editQuery, string systemID) : base(editQuery)
+        {
+            m_editQuery = editQuery;
+            m_systemID = systemID;
+        }
 
-    //    public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
-    //    {
-    //        return m_searchQuery.Search(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
-    //    }
+        public override void Delete(ITransaction transaction = null, params long[] ids)
+        {
+            m_editQuery.Delete(m_systemID, transaction, ids);
+        }
 
-    //    public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
-    //    {
-    //        return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, dbResourceContent);
-    //    }
+        public override Task DeleteAsync(ITransaction transaction = null, params long[] ids)
+        {
+            return m_editQuery.DeleteAsync(m_systemID, transaction, ids);
+        }
 
-    //    public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-    //    {
-    //        return m_searchQuery.Search(transaction, query, startIndex, count);
-    //    }
+        public override void Insert(ITransaction transaction = null, params T[] datas)
+        {
+            m_editQuery.Insert(m_systemID, transaction, datas);
+        }
 
-    //    public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-    //    {
-    //        return m_searchQuery.Search(query, startIndex, count);
-    //    }
+        public override Task InsertAsync(ITransaction transaction = null, params T[] datas)
+        {
+            return m_editQuery.InsertAsync(m_systemID, transaction, datas);
+        }
 
-    //    public Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
-    //    {
-    //        return m_searchQuery.SearchAsync(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
-    //    }
+        public override void Merge(ITransaction transaction = null, params T[] datas)
+        {
+            m_editQuery.Merge(m_systemID, transaction, datas);
+        }
 
-    //    public Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
-    //    {
-    //        return m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count, dbResourceContent);
-    //    }
+        public override Task MergeAsync(ITransaction transaction = null, params T[] datas)
+        {
+            return m_editQuery.MergeAsync(m_systemID, transaction, datas);
+        }
 
-    //    public Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-    //    {
-    //        return m_searchQuery.SearchAsync(transaction, query, startIndex, count);
-    //    }
+        public override void Update(T data, ITransaction transaction = null)
+        {
+            m_editQuery.Update(m_systemID, data, transaction);
+        }
 
-    //    public Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-    //    {
-    //        return m_searchQuery.SearchAsync(query, startIndex, count);
-    //    }
-    //}
+        public override void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
+        {
+            m_editQuery.Update(m_systemID, predicate, updateDictionary, transaction);
+        }
 
-    //internal class SplitBySystemIDEditQuery<T> : IEditQuery<T> where T : class, IEntity, new()
-    //{
-    //    private IEditQuery<T> m_editQuery;
+        public override Task UpdateAsync(T data, ITransaction transaction = null)
+        {
+            return m_editQuery.UpdateAsync(m_systemID, data, transaction);
+        }
 
-    //    public SplitBySystemIDEditQuery(IEditQuery<T> editQuery)
-    //    {
-    //        m_editQuery = editQuery;
-    //    }
-
-    //    public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
-    //    {
-    //        return m_editQuery.BeginTransaction(distributedLock, weight);
-    //    }
-
-    //    public Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
-    //    {
-    //        return m_editQuery.BeginTransactionAsync(distributedLock, weight);
-    //    }
-
-    //    public void Delete(ITransaction transaction = null, params long[] ids)
-    //    {
-    //        m_editQuery.Delete(transaction, ids);
-    //    }
-
-    //    public Task DeleteAsync(ITransaction transaction = null, params long[] ids)
-    //    {
-    //        return m_editQuery.DeleteAsync(transaction, ids);
-    //    }
-
-    //    public void Insert(ITransaction transaction = null, params T[] datas)
-    //    {
-    //        m_editQuery.Insert(transaction, datas);
-    //    }
-
-    //    public Task InsertAsync(ITransaction transaction = null, params T[] datas)
-    //    {
-    //        return m_editQuery.InsertAsync(transaction, datas);
-    //    }
-
-    //    public void Merge(ITransaction transaction = null, params T[] datas)
-    //    {
-    //        m_editQuery.Merge(transaction, datas);
-    //    }
-
-    //    public Task MergeAsync(ITransaction transaction = null, params T[] datas)
-    //    {
-    //        return m_editQuery.MergeAsync(transaction, datas);
-    //    }
-
-    //    public void Update(T data, ITransaction transaction = null)
-    //    {
-    //        m_editQuery.Update(data, transaction);
-    //    }
-
-    //    public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
-    //    {
-    //        m_editQuery.Update(predicate, updateDictionary, transaction);
-    //    }
-
-    //    public Task UpdateAsync(T data, ITransaction transaction = null)
-    //    {
-    //        return m_editQuery.UpdateAsync(data, transaction);
-    //    }
-
-    //    public Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
-    //    {
-    //        return m_editQuery.UpdateAsync(predicate, updateDictionary, transaction);
-    //    }
-    //}
+        public override Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
+        {
+            return m_editQuery.UpdateAsync(m_systemID, predicate, updateDictionary, transaction);
+        }
+    }
 }
