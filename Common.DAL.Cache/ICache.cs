@@ -16,32 +16,36 @@ namespace Common.DAL.Cache
         /// </summary>
         /// <param name="id"></param>
         /// <param name="dbResourceContent"></param>
+        /// <param name="systemID"></param>
         /// <returns></returns>
-        T Get(long id, IDBResourceContent dbResourceContent = null);
+        T Get(long id, IDBResourceContent dbResourceContent = null, string systemID = null);
 
         /// <summary>
         /// 根据id异步查数据
         /// </summary>
         /// <param name="id"></param>
         /// <param name="dbResourceContent"></param>
+        /// <param name="systemID"></param>
         /// <returns></returns>
-        Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null);
+        Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null, string systemID = null);
 
         /// <summary>
         /// 事务中根据id同步查数据
         /// </summary>
         /// <param name="transaction"></param>
         /// <param name="id"></param>
+        /// <param name="systemID"></param>
         /// <returns></returns>
-        T Get(ITransaction transaction, long id);
+        T Get(ITransaction transaction, long id, string systemID = null);
 
         /// <summary>
         /// 事务中根据id异步查数据
         /// </summary>
         /// <param name="transaction"></param>
         /// <param name="id"></param>
+        /// <param name="systemID"></param>
         /// <returns></returns>
-        Task<T> GetAsync(ITransaction transaction, long id);
+        Task<T> GetAsync(ITransaction transaction, long id, string systemID = null);
     }
 
     /// <summary>
@@ -57,8 +61,9 @@ namespace Common.DAL.Cache
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
         /// <param name="dbResourceContent"></param>
+        /// <param name="systemID"></param>
         /// <returns></returns>
-        IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null);
+        IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null, string systemID = null);
 
         /// <summary>
         /// 根据筛选条件异步匹配数据
@@ -67,8 +72,9 @@ namespace Common.DAL.Cache
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
         /// <param name="dbResourceContent"></param>
+        /// <param name="systemID"></param>
         /// <returns></returns>
-        Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null);
+        Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null, string systemID = null);
 
         /// <summary>
         /// 事务中根据筛选条件同步匹配数据
@@ -77,8 +83,9 @@ namespace Common.DAL.Cache
         /// <param name="condition"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="systemID"></param>
         /// <returns></returns>
-        IEnumerable<T> Get(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue);
+        IEnumerable<T> Get(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, string systemID = null);
 
         /// <summary>
         /// 事务中根据筛选条件异步匹配数据
@@ -87,8 +94,9 @@ namespace Common.DAL.Cache
         /// <param name="condition"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="systemID"></param>
         /// <returns></returns>
-        Task<IEnumerable<T>> GetAsync(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue);
+        Task<IEnumerable<T>> GetAsync(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, string systemID = null);
     }
 
     /// <summary>

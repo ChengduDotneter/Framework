@@ -14,4 +14,13 @@
             return new RedisCacheProvider<T>();
         }
     }
+
+    internal static class Utils
+    {
+        public static string ToSystemObjectID(this long id, string systemID)
+        {
+            string postFix = string.IsNullOrEmpty(systemID) ? systemID : $"_{systemID}";
+            return $"{id}{postFix}";
+        }
+    }
 }

@@ -27,7 +27,6 @@ namespace Common.Lock
                 ReadWriteLocks = new HashSet<RedisKey>();
                 Running = true;
 
-                //TODO: 
                 Task.Factory.StartNew(async () =>
                 {
                     while (Running)

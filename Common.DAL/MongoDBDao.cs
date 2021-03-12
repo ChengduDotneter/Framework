@@ -478,7 +478,7 @@ namespace Common.DAL
             }
         }
 
-        private class MongoDBDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>, ISystemPartitionSearchQuery<T>, ISystemPartitionEditQuery<T>
+        private class MongoDBDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>
             where T : class, IEntity, new()
         {
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
@@ -619,9 +619,9 @@ namespace Common.DAL
                 Update(string.Empty, data, transaction);
             }
 
-            public void Update(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
+            public void Update(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
-                DaoFactory.LogHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, upateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
+                DaoFactory.LogHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, updateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
 
                 IEnumerable<long> ids = null;
 
@@ -644,7 +644,7 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    foreach (var item in upateDictionary)
+                    foreach (var item in updateDictionary)
                     {
                         GetCollection(m_masterMongoDatabase, systemID).
                             UpdateMany(item => ids.Contains(item.ID), Builders<T>.Update.Set(item.Key, item.Value));
@@ -652,7 +652,7 @@ namespace Common.DAL
                 }
                 else
                 {
-                    foreach (var item in upateDictionary)
+                    foreach (var item in updateDictionary)
                     {
                         GetCollection(m_masterMongoDatabase, systemID).
                             UpdateMany(((MongoDBTransaction)transaction).ClientSessionHandle, item => ids.Contains(item.ID), Builders<T>.Update.Set(item.Key, item.Value));
@@ -660,9 +660,9 @@ namespace Common.DAL
                 }
             }
 
-            public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
+            public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
-                Update(string.Empty, predicate, upateDictionary, transaction);
+                Update(string.Empty, predicate, updateDictionary, transaction);
             }
 
             public async Task UpdateAsync(string systemID, T data, ITransaction transaction = null)
@@ -681,9 +681,9 @@ namespace Common.DAL
                 return UpdateAsync(string.Empty, data, transaction);
             }
 
-            public async Task UpdateAsync(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
+            public async Task UpdateAsync(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
-                await DaoFactory.LogHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, upateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
+                await DaoFactory.LogHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, updateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
 
                 IEnumerable<long> ids = null;
 
@@ -706,7 +706,7 @@ namespace Common.DAL
 
                 if (!inTransaction)
                 {
-                    foreach (var item in upateDictionary)
+                    foreach (var item in updateDictionary)
                     {
                         await GetCollection(m_masterMongoDatabase, systemID).
                             UpdateManyAsync(item => ids.Contains(item.ID), Builders<T>.Update.Set(item.Key, item.Value));
@@ -714,7 +714,7 @@ namespace Common.DAL
                 }
                 else
                 {
-                    foreach (var item in upateDictionary)
+                    foreach (var item in updateDictionary)
                     {
                         await GetCollection(m_masterMongoDatabase, systemID).
                             UpdateManyAsync(((MongoDBTransaction)transaction).ClientSessionHandle, item => ids.Contains(item.ID), Builders<T>.Update.Set(item.Key, item.Value));
@@ -722,9 +722,9 @@ namespace Common.DAL
                 }
             }
 
-            public Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
+            public Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
-                return UpdateAsync(string.Empty, predicate, upateDictionary, transaction);
+                return UpdateAsync(string.Empty, predicate, updateDictionary, transaction);
             }
 
             private static string GetOrderByString(IEnumerable<QueryOrderBy<T>> queryOrderBies)
@@ -1112,16 +1112,6 @@ namespace Common.DAL
 
         public static IEditQuery<T> GetMongoDBEditQuery<T>()
            where T : class, IEntity, new()
-        {
-            return new MongoDBDaoInstance<T>();
-        }
-
-        public static ISystemPartitionSearchQuery<T> GetMongoDBSystemPartitionSearchQuery<T>() where T : class, IEntity, new()
-        {
-            return new MongoDBDaoInstance<T>();
-        }
-
-        public static ISystemPartitionEditQuery<T> GetMongoDBSystemPartitionEditQuery<T>() where T : class, IEntity, new()
         {
             return new MongoDBDaoInstance<T>();
         }

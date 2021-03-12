@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace Common.DAL
 {
     /// <summary>
-    /// 分区修改操作接口
+    /// 数据修改接口
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ISystemPartitionEditQuery<T> where T : class, IEntity, new()
+    public interface IEditQuery<T> where T : class, IEntity, new()
     {
         /// <summary>
         /// 新增
@@ -65,18 +65,18 @@ namespace Common.DAL
         /// </summary>
         /// <param name="systemID">系统ID</param>
         /// <param name="predicate"></param>
-        /// <param name="upateDictionary"></param>
+        /// <param name="updateDictionary"></param>
         /// <param name="transaction">执行的事务</param>
-        void Update(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null);
+        void Update(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null);
 
         /// <summary>
         /// 修改
         /// </summary>
         /// <param name="systemID">系统ID</param>
         /// <param name="predicate"></param>
-        /// <param name="upateDictionary"></param>
+        /// <param name="updateDictionary"></param>
         /// <param name="transaction">执行的事务</param>
-        Task UpdateAsync(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null);
+        Task UpdateAsync(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null);
 
         /// <summary>
         /// 删除
@@ -93,14 +93,7 @@ namespace Common.DAL
         /// <param name="transaction">执行的事务</param>
         /// <param name="ids"></param>
         Task DeleteAsync(string systemID, ITransaction transaction = null, params long[] ids);
-    }
 
-    /// <summary>
-    /// 数据修改接口
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface IEditQuery<T> where T : class, IEntity, new()
-    {
         /// <summary>
         /// 新增
         /// </summary>
@@ -147,17 +140,17 @@ namespace Common.DAL
         /// 修改
         /// </summary>
         /// <param name="predicate"></param>
-        /// <param name="upateDictionary"></param>
+        /// <param name="updateDictionary"></param>
         /// <param name="transaction">执行的事务</param>
-        void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null);
+        void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null);
 
         /// <summary>
         /// 修改
         /// </summary>
         /// <param name="predicate"></param>
-        /// <param name="upateDictionary"></param>
+        /// <param name="updateDictionary"></param>
         /// <param name="transaction">执行的事务</param>
-        Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null);
+        Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null);
 
         /// <summary>
         /// 删除
@@ -188,12 +181,11 @@ namespace Common.DAL
         Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0);
     }
 
-
     /// <summary>
-    /// 分区数据查询接口
+    /// 数据查询接口
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ISystemPartitionSearchQuery<T> where T : class, IEntity, new()
+    public interface ISearchQuery<T> where T : class, IEntity, new()
     {
         /// <summary>
         /// 事务中根据ID查询
@@ -371,89 +363,6 @@ namespace Common.DAL
         /// <returns></returns>
         Task<ISearchQueryable<T>> GetQueryableAsync(string systemID, IDBResourceContent dbResourceContent = null);
 
-        /// <summary>
-        /// 事务中根据LinqQueryable筛选条件联查条数
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="transaction"></param>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        int Count<TResult>(ITransaction transaction, IQueryable<TResult> query);
-
-        /// <summary>
-        /// 根据LinqQueryable筛选条件联查条数
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        int Count<TResult>(IQueryable<TResult> query);
-
-        /// <summary>
-        /// 事务中根据LinqQueryable筛选条件联查条数（异步）
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="transaction"></param>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query);
-
-        /// <summary>
-        /// 根据LinqQueryable筛选条件联查条数（异步）
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        Task<int> CountAsync<TResult>(IQueryable<TResult> query);
-
-        /// <summary>
-        /// 事务中根据LinqQueryable筛选条件联查数据
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="transaction"></param>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
-
-        /// <summary>
-        /// 根据LinqQueryable筛选条件联查数据
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
-
-        /// <summary>
-        /// 事务中根据LinqQueryable筛选条件联查数据（异步）
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="transaction"></param>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
-
-        /// <summary>
-        /// 根据LinqQueryable筛选条件联查数据（异步）
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
-    }
-
-    /// <summary>
-    /// 数据查询接口
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface ISearchQuery<T> where T : class, IEntity, new()
-    {
         /// <summary>
         /// 事务中根据ID查询
         /// </summary>

@@ -140,18 +140,6 @@ namespace Common.DAL
             return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
         }
 
-        public static ISystemPartitionSearchQuery<T> GetLinq2DBSystemPartitionSearchQuery<T>()
-            where T : class, IEntity, new()
-        {
-            return new Linq2DBDaoInstance<T>(m_slavelinqToDbConnectionOptions);
-        }
-
-        public static ISystemPartitionEditQuery<T> GetLinq2DBSystemPartitionEditQuery<T>()
-             where T : class, IEntity, new()
-        {
-            return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
-        }
-
         public static IDBResourceContent GetDBResourceContent()
         {
             return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].ApplyInstance());
@@ -379,7 +367,7 @@ namespace Common.DAL
             }
         }
 
-        private class Linq2DBDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>, ISystemPartitionSearchQuery<T>, ISystemPartitionEditQuery<T>
+        private class Linq2DBDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>
             where T : class, IEntity, new()
         {
             private LinqToDbConnectionOptions m_linqToDbConnectionOptions;

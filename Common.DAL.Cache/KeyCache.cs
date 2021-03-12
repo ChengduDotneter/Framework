@@ -15,50 +15,50 @@ namespace Common.DAL.Cache
             m_cache = cache;
         }
 
-        public T Get(long id, IDBResourceContent dbResourceContent = null)
+        public T Get(long id, IDBResourceContent dbResourceContent = null, string systemID = null)
         {
-            (bool exists, T result) = m_cache.TryGetValue<T>(id);
+            (bool exists, T result) = m_cache.TryGetValue<T>(id.ToSystemObjectID(systemID));
 
             if (!exists)
             {
-                result = m_searchQuery.Get(id, dbResourceContent: dbResourceContent);
+                result = m_searchQuery.Get(systemID ?? string.Empty, id, dbResourceContent: dbResourceContent);
 
                 if (result != null)
-                    m_cache.Set(id, result);
+                    m_cache.Set(id.ToSystemObjectID(systemID), result);
             }
 
             return result;
         }
 
-        public T Get(ITransaction transaction, long id)
+        public T Get(ITransaction transaction, long id, string systemID = null)
         {
             if (transaction is TransactionProxy transactionProxy)
                 transaction = transactionProxy.Transaction;
 
-            return m_searchQuery.Get(id, transaction: transaction);
+            return m_searchQuery.Get(systemID ?? string.Empty, id, transaction: transaction);
         }
 
-        public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
+        public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null, string systemID = null)
         {
-            (bool exists, T result) = await m_cache.TryGetValueAsync<T>(id);
+            (bool exists, T result) = await m_cache.TryGetValueAsync<T>(id.ToSystemObjectID(systemID));
 
             if (!exists)
             {
-                result = await m_searchQuery.GetAsync(id, dbResourceContent: dbResourceContent);
+                result = await m_searchQuery.GetAsync(systemID ?? string.Empty, id, dbResourceContent: dbResourceContent);
 
                 if (result != null)
-                    await m_cache.SetAsync(id, result);
+                    await m_cache.SetAsync(id.ToSystemObjectID(systemID), result);
             }
 
             return result;
         }
 
-        public Task<T> GetAsync(ITransaction transaction, long id)
+        public Task<T> GetAsync(ITransaction transaction, long id, string systemID = null)
         {
             if (transaction is TransactionProxy transactionProxy)
                 transaction = transactionProxy.Transaction;
 
-            return m_searchQuery.GetAsync(id, transaction: transaction);
+            return m_searchQuery.GetAsync(systemID ?? string.Empty, id, transaction: transaction);
         }
     }
 }

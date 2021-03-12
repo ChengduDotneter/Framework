@@ -17,53 +17,53 @@ namespace Common.DAL.Cache
             m_cache = cache;
         }
 
-        private static string GetConditionMd5Key(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
+        private static string GetConditionMd5Key(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, string systemID = null)
         {
-            return MD5Encryption.GetMD5($"{condition.ToLamdaString()}_{startIndex}_{count}");
+            return MD5Encryption.GetMD5($"{condition.ToLamdaString()}_{startIndex}_{count}_{systemID ?? string.Empty}");
         }
 
-        public IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        public IEnumerable<T> Get(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null, string systemID = null)
         {
-            string conditionKey = GetConditionMd5Key(condition, startIndex, count);
+            string conditionKey = GetConditionMd5Key(condition, startIndex, count, systemID);
             (bool exists, IEnumerable<T> result) = m_cache.TryGetValue<IEnumerable<T>>(conditionKey);
 
             if (!exists)
             {
-                result = m_searchQuery.Search(condition, startIndex: startIndex, count: count, dbResourceContent: dbResourceContent);
+                result = m_searchQuery.Search(systemID ?? string.Empty, condition, startIndex: startIndex, count: count, dbResourceContent: dbResourceContent);
                 m_cache.Set(conditionKey, result);
             }
 
             return result;
         }
 
-        public IEnumerable<T> Get(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
+        public IEnumerable<T> Get(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, string systemID = null)
         {
             if (transaction is TransactionProxy transactionProxy)
                 transaction = transactionProxy.Transaction;
 
-            return m_searchQuery.Search(transaction, condition, startIndex: startIndex, count: count);
+            return m_searchQuery.Search(systemID ?? string.Empty, transaction, condition, startIndex: startIndex, count: count);
         }
 
-        public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null, string systemID = null)
         {
-            string conditionKey = GetConditionMd5Key(condition, startIndex, count);
+            string conditionKey = GetConditionMd5Key(condition, startIndex, count, systemID);
             (bool exists, IEnumerable<T> result) = await m_cache.TryGetValueAsync<IEnumerable<T>>(conditionKey);
 
             if (!exists)
             {
-                result = await m_searchQuery.SearchAsync(condition, startIndex: startIndex, count: count, dbResourceContent: dbResourceContent);
+                result = await m_searchQuery.SearchAsync(systemID ?? string.Empty, condition, startIndex: startIndex, count: count, dbResourceContent: dbResourceContent);
                 await m_cache.SetAsync(conditionKey, result);
             }
 
             return result;
         }
 
-        public Task<IEnumerable<T>> GetAsync(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue)
+        public Task<IEnumerable<T>> GetAsync(ITransaction transaction, Expression<Func<T, bool>> condition, int startIndex = 0, int count = int.MaxValue, string systemID = null)
         {
             if (transaction is TransactionProxy transactionProxy)
                 transaction = transactionProxy.Transaction;
 
-            return m_searchQuery.SearchAsync(transaction, condition, startIndex: startIndex, count: count);
+            return m_searchQuery.SearchAsync(systemID ?? string.Empty, transaction, condition, startIndex: startIndex, count: count);
         }
     }
 }

@@ -67,6 +67,336 @@ namespace Common.ServiceCommon
         }
     }
 
+    public abstract class EditQueryProxy<T> : IEditQuery<T> where T : ViewModelBase, new()
+    {
+        private IEditQuery<T> m_editQuery;
+
+        public EditQueryProxy(IEditQuery<T> editQuery)
+        {
+            m_editQuery = editQuery;
+        }
+
+        public virtual ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
+        {
+            return m_editQuery.BeginTransaction(distributedLock, weight);
+        }
+
+        public virtual Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
+        {
+            return m_editQuery.BeginTransactionAsync(distributedLock, weight);
+        }
+
+        public virtual void Delete(string systemID, ITransaction transaction = null, params long[] ids)
+        {
+            m_editQuery.Delete(systemID, transaction, ids);
+        }
+
+        public virtual void Delete(ITransaction transaction = null, params long[] ids)
+        {
+            m_editQuery.Delete(transaction, ids);
+        }
+
+        public virtual Task DeleteAsync(string systemID, ITransaction transaction = null, params long[] ids)
+        {
+            return m_editQuery.DeleteAsync(systemID, transaction, ids);
+        }
+
+        public virtual Task DeleteAsync(ITransaction transaction = null, params long[] ids)
+        {
+            return m_editQuery.DeleteAsync(transaction, ids);
+        }
+
+        public virtual void Insert(string systemID, ITransaction transaction = null, params T[] datas)
+        {
+            m_editQuery.Insert(systemID, transaction, datas);
+        }
+
+        public virtual void Insert(ITransaction transaction = null, params T[] datas)
+        {
+            m_editQuery.Insert(transaction, datas);
+        }
+
+        public virtual Task InsertAsync(string systemID, ITransaction transaction = null, params T[] datas)
+        {
+            return m_editQuery.InsertAsync(systemID, transaction, datas);
+        }
+
+        public virtual Task InsertAsync(ITransaction transaction = null, params T[] datas)
+        {
+            return m_editQuery.InsertAsync(transaction, datas);
+        }
+
+        public virtual void Merge(string systemID, ITransaction transaction = null, params T[] datas)
+        {
+            m_editQuery.Merge(systemID, transaction, datas);
+        }
+
+        public virtual void Merge(ITransaction transaction = null, params T[] datas)
+        {
+            m_editQuery.Merge(transaction, datas);
+        }
+
+        public virtual Task MergeAsync(string systemID, ITransaction transaction = null, params T[] datas)
+        {
+            return m_editQuery.MergeAsync(systemID, transaction, datas);
+        }
+
+        public virtual Task MergeAsync(ITransaction transaction = null, params T[] datas)
+        {
+            return m_editQuery.MergeAsync(transaction, datas);
+        }
+
+        public virtual void Update(string systemID, T data, ITransaction transaction = null)
+        {
+            m_editQuery.Update(systemID, data, transaction);
+        }
+
+        public virtual void Update(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
+        {
+            m_editQuery.Update(systemID, predicate, updateDictionary, transaction);
+        }
+
+        public virtual void Update(T data, ITransaction transaction = null)
+        {
+            m_editQuery.Update(data, transaction);
+        }
+
+        public virtual void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
+        {
+            m_editQuery.Update(predicate, updateDictionary, transaction);
+        }
+
+        public virtual Task UpdateAsync(string systemID, T data, ITransaction transaction = null)
+        {
+            return m_editQuery.UpdateAsync(systemID, data, transaction);
+        }
+
+        public virtual Task UpdateAsync(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
+        {
+            return m_editQuery.UpdateAsync(systemID, predicate, updateDictionary, transaction);
+        }
+
+        public virtual Task UpdateAsync(T data, ITransaction transaction = null)
+        {
+            return m_editQuery.UpdateAsync(data, transaction);
+        }
+
+        public virtual Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
+        {
+            return m_editQuery.UpdateAsync(predicate, updateDictionary, transaction);
+        }
+    }
+
+    public abstract class SearchQueryProxy<T> : ISearchQuery<T> where T : ViewModelBase, new()
+    {
+        private ISearchQuery<T> m_searchQuery;
+
+        public SearchQueryProxy(ISearchQuery<T> searchQuery)
+        {
+            m_searchQuery = searchQuery;
+        }
+
+        public virtual int Count(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+        {
+            return m_searchQuery.Count(systemID, transaction, predicate, forUpdate);
+        }
+
+        public virtual int Count(string systemID, Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Count(systemID, predicate, dbResourceContent);
+        }
+
+        public virtual int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+        {
+            return m_searchQuery.Count(transaction, predicate, forUpdate);
+        }
+
+        public virtual int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Count(predicate, dbResourceContent);
+        }
+
+        public virtual int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
+        {
+            return m_searchQuery.Count(transaction, query);
+        }
+
+        public virtual int Count<TResult>(IQueryable<TResult> query)
+        {
+            return m_searchQuery.Count(query);
+        }
+
+        public virtual Task<int> CountAsync(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+        {
+            return m_searchQuery.CountAsync(systemID, transaction, predicate, forUpdate);
+        }
+
+        public virtual Task<int> CountAsync(string systemID, Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.CountAsync(systemID, predicate, dbResourceContent);
+        }
+
+        public virtual Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+        {
+            return m_searchQuery.CountAsync(transaction, predicate, forUpdate);
+        }
+
+        public virtual Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.CountAsync(predicate, dbResourceContent);
+        }
+
+        public virtual Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
+        {
+            return m_searchQuery.CountAsync(transaction, query);
+        }
+
+        public virtual Task<int> CountAsync<TResult>(IQueryable<TResult> query)
+        {
+            return m_searchQuery.CountAsync(query);
+        }
+
+        public virtual T Get(string systemID, long id, ITransaction transaction, bool forUpdate = false)
+        {
+            return m_searchQuery.Get(systemID, id, transaction, forUpdate);
+        }
+
+        public virtual T Get(string systemID, long id, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Get(systemID, id, dbResourceContent);
+        }
+
+        public virtual T Get(long id, ITransaction transaction, bool forUpdate = false)
+        {
+            return m_searchQuery.Get(id, transaction, forUpdate);
+        }
+
+        public virtual T Get(long id, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Get(id, dbResourceContent);
+        }
+
+        public virtual Task<T> GetAsync(string systemID, long id, ITransaction transaction, bool forUpdate = false)
+        {
+            return m_searchQuery.GetAsync(systemID, id, transaction, forUpdate);
+        }
+
+        public virtual Task<T> GetAsync(string systemID, long id, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetAsync(systemID, id, dbResourceContent);
+        }
+
+        public virtual Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
+        {
+            return m_searchQuery.GetAsync(id, transaction, forUpdate);
+        }
+
+        public virtual Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetAsync(id, dbResourceContent);
+        }
+
+        public virtual ISearchQueryable<T> GetQueryable(string systemID, ITransaction transaction)
+        {
+            return m_searchQuery.GetQueryable(systemID, transaction);
+        }
+
+        public virtual ISearchQueryable<T> GetQueryable(string systemID, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetQueryable(systemID, dbResourceContent);
+        }
+
+        public virtual ISearchQueryable<T> GetQueryable(ITransaction transaction)
+        {
+            return m_searchQuery.GetQueryable(transaction);
+        }
+
+        public virtual ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetQueryable(dbResourceContent);
+        }
+
+        public virtual Task<ISearchQueryable<T>> GetQueryableAsync(string systemID, ITransaction transaction)
+        {
+            return m_searchQuery.GetQueryableAsync(systemID, transaction);
+        }
+
+        public virtual Task<ISearchQueryable<T>> GetQueryableAsync(string systemID, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetQueryableAsync(systemID, dbResourceContent);
+        }
+
+        public virtual Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
+        {
+            return m_searchQuery.GetQueryableAsync(transaction);
+        }
+
+        public virtual Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.GetQueryableAsync(dbResourceContent);
+        }
+
+        public virtual IEnumerable<T> Search(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        {
+            return m_searchQuery.Search(systemID, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+        }
+
+        public virtual IEnumerable<T> Search(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Search(systemID, predicate, queryOrderBies, startIndex, count, dbResourceContent);
+        }
+
+        public virtual IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        {
+            return m_searchQuery.Search(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+        }
+
+        public virtual IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, dbResourceContent);
+        }
+
+        public virtual IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+        {
+            return m_searchQuery.Search(transaction, query, startIndex, count);
+        }
+
+        public virtual IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+        {
+            return m_searchQuery.Search(query, startIndex, count);
+        }
+
+        public virtual Task<IEnumerable<T>> SearchAsync(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        {
+            return m_searchQuery.SearchAsync(systemID, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+        }
+
+        public virtual Task<IEnumerable<T>> SearchAsync(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.SearchAsync(systemID, predicate, queryOrderBies, startIndex, count, dbResourceContent);
+        }
+
+        public virtual Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        {
+            return m_searchQuery.SearchAsync(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+        }
+
+        public virtual Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        {
+            return m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count, dbResourceContent);
+        }
+
+        public virtual Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+        {
+            return m_searchQuery.SearchAsync(transaction, query, startIndex, count);
+        }
+
+        public virtual Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+        {
+            return m_searchQuery.SearchAsync(query, startIndex, count);
+        }
+    }
+
     /// <summary>
     /// IEditQuery扩展
     /// </summary>
@@ -246,52 +576,12 @@ namespace Common.ServiceCommon
     /// 根据ID倒序的查询代理装饰者类
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class OrderByIDDescSearchQueryProxy<T> : ISearchQuery<T>
+    public class OrderByIDDescSearchQueryProxy<T> : SearchQueryProxy<T>
         where T : ViewModelBase, new()
     {
         private ISearchQuery<T> m_searchQuery;
 
-        public T Get(long id, ITransaction transaction, bool forUpdate = false)
-        {
-            return m_searchQuery.Get(id, transaction, forUpdate);
-        }
-
-        public T Get(long id, IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.Get(id, dbResourceContent);
-        }
-
-        public async Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
-        {
-            return await m_searchQuery.GetAsync(id, transaction, forUpdate);
-        }
-
-        public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
-        {
-            return await m_searchQuery.GetAsync(id, dbResourceContent);
-        }
-
-        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
-        {
-            return m_searchQuery.Count(transaction, predicate, forUpdate);
-        }
-
-        public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.Count(predicate, dbResourceContent);
-        }
-
-        public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
-        {
-            return await m_searchQuery.CountAsync(transaction, predicate, forUpdate);
-        }
-
-        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
-        {
-            return await m_searchQuery.CountAsync(predicate, dbResourceContent);
-        }
-
-        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        public override IEnumerable<T> Search(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
         {
             IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
 
@@ -300,10 +590,10 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return m_searchQuery.Search(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+            return m_searchQuery.Search(systemID, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
         }
 
-        public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        public override IEnumerable<T> Search(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
             IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
 
@@ -312,10 +602,10 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, dbResourceContent);
+            return m_searchQuery.Search(systemID, predicate, queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        public override async Task<IEnumerable<T>> SearchAsync(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
         {
             IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
 
@@ -324,10 +614,10 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return await m_searchQuery.SearchAsync(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+            return await m_searchQuery.SearchAsync(systemID, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
         }
 
-        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        public override async Task<IEnumerable<T>> SearchAsync(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
             IEnumerable<QueryOrderBy<T>> orderByIDDesc = new[] { new QueryOrderBy<T>(item => item.ID, OrderByType.Desc) };
 
@@ -336,74 +626,13 @@ namespace Common.ServiceCommon
             else
                 queryOrderBies = orderByIDDesc;
 
-            return await m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count, dbResourceContent);
+            return await m_searchQuery.SearchAsync(systemID, predicate, queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
+        public OrderByIDDescSearchQueryProxy(ISearchQuery<T> searchQuery) : base(searchQuery)
         {
-            return m_searchQuery.Count(transaction, query);
+            m_searchQuery = searchQuery;
         }
-
-        public int Count<TResult>(IQueryable<TResult> query)
-        {
-            return m_searchQuery.Count(query);
-        }
-
-        public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
-        {
-            return await m_searchQuery.CountAsync(transaction, query);
-        }
-
-        public async Task<int> CountAsync<TResult>(IQueryable<TResult> query)
-        {
-            return await m_searchQuery.CountAsync(query);
-        }
-
-        public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.Search(transaction, query, startIndex, count);
-        }
-
-        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.Search(query, startIndex, count);
-        }
-
-        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return await m_searchQuery.SearchAsync(transaction, query, startIndex, count);
-        }
-
-        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return await m_searchQuery.SearchAsync(query, startIndex, count);
-        }
-
-        public ISearchQueryable<T> GetQueryable(ITransaction transaction)
-        {
-            return m_searchQuery.GetQueryable(transaction);
-        }
-
-        public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.GetQueryable(dbResourceContent);
-        }
-
-        public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
-        {
-            return await m_searchQuery.GetQueryableAsync(transaction);
-        }
-
-        public async Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
-        {
-            return await m_searchQuery.GetQueryableAsync(dbResourceContent);
-        }
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="searchQuery"></param>
-        public OrderByIDDescSearchQueryProxy(ISearchQuery<T> searchQuery) => m_searchQuery = searchQuery;
     }
 
     /// <summary>
@@ -459,492 +688,349 @@ namespace Common.ServiceCommon
     /// 逻辑删除装饰者，继承ISearchQuery
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class FilterIsDeletedSearchQueryProxy<T> : ISearchQuery<T>
+    public class FilterIsDeletedSearchQueryProxy<T> : SearchQueryProxy<T>
         where T : ViewModelBase, new()
     {
         private ISearchQuery<T> m_searchQuery;
 
-        public T Get(long id, ITransaction transaction, bool forUpdate = false)
+        public override T Get(string systemID, long id, ITransaction transaction, bool forUpdate = false)
         {
-            T data = m_searchQuery.Get(id, transaction, forUpdate);
+            T data = m_searchQuery.Get(systemID, id, transaction, forUpdate);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
-        public T Get(long id, IDBResourceContent dbResourceContent = null)
+        public override T Get(string systemID, long id, IDBResourceContent dbResourceContent = null)
         {
-            T data = m_searchQuery.Get(id, dbResourceContent);
+            T data = m_searchQuery.Get(systemID, id, dbResourceContent);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
-        public async Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
+        public override async Task<T> GetAsync(string systemID, long id, ITransaction transaction, bool forUpdate = false)
         {
-            T data = await m_searchQuery.GetAsync(id, transaction, forUpdate);
+            T data = await m_searchQuery.GetAsync(systemID, id, transaction, forUpdate);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
-        public async Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
+        public override async Task<T> GetAsync(string systemID, long id, IDBResourceContent dbResourceContent = null)
         {
-            T data = await m_searchQuery.GetAsync(id, dbResourceContent);
+            T data = await m_searchQuery.GetAsync(systemID, id, dbResourceContent);
             return !data?.IsDeleted ?? false ? data : null;
         }
 
-        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+        public override int Count(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
         {
-            return m_searchQuery.Count(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), forUpdate);
+            return m_searchQuery.Count(systemID, transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), forUpdate);
         }
 
-        public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        public override int Count(string systemID, Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.Count(QueryProxyHelper.GetIsDeletedCondition(predicate), dbResourceContent);
+            return m_searchQuery.Count(systemID, QueryProxyHelper.GetIsDeletedCondition(predicate), dbResourceContent);
         }
 
-        public async Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+        public override async Task<int> CountAsync(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
         {
-            return await m_searchQuery.CountAsync(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), forUpdate);
+            return await m_searchQuery.CountAsync(systemID, transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), forUpdate);
         }
 
-        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+        public override async Task<int> CountAsync(string systemID, Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
         {
-            return await m_searchQuery.CountAsync(QueryProxyHelper.GetIsDeletedCondition(predicate), dbResourceContent);
+            return await m_searchQuery.CountAsync(systemID, QueryProxyHelper.GetIsDeletedCondition(predicate), dbResourceContent);
         }
 
-        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        public override IEnumerable<T> Search(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
         {
-            return m_searchQuery.Search(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, forUpdate);
+            return m_searchQuery.Search(systemID, transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, forUpdate);
         }
 
-        public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        public override IEnumerable<T> Search(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            return m_searchQuery.Search(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, dbResourceContent);
+            return m_searchQuery.Search(systemID, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        public async Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+        public override async Task<IEnumerable<T>> SearchAsync(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
         {
-            return await m_searchQuery.SearchAsync(transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, forUpdate);
+            return await m_searchQuery.SearchAsync(systemID, transaction, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, forUpdate);
         }
 
-        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+        public override async Task<IEnumerable<T>> SearchAsync(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
-            return await m_searchQuery.SearchAsync(QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, dbResourceContent);
+            return await m_searchQuery.SearchAsync(systemID, QueryProxyHelper.GetIsDeletedCondition(predicate), queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
+        public override ISearchQueryable<T> GetQueryable(string systemID, ITransaction transaction)
         {
-            return m_searchQuery.Count(transaction, query);
-        }
-
-        public int Count<TResult>(IQueryable<TResult> query)
-        {
-            return m_searchQuery.Count(query);
-        }
-
-        public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
-        {
-            return await m_searchQuery.CountAsync(transaction, query);
-        }
-
-        public async Task<int> CountAsync<TResult>(IQueryable<TResult> query)
-        {
-            return await m_searchQuery.CountAsync(query);
-        }
-
-        public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.Search(transaction, query, startIndex, count);
-        }
-
-        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.Search(query, startIndex, count);
-        }
-
-        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return await m_searchQuery.SearchAsync(transaction, query, startIndex, count);
-        }
-
-        public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return await m_searchQuery.SearchAsync(query, startIndex, count);
-        }
-
-        public ISearchQueryable<T> GetQueryable(ITransaction transaction)
-        {
-            ISearchQueryable<T> searchQuerable = m_searchQuery.GetQueryable(transaction);
+            ISearchQueryable<T> searchQuerable = m_searchQuery.GetQueryable(systemID, transaction);
             return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 
-        public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
+        public override ISearchQueryable<T> GetQueryable(string systemID, IDBResourceContent dbResourceContent = null)
         {
-            ISearchQueryable<T> searchQuerable = m_searchQuery.GetQueryable(dbResourceContent);
+            ISearchQueryable<T> searchQuerable = m_searchQuery.GetQueryable(systemID, dbResourceContent);
             return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 
-        public async Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
+        public override async Task<ISearchQueryable<T>> GetQueryableAsync(string systemID, ITransaction transaction)
         {
-            ISearchQueryable<T> searchQuerable = await m_searchQuery.GetQueryableAsync(transaction);
+            ISearchQueryable<T> searchQuerable = await m_searchQuery.GetQueryableAsync(systemID, transaction);
             return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 
-        public async Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+        public override async Task<ISearchQueryable<T>> GetQueryableAsync(string systemID, IDBResourceContent dbResourceContent = null)
         {
-            ISearchQueryable<T> searchQuerable = await m_searchQuery.GetQueryableAsync(dbResourceContent);
+            ISearchQueryable<T> searchQuerable = await m_searchQuery.GetQueryableAsync(systemID, dbResourceContent);
             return new SearchQueryableProxy<T>(searchQuerable.Where(item => !item.IsDeleted), searchQuerable);
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="searchQuery"></param>
-        public FilterIsDeletedSearchQueryProxy(ISearchQuery<T> searchQuery) => m_searchQuery = searchQuery;
+        public FilterIsDeletedSearchQueryProxy(ISearchQuery<T> searchQuery) : base(searchQuery) => m_searchQuery = searchQuery;
     }
 
     /// <summary>
-    /// 逻辑删除装饰者，继承IEditQuery
+    /// 逻辑删除装饰者
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class FilterIsDeletedEditQueryProxy<T> : IEditQuery<T>
+    public class FilterIsDeletedEditQueryProxy<T> : EditQueryProxy<T>
         where T : ViewModelBase, new()
     {
         private IEditQuery<T> m_editQuery;
 
-        /// <summary>
-        /// 开始事务
-        /// </summary>
-        /// <returns></returns>
-        public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
-        {
-            return m_editQuery.BeginTransaction(distributedLock, weight);
-        }
-
-        /// <summary>
-        /// 开始事务
-        /// </summary>
-        /// <returns></returns>
-        public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
-        {
-            return await m_editQuery.BeginTransactionAsync(distributedLock, weight);
-        }
-
-        /// <summary>
-        /// 逻辑删除
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="ids"></param>
-        public void Delete(ITransaction transaction = null, params long[] ids)
-        {
-            m_editQuery.Update(item => ids.Contains(item.ID), new Dictionary<string, object>() { [nameof(ViewModelBase.IsDeleted)] = true }, transaction);
-        }
-
-        /// <summary>
-        /// 逻辑删除
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="ids"></param>
-        public async Task DeleteAsync(ITransaction transaction = null, params long[] ids)
-        {
-            await m_editQuery.UpdateAsync(item => ids.Contains(item.ID), new Dictionary<string, object>() { [nameof(ViewModelBase.IsDeleted)] = true }, transaction);
-        }
-
-        /// <summary>
-        /// 新增
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="datas"></param>
-        public void Insert(ITransaction transaction = null, params T[] datas)
-        {
-            m_editQuery.Insert(transaction, datas);
-        }
-
-        /// <summary>
-        /// 新增
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="datas"></param>
-        public async Task InsertAsync(ITransaction transaction = null, params T[] datas)
-        {
-            await m_editQuery.InsertAsync(transaction, datas);
-        }
-
-        /// <summary>
-        /// 新增或更新
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="datas"></param>
-        public void Merge(ITransaction transaction = null, params T[] datas)
-        {
-            m_editQuery.Merge(transaction, datas);
-        }
-
-        /// <summary>
-        /// 新增或更新
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <param name="datas"></param>
-        public async Task MergeAsync(ITransaction transaction = null, params T[] datas)
-        {
-            await m_editQuery.MergeAsync(transaction, datas);
-        }
-
-        /// <summary>
-        /// 通过实体类更新
-        /// </summary>
-        /// <param name="data">实体类</param>
-        /// <param name="transaction"></param>
-        public void Update(T data, ITransaction transaction = null)
-        {
-            m_editQuery.Update(data, transaction);
-        }
-
-        /// <summary>
-        /// 通过实体类更新
-        /// </summary>
-        /// <param name="data">实体类</param>
-        /// <param name="transaction"></param>
-        public async Task UpdateAsync(T data, ITransaction transaction = null)
-        {
-            await m_editQuery.UpdateAsync(data, transaction);
-        }
-
-        /// <summary>
-        /// 通过Lambda表达式更新
-        /// </summary>
-        /// <param name="predicate">匹配体Lambda表达式</param>
-        /// <param name="upateDictionary">更新的数据字典</param>
-        /// <param name="transaction"></param>
-        public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
-        {
-            m_editQuery.Update(predicate, upateDictionary, transaction);
-        }
-
-        /// <summary>
-        /// 通过Lambda表达式更新
-        /// </summary>
-        /// <param name="predicate">匹配体Lambda表达式</param>
-        /// <param name="upateDictionary">更新的数据字典</param>
-        /// <param name="transaction"></param>
-        public async Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
-        {
-            await m_editQuery.UpdateAsync(predicate, upateDictionary, transaction);
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="editQuery"></param>
-        public FilterIsDeletedEditQueryProxy(IEditQuery<T> editQuery) => m_editQuery = editQuery;
-    }
-
-    public static class QueryProxy
-    {
-        public static ISearchQuery<T> SplitBySystemID<T>(this ISearchQuery<T> searchQuery, string systemID) where T : class, IEntity, new()
-        {
-            return new SplitBySystemIDSearchQuery<T>(searchQuery);
-        }
-
-        public static IEditQuery<T> SplitBySystemID<T>(this IEditQuery<T> editQuery, string systemID) where T : class, IEntity, new()
-        {
-            return new SplitBySystemIDEditQuery<T>(editQuery);
-        }
-    }
-
-    internal class SplitBySystemIDSearchQuery<T> : ISearchQuery<T> where T : class, IEntity, new()
-    {
-        private ISearchQuery<T> m_searchQuery;
-
-        public SplitBySystemIDSearchQuery(ISearchQuery<T> searchQuery)
-        {
-            m_searchQuery = searchQuery;
-        }
-
-        public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
-        {
-            return m_searchQuery.Count(transaction, predicate, forUpdate);
-        }
-
-        public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.Count(predicate, dbResourceContent);
-        }
-
-        public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
-        {
-            return m_searchQuery.Count(transaction, query);
-        }
-
-        public int Count<TResult>(IQueryable<TResult> query)
-        {
-            return m_searchQuery.Count(query);
-        }
-
-        public Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
-        {
-            return m_searchQuery.CountAsync(transaction, predicate, forUpdate);
-        }
-
-        public Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.CountAsync(predicate, dbResourceContent);
-        }
-
-        public Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
-        {
-            return m_searchQuery.CountAsync(transaction, query);
-        }
-
-        public Task<int> CountAsync<TResult>(IQueryable<TResult> query)
-        {
-            return m_searchQuery.CountAsync(query);
-        }
-
-        public T Get(long id, ITransaction transaction, bool forUpdate = false)
-        {
-            return m_searchQuery.Get(id, transaction, forUpdate);
-        }
-
-        public T Get(long id, IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.Get(id, dbResourceContent);
-        }
-
-        public Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
-        {
-            return m_searchQuery.GetAsync(id, transaction, forUpdate);
-        }
-
-        public Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.GetAsync(id, dbResourceContent);
-        }
-
-        public ISearchQueryable<T> GetQueryable(ITransaction transaction)
-        {
-            return m_searchQuery.GetQueryable(transaction);
-        }
-
-        public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.GetQueryable(dbResourceContent);
-        }
-
-        public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
-        {
-            return m_searchQuery.GetQueryableAsync(transaction);
-        }
-
-        public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.GetQueryableAsync(dbResourceContent);
-        }
-
-        public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
-        {
-            return m_searchQuery.Search(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
-        }
-
-        public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, dbResourceContent);
-        }
-
-        public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.Search(transaction, query, startIndex, count);
-        }
-
-        public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.Search(query, startIndex, count);
-        }
-
-        public Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
-        {
-            return m_searchQuery.SearchAsync(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
-        }
-
-        public Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
-        {
-            return m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count, dbResourceContent);
-        }
-
-        public Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.SearchAsync(transaction, query, startIndex, count);
-        }
-
-        public Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.SearchAsync(query, startIndex, count);
-        }
-    }
-
-    internal class SplitBySystemIDEditQuery<T> : IEditQuery<T> where T : class, IEntity, new()
-    {
-        private IEditQuery<T> m_editQuery;
-
-        public SplitBySystemIDEditQuery(IEditQuery<T> editQuery)
+        public FilterIsDeletedEditQueryProxy(IEditQuery<T> editQuery) : base(editQuery)
         {
             m_editQuery = editQuery;
         }
 
-        public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
+        /// <summary>
+        /// 逻辑删除
+        /// </summary>
+        /// <param name="systemID"></param>
+        /// <param name="transaction"></param>
+        /// <param name="ids"></param>
+        public override void Delete(string systemID, ITransaction transaction = null, params long[] ids)
         {
-            return m_editQuery.BeginTransaction(distributedLock, weight);
+            m_editQuery.Update(systemID, item => ids.Contains(item.ID), new Dictionary<string, object>() { [nameof(ViewModelBase.IsDeleted)] = true }, transaction);
         }
 
-        public Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
+        /// <summary>
+        /// 逻辑删除
+        /// </summary>
+        /// <param name="systemID"></param>
+        /// <param name="transaction"></param>
+        /// <param name="ids"></param>
+        public override async Task DeleteAsync(string systemID, ITransaction transaction = null, params long[] ids)
         {
-            return m_editQuery.BeginTransactionAsync(distributedLock, weight);
-        }
-
-        public void Delete(ITransaction transaction = null, params long[] ids)
-        {
-            m_editQuery.Delete(transaction, ids);
-        }
-
-        public Task DeleteAsync(ITransaction transaction = null, params long[] ids)
-        {
-            return m_editQuery.DeleteAsync(transaction, ids);
-        }
-
-        public void Insert(ITransaction transaction = null, params T[] datas)
-        {
-            m_editQuery.Insert(transaction, datas);
-        }
-
-        public Task InsertAsync(ITransaction transaction = null, params T[] datas)
-        {
-            return m_editQuery.InsertAsync(transaction, datas);
-        }
-
-        public void Merge(ITransaction transaction = null, params T[] datas)
-        {
-            m_editQuery.Merge(transaction, datas);
-        }
-
-        public Task MergeAsync(ITransaction transaction = null, params T[] datas)
-        {
-            return m_editQuery.MergeAsync(transaction, datas);
-        }
-
-        public void Update(T data, ITransaction transaction = null)
-        {
-            m_editQuery.Update(data, transaction);
-        }
-
-        public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
-        {
-            m_editQuery.Update(predicate, upateDictionary, transaction);
-        }
-
-        public Task UpdateAsync(T data, ITransaction transaction = null)
-        {
-            return m_editQuery.UpdateAsync(data, transaction);
-        }
-
-        public Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> upateDictionary, ITransaction transaction = null)
-        {
-            return m_editQuery.UpdateAsync(predicate, upateDictionary, transaction);
+            await m_editQuery.UpdateAsync(item => ids.Contains(item.ID), new Dictionary<string, object>() { [nameof(ViewModelBase.IsDeleted)] = true }, transaction);
         }
     }
+
+    //public static class QueryProxy
+    //{
+    //    public static ISearchQuery<T> SplitBySystemID<T>(this ISearchQuery<T> searchQuery, string systemID) where T : class, IEntity, new()
+    //    {
+    //        return new SplitBySystemIDSearchQuery<T>(searchQuery);
+    //    }
+
+    //    public static IEditQuery<T> SplitBySystemID<T>(this IEditQuery<T> editQuery, string systemID) where T : class, IEntity, new()
+    //    {
+    //        return new SplitBySystemIDEditQuery<T>(editQuery);
+    //    }
+    //}
+
+    //internal class SplitBySystemIDSearchQuery<T> : ISearchQuery<T> where T : class, IEntity, new()
+    //{
+    //    private ISearchQuery<T> m_searchQuery;
+
+    //    public SplitBySystemIDSearchQuery(ISearchQuery<T> searchQuery)
+    //    {
+    //        m_searchQuery = searchQuery;
+    //    }
+
+    //    public int Count(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+    //    {
+    //        return m_searchQuery.Count(transaction, predicate, forUpdate);
+    //    }
+
+    //    public int Count(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+    //    {
+    //        return m_searchQuery.Count(predicate, dbResourceContent);
+    //    }
+
+    //    public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
+    //    {
+    //        return m_searchQuery.Count(transaction, query);
+    //    }
+
+    //    public int Count<TResult>(IQueryable<TResult> query)
+    //    {
+    //        return m_searchQuery.Count(query);
+    //    }
+
+    //    public Task<int> CountAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, bool forUpdate = false)
+    //    {
+    //        return m_searchQuery.CountAsync(transaction, predicate, forUpdate);
+    //    }
+
+    //    public Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
+    //    {
+    //        return m_searchQuery.CountAsync(predicate, dbResourceContent);
+    //    }
+
+    //    public Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
+    //    {
+    //        return m_searchQuery.CountAsync(transaction, query);
+    //    }
+
+    //    public Task<int> CountAsync<TResult>(IQueryable<TResult> query)
+    //    {
+    //        return m_searchQuery.CountAsync(query);
+    //    }
+
+    //    public T Get(long id, ITransaction transaction, bool forUpdate = false)
+    //    {
+    //        return m_searchQuery.Get(id, transaction, forUpdate);
+    //    }
+
+    //    public T Get(long id, IDBResourceContent dbResourceContent = null)
+    //    {
+    //        return m_searchQuery.Get(id, dbResourceContent);
+    //    }
+
+    //    public Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
+    //    {
+    //        return m_searchQuery.GetAsync(id, transaction, forUpdate);
+    //    }
+
+    //    public Task<T> GetAsync(long id, IDBResourceContent dbResourceContent = null)
+    //    {
+    //        return m_searchQuery.GetAsync(id, dbResourceContent);
+    //    }
+
+    //    public ISearchQueryable<T> GetQueryable(ITransaction transaction)
+    //    {
+    //        return m_searchQuery.GetQueryable(transaction);
+    //    }
+
+    //    public ISearchQueryable<T> GetQueryable(IDBResourceContent dbResourceContent = null)
+    //    {
+    //        return m_searchQuery.GetQueryable(dbResourceContent);
+    //    }
+
+    //    public Task<ISearchQueryable<T>> GetQueryableAsync(ITransaction transaction)
+    //    {
+    //        return m_searchQuery.GetQueryableAsync(transaction);
+    //    }
+
+    //    public Task<ISearchQueryable<T>> GetQueryableAsync(IDBResourceContent dbResourceContent = null)
+    //    {
+    //        return m_searchQuery.GetQueryableAsync(dbResourceContent);
+    //    }
+
+    //    public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+    //    {
+    //        return m_searchQuery.Search(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+    //    }
+
+    //    public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+    //    {
+    //        return m_searchQuery.Search(predicate, queryOrderBies, startIndex, count, dbResourceContent);
+    //    }
+
+    //    public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+    //    {
+    //        return m_searchQuery.Search(transaction, query, startIndex, count);
+    //    }
+
+    //    public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+    //    {
+    //        return m_searchQuery.Search(query, startIndex, count);
+    //    }
+
+    //    public Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+    //    {
+    //        return m_searchQuery.SearchAsync(transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
+    //    }
+
+    //    public Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+    //    {
+    //        return m_searchQuery.SearchAsync(predicate, queryOrderBies, startIndex, count, dbResourceContent);
+    //    }
+
+    //    public Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+    //    {
+    //        return m_searchQuery.SearchAsync(transaction, query, startIndex, count);
+    //    }
+
+    //    public Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
+    //    {
+    //        return m_searchQuery.SearchAsync(query, startIndex, count);
+    //    }
+    //}
+
+    //internal class SplitBySystemIDEditQuery<T> : IEditQuery<T> where T : class, IEntity, new()
+    //{
+    //    private IEditQuery<T> m_editQuery;
+
+    //    public SplitBySystemIDEditQuery(IEditQuery<T> editQuery)
+    //    {
+    //        m_editQuery = editQuery;
+    //    }
+
+    //    public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
+    //    {
+    //        return m_editQuery.BeginTransaction(distributedLock, weight);
+    //    }
+
+    //    public Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
+    //    {
+    //        return m_editQuery.BeginTransactionAsync(distributedLock, weight);
+    //    }
+
+    //    public void Delete(ITransaction transaction = null, params long[] ids)
+    //    {
+    //        m_editQuery.Delete(transaction, ids);
+    //    }
+
+    //    public Task DeleteAsync(ITransaction transaction = null, params long[] ids)
+    //    {
+    //        return m_editQuery.DeleteAsync(transaction, ids);
+    //    }
+
+    //    public void Insert(ITransaction transaction = null, params T[] datas)
+    //    {
+    //        m_editQuery.Insert(transaction, datas);
+    //    }
+
+    //    public Task InsertAsync(ITransaction transaction = null, params T[] datas)
+    //    {
+    //        return m_editQuery.InsertAsync(transaction, datas);
+    //    }
+
+    //    public void Merge(ITransaction transaction = null, params T[] datas)
+    //    {
+    //        m_editQuery.Merge(transaction, datas);
+    //    }
+
+    //    public Task MergeAsync(ITransaction transaction = null, params T[] datas)
+    //    {
+    //        return m_editQuery.MergeAsync(transaction, datas);
+    //    }
+
+    //    public void Update(T data, ITransaction transaction = null)
+    //    {
+    //        m_editQuery.Update(data, transaction);
+    //    }
+
+    //    public void Update(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
+    //    {
+    //        m_editQuery.Update(predicate, updateDictionary, transaction);
+    //    }
+
+    //    public Task UpdateAsync(T data, ITransaction transaction = null)
+    //    {
+    //        return m_editQuery.UpdateAsync(data, transaction);
+    //    }
+
+    //    public Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
+    //    {
+    //        return m_editQuery.UpdateAsync(predicate, updateDictionary, transaction);
+    //    }
+    //}
 }

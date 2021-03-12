@@ -131,7 +131,7 @@ namespace TestStorge.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-           return Ok( m_stockInfoSearchQuery.KeyCache(HttpContext.RequestServices).Get(456));
+            return Ok(m_stockInfoSearchQuery.KeyCache(HttpContext.RequestServices).Get(456));
         }
     }
 
