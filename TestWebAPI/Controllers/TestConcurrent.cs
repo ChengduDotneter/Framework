@@ -172,21 +172,42 @@ namespace TestWebAPI.Controllers
     {
         private ISearchQuery<Left> m_searchQuery;
         private IEditQuery<Left> m_editQuery;
+        private readonly ISearchQuery<Right> searchQuery1;
+        private readonly IDBResourceContent dBResourceContent;
+        private readonly IEditQuery<Right> editQuery1;
 
-        public CCC(ISearchQuery<Left> searchQuery, IEditQuery<Left> editQuery)
+        public CCC(ISearchQuery<Left> searchQuery, IEditQuery<Left> editQuery, ISearchQuery<Right> searchQuery1, IDBResourceContent dBResourceContent, IEditQuery<Right> editQuery1)
         {
             m_searchQuery = searchQuery;
             m_editQuery = editQuery;
+            this.searchQuery1 = searchQuery1;
+            this.dBResourceContent = dBResourceContent;
+            this.editQuery1 = editQuery1;
         }
 
         [HttpGet]
-        public Task<Left> Get()
+        public async Task<Left> Get()
         {
             Left data = null;
 
-            var datas = m_searchQuery.FilterIsDeleted().Search().ToArray();
+            var datas = (await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().ConditionCache(HttpContext.RequestServices).GetAsync(item => item.ID > 0, systemID: HttpContext.Request.Headers["systemID"].FirstOrDefault())).ToArray();
+
+            await editQuery1.SplitBySystemID(HttpContext).MergeAsync(datas: new Right { ClassName = "abc", ID = 123 });
+
+            var a = await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().GetQueryableAsync(dBResourceContent);
+            var b = await searchQuery1.SplitBySystemID(HttpContext).FilterIsDeleted().GetQueryableAsync(dBResourceContent);
+
+            var c = from left in a
+                    join right in b on left.ClassID equals right.ID
+                    where left.ID > 0
+                    select new { id = left.ID, name = left.StudentName, name_class = right.ClassName };
+
+            var sk = await m_searchQuery.SearchAsync(c);
+
 
             return null;
+
+            //return await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().KeyCache(HttpContext.RequestServices).GetAsync(289340350911224001L, systemID: HttpContext.Request.Headers["systemID"].FirstOrDefault());
 
             Random random = new Random();
 
@@ -223,7 +244,7 @@ namespace TestWebAPI.Controllers
                 }
             }
 
-            return Task.FromResult(data);
+            return data;
         }
 
         private void Sleep()

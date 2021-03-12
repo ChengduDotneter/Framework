@@ -70,10 +70,10 @@ namespace TestWebAPI
 
             Func<Type, object> cacheProviderHandler = (type) =>
             {
-                return typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateRedisCacheProvider)).MakeGenericMethod(type).Invoke(null, null);
+                return typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateMemoryCacheProvider)).MakeGenericMethod(type).Invoke(null, null);
             };
 
-            services.AddQuerys(modelTypes, cacheProviderProvider: cacheProviderHandler, 
+            services.AddQuerys(modelTypes, cacheProviderProvider: cacheProviderHandler/*,
             searchQueryProvider: (type) =>
             {
                 return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
@@ -81,7 +81,7 @@ namespace TestWebAPI
             editQueryProvider: (type) =>
             {
                 return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
-            });
+            }*/);
 
             services.AddSwagger();
             //services.AddHostedService<CrossService>();

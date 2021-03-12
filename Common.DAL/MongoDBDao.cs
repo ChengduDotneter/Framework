@@ -22,6 +22,7 @@ namespace Common.DAL
         private static MongoClient m_slaveMongoClient;
         private static IMongoDatabase m_masterMongoDatabase;
         private static IMongoDatabase m_slaveMongoDatabase;
+        private static ISet<string> m_collectionNames;
 
         private class MongoDbResourceContent : IDBResourceContent
         {
@@ -482,7 +483,6 @@ namespace Common.DAL
             where T : class, IEntity, new()
         {
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
-            private static readonly IDictionary<IMongoDatabase, IMongoCollection<T>> m_collection;
             private static readonly MethodInfo m_countMethodInfo;
 
             public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
@@ -738,7 +738,6 @@ namespace Common.DAL
             static MongoDBDaoInstance()
             {
                 EMPTY_PREDICATE = _ => true;
-                m_collection = new Dictionary<IMongoDatabase, IMongoCollection<T>>();
                 m_countMethodInfo = typeof(Queryable).GetMethods().Where(item => item.Name == "Count").ElementAt(0);
             }
 
@@ -750,16 +749,15 @@ namespace Common.DAL
 
             private static IMongoCollection<T> GetCollection(IMongoDatabase mongoDatabase, string systemID)
             {
-                if (!m_collection.ContainsKey(mongoDatabase))
+                string collectionName = GetPartitionTableName(systemID);
+
+                if (!m_collectionNames.Contains(collectionName))
                 {
-                    lock (m_collection)
-                    {
-                        if (!m_collection.ContainsKey(mongoDatabase))
-                            m_collection.Add(mongoDatabase, mongoDatabase.GetCollection<T>(GetPartitionTableName(systemID)));
-                    }
+                    mongoDatabase.CreateCollection(collectionName);
+                    m_collectionNames.Add(collectionName);
                 }
 
-                return m_collection[mongoDatabase];
+                return mongoDatabase.GetCollection<T>(collectionName);
             }
 
             private static void ValidTransaction(ITransaction transaction, string systemID, IEnumerable<long> ids, bool forUpdate = false)
@@ -1136,6 +1134,8 @@ namespace Common.DAL
 
             m_masterMongoDatabase = m_masterMongoClient.GetDatabase(ConfigManager.Configuration["MongoDBService:Database"]);
             m_slaveMongoDatabase = m_slaveMongoClient.GetDatabase(ConfigManager.Configuration["MongoDBService:Database"]);
+
+            m_collectionNames = new HashSet<string>(m_masterMongoDatabase.ListCollectionNames().ToEnumerable());
 
             BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Local, BsonType.DateTime));
         }
