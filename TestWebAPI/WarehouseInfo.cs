@@ -20,13 +20,13 @@ namespace MicroService.StorageService.Model
         /// 仓库名称
         /// </summary>
         [Display(Name = "仓库名称")]
-        [Unique]
+        //[Unique]
         public string WarehouseName { get; set; }
 
         /// <summary>
         /// 仓库编号
         /// </summary>
-        [Unique]
+        //[Unique]
         [Display(Name = "仓库编号")]
         public string WarehouseCode { get; set; }
 

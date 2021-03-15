@@ -87,12 +87,13 @@ namespace TestWebAPI.Controllers
         }
 
         [HttpGet("insert")]
-        public async Task DoInsert()
+        public Task DoInsert()
         {
             StockInfo[] stockInfos = new StockInfo[] { new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 1, Count = 400 },
                                                        new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 2, Count = 400 } };
 
             m_editQuery.Insert(null, stockInfos);
+            return Task.CompletedTask;
         }
 
         private async Task Test1(ITransaction transaction)

@@ -17,7 +17,7 @@ namespace MicroService.StorageService.Model
         /// 关联仓库ID
         /// </summary>
         [NotNull]
-        [ForeignKey(typeof(WarehouseInfo), nameof(IEntity.ID))]
+        //[ForeignKey(typeof(WarehouseInfo), nameof(IEntity.ID))]
         [JsonConverter(typeof(ObjectIdNullableConverter))]
         [Display(Name = "仓库ID")]
         public long? WarehouseID { get; set; }
@@ -37,7 +37,7 @@ namespace MicroService.StorageService.Model
         /// <summary>
         /// 库存商品ID
         /// </summary>
-        [ForeignKey(typeof(SupplierCommodity), nameof(IEntity.ID))]
+        //[ForeignKey(typeof(SupplierCommodity), nameof(IEntity.ID))]
         [JsonConverter(typeof(ObjectIdNullableConverter))]
         [Display(Name = "库存商品ID")]
         public long? SupplierCommodityID { get; set; }
