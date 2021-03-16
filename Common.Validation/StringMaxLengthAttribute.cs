@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
 {
@@ -13,7 +14,8 @@ namespace Common.Validation
         /// 验证器特性构造函数
         /// </summary>
         /// <param name="maxLength">最大长度</param>
-        public StringMaxLengthAttribute(int maxLength) => m_maxLength = maxLength;
+        /// <param name="ignorePredeciteFunction"></param>
+        public StringMaxLengthAttribute(int maxLength, string ignorePredeciteFunction = null) : base(ignorePredeciteFunction) => m_maxLength = maxLength;
 
         /// <summary>
         /// 获取验证失败的错误信息

@@ -15,7 +15,8 @@ namespace Common.Validation
         /// 验证器特性构造函数
         /// </summary>
         /// <param name="notEqualValue">不等于的值</param>
-        public NotEqualAttribute(object notEqualValue) => m_notEqualValue = notEqualValue;
+        /// <param name="ignorePredeciteFunction"></param>
+        public NotEqualAttribute(object notEqualValue, string ignorePredeciteFunction = null) : base(ignorePredeciteFunction) => m_notEqualValue = notEqualValue;
 
         /// <summary>
         /// 获取验证失败的错误信息

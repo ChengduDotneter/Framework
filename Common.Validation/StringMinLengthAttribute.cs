@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
 {
@@ -13,7 +14,8 @@ namespace Common.Validation
         /// 验证器特性构造函数
         /// </summary>
         /// <param name="minLength">最小长度</param>
-        public StringMinLengthAttribute(int minLength) => m_minLength = minLength;
+        /// <param name="ignorePredeciteFunction"></param>
+        public StringMinLengthAttribute(int minLength, string ignorePredeciteFunction = null) : base(ignorePredeciteFunction) => m_minLength = minLength;
 
         /// <summary>
         /// 获取验证错误的信息

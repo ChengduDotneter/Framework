@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace Common.Validation
@@ -14,7 +15,8 @@ namespace Common.Validation
         /// 正则验证器特性构造函数
         /// </summary>
         /// <param name="regexValue">正则表达式</param>
-        public RegexAttribute(string regexValue) => m_regexValue = regexValue;
+        /// <param name="ignorePredeciteFunction"></param>
+        public RegexAttribute(string regexValue, string ignorePredeciteFunction = null) : base(ignorePredeciteFunction) => m_regexValue = regexValue;
 
         /// <summary>
         /// 获取验证失败的错误信息

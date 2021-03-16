@@ -9,6 +9,13 @@ namespace Common.Validation
     [AttributeUsage(AttributeTargets.Property)]
     public abstract class ValidationBaseAttribute : ValidationAttribute
     {
+        private readonly string m_ignorePredeciteFunction;
+
+        protected ValidationBaseAttribute(string ignorePredeciteFunction = null)
+        {
+            m_ignorePredeciteFunction = ignorePredeciteFunction;
+        }
+
         /// <summary>
         /// 获取验证失败的错误信息
         /// </summary>
@@ -33,7 +40,17 @@ namespace Common.Validation
         /// <returns></returns>
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            if (!ValidateValue(value, validationContext))
+            bool ignore = false;
+
+            if (!string.IsNullOrWhiteSpace(m_ignorePredeciteFunction))
+            {
+                ignore = (bool)validationContext.ObjectType.GetMethod(m_ignorePredeciteFunction, System.Reflection.BindingFlags.Instance |
+                                                                                                 System.Reflection.BindingFlags.Static |
+                                                                                                 System.Reflection.BindingFlags.Public |
+                                                                                                 System.Reflection.BindingFlags.NonPublic).Invoke(null, new object[] { value });
+            }
+
+            if (!ignore && !ValidateValue(value, validationContext))
             {
                 return new ValidationResult(GetErrorMessage(validationContext, validationContext.DisplayName));
             }

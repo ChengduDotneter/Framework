@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
 {
@@ -13,7 +14,8 @@ namespace Common.Validation
         /// 验证器构造函数
         /// </summary>
         /// <param name="greaterOrEqualThanValue">大于等于的指定值</param>
-        public GreaterOrEqualThanAttribute(object greaterOrEqualThanValue) => m_greaterOrEqualThanValue = greaterOrEqualThanValue;
+        /// <param name="ignorePredeciteFunction"></param>
+        public GreaterOrEqualThanAttribute(object greaterOrEqualThanValue, string ignorePredeciteFunction = null) : base(ignorePredeciteFunction) => m_greaterOrEqualThanValue = greaterOrEqualThanValue;
 
         /// <summary>
         /// 获取验证失败的错误信息

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
 {
@@ -13,7 +14,8 @@ namespace Common.Validation
         /// 构造函数
         /// </summary>
         /// <param name="decimal">精度</param>
-        public NumberDecimalAttribute(int @decimal) => m_decimal = @decimal;
+        /// <param name="ignorePredeciteFunction"></param>
+        public NumberDecimalAttribute(int @decimal, string ignorePredeciteFunction = null) : base(ignorePredeciteFunction) => m_decimal = @decimal;
 
         /// <summary>
         /// 获取验证失败的错误信息

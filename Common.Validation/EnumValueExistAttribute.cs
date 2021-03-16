@@ -11,7 +11,10 @@ namespace Common.Validation
         /// <summary>
         /// 构造函数
         /// </summary>
-        public EnumValueExistAttribute() { }
+        /// <param name="ignorePredeciteFunction"></param>
+        public EnumValueExistAttribute(string ignorePredeciteFunction = null) : base(ignorePredeciteFunction)
+        {
+        }
 
         /// <summary>
         /// 获取验证失败的错误信息

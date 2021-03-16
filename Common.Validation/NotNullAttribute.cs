@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
 {
@@ -10,7 +11,8 @@ namespace Common.Validation
         /// <summary>
         /// 构造函数
         /// </summary>
-        public NotNullAttribute() { }
+        /// <param name="ignorePredeciteFunction"></param>
+        public NotNullAttribute(string ignorePredeciteFunction = null) : base(ignorePredeciteFunction) { }
 
         /// <summary>
         /// 获取验证失败的错误信息
