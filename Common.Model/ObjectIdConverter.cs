@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -282,6 +285,23 @@ namespace Common.Model
         public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString("yyyy-MM-dd HH:mm:ss"));
+        }
+    }
+
+    /// <summary>
+    /// 数组long类型转换
+    /// </summary>
+    public class ObjectIdEnumerableConverter : JsonConverter<IEnumerable<long>>
+    {
+        public override IEnumerable<long> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            JArray array = new JArrayConverter().Read(ref reader, typeToConvert, options);
+            return array.Select(item => item.ToObject<long>());
+        }
+
+        public override void Write(Utf8JsonWriter writer, IEnumerable<long> value, JsonSerializerOptions options)
+        {
+            new JArrayConverter().Write(writer, JArray.FromObject(value.Select(item => item.ToString())), options);
         }
     }
 }
