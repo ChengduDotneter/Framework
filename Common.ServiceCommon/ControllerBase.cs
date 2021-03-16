@@ -1,5 +1,6 @@
 ﻿using Common.DAL;
 using Common.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System;
@@ -547,25 +548,36 @@ namespace Common.ServiceCommon
     /// <summary>
     /// 自定义Controller接口
     /// </summary>
-    public interface IDynamicController { }
+    public interface IDynamicController
+    {
+    }
+
+    public abstract class MultipleGenericControllerBase
+    {
+        protected HttpContext HttpContext { get; }
+        private readonly IHttpContextAccessor m_httpContextAccessor;
+
+        public MultipleGenericControllerBase(IHttpContextAccessor httpContextAccessor)
+        {
+            m_httpContextAccessor = httpContextAccessor;
+            HttpContext = m_httpContextAccessor != null ? m_httpContextAccessor.HttpContext : null;
+        }
+    }
 
     /// <summary>
     /// 一个参数的Post请求接口基类
     /// </summary>
     /// <typeparam name="TRequest1">请求实体泛型</typeparam>
-    public abstract class MultipleGenericPostController<TRequest1> : IDynamicController
+    public abstract class MultipleGenericPostController<TRequest1> : MultipleGenericControllerBase, IDynamicController
     {
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="ssoUserService"></param>
-#pragma warning disable IDE0060 // 删除未使用的参数
+        /// <param name="httpContextAccessor"></param>
 
-        public MultipleGenericPostController(ISSOUserService ssoUserService)
+        public MultipleGenericPostController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
-
-#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// post请求入口
@@ -605,19 +617,16 @@ namespace Common.ServiceCommon
     /// </summary>
     /// <typeparam name="TRequest1">请求实体泛型</typeparam>
     /// <typeparam name="TRequest2">请求实体泛型</typeparam>
-    public abstract class MultipleGenericPostController<TRequest1, TRequest2> : IDynamicController
+    public abstract class MultipleGenericPostController<TRequest1, TRequest2> : MultipleGenericControllerBase, IDynamicController
     {
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="ssoUserService"></param>
-#pragma warning disable IDE0060 // 删除未使用的参数
+        /// <param name="httpContextAccessor"></param>
 
-        public MultipleGenericPostController(ISSOUserService ssoUserService)
+        public MultipleGenericPostController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
-
-#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// post请求入口
@@ -660,19 +669,16 @@ namespace Common.ServiceCommon
     /// <typeparam name="TRequest1">请求实体泛型</typeparam>
     /// <typeparam name="TRequest2">请求实体泛型</typeparam>
     /// <typeparam name="TRequest3">请求实体泛型</typeparam>
-    public abstract class MultipleGenericPostController<TRequest1, TRequest2, TRequest3> : IDynamicController
+    public abstract class MultipleGenericPostController<TRequest1, TRequest2, TRequest3> : MultipleGenericControllerBase, IDynamicController
     {
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="ssoUserService"></param>
-#pragma warning disable IDE0060 // 删除未使用的参数
+        /// <param name="httpContextAccessor"></param>
 
-        public MultipleGenericPostController(ISSOUserService ssoUserService)
+        public MultipleGenericPostController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
-
-#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// post请求
@@ -715,19 +721,16 @@ namespace Common.ServiceCommon
     /// 一个参数的Put请求接口基类
     /// </summary>
     /// <typeparam name="TRequest1">请求实体泛型</typeparam>
-    public abstract class MultipleGenericPutController<TRequest1> : IDynamicController
+    public abstract class MultipleGenericPutController<TRequest1> : MultipleGenericControllerBase, IDynamicController
     {
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="ssoUserService"></param>
-#pragma warning disable IDE0060 // 删除未使用的参数
+        /// <param name="httpContextAccessor"></param>
 
-        public MultipleGenericPutController(ISSOUserService ssoUserService)
+        public MultipleGenericPutController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
-
-#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// Put请求入口
@@ -752,19 +755,16 @@ namespace Common.ServiceCommon
     /// </summary>
     /// <typeparam name="TRequest1">请求实体泛型</typeparam>
     /// <typeparam name="TRequest2">请求实体泛型</typeparam>
-    public abstract class MultipleGenericPutController<TRequest1, TRequest2> : IDynamicController
+    public abstract class MultipleGenericPutController<TRequest1, TRequest2> : MultipleGenericControllerBase, IDynamicController
     {
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="ssoUserService"></param>
-#pragma warning disable IDE0060 // 删除未使用的参数
+        /// <param name="httpContextAccessor"></param>
 
-        public MultipleGenericPutController(ISSOUserService ssoUserService)
+        public MultipleGenericPutController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
-
-#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// put请求入口
@@ -792,19 +792,16 @@ namespace Common.ServiceCommon
     /// <typeparam name="TRequest1">请求实体泛型</typeparam>
     /// <typeparam name="TRequest2">请求实体泛型</typeparam>
     /// <typeparam name="TRequest3">请求实体泛型</typeparam>
-    public abstract class MultipleGenericPutController<TRequest1, TRequest2, TRequest3> : IDynamicController
+    public abstract class MultipleGenericPutController<TRequest1, TRequest2, TRequest3> : MultipleGenericControllerBase, IDynamicController
     {
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="ssoUserService"></param>
-#pragma warning disable IDE0060 // 删除未使用的参数
+        /// <param name="httpContextAccessor"></param>
 
-        public MultipleGenericPutController(ISSOUserService ssoUserService)
+        public MultipleGenericPutController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
-
-#pragma warning restore IDE0060 // 删除未使用的参数
 
         /// <summary>
         /// put请求入口
