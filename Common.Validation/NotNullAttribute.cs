@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace Common.Validation
 {
@@ -32,6 +34,8 @@ namespace Common.Validation
         {
             if (value != null && value is string stringValue)
                 return !string.IsNullOrWhiteSpace(stringValue);
+            else if (value != null && value is IEnumerable enumerable)
+                return enumerable.Cast<object>().Count() > 0;
 
             return value != null;
         }

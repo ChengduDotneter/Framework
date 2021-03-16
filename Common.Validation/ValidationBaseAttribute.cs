@@ -47,7 +47,7 @@ namespace Common.Validation
                 ignore = (bool)validationContext.ObjectType.GetMethod(m_ignorePredeciteFunction, System.Reflection.BindingFlags.Instance |
                                                                                                  System.Reflection.BindingFlags.Static |
                                                                                                  System.Reflection.BindingFlags.Public |
-                                                                                                 System.Reflection.BindingFlags.NonPublic).Invoke(null, new object[] { value });
+                                                                                                 System.Reflection.BindingFlags.NonPublic).Invoke(null, new object[] { validationContext.ObjectInstance });
             }
 
             if (!ignore && !ValidateValue(value, validationContext))
