@@ -554,13 +554,12 @@ namespace Common.ServiceCommon
 
     public abstract class MultipleGenericControllerBase
     {
-        protected HttpContext HttpContext { get; }
         private readonly IHttpContextAccessor m_httpContextAccessor;
+        protected HttpContext HttpContext { get { return m_httpContextAccessor.HttpContext; } }
 
         public MultipleGenericControllerBase(IHttpContextAccessor httpContextAccessor)
         {
             m_httpContextAccessor = httpContextAccessor;
-            HttpContext = m_httpContextAccessor != null ? m_httpContextAccessor.HttpContext : null;
         }
     }
 
