@@ -12,7 +12,8 @@ namespace Common.Validation
         /// 验证器特性构造函数
         /// </summary>
         /// <param name="lessThanValuePropertyName">小于的指定属性名</param>
-        public LessThanPropertyAttribute(string lessThanValuePropertyName) : base(lessThanValuePropertyName) { }
+        /// <param name="ignorePredeciteFunction"></param> 
+        public LessThanPropertyAttribute(string lessThanValuePropertyName, string ignorePredeciteFunction = null) : base(lessThanValuePropertyName, ignorePredeciteFunction) { }
 
         /// <summary>
         /// 获取小于的属性值

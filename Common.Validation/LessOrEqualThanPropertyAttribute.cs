@@ -12,7 +12,8 @@ namespace Common.Validation
         /// 验证器构造函数
         /// </summary>
         /// <param name="lessOrEqualThanValuePropertyName">小于等于的指定属性名</param>
-        public LessOrEqualThanPropertyAttribute(string lessOrEqualThanValuePropertyName) : base(lessOrEqualThanValuePropertyName) { }
+        /// <param name="ignorePredeciteFunction"></param> 
+        public LessOrEqualThanPropertyAttribute(string lessOrEqualThanValuePropertyName, string ignorePredeciteFunction = null) : base(lessOrEqualThanValuePropertyName, ignorePredeciteFunction) { }
 
         /// <summary>
         /// 获取小于等于的值

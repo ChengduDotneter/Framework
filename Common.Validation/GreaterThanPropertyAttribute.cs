@@ -12,7 +12,8 @@ namespace Common.Validation
         /// 验证器特性构造函数
         /// </summary>
         /// <param name="greaterThanValuePropertyName">大于的指定属性名</param>
-        public GreaterThanPropertyAttribute(string greaterThanValuePropertyName) : base(greaterThanValuePropertyName) { }
+        /// <param name="ignorePredeciteFunction"></param> 
+        public GreaterThanPropertyAttribute(string greaterThanValuePropertyName, string ignorePredeciteFunction = null) : base(greaterThanValuePropertyName, ignorePredeciteFunction) { }
 
         /// <summary>
         /// 获取大于的指定属性值

@@ -12,7 +12,8 @@ namespace Common.Validation
         /// 构造函数
         /// </summary>
         /// <param name="greaterOrEqualThanValuePropertyName">大于等于的指定属性名</param>
-        public GreaterOrEqualThanPropertyAttribute(string greaterOrEqualThanValuePropertyName) : base(greaterOrEqualThanValuePropertyName) { }
+        /// <param name="ignorePredeciteFunction"></param> 
+        public GreaterOrEqualThanPropertyAttribute(string greaterOrEqualThanValuePropertyName, string ignorePredeciteFunction = null) : base(greaterOrEqualThanValuePropertyName, ignorePredeciteFunction) { }
 
         /// <summary>
         /// 获取大于等于的指定属性的值
