@@ -1,7 +1,6 @@
-﻿using LinqToDB.Configuration;
+﻿using System;
+using LinqToDB.Configuration;
 using LinqToDB.Data;
-using LinqToDB.Mapping;
-using System;
 
 namespace Common.DAL
 {
