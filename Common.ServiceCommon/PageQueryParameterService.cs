@@ -1,6 +1,8 @@
 ﻿using Common.Model;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Common.ServiceCommon
@@ -70,16 +72,31 @@ namespace Common.ServiceCommon
 
                     Type underlyingType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
 
-                    if ((!underlyingType.IsValueType && underlyingType != typeof(string)) ||
-                        underlyingType.GetInterface(typeof(IConvertible).FullName) == null)
+                    if (underlyingType.Name != typeof(IEnumerable<>).Name &&
+                        ((!underlyingType.IsValueType && underlyingType != typeof(string)) ||
+                        underlyingType.GetInterface(typeof(IConvertible).FullName) == null))
                         continue;
 
                     try
                     {
                         if (underlyingType.IsEnum)
+                        {
                             propertyInfo.SetValue(pageQuery.Condition, Enum.Parse(underlyingType, item.Value[0]));
+                        }
+                        else if (underlyingType.Name == typeof(IEnumerable<>).Name)
+                        {
+                            string[] values = item.Value.SelectMany(item => item.Split(",")).ToArray();
+                            Type elementType = underlyingType.GenericTypeArguments[0];
+
+                            var enumerableValue = typeof(Enumerable).GetMethod("Cast").MakeGenericMethod(elementType).
+                                  Invoke(null, new object[] { values.Select(item => Convert.ChangeType(item, elementType)) });
+
+                            propertyInfo.SetValue(pageQuery.Condition, enumerableValue);
+                        }
                         else
+                        {
                             propertyInfo.SetValue(pageQuery.Condition, Convert.ChangeType(item.Value[0].Trim(), underlyingType));
+                        }
                     }
                     catch
                     {
