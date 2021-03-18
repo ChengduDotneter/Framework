@@ -13,6 +13,9 @@ using Newtonsoft.Json;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// 消息处理器路由特性
+    /// </summary>
     public class MessageProcessorRouteAttribute : Attribute
     {
         public string Template { get; set; }
@@ -23,6 +26,9 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// 消息处理器
+    /// </summary>
     public abstract class MessageProcessor
     {
         internal BlockingCollection<string> SendDatas { get; }
@@ -37,6 +43,10 @@ namespace Common.ServiceCommon
         }
     }
 
+    /// <summary>
+    /// 消息处理器
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class MessageProcessor<T> : MessageProcessor
     {
         internal override Task RecieveMessage(object parameter)
@@ -44,6 +54,11 @@ namespace Common.ServiceCommon
             return RecieveMessage((T)parameter);
         }
 
+        /// <summary>
+        /// 接收消息
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         public abstract Task RecieveMessage(T parameter);
 
         protected void SendMessage<TMessage>(TMessage message)
@@ -89,7 +104,7 @@ namespace Common.ServiceCommon
         /// WebSocket中间件构造函数
         /// </summary>
         /// <param name="requestDelegate"></param>
-        /// <param name="webSocketService"></param>
+        /// <param name="serviceProvider"></param>
         public WebSocketMiddleware(RequestDelegate requestDelegate, IServiceProvider serviceProvider)
         {
             m_requestDelegate = requestDelegate;
