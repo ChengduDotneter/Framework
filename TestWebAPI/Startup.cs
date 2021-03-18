@@ -85,8 +85,6 @@ namespace TestWebAPI
 
             services.AddSwagger();
             //services.AddHostedService<CrossService>();
-
-            services.AddWebSocketService();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)

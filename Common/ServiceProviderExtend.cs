@@ -21,7 +21,7 @@ namespace Common
             {
                 for (int i = 0; i < arguments.Length; i++)
                 {
-                    if (arguments.GetType() != parameterInfos[i].ParameterType)
+                    if (arguments[i].GetType() != parameterInfos[i].ParameterType)
                         throw new DealException($"无法实例化{type.FullName}的实例，传入参数arguments与实际构造参数类型不匹配，请考虑将arguments包含的参数放在构造函数最前面。");
 
                     parameters[i] = arguments[i];

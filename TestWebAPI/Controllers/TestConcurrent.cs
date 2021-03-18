@@ -6,10 +6,12 @@ using Common.Model;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace TestWebAPI.Controllers
 {
@@ -266,27 +268,24 @@ namespace TestWebAPI.Controllers
         }
     }
 
-    [Route("abcds")]
-    public class ABCD: ControllerBase
-    {
-        private readonly IMessageHandler m_messageHandler;
 
-        public ABCD(IMessageHandler messageHandler)
+    [MessageProcessorRoute("abcds")]
+    public class ABCD : MessageProcessor<string>
+    {
+        public override Task RecieveMessage(string parameter)
         {
-            m_messageHandler = messageHandler;
+            return Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    SendMessage($"{Environment.TickCount}_{parameter}");
+                    await Task.Delay(1000);
+                }
+            });
         }
 
-        [HttpGet]
-        public Task Get(string ss)
+        public ABCD(string identity) : base(identity)
         {
-            if (HttpContext.WebSockets.IsWebSocketRequest)
-            {
-                string identity = HttpContext.GetSecWebSocketProtocol();
-
-                m_messageHandler.SendMessage(identity, ss);
-            }
-
-            return Task.CompletedTask;
         }
     }
 }
