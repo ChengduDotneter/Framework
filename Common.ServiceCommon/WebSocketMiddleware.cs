@@ -124,9 +124,9 @@ namespace Common.ServiceCommon
                 return;
             }
 
-            string identify = context.GetSecWebSocketProtocol();
+            string identity = context.Request.Query["identity"].FirstOrDefault();
 
-            if (string.IsNullOrWhiteSpace(identify))
+            if (string.IsNullOrWhiteSpace(identity))
             {
                 await m_requestDelegate.Invoke(context);
                 return;
@@ -140,7 +140,7 @@ namespace Common.ServiceCommon
                     return;
                 }
 
-                MessageProcessor messageProcessor = (MessageProcessor)m_serviceProvider.CreateInstanceFromServiceProvider(m_processorTypes[context.Request.Path], new object[] { identify });
+                MessageProcessor messageProcessor = (MessageProcessor)m_serviceProvider.CreateInstanceFromServiceProvider(m_processorTypes[context.Request.Path], new object[] { identity });
 
                 Task sendTask = Task.Factory.StartNew(async () =>
                 {
