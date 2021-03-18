@@ -325,5 +325,17 @@ namespace Common.ServiceCommon
             serviceCollection.AddScoped<IJArraySerializeService, JArraySerializeService>();
             serviceCollection.AddScoped<IJArrayConverter, JArrayConverter>();
         }
+
+        /// <summary>
+        /// WebSocket依赖注入
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        public static void AddWebSocketService(this IServiceCollection serviceCollection)
+        {
+            WebSocketService webSocketService = new WebSocketService();
+
+            serviceCollection.AddSingleton<IWebSocketService>(webSocketService);
+            serviceCollection.AddSingleton<IMessageHandler>(webSocketService);
+        }
     }
 }

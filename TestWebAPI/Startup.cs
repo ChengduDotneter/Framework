@@ -85,6 +85,8 @@ namespace TestWebAPI
 
             services.AddSwagger();
             //services.AddHostedService<CrossService>();
+
+            services.AddWebSocketService();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
@@ -103,6 +105,12 @@ namespace TestWebAPI
             app.UseAuthorization();
 
             app.UseMiddleware<LogMiddleware>(env.IsDevelopment());
+
+            var options = new WebSocketOptions() { KeepAliveInterval = TimeSpan.FromSeconds(15) };
+            options.AllowedOrigins.Add("*");
+            app.UseWebSockets(options);
+
+            app.UseMiddleware<WebSocketMiddleware>();
 
             app.UseCors("any");
 

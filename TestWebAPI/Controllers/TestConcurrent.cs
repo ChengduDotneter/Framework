@@ -253,4 +253,28 @@ namespace TestWebAPI.Controllers
             Thread.Sleep(5000);
         }
     }
+
+    [Route("abcds")]
+    public class ABCD: ControllerBase
+    {
+        private readonly IMessageHandler m_messageHandler;
+
+        public ABCD(IMessageHandler messageHandler)
+        {
+            m_messageHandler = messageHandler;
+        }
+
+        [HttpGet]
+        public Task Get(string ss)
+        {
+            if (HttpContext.WebSockets.IsWebSocketRequest)
+            {
+                string identity = HttpContext.GetSecWebSocketProtocol();
+
+                m_messageHandler.SendMessage(identity, ss);
+            }
+
+            return Task.CompletedTask;
+        }
+    }
 }
