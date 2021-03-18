@@ -31,7 +31,6 @@ namespace TestWebAPI.Controllers
         public int Count { get; set; }
 
         public long CommodityID { get; set; }
-
     }
 
     [ApiController]
@@ -67,9 +66,11 @@ namespace TestWebAPI.Controllers
                         case 0:
                             await Test1(transaction);
                             break;
+
                         case 1:
                             await Test2(transaction);
                             break;
+
                         case 2:
                             await Test1(transaction);
                             await Test2(transaction);
@@ -89,8 +90,11 @@ namespace TestWebAPI.Controllers
         [HttpGet("insert")]
         public Task DoInsert()
         {
-            StockInfo[] stockInfos = new StockInfo[] { new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 1, Count = 400 },
-                                                       new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 2, Count = 400 } };
+            StockInfo[] stockInfos = new StockInfo[]
+            {
+                new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 1, Count = 400 },
+                new StockInfo() { ID = IDGenerator.NextID(), CreateUserID = 0, CreateTime = DateTime.Now, CommodityID = 2, Count = 400 }
+            };
 
             m_editQuery.Insert(null, stockInfos);
             return Task.CompletedTask;
@@ -112,6 +116,7 @@ namespace TestWebAPI.Controllers
             };
             if (stockInfo_1.Count < order_1.Count)
                 throw new DealException("1 库存不够。");
+
             stockInfo_1.Count -= order_1.Count;
             await m_editQuery.UpdateAsync(stockInfo_1, transaction);
             await m_orderInfoEditQuery.InsertAsync(transaction, order_1);
@@ -133,11 +138,11 @@ namespace TestWebAPI.Controllers
             };
             if (stockInfo_2.Count < order_2.Count)
                 throw new DealException("2 库存不够。");
+
             stockInfo_2.Count -= order_2.Count;
             await m_editQuery.UpdateAsync(stockInfo_2, transaction);
             await m_orderInfoEditQuery.InsertAsync(transaction, order_2);
         }
-
     }
 
     [ApiController]
@@ -145,6 +150,7 @@ namespace TestWebAPI.Controllers
     public class TestLock : ControllerBase
     {
         private readonly ILock @lock;
+
         public TestLock()
         {
             @lock = LockFactory.GetRedisLock();
@@ -164,7 +170,6 @@ namespace TestWebAPI.Controllers
                 LogHelperFactory.GetLog4netLogHelper().Info("testlock", $"{id} 申请失败");
             }
         }
-
     }
 
     [Route("abc")]
@@ -191,7 +196,10 @@ namespace TestWebAPI.Controllers
         {
             Left data = null;
 
-            var datas = (await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().ConditionCache(HttpContext.RequestServices).GetAsync(item => item.ID > 0, systemID: HttpContext.Request.Headers["systemID"].FirstOrDefault())).ToArray();
+            var datas = (await m_searchQuery.SplitBySystemID(HttpContext).
+                                             FilterIsDeleted().
+                                             ConditionCache(HttpContext.RequestServices).
+                                             GetAsync(item => item.ID > 0, systemID: HttpContext.Request.Headers["systemID"].FirstOrDefault())).ToArray();
 
             await editQuery1.SplitBySystemID(HttpContext).MergeAsync(datas: new Right { ClassName = "abc", ID = 123 });
 
@@ -234,7 +242,11 @@ namespace TestWebAPI.Controllers
 
                     m_editQuery.Update(item => item.ID == data.ID, new Dictionary<string, object>() { [nameof(Left.UpdateTime)] = DateTime.Now }, transaction);
 
-                    m_editQuery.Insert(transaction, new Left() { ID = IDGenerator.NextID(), ClassID = random.Next(0, 100), CreateTime = DateTime.Now, CreateUserID = -9999, StudentName = Guid.NewGuid().ToString() });
+                    m_editQuery.Insert(transaction,
+                                       new Left()
+                                       {
+                                           ID = IDGenerator.NextID(), ClassID = random.Next(0, 100), CreateTime = DateTime.Now, CreateUserID = -9999, StudentName = Guid.NewGuid().ToString()
+                                       });
 
                     transaction.Submit();
                 }
