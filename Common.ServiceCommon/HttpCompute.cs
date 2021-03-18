@@ -60,8 +60,8 @@ namespace Common.ServiceCommon
             TypeReflector.ReflectType((type) =>
             {
                 Type interfaceType = type.GetInterfaces().FirstOrDefault(item => item.IsGenericType &&
-                                                       (item.GetGenericTypeDefinition() == typeof(IComputeFunc<,>) ||
-                                                        item.GetGenericTypeDefinition() == typeof(IComputeFunc<>)));
+                                                                                 (item.GetGenericTypeDefinition() == typeof(IComputeFunc<,>) ||
+                                                                                  item.GetGenericTypeDefinition() == typeof(IComputeFunc<>)));
 
                 if (interfaceType != null)
                 {

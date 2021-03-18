@@ -13,6 +13,24 @@ using TestWebAPI.Controllers;
 
 namespace TestWebAPI
 {
+    public interface ITest : IDisposable
+    {
+        void Test();
+    }
+
+    public class Test1 : ITest
+    {
+        public void Dispose()
+        {
+
+        }
+
+        public void Test()
+        {
+
+        }
+    }
+
     internal class TestTCCNotify : ITccNotify<TCCTestData>
     {
         public void Notify(long tccID, bool successed, TCCTestData data)
@@ -37,10 +55,7 @@ namespace TestWebAPI
             {
                 options.AddPolicy("any", builder =>
                 {
-                    builder.SetIsOriginAllowed(origin => true)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
+                    builder.SetIsOriginAllowed(origin => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                 });
             });
 
@@ -73,7 +88,7 @@ namespace TestWebAPI
                 return typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateMemoryCacheProvider)).MakeGenericMethod(type).Invoke(null, null);
             };
 
-            services.AddQuerys(modelTypes, cacheProviderProvider: cacheProviderHandler/*,
+            services.AddQuerys(modelTypes, cacheProviderProvider: cacheProviderHandler /*,
             searchQueryProvider: (type) =>
             {
                 return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
@@ -85,6 +100,8 @@ namespace TestWebAPI
 
             services.AddSwagger();
             //services.AddHostedService<CrossService>();
+
+            services.AddScoped<ITest, Test1>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)

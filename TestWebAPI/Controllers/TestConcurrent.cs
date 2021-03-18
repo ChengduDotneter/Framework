@@ -272,8 +272,12 @@ namespace TestWebAPI.Controllers
     [MessageProcessorRoute("abcds")]
     public class ABCD : MessageProcessor<string>
     {
+        private readonly ITest m_test;
+
         public override Task RecieveMessage(string parameter)
         {
+            m_test.Test();
+
             return Task.Factory.StartNew(async () =>
             {
                 while (true)
@@ -284,8 +288,9 @@ namespace TestWebAPI.Controllers
             });
         }
 
-        public ABCD(string identity) : base(identity)
+        public ABCD(string identity, ITest test) : base(identity)
         {
+            m_test = test;
         }
     }
 }

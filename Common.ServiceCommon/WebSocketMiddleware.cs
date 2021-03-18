@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Common.ServiceCommon
@@ -75,7 +76,6 @@ namespace Common.ServiceCommon
     public class WebSocketMiddleware
     {
         private readonly RequestDelegate m_requestDelegate;
-        private readonly IServiceProvider m_serviceProvider;
         private static readonly IDictionary<string, Type> m_processorTypes;
 
         static WebSocketMiddleware()
@@ -104,11 +104,9 @@ namespace Common.ServiceCommon
         /// WebSocket中间件构造函数
         /// </summary>
         /// <param name="requestDelegate"></param>
-        /// <param name="serviceProvider"></param>
-        public WebSocketMiddleware(RequestDelegate requestDelegate, IServiceProvider serviceProvider)
+        public WebSocketMiddleware(RequestDelegate requestDelegate)
         {
             m_requestDelegate = requestDelegate;
-            m_serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -132,51 +130,65 @@ namespace Common.ServiceCommon
                 return;
             }
 
-            using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync())
+            using (CancellationTokenSource cancellationTokenSource = new CancellationTokenSource())
             {
-                if (!m_processorTypes.ContainsKey(context.Request.Path))
+                using (WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync())
                 {
-                    await m_requestDelegate.Invoke(context);
-                    return;
-                }
+                    if (!m_processorTypes.ContainsKey(context.Request.Path))
+                    {
+                        await m_requestDelegate.Invoke(context);
+                        return;
+                    }
 
-                MessageProcessor messageProcessor = (MessageProcessor)m_serviceProvider.CreateInstanceFromServiceProvider(m_processorTypes[context.Request.Path], new object[] { identity });
+                    MessageProcessor messageProcessor =
+                        (MessageProcessor)context.RequestServices.CreateInstanceFromServiceProvider(m_processorTypes[context.Request.Path], new object[] { identity });
 
-                Task sendTask = Task.Factory.StartNew(async () =>
-                {
+                    Task sendTask = Task.Factory.StartNew(async () =>
+                    {
+                        while (true)
+                        {
+                            string data = string.Empty;
+
+                            try
+                            {
+                                data = messageProcessor.SendDatas.Take(cancellationTokenSource.Token);
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                break;
+                            }
+
+                            if (webSocket.State != WebSocketState.Open)
+                                break;
+
+                            await SendStringAsync(webSocket, data);
+                        }
+                    });
+
                     while (true)
                     {
-                        string data = messageProcessor.SendDatas.Take();
-
                         if (webSocket.State != WebSocketState.Open)
+                        {
+                            cancellationTokenSource.Cancel(false);
                             break;
+                        }
 
-                        await SendStringAsync(webSocket, data);
+                        (bool success, string data) = await ReceiveStringAsync(webSocket);
+
+                        if (success)
+                            await messageProcessor.RecieveMessage(data);
+
+                        await Task.Delay(1);
                     }
-                });
 
-                while (true)
-                {
-                    if (webSocket.State != WebSocketState.Open)
-                        break;
-
-                    (bool success, string data) = await ReceiveStringAsync(webSocket);
-
-                    if (success)
-                        await messageProcessor.RecieveMessage(data);
-
-                    await Task.Delay(1);
+                    await sendTask;
                 }
-
-                await sendTask;
             }
         }
 
         private static Task SendStringAsync(WebSocket socket, string data)
         {
-            var buffer = Encoding.UTF8.GetBytes(data);
-
-            var segment = new ArraySegment<byte>(buffer);
+            var segment = new ArraySegment<byte>(Encoding.UTF8.GetBytes(data));
             return socket.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
@@ -203,7 +215,7 @@ namespace Common.ServiceCommon
 
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
-                if (result.MessageType != WebSocketMessageType.Text)
+                if (result.CloseStatus.HasValue || result.MessageType != WebSocketMessageType.Text)
                 {
                     return Tuple.Create(false, string.Empty);
                 }
