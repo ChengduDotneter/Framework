@@ -4,72 +4,18 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Common.Model;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Common.ServiceCommon
 {
-    /// <summary>
-    /// 消息处理器路由特性
-    /// </summary>
-    public class MessageProcessorRouteAttribute : Attribute
-    {
-        public string Template { get; set; }
-
-        public MessageProcessorRouteAttribute(string template)
-        {
-            Template = template;
-        }
-    }
-
-    /// <summary>
-    /// 消息处理器
-    /// </summary>
-    public abstract class MessageProcessor
-    {
-        internal BlockingCollection<string> SendDatas { get; }
-        protected string Identity { get; }
-
-        internal abstract Task RecieveMessage(object parameter);
-
-        protected MessageProcessor(string identity)
-        {
-            Identity = identity;
-            SendDatas = new BlockingCollection<string>();
-        }
-    }
-
-    /// <summary>
-    /// 消息处理器
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public abstract class MessageProcessor<T> : MessageProcessor
-    {
-        internal override Task RecieveMessage(object parameter)
-        {
-            return RecieveMessage((T)parameter);
-        }
-
-        /// <summary>
-        /// 接收消息
-        /// </summary>
-        /// <param name="parameter"></param>
-        /// <returns></returns>
-        public abstract Task RecieveMessage(T parameter);
-
-        protected void SendMessage<TMessage>(TMessage message)
-        {
-            SendDatas.Add(JsonConvert.SerializeObject(message));
-        }
-
-        protected MessageProcessor(string identity) : base(identity) { }
-    }
-
     /// <summary>
     /// WebSocket中间件
     /// </summary>
