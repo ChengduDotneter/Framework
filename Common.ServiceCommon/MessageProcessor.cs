@@ -83,6 +83,18 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
+    /// 数据导出数据结构
+    /// </summary>
+    public class ExportResult
+    {
+        public int TotalCount { get; set; }
+        public int ReadCount { get; set; }
+        public ExportStatusTypeEnum ExportStatus { get; set; }
+        public string ErrorMessage { get; set; }
+        public string FilePath { get; set; }
+    }
+
+    /// <summary>
     /// 查询消息处理器
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
