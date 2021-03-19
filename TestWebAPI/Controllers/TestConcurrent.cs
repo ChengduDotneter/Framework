@@ -288,7 +288,7 @@ namespace TestWebAPI.Controllers
             });
         }
 
-        public ABCD(string identity, ITest test) : base(identity)
+        public ABCD(string identity, ITest test, ILogHelper logHelper) : base(identity, logHelper)
         {
             m_test = test;
         }
