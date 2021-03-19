@@ -274,13 +274,13 @@ namespace TestWebAPI.Controllers
     {
         private readonly ITest m_test;
 
-        public override Task RecieveMessage(string parameter)
+        public override Task RecieveMessage(string parameter, CancellationToken cancellationToken)
         {
             m_test.Test();
 
             return Task.Factory.StartNew(async () =>
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     SendMessage($"{Environment.TickCount}_{parameter}");
                     await Task.Delay(1000);

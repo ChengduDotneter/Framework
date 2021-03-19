@@ -122,7 +122,7 @@ namespace Common.ServiceCommon
                         (bool success, string data) = await ReceiveStringAsync(webSocket);
 
                         if (success)
-                            await messageProcessor.RecieveMessage(data);
+                            await messageProcessor.RecieveMessage(data, cancellationTokenSource.Token);
 
                         await Task.Delay(1);
                     }

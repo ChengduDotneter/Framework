@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Common.Log;
 using Common.Model;
@@ -30,7 +31,7 @@ namespace Common.ServiceCommon
         internal BlockingCollection<string> SendDatas { get; }
         protected string Identity { get; }
 
-        internal abstract Task RecieveMessage(object parameter);
+        internal abstract Task RecieveMessage(object parameter, CancellationToken cancellationToken);
 
         protected MessageProcessor(string identity)
         {
@@ -47,11 +48,11 @@ namespace Common.ServiceCommon
     {
         private readonly ILogHelper m_logHelper;
 
-        internal override Task RecieveMessage(object parameter)
+        internal override Task RecieveMessage(object parameter, CancellationToken cancellationToken)
         {
             try
             {
-                return RecieveMessage((T)parameter);
+                return RecieveMessage((T)parameter, cancellationToken);
             }
             catch (Exception exception)
             {
@@ -67,7 +68,7 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public abstract Task RecieveMessage(T parameter);
+        public abstract Task RecieveMessage(T parameter, CancellationToken cancellationToken);
 
         protected void SendMessage<TMessage>(TMessage message)
         {
