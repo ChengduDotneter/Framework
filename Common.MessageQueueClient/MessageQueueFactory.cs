@@ -1,6 +1,5 @@
 ﻿using Common.MessageQueueClient.Kafka;
 using Common.MessageQueueClient.RabbitMQ;
-using System.Collections.Generic;
 
 namespace Common.MessageQueueClient
 {

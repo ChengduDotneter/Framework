@@ -1,8 +1,9 @@
-﻿using Common.MessageQueueClient;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Common.Log.LogModel;
+using Common.MessageQueueClient;
 
-namespace Common.Log
+namespace Common.Log.KafkaLog
 {
     /// <summary>
     /// Kafka日志操作类

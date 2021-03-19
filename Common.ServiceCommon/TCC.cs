@@ -38,6 +38,7 @@ namespace Common.ServiceCommon
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="Request"></typeparam>
     [ApiController]
+    // ReSharper disable once UnusedTypeParameter
     public abstract class TCCController<T, Request> : ControllerBase
         where T : ViewModelBase, new()
     {
@@ -202,7 +203,7 @@ namespace Common.ServiceCommon
             string value = await m_redisClient.StringGetAsync(GetKVKey(typeNameSapce, typeName, tccID));
 
             if (string.IsNullOrWhiteSpace(value))
-                return Tuple.Create(false, tccTransaction);
+                return Tuple.Create(false, (TCCTransaction)null);
 
             ConnectionInfo connectionInfo = httpContextAccessor.HttpContext.Connection;
             tccTransaction = JObject.Parse(value).ToObject<TCCTransaction>();

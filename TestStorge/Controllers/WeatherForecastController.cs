@@ -5,9 +5,10 @@ using Common.ServiceCommon;
 using LinqToDB.Mapping;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable NotAccessedField.Local
+// ReSharper disable UnusedVariable
 
 namespace TestStorge.Controllers
 {

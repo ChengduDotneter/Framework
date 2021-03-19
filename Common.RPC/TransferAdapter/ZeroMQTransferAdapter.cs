@@ -67,7 +67,7 @@ namespace Common.RPC.TransferAdapter
             m_sendThread.Name = "ZEROMQ_SEND_THREAD";
             m_socket = CreateNetMQSocket(
                 zeroMQSocketType,
-                string.Format("tcp://{0}:{1}", endPoint.Address.ToString(), endPoint.Port),
+                string.Format("tcp://{0}:{1}", endPoint.Address, endPoint.Port),
                 Encoding.UTF8.GetBytes(m_identity));
         }
 

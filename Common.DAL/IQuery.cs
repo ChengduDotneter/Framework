@@ -272,6 +272,7 @@ namespace Common.DAL
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="forUpdate"></param>
         /// <returns></returns>
         IEnumerable<T> Search(string systemID,
                               ITransaction transaction,
@@ -306,6 +307,7 @@ namespace Common.DAL
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="forUpdate"></param>
         /// <returns></returns>
         Task<IEnumerable<T>> SearchAsync(string systemID,
                                          ITransaction transaction,
@@ -439,6 +441,7 @@ namespace Common.DAL
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="forUpdate"></param>
         /// <returns></returns>
         IEnumerable<T> Search(ITransaction transaction,
                               Expression<Func<T, bool>> predicate = null,
@@ -469,6 +472,7 @@ namespace Common.DAL
         /// <param name="queryOrderBies"></param>
         /// <param name="startIndex"></param>
         /// <param name="count"></param>
+        /// <param name="forUpdate"></param>
         /// <returns></returns>
         Task<IEnumerable<T>> SearchAsync(ITransaction transaction,
                                          Expression<Func<T, bool>> predicate = null,

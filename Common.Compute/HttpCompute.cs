@@ -147,9 +147,9 @@ namespace Common.Compute
 
         private static IEnumerable<TResult> GetResults<TResult>(IEnumerable<Task<HttpResponseMessage>> tasks)
         {
-            return Task.Factory.ContinueWhenAll(tasks.ToArray(), tasks =>
+            return Task.Factory.ContinueWhenAll(tasks.ToArray(), items =>
             {
-                return tasks.Select(item =>
+                return items.Select(item =>
                 {
                     if (item.Result.StatusCode != HttpStatusCode.OK)
                     {
@@ -260,10 +260,10 @@ namespace Common.Compute
 
                 foreach (string serviceEndPoint in serviceEndPoints)
                 {
-                    tasks.Add(Task.Factory.StartNew((serviceEndPoint) =>
+                    tasks.Add(Task.Factory.StartNew((item) =>
                     {
                         return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/boardcast", httpComputeParameter).Result;
+                            m_httpClientFactory, $"http://{item}/compute/boardcast", httpComputeParameter).Result;
                     }, serviceEndPoint));
                 }
 
@@ -285,10 +285,10 @@ namespace Common.Compute
 
                 foreach (string serviceEndPoint in serviceEndPoints)
                 {
-                    tasks.Add(Task.Factory.StartNew(async (serviceEndPoint) =>
+                    tasks.Add(Task.Factory.StartNew(async (item) =>
                     {
                         return await HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/boardcast", httpComputeParameter);
+                            m_httpClientFactory, $"http://{item}/compute/boardcast", httpComputeParameter);
                     }, serviceEndPoint));
                 }
 
@@ -310,10 +310,10 @@ namespace Common.Compute
                         throw new Exception(errorMessage);
                     }
 
-                    tasks.Add(Task.Factory.StartNew((serviceEndPoint) =>
+                    tasks.Add(Task.Factory.StartNew((item) =>
                     {
                         return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/call", CreateParameter(computeFunc)).Result;
+                            m_httpClientFactory, $"http://{item}/compute/call", CreateParameter(computeFunc)).Result;
                     }, serviceEndPoint));
                 }
 
@@ -335,10 +335,10 @@ namespace Common.Compute
                         throw new Exception(errorMessage);
                     }
 
-                    tasks.Add(Task.Factory.StartNew(async (serviceEndPoint) =>
+                    tasks.Add(Task.Factory.StartNew(async (item) =>
                     {
                         return await HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/call", CreateParameter(computeFunc));
+                            m_httpClientFactory, $"http://{item}/compute/call", CreateParameter(computeFunc));
                     }, serviceEndPoint));
                 }
 
@@ -385,10 +385,10 @@ namespace Common.Compute
                 {
                     (MapReduceSplitJob<TSplitParameter, TSplitResult> mapReduceSplitJob, string serviceEndPoint) = tuple;
 
-                    tasks.Add(Task.Factory.StartNew((serviceEndPoint) =>
+                    tasks.Add(Task.Factory.StartNew((item) =>
                     {
                         return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter)).Result;
+                            m_httpClientFactory, $"http://{item}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter)).Result;
                     }, serviceEndPoint));
                 }
 
@@ -425,10 +425,10 @@ namespace Common.Compute
                 {
                     (MapReduceSplitJob<TSplitParameter, TSplitResult> mapReduceSplitJob, string serviceEndPoint) = tuple;
 
-                    tasks.Add(Task.Factory.StartNew((serviceEndPoint) =>
+                    tasks.Add(Task.Factory.StartNew((item) =>
                     {
                         return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter));
+                            m_httpClientFactory, $"http://{item}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter));
                     }, serviceEndPoint));
                 }
 

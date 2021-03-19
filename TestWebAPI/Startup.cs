@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
 using TestWebAPI.Controllers;
+// ReSharper disable NotAccessedField.Local
 
 namespace TestWebAPI
 {

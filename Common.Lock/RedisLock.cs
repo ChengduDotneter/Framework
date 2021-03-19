@@ -289,7 +289,7 @@ namespace Common.Lock
                 }
                 catch
                 {
-                    continue;
+                    // ignored
                 }
             }
 
@@ -357,7 +357,7 @@ namespace Common.Lock
         /// <returns></returns>
         bool ILock.AcquireReadLockWithGroupKey(string groupKey, string identity, int weight, int timeOut)
         {
-            return AcquireReadWriteLockWithGroupKey(groupKey, identity, weight, timeOut, ReadWriteLockMode.ReadLock).Result;
+            return AcquireReadWriteLockWithGroupKey(groupKey, identity, timeOut, ReadWriteLockMode.ReadLock).Result;
         }
 
         /// <summary>
@@ -370,7 +370,7 @@ namespace Common.Lock
         /// <returns></returns>
         bool ILock.AcquireWriteLockWithGroupKey(string groupKey, string identity, int weight, int timeOut)
         {
-            return AcquireReadWriteLockWithGroupKey(groupKey, identity, weight, timeOut, ReadWriteLockMode.WriteLock).Result;
+            return AcquireReadWriteLockWithGroupKey(groupKey, identity, timeOut, ReadWriteLockMode.WriteLock).Result;
         }
 
         /// <summary>
@@ -383,7 +383,7 @@ namespace Common.Lock
         /// <returns></returns>
         Task<bool> ILock.AcquireReadLockWithGroupKeyAsync(string groupKey, string identity, int weight, int timeOut)
         {
-            return AcquireReadWriteLockWithGroupKey(groupKey, identity, weight, timeOut, ReadWriteLockMode.ReadLock);
+            return AcquireReadWriteLockWithGroupKey(groupKey, identity, timeOut, ReadWriteLockMode.ReadLock);
         }
 
         /// <summary>
@@ -396,10 +396,10 @@ namespace Common.Lock
         /// <returns></returns>
         Task<bool> ILock.AcquireWriteLockWithGroupKeyAsync(string groupKey, string identity, int weight, int timeOut)
         {
-            return AcquireReadWriteLockWithGroupKey(groupKey, identity, weight, timeOut, ReadWriteLockMode.WriteLock);
+            return AcquireReadWriteLockWithGroupKey(groupKey, identity, timeOut, ReadWriteLockMode.WriteLock);
         }
 
-        private async Task<bool> AcquireReadWriteLockWithGroupKey(string groupKey, string identity, int weight, int timeOut, ReadWriteLockMode lockMode)
+        private async Task<bool> AcquireReadWriteLockWithGroupKey(string groupKey, string identity, int timeOut, ReadWriteLockMode lockMode)
         {
             IDatabase database = GetDatabase();
             LockInstance lockInstance = GetOrAddLockInstance(identity, database);
@@ -453,7 +453,7 @@ namespace Common.Lock
         /// <returns></returns>
         bool ILock.AcquireReadLockWithResourceKeys(string groupKey, string identity, int weight, int timeOut, params string[] resourceKeys)
         {
-            return AcquireReadWriteLockWithResourceKeys(groupKey, identity, weight, timeOut, ReadWriteLockMode.ReadLock, resourceKeys).Result;
+            return AcquireReadWriteLockWithResourceKeys(groupKey, identity, timeOut, ReadWriteLockMode.ReadLock, resourceKeys).Result;
         }
 
 
@@ -468,7 +468,7 @@ namespace Common.Lock
         /// <returns></returns>
         bool ILock.AcquireWriteLockWithResourceKeys(string groupKey, string identity, int weight, int timeOut, params string[] resourceKeys)
         {
-            return AcquireReadWriteLockWithResourceKeys(groupKey, identity, weight, timeOut, ReadWriteLockMode.WriteLock, resourceKeys).Result;
+            return AcquireReadWriteLockWithResourceKeys(groupKey, identity, timeOut, ReadWriteLockMode.WriteLock, resourceKeys).Result;
         }
 
         /// <summary>
@@ -482,7 +482,7 @@ namespace Common.Lock
         /// <returns></returns>
         Task<bool> ILock.AcquireReadLockWithResourceKeysAsync(string groupKey, string identity, int weight, int timeOut, params string[] resourceKeys)
         {
-            return AcquireReadWriteLockWithResourceKeys(groupKey, identity, weight, timeOut, ReadWriteLockMode.ReadLock, resourceKeys);
+            return AcquireReadWriteLockWithResourceKeys(groupKey, identity, timeOut, ReadWriteLockMode.ReadLock, resourceKeys);
         }
 
         /// <summary>
@@ -496,10 +496,10 @@ namespace Common.Lock
         /// <returns></returns>
         Task<bool> ILock.AcquireWriteLockWithResourceKeysAsync(string groupKey, string identity, int weight, int timeOut, params string[] resourceKeys)
         {
-            return AcquireReadWriteLockWithResourceKeys(groupKey, identity, weight, timeOut, ReadWriteLockMode.WriteLock, resourceKeys);
+            return AcquireReadWriteLockWithResourceKeys(groupKey, identity, timeOut, ReadWriteLockMode.WriteLock, resourceKeys);
         }
 
-        private async Task<bool> AcquireReadWriteLockWithResourceKeys(string groupKey, string identity, int weight, int timeOut, ReadWriteLockMode lockMode, params string[] resourceKeys)
+        private async Task<bool> AcquireReadWriteLockWithResourceKeys(string groupKey, string identity, int timeOut, ReadWriteLockMode lockMode, params string[] resourceKeys)
         {
             bool isLocked = true;
 

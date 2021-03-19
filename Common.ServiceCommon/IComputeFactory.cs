@@ -1,9 +1,6 @@
 ﻿using Common.Compute;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
-using System.Reflection;
 
 namespace Common.ServiceCommon
 {
@@ -34,7 +31,7 @@ namespace Common.ServiceCommon
         /// <typeparam name="TParameter">任务参数</typeparam>
         /// <typeparam name="TResult">任务返回值</typeparam>
         /// <typeparam name="TSplitParameter">Job参数</typeparam>
-        /// <typeparam name="TSplitResult">Job返回值</
+        /// <typeparam name="TSplitResult">Job返回值</typeparam>
         T CreateComputeMapReduceTask<T, TParameter, TResult, TSplitParameter, TSplitResult>()
             where T : class, IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>;
 

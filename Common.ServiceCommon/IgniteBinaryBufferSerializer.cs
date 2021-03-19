@@ -184,8 +184,6 @@ namespace Common.ServiceCommon
 
         private static Expression SetParameter(bool isNullable, Type valueType, Expression value)
         {
-            ConstantExpression @null = Expression.Constant(null);
-
             if (valueType == typeof(DateTime))
             {
                 Expression parameter = Expression.Call(isNullable ? Expression.Property(value, "Value") : value, typeof(DateTime).GetMethod(nameof(DateTime.ToLocalTime)));

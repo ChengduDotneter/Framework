@@ -121,32 +121,30 @@ namespace Common.RPC.TransferAdapter
                     {
                         if (m_sendBuffers.TryGetValue(dataIDs[i], out SendBufferData sendBufferData) && sendBufferData.RepeatCount > REPEAT_SEND_MAX_COUNT)
                         {
-                            m_sendBuffers.TryRemove(dataIDs[i], out SendBufferData removeSendBufferData);
+                            m_sendBuffers.TryRemove(dataIDs[i], out _);
                             continue;
                         }
                         else if (sendBufferData == null || (sendBufferData.RepeatTime != 0 && Environment.TickCount - sendBufferData.RepeatTime < REPEAT_TIME_SPAN))
                             continue;
 
-                        unsafe
+                        fixed (byte* sendBufferPtr = sendBufferData.Buffer)
                         {
-                            fixed (byte* sendBufferPtr = sendBufferData.Buffer)
-                            {
-                                long sessionID = *(long*)(sendBufferPtr + DATA_ID_BUFFER_LENGTH);
+                            long sessionID = *(long*)(sendBufferPtr + DATA_ID_BUFFER_LENGTH);
 
-                                try
-                                {
-                                    m_udp.Send(sendBufferData.Buffer, sendBufferData.Buffer.Length, (IPEndPoint)sendBufferData.SessionContext.Context);
-                                    sendBufferData.RefreshRepeatTime();
-                                    sendBufferData.RepeatCount++;
-                                }
+                            try
+                            {
+                                m_udp.Send(sendBufferData.Buffer, sendBufferData.Buffer.Length, (IPEndPoint)sendBufferData.SessionContext.Context);
+                                sendBufferData.RefreshRepeatTime();
+                                sendBufferData.RepeatCount++;
+                            }
 #pragma warning disable CS0168 // 声明了变量，但从未使用过
-                                catch (Exception ex)
+                            catch (Exception ex)
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
-                                {
+                            {
 #if OUTPUT_LOG
-                                    m_logHelper.Info("Transfer_UDP", $"send error session_id: {sessionID}{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
+                                m_logHelper.Info("Transfer_UDP",
+                                                 $"send error session_id: {sessionID}{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
-                                }
                             }
                         }
                     }
@@ -182,10 +180,9 @@ namespace Common.RPC.TransferAdapter
                             fixed (byte* bufferPtr = buffer)
                             {
                                 long dataID = *(long*)bufferPtr;
-                                long sessionID = *(long*)(bufferPtr + DATA_ID_BUFFER_LENGTH);
 
                                 if (m_sendBuffers.ContainsKey(dataID))
-                                    m_sendBuffers.TryRemove(dataID, out SendBufferData removeSendBufferData);
+                                    m_sendBuffers.TryRemove(dataID, out _);
                             }
                         }
                     }
@@ -232,7 +229,8 @@ namespace Common.RPC.TransferAdapter
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
 #if OUTPUT_LOG
-                    m_logHelper.Info("Transfer_UDP", $"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
+                    m_logHelper.Info("Transfer_UDP",
+                                     $"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
                 }
             }

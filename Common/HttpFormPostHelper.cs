@@ -88,7 +88,7 @@ namespace Common
         public static HttpResult Post(string url, Dictionary<string, object> keyValues, int timeOut = 10, string tokenName = null, string tokenValue = null)
         {
             if (url == null || string.IsNullOrWhiteSpace(url))
-                new HttpResult(NetErrorTypeEnum.ErrorInterface);
+                return new HttpResult(NetErrorTypeEnum.ErrorInterface);
 
             //添加Post 参数
             StringBuilder builder = new StringBuilder();

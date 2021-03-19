@@ -1,13 +1,13 @@
-﻿using Common;
-using Common.DAL;
-using Common.Model;
-using Common.Validation;
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 using System.Text.Json.Serialization;
+using Common;
+using Common.DAL;
+using Common.Model;
+using Common.Validation;
 
-namespace MicroService.StorageService.Model
+namespace TestWebAPI
 {
     /// <summary>
     /// 第三方供应商商品
@@ -137,9 +137,6 @@ namespace MicroService.StorageService.Model
         [Display(Name = "商品描述")]
         public string SupplierCommodityDescription { get; set; }
 
-        /// <summary>
-        /// 关联库存实体
-        /// </summary>
         //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         //public IEnumerable<StockInfo> StockInfos { get; set; }
 

@@ -2,7 +2,6 @@ using Common.DAL.Transaction;
 using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
-using LinqToDB.DataProvider.MySql;
 using LinqToDB.Linq;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -20,7 +19,7 @@ namespace Common.DAL
     internal static class Linq2DBDao
     {
         private const int DEFAULT_CONNECTION_COUNT = 10; //最大长连接数
-        private const int DEFAULT_CONNECTION_WAITTIMEOUT = 8 * 60 * 60 * 1000;//8小时
+        private const int DEFAULT_CONNECTION_WAITTIMEOUT = 8 * 60 * 60 * 1000; //8小时
         private const int DEFAULT_MAX_TEMP_CONNECTION_COUNT = 10; //最大临时连接数
         private const int TEMP_CONNECTION_TIMEOUT = 60 * 10 * 1000; //临时连接数存活时间
         private static IDictionary<string, DataConnectResourcePool> m_connectionPool;
@@ -96,12 +95,16 @@ namespace Common.DAL
 
             if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.ConnectionString))
             {
-                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString, new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, CreateMasterDataConnection, CloseDataConnection));
+                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString,
+                                     new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, CreateMasterDataConnection,
+                                                                 CloseDataConnection));
             }
 
             if (!m_connectionPool.ContainsKey(m_slavelinqToDbConnectionOptions.ConnectionString))
             {
-                m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString, new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, CreateSlaveDataConnection, CloseDataConnection));
+                m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString,
+                                     new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, CreateSlaveDataConnection,
+                                                                 CloseDataConnection));
             }
         }
 
@@ -138,7 +141,7 @@ namespace Common.DAL
         }
 
         public static IEditQuery<T> GetLinq2DBEditQuery<T>()
-             where T : class, IEntity, new()
+            where T : class, IEntity, new()
         {
             return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
         }
@@ -163,7 +166,10 @@ namespace Common.DAL
                         {
                             dataContext.CreateTable<T>(tableName);
                         }
-                        catch { }
+                        catch
+                        {
+                            // ignored
+                        }
 
                         m_tableNames.Add(tableName);
                     }
@@ -627,7 +633,7 @@ namespace Common.DAL
                     ids = GetQueryable(systemID, transaction).Where(predicate).Select(item => item.ID).ToList();
                 }
 
-                if (ids == null || ids.Count() == 0)
+                if (ids.Count() == 0)
                     return;
 
                 bool inTransaction = WriteApply<T>(transaction, systemID, ids);
@@ -641,16 +647,14 @@ namespace Common.DAL
                         foreach (var update in updates)
                         {
                             (Type valueType, Expression expression, object value) = update;
-                            Type funcType = typeof(Func<,>).MakeGenericType(typeof(T), valueType);
-                            Type expressionType = typeof(Expression<>).MakeGenericType(funcType);
                             MethodInfo methodInfo = typeof(LinqExtensions).
-                                GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).MakeGenericMethod(typeof(T), valueType);
+                                                    GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).
+                                                    MakeGenericMethod(typeof(T), valueType);
                             updatable = (IUpdatable<T>)methodInfo.Invoke(null, new object[] { updatable, expression, value });
                         }
 
                         updatable.Update();
-                    };
-
+                    }
                 }
                 else
                 {
@@ -659,10 +663,9 @@ namespace Common.DAL
                     foreach (var update in updates)
                     {
                         (Type valueType, Expression expression, object value) = update;
-                        Type funcType = typeof(Func<,>).MakeGenericType(typeof(T), valueType);
-                        Type expressionType = typeof(Expression<>).MakeGenericType(funcType);
                         MethodInfo methodInfo = typeof(LinqExtensions).
-                            GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).MakeGenericMethod(typeof(T), valueType);
+                                                GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).
+                                                MakeGenericMethod(typeof(T), valueType);
                         updatable = (IUpdatable<T>)methodInfo.Invoke(null, new object[] { updatable, expression, value });
                     }
 
@@ -726,7 +729,7 @@ namespace Common.DAL
                     ids = (await GetQueryableAsync(systemID, transaction)).Where(predicate).Select(item => item.ID).ToList();
                 }
 
-                if (ids == null || ids.Count() == 0)
+                if (ids.Count() == 0)
                     return;
 
                 bool inTransaction = await WriteApplyAsync<T>(transaction, systemID, ids);
@@ -740,16 +743,14 @@ namespace Common.DAL
                         foreach (var update in updates)
                         {
                             (Type valueType, Expression expression, object value) = update;
-                            Type funcType = typeof(Func<,>).MakeGenericType(typeof(T), valueType);
-                            Type expressionType = typeof(Expression<>).MakeGenericType(funcType);
                             MethodInfo methodInfo = typeof(LinqExtensions).
-                                GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).MakeGenericMethod(typeof(T), valueType);
+                                                    GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).
+                                                    MakeGenericMethod(typeof(T), valueType);
                             updatable = (IUpdatable<T>)methodInfo.Invoke(null, new object[] { updatable, expression, value });
                         }
 
                         await updatable.UpdateAsync();
-                    };
-
+                    }
                 }
                 else
                 {
@@ -758,10 +759,9 @@ namespace Common.DAL
                     foreach (var update in updates)
                     {
                         (Type valueType, Expression expression, object value) = update;
-                        Type funcType = typeof(Func<,>).MakeGenericType(typeof(T), valueType);
-                        Type expressionType = typeof(Expression<>).MakeGenericType(funcType);
                         MethodInfo methodInfo = typeof(LinqExtensions).
-                            GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).MakeGenericMethod(typeof(T), valueType);
+                                                GetMethods(BindingFlags.Public | BindingFlags.Static).Where(item => item.Name == nameof(LinqExtensions.Set)).ElementAt(5).
+                                                MakeGenericMethod(typeof(T), valueType);
                         updatable = (IUpdatable<T>)methodInfo.Invoke(null, new object[] { updatable, expression, value });
                     }
 
@@ -946,7 +946,13 @@ namespace Common.DAL
                 return CountAsync(string.Empty, predicate, dbResourceContent);
             }
 
-            public IEnumerable<T> Search(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            public IEnumerable<T> Search(string systemID,
+                                         ITransaction transaction,
+                                         Expression<Func<T, bool>> predicate = null,
+                                         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue,
+                                         bool forUpdate = false)
             {
                 IQueryable<T> query = GetQueryable(systemID, transaction).Where(predicate ?? EMPTY_PREDICATE);
 
@@ -984,12 +990,22 @@ namespace Common.DAL
                 return GetQueryable(systemID, transaction).Where(item => ids.Contains(item.ID)).ToList();
             }
 
-            public IEnumerable<T> Search(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            public IEnumerable<T> Search(ITransaction transaction,
+                                         Expression<Func<T, bool>> predicate = null,
+                                         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue,
+                                         bool forUpdate = false)
             {
                 return Search(string.Empty, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
             }
 
-            public IEnumerable<T> Search(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public IEnumerable<T> Search(string systemID,
+                                         Expression<Func<T, bool>> predicate = null,
+                                         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue,
+                                         IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
@@ -1062,12 +1078,22 @@ namespace Common.DAL
                 }
             }
 
-            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public IEnumerable<T> Search(Expression<Func<T, bool>> predicate = null,
+                                         IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                         int startIndex = 0,
+                                         int count = int.MaxValue,
+                                         IDBResourceContent dbResourceContent = null)
             {
                 return Search(string.Empty, predicate, queryOrderBies, startIndex, count, dbResourceContent);
             }
 
-            public async Task<IEnumerable<T>> SearchAsync(string systemID, ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            public async Task<IEnumerable<T>> SearchAsync(string systemID,
+                                                          ITransaction transaction,
+                                                          Expression<Func<T, bool>> predicate = null,
+                                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                                          int startIndex = 0,
+                                                          int count = int.MaxValue,
+                                                          bool forUpdate = false)
             {
                 IQueryable<T> query = (await GetQueryableAsync(systemID, transaction)).Where(predicate ?? EMPTY_PREDICATE);
 
@@ -1103,12 +1129,22 @@ namespace Common.DAL
                 return (await GetQueryableAsync(systemID, transaction)).Where(item => ids.Contains(item.ID)).ToList();
             }
 
-            public Task<IEnumerable<T>> SearchAsync(ITransaction transaction, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, bool forUpdate = false)
+            public Task<IEnumerable<T>> SearchAsync(ITransaction transaction,
+                                                    Expression<Func<T, bool>> predicate = null,
+                                                    IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                                    int startIndex = 0,
+                                                    int count = int.MaxValue,
+                                                    bool forUpdate = false)
             {
                 return SearchAsync(string.Empty, transaction, predicate, queryOrderBies, startIndex, count, forUpdate);
             }
 
-            public async Task<IEnumerable<T>> SearchAsync(string systemID, Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public async Task<IEnumerable<T>> SearchAsync(string systemID,
+                                                          Expression<Func<T, bool>> predicate = null,
+                                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                                          int startIndex = 0,
+                                                          int count = int.MaxValue,
+                                                          IDBResourceContent dbResourceContent = null)
             {
                 if (dbResourceContent == null)
                 {
@@ -1181,7 +1217,11 @@ namespace Common.DAL
                 }
             }
 
-            public Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
+            public Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
+                                                    IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                                    int startIndex = 0,
+                                                    int count = int.MaxValue,
+                                                    IDBResourceContent dbResourceContent = null)
             {
                 return SearchAsync(string.Empty, predicate, queryOrderBies, startIndex, count, dbResourceContent);
             }

@@ -150,7 +150,7 @@ namespace Common
             ParameterExpression changeParameter = Expression.Parameter(typeof(TChangeParameter), "item");
 
             return Expression.Lambda<Func<TChangeParameter, TResult>>
-                (new ExpressionParameterChanger<TAOrignParameter, TBOrignParameter, TChangeParameter, TResult>().
+                (new ExpressionParameterChanger<TChangeParameter, TResult>().
                 ChangeParameter(expression.Body, changeParameter, aParameterChangeHandler, bParameterChangeHandler, aParameterName, bParameterName),
                 changeParameter);
         }
@@ -236,7 +236,7 @@ namespace Common
         /// <returns></returns>
         public string ToString<T>(Expression<Func<T, bool>> expression)
         {
-            return expression.Body.ToString() + m_parametersStringBuilder.ToString();
+            return $"{expression.Body} + {m_parametersStringBuilder}";
         }
 
         /// <summary>
@@ -248,7 +248,7 @@ namespace Common
         {
             if (memberNode.Expression.NodeType == ExpressionType.Constant)
             {
-                m_parametersStringBuilder.Append(memberNode.ToString());
+                m_parametersStringBuilder.Append(memberNode);
                 m_parametersStringBuilder.Append(JsonConvert.SerializeObject(Expression.Lambda(memberNode).Compile().DynamicInvoke()));
             }
 
@@ -457,7 +457,7 @@ namespace Common
     /// <summary>
     /// 参数转换访问器
     /// </summary>
-    internal class ExpressionParameterChanger<TAOrignParameter, TBOrignParameter, TChangeParameter, TResult> : ExpressionVisitor
+    internal class ExpressionParameterChanger<TChangeParameter, TResult> : ExpressionVisitor
     {
         private ParameterExpression m_parameterExpression;
         private IDictionary<string, Func<ParameterExpression, Expression>> m_changeParameterExpressions;

@@ -189,7 +189,7 @@ namespace Common
 
             foreach (DataColumn item in dtSource.Columns)
             {
-                arrColWidth[item.Ordinal] = Encoding.GetEncoding(936).GetBytes(item.ColumnName.ToString()).Length;
+                arrColWidth[item.Ordinal] = Encoding.GetEncoding(936).GetBytes(item.ColumnName).Length;
             }
 
             for (int i = 0; i < dtSource.Rows.Count; i++)

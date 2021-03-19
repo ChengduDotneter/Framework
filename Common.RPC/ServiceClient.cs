@@ -256,7 +256,7 @@ namespace Common.RPC
                     byte messageID = ((IRPCData)Activator.CreateInstance(dataType)).MessageID;
 
                     if (m_recieveHandlers.ContainsKey(messageID))
-                        m_recieveHandlers.TryRemove(messageID, out Action<SessionContext, IRPCData> action);
+                        m_recieveHandlers.TryRemove(messageID, out _);
 
                     return;
                 }

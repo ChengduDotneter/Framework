@@ -110,10 +110,10 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <summary>
         /// 推送消息
         /// </summary>
-        /// <param name="m_channel">通道</param>
+        /// <param name="channel">通道</param>
         /// <param name="mQContext">上下文</param>
         /// <param name="message">推送的消息</param>
-        private void ProduceData(IModel m_channel, MQContext mQContext, T message)
+        private void ProduceData(IModel channel, MQContext mQContext, T message)
         {
             try
             {
@@ -129,10 +129,10 @@ namespace Common.MessageQueueClient.RabbitMQ
                     {
                         m_queueNames.Add(mQContext.MessageQueueName);
 
-                        RabbitmqHelper.BindingQueues(mQContext.MessageQueueName, m_exChangeTypeEnum, m_channel, m_routingKey, m_queueNames);
+                        RabbitmqHelper.BindingQueues(mQContext.MessageQueueName, m_exChangeTypeEnum, channel, m_routingKey, m_queueNames);
                     }
 
-                    m_channel.BasicPublish(exchange: mQContext.MessageQueueName, routingKey: m_routingKey, mandatory: false, basicProperties: m_properties, body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
+                    channel.BasicPublish(exchange: mQContext.MessageQueueName, routingKey: m_routingKey, mandatory: false, basicProperties: m_properties, body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
                 }
             }
             catch (Exception ex)

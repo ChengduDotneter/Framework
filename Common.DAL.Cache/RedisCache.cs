@@ -23,7 +23,7 @@ namespace Common.DAL.Cache
             configurationOptions.AllowAdmin = true;
             m_connectionMultiplexer = ConnectionMultiplexer.Connect(configurationOptions);
             Server = m_connectionMultiplexer.GetServer(ConfigManager.Configuration["RedisEndPoint"]);
-            Master = m_connectionMultiplexer.GetDatabase(Convert.ToInt32(ConfigManager.Configuration["RedisMasterDatabase"].ToString()));
+            Master = m_connectionMultiplexer.GetDatabase(Convert.ToInt32(ConfigManager.Configuration["RedisMasterDatabase"]));
         }
 
         internal static IDatabase GetDatabase(int database)

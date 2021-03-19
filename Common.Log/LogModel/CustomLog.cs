@@ -1,4 +1,4 @@
-﻿namespace Common.Log
+﻿namespace Common.Log.LogModel
 {
     /// <summary>
     /// 用户自定义日志实体类

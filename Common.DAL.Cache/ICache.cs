@@ -147,6 +147,7 @@ namespace Common.DAL.Cache
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <returns></returns>
+        /// </summary>
         Task<Tuple<bool, T>> TryGetValueAsync<T>(object key);
 
         /// <summary>

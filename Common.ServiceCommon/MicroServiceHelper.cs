@@ -35,7 +35,7 @@ namespace Common.ServiceCommon
         private static void CheckReturn(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
             if (httpResponseMessage.StatusCode == HttpStatusCode.PaymentRequired)
-                throw new DealException($"{microServiceName}接口调用失败,原因{httpResponseMessage?.Content?.ReadAsStringAsync()?.Result}");
+                throw new DealException($"{microServiceName}接口调用失败,原因{httpResponseMessage.Content?.ReadAsStringAsync()?.Result}");
             else if (httpResponseMessage.StatusCode == HttpStatusCode.Unauthorized)
                 throw new DealException($"{microServiceName}接口调用失败,原因未认证系统");
             else if (httpResponseMessage.StatusCode == HttpStatusCode.ServiceUnavailable)

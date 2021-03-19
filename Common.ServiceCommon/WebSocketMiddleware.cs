@@ -1,18 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Common.Model;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 
 namespace Common.ServiceCommon
 {
@@ -97,6 +92,7 @@ namespace Common.ServiceCommon
 
                             try
                             {
+                                // ReSharper disable once AccessToDisposedClosure
                                 data = messageProcessor.SendDatas.Take(cancellationTokenSource.Token);
                             }
                             catch (OperationCanceledException)
@@ -104,9 +100,11 @@ namespace Common.ServiceCommon
                                 break;
                             }
 
+                            // ReSharper disable once AccessToDisposedClosure
                             if (webSocket.State != WebSocketState.Open)
                                 break;
 
+                            // ReSharper disable once AccessToDisposedClosure
                             await SendStringAsync(webSocket, data);
                         }
                     });

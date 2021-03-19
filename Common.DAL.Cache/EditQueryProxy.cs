@@ -99,7 +99,7 @@ namespace Common.DAL.Cache
     }
 
     internal class EditQueryProxy<T> : IEditQuery<T>
-         where T : class, IEntity, new()
+        where T : class, IEntity, new()
     {
         private IEditQuery<T> m_editQuery;
         private ICache m_keyCache;
@@ -135,10 +135,10 @@ namespace Common.DAL.Cache
                 transactionProxy.ClearConditionCache = true;
                 transactionProxy.TaskQueue.Enqueue(new Task((state) =>
                 {
-                    long[] ids = (long[])state;
+                    long[] idArray = (long[])state;
 
-                    for (int i = 0; i < ids.Length; i++)
-                        m_keyCache.Remove(ids[i]);
+                    for (int i = 0; i < idArray.Length; i++)
+                        m_keyCache.Remove(idArray[i]);
                 }, ids.Select(item => item.ToSystemObjectID(systemID))));
             }
             else
@@ -245,7 +245,7 @@ namespace Common.DAL.Cache
 
                     for (int i = 0; i < datas.Length; i++)
                     {
-                        (bool exists, T result) = m_keyCache.TryGetValue<T>(datas[i].ID.ToSystemObjectID(systemID));
+                        (bool exists, _) = m_keyCache.TryGetValue<T>(datas[i].ID.ToSystemObjectID(systemID));
 
                         if (exists)
                             m_keyCache.Set(datas[i].ID.ToSystemObjectID(systemID), datas[i]);
@@ -258,7 +258,7 @@ namespace Common.DAL.Cache
 
                 for (int i = 0; i < datas.Length; i++)
                 {
-                    (bool exists, T result) = m_keyCache.TryGetValue<T>(datas[i].ID.ToSystemObjectID(systemID));
+                    (bool exists, _) = m_keyCache.TryGetValue<T>(datas[i].ID.ToSystemObjectID(systemID));
 
                     if (exists)
                         m_keyCache.Set(datas[i].ID.ToSystemObjectID(systemID), datas[i]);
@@ -288,12 +288,14 @@ namespace Common.DAL.Cache
 
                     for (int i = 0; i < datas.Length; i++)
                     {
+                        int index = i;
+                        
                         tasks.Add(Task.Factory.StartNew(async () =>
                         {
-                            (bool exists, T result) = await m_keyCache.TryGetValueAsync<T>(datas[i].ID.ToSystemObjectID(systemID));
+                            (bool exists, _) = await m_keyCache.TryGetValueAsync<T>(datas[index].ID.ToSystemObjectID(systemID));
 
                             if (exists)
-                                await m_keyCache.SetAsync(datas[i].ID.ToSystemObjectID(systemID), datas[i]);
+                                await m_keyCache.SetAsync(datas[index].ID.ToSystemObjectID(systemID), datas[index]);
                         }));
                     }
 
@@ -308,12 +310,14 @@ namespace Common.DAL.Cache
 
                 for (int i = 0; i < datas.Length; i++)
                 {
+                    int index = i;
+                    
                     tasks.Add(Task.Factory.StartNew(async () =>
                     {
-                        (bool exists, T result) = await m_keyCache.TryGetValueAsync<T>(datas[i].ID.ToSystemObjectID(systemID));
+                        (bool exists, _) = await m_keyCache.TryGetValueAsync<T>(datas[index].ID.ToSystemObjectID(systemID));
 
                         if (exists)
-                            await m_keyCache.SetAsync(datas[i].ID.ToSystemObjectID(systemID), datas[i]);
+                            await m_keyCache.SetAsync(datas[index].ID.ToSystemObjectID(systemID), datas[index]);
                     }));
                 }
 
@@ -337,7 +341,7 @@ namespace Common.DAL.Cache
                 transactionProxy.TaskQueue.Enqueue(new Task((state) =>
                 {
                     T data = (T)state;
-                    (bool exists, T result) = m_keyCache.TryGetValue<T>(data.ID.ToSystemObjectID(systemID));
+                    (bool exists, _) = m_keyCache.TryGetValue<T>(data.ID.ToSystemObjectID(systemID));
 
                     if (exists)
                         m_keyCache.Set(data.ID.ToSystemObjectID(systemID), data);
@@ -346,7 +350,7 @@ namespace Common.DAL.Cache
             else
             {
                 m_editQuery.Update(systemID, data, transaction);
-                (bool exists, T result) = m_keyCache.TryGetValue<T>(data.ID.ToSystemObjectID(systemID));
+                (bool exists, _) = m_keyCache.TryGetValue<T>(data.ID.ToSystemObjectID(systemID));
 
                 if (exists)
                     m_keyCache.Set(data.ID.ToSystemObjectID(systemID), data);
@@ -370,7 +374,7 @@ namespace Common.DAL.Cache
                 transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>
                 {
                     T data = (T)state;
-                    (bool exists, T result) = await m_keyCache.TryGetValueAsync<T>(data.ID.ToSystemObjectID(systemID));
+                    (bool exists, _) = await m_keyCache.TryGetValueAsync<T>(data.ID.ToSystemObjectID(systemID));
 
                     if (exists)
                         await m_keyCache.SetAsync(data.ID.ToSystemObjectID(systemID), data);
@@ -379,7 +383,7 @@ namespace Common.DAL.Cache
             else
             {
                 await m_editQuery.UpdateAsync(systemID, data, transaction);
-                (bool exists, T result) = await m_keyCache.TryGetValueAsync<T>(data.ID.ToSystemObjectID(systemID));
+                (bool exists, _) = await m_keyCache.TryGetValueAsync<T>(data.ID.ToSystemObjectID(systemID));
 
                 if (exists)
                     await m_keyCache.SetAsync(data.ID.ToSystemObjectID(systemID), data);

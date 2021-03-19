@@ -59,6 +59,7 @@ namespace Common.ServiceCommon
 
             foreach (var item in query)
             {
+                // ReSharper disable once StringIndexOfIsCultureSpecific.1
                 if (item.Key.IndexOf(conditionPropertyName) == 0 &&
                     item.Value.Count > 0 &&
                     !string.IsNullOrWhiteSpace(item.Value[0]))

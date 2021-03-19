@@ -130,9 +130,11 @@ namespace Common
         {
             lock (m_lockThis)
             {
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (nodeType > MAX_NODE_TYPE || nodeType < MIN_NODE_TYPE)
                     throw new Exception("节点类型错误。");
 
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (node > MAX_NODE || node < MIN_NODE)
                     throw new Exception("节点编号异常。");
 

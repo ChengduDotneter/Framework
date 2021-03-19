@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Common.MessageQueueClient.RabbitMQ
+﻿namespace Common.MessageQueueClient.RabbitMQ
 {
     /// <summary>
     /// RabbitMq的上下文

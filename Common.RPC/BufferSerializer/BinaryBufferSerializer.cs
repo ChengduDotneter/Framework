@@ -208,7 +208,6 @@ namespace Common.RPC.BufferSerializer
             LabelTarget target = Expression.Label(typeof(byte[]));
             GotoExpression gotoExpression = Expression.Return(target, buffer);
             LabelExpression label = Expression.Label(target, buffer);
-            IList<Expression> bufferLengthAssigns = new List<Expression>();
 
             BlockExpression body = Expression.Block(new ParameterExpression[] { buffer, offset }, bufferAssign, InitGetBufferHandler(dataType, data, encoding, buffer, offset), gotoExpression, label);
             GetBuffer getBufferHandler = Expression.Lambda<GetBuffer>(body, data, encoding).Compile();
@@ -419,6 +418,7 @@ namespace Common.RPC.BufferSerializer
             offset += length;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static void CopyBytes(DateTime[] value, byte[] buffer, ref int offset)
         {
             long[] valueArray = new long[value.Length];
@@ -429,12 +429,14 @@ namespace Common.RPC.BufferSerializer
             CopyBytes(valueArray, buffer, ref offset);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static void CopyBytes(string value, Encoding encoding, byte[] buffer, ref int offset)
         {
             byte[] bytes = string.IsNullOrWhiteSpace(value) ? new byte[0] : encoding.GetBytes(value);
             CopyBytes(bytes, buffer, ref offset);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static void CopyBytes(byte value, byte[] buffer, ref int offset)
         {
             buffer[offset] = value;
@@ -447,18 +449,21 @@ namespace Common.RPC.BufferSerializer
             offset += sizeof(int);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static void CopyBytes(bool value, byte[] buffer, ref int offset)
         {
             buffer[offset] = (byte)(value ? 1 : 0);
             offset += sizeof(bool);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static void CopyBytes(double value, byte[] buffer, ref int offset)
         {
             Array.Copy(BitConverter.GetBytes(value), 0, buffer, offset, sizeof(double));
             offset += sizeof(double);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static void CopyBytes(float value, byte[] buffer, ref int offset)
         {
             Array.Copy(BitConverter.GetBytes(value), 0, buffer, offset, sizeof(float));
@@ -471,12 +476,14 @@ namespace Common.RPC.BufferSerializer
             offset += sizeof(long);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static void CopyBytes(short value, byte[] buffer, ref int offset)
         {
             Array.Copy(BitConverter.GetBytes(value), 0, buffer, offset, sizeof(short));
             offset += sizeof(short);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static void CopyBytes(DateTime value, byte[] buffer, ref int offset)
         {
             long longValue = (long)(value - MIN_TIME).TotalMilliseconds;
@@ -515,6 +522,7 @@ namespace Common.RPC.BufferSerializer
             return data;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static byte GetByte(byte[] buffer, ref int offset)
         {
             byte data = buffer[offset];
@@ -531,6 +539,7 @@ namespace Common.RPC.BufferSerializer
             return data;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static bool GetBoolean(byte[] buffer, ref int offset)
         {
             bool data = BitConverter.ToBoolean(buffer, offset);
@@ -539,6 +548,7 @@ namespace Common.RPC.BufferSerializer
             return data;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static double GetDouble(byte[] buffer, ref int offset)
         {
             double data = BitConverter.ToDouble(buffer, offset);
@@ -547,6 +557,7 @@ namespace Common.RPC.BufferSerializer
             return data;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static float GetSingle(byte[] buffer, ref int offset)
         {
             float data = BitConverter.ToSingle(buffer, offset);
@@ -555,6 +566,7 @@ namespace Common.RPC.BufferSerializer
             return data;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static long GetInt64(byte[] buffer, ref int offset)
         {
             long data = BitConverter.ToInt64(buffer, offset);
@@ -563,6 +575,7 @@ namespace Common.RPC.BufferSerializer
             return data;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static short GetInt16(byte[] buffer, ref int offset)
         {
             short data = BitConverter.ToInt16(buffer, offset);

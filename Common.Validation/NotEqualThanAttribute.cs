@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Common.Validation
 {
@@ -44,9 +43,9 @@ namespace Common.Validation
         /// 获取不等于的指定值的文本形式
         /// </summary>
         /// <param name="validationContext">验证器上下文</param>
-        /// <param name="m_notEqualThanValue">指定值</param>
+        /// <param name="notEqualThanValue">指定值</param>
         /// <returns></returns>
-        protected virtual string GetNotEqualThanText(ValidationContext validationContext, object m_notEqualThanValue)
+        protected virtual string GetNotEqualThanText(ValidationContext validationContext, object notEqualThanValue)
         {
             return m_notEqualThanValue.ToString();
         }
@@ -55,11 +54,11 @@ namespace Common.Validation
         /// 获取不等于的指定值
         /// </summary>
         /// <param name="validationContext">验证器上下文</param>
-        /// <param name="m_notEqualThanValue">指定值</param>
+        /// <param name="notEqualThanValue">指定值</param>
         /// <returns></returns>
-        protected virtual object GetNotEqualThanValue(ValidationContext validationContext, object m_notEqualThanValue)
+        protected virtual object GetNotEqualThanValue(ValidationContext validationContext, object notEqualThanValue)
         {
-            return m_notEqualThanValue;
+            return notEqualThanValue;
         }
     }
 }

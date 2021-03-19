@@ -1,7 +1,7 @@
-﻿using Common.MessageQueueClient;
-using System;
+﻿using System;
+using Common.MessageQueueClient;
 
-namespace Common.Log
+namespace Common.Log.LogModel
 {
     /// <summary>
     /// 日志接口基类

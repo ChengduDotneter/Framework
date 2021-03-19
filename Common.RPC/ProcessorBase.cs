@@ -244,10 +244,13 @@ namespace Common.RPC
             lock (m_taskWaits)
                 m_taskWaits.Add(sessionID, taskBody);
 
-            m_sendProcessors[serviceClient.GetHashCode()].SendSessionData(sessionID, sendData);
+            lock (m_sendProcessors)
+                m_sendProcessors[serviceClient.GetHashCode()].SendSessionData(sessionID, sendData);
+
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(m_requestTimeout);
 
-            return Task.Factory.StartNew(Wait, new object[] { taskBody, cancellationTokenSource }, cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(Callback);
+            return Task.Factory.StartNew(Wait, new object[] { taskBody, cancellationTokenSource }, cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).
+                        ContinueWith(Callback);
         }
 
         /// <summary>
@@ -271,7 +274,9 @@ namespace Common.RPC
             lock (m_taskWaits)
                 m_taskWaits.Add(sessionID, taskBody);
 
-            m_sendProcessors[serviceClient.GetHashCode()].SendSessionData(sessionID, sendData);
+            lock (m_sendProcessors)
+                m_sendProcessors[serviceClient.GetHashCode()].SendSessionData(sessionID, sendData);
+
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(m_requestTimeout);
 
             while (!cancellationTokenSource.Token.IsCancellationRequested && !taskBody.IsResponses)

@@ -1,6 +1,8 @@
 ﻿using Common.Log.LogModel;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using Common.Log.KafkaLog;
+using Common.Log.Log4netLog;
 
 namespace Common.Log
 {

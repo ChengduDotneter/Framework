@@ -45,6 +45,7 @@ namespace Common.Model
         {
             if (reader.TryGetSingle(out float number))
             {
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
                 if (number == (int)number)
                     return (int)number;
                 else

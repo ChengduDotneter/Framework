@@ -6,12 +6,14 @@ using Common.Model;
 using Common.ServiceCommon;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+// ReSharper disable UnusedVariable
+// ReSharper disable HeuristicUnreachableCode
+// ReSharper disable UnusedMember.Local
+#pragma warning disable 162
 
 namespace TestWebAPI.Controllers
 {

@@ -1,10 +1,10 @@
-﻿using Common.DAL;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using Common.DAL;
 using Common.Model;
 using Common.Validation;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
-namespace MicroService.StorageService.Model
+namespace TestWebAPI
 {
     /// <summary>
     /// 库存模型
@@ -22,15 +22,6 @@ namespace MicroService.StorageService.Model
         [Display(Name = "仓库ID")]
         public long? WarehouseID { get; set; }
 
-        /// <summary>
-        /// 关联仓库实体
-        /// </summary>
-        //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
-        //public WarehouseInfo Warehouse { get; set; }
-
-        /// <summary>
-        /// 关联商品实体
-        /// </summary>
         //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         //public SupplierCommodity SupplierCommodity { get; set; }
 
@@ -59,9 +50,6 @@ namespace MicroService.StorageService.Model
         [Display(Name = "数量")]
         public decimal? Number { get; set; }
 
-        /// <summary>
-        /// 库存规格列表
-        /// </summary>
         //[MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         //public IEnumerable<StockSpecification> StockSpecifications { get; set; }
     }

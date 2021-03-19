@@ -20,7 +20,7 @@ namespace Common.Lock
             /// <summary>
             /// ConsulClient
             /// </summary>
-            private IConsulClient m_consulClient;
+            private IConsulClient m_instanceConsulClient;
 
             /// <summary>
             /// SessionID
@@ -39,17 +39,17 @@ namespace Common.Lock
 
             public LockInstance(IConsulClient consulClient)
             {
-                m_consulClient = consulClient;
+                m_instanceConsulClient = consulClient;
                 Locks = new ConcurrentDictionary<string, IDistributedLock>();
-                WriteResult<string> sessionRequest = m_consulClient.Session.Create(new SessionEntry() { TTL = TTL, LockDelay = TimeSpan.FromMilliseconds(1) }).Result;
+                WriteResult<string> sessionRequest = m_instanceConsulClient.Session.Create(new SessionEntry() { TTL = TTL, LockDelay = TimeSpan.FromMilliseconds(1) }).Result;
                 SessionID = sessionRequest.Response;
                 CancellationTokenSource = new CancellationTokenSource();
-                m_consulClient.Session.RenewPeriodic(TTL, SessionID, CancellationTokenSource.Token);
+                m_instanceConsulClient.Session.RenewPeriodic(TTL, SessionID, CancellationTokenSource.Token);
             }
 
             public void Dispose()
             {
-                m_consulClient.Session.Destroy(SessionID);
+                m_instanceConsulClient.Session.Destroy(SessionID);
                 CancellationTokenSource.Cancel();
                 CancellationTokenSource.Dispose();
             }

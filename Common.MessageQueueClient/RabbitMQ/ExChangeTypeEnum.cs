@@ -1,4 +1,4 @@
-﻿namespace Common.MessageQueueClient
+﻿namespace Common.MessageQueueClient.RabbitMQ
 {
     /// <summary>
     /// 转换类型枚举

@@ -67,6 +67,7 @@ namespace Common.ServiceCommon
         /// 接收消息
         /// </summary>
         /// <param name="parameter"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task RecieveMessage(T parameter, CancellationToken cancellationToken);
 
@@ -101,7 +102,7 @@ namespace Common.ServiceCommon
 
                 if (method != null)
                 {
-                    Func<TRequest, Expression<Func<TSearchData, bool>>> predicateLinq = method.Invoke(null, null) as Func<TRequest, Expression<Func<TSearchData, bool>>> ?? null;
+                    Func<TRequest, Expression<Func<TSearchData, bool>>> predicateLinq = method.Invoke(null, null) as Func<TRequest, Expression<Func<TSearchData, bool>>>;
 
                     if (predicateLinq != null)
                         return predicateLinq(queryCondition);

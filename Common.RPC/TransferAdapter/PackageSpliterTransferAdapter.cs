@@ -122,7 +122,7 @@ namespace Common.RPC.TransferAdapter
 
                     if (packageDataCache.IndexSet.Count == packageData.PackageCount)
                     {
-                        m_packageDataCaches.TryRemove(packageData.PackageID, out PackageDataCache removePackageDataCache);
+                        m_packageDataCaches.TryRemove(packageData.PackageID, out _);
                         OnBufferRecieved?.Invoke(sessionContext, packageDataCache.Buffer);
                     }
                 }
@@ -161,7 +161,7 @@ namespace Common.RPC.TransferAdapter
                     for (int i = 0; i < sessionIDs.Length; i++)
                     {
                         if (m_packageDataCaches.TryGetValue(sessionIDs[i], out PackageDataCache packageDataCache) && Environment.TickCount - packageDataCache.LastRefreshTime > CLEAR_TIME_OUT)
-                            m_packageDataCaches.TryRemove(sessionIDs[i], out PackageDataCache removePackageDataCache);
+                            m_packageDataCaches.TryRemove(sessionIDs[i], out _);
                     }
                 }
 

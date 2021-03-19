@@ -1,4 +1,4 @@
-﻿namespace Common.Log
+﻿namespace Common.Log.LogModel
 {
     /// <summary>
     /// TCC服务日志实体类

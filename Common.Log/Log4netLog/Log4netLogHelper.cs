@@ -1,8 +1,8 @@
-﻿using log4net;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using log4net;
 
-namespace Common.Log
+namespace Common.Log.Log4netLog
 {
     /// <summary>
     /// Log4net日志操作类

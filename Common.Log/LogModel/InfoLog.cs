@@ -1,4 +1,4 @@
-﻿namespace Common.Log
+﻿namespace Common.Log.LogModel
 {
     /// <summary>
     /// 接口运行日志实体类

@@ -37,13 +37,6 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        ///
-        /// </summary>
-        public EnumTypeController()
-        {
-        }
-
-        /// <summary>
         /// 通过实体类名和属性名获取枚举集合
         /// </summary>
         /// <param name="objectName">实体类名</param>

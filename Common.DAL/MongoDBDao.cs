@@ -244,7 +244,8 @@ namespace Common.DAL
 
                 try
                 {
-                    return (IQueryable)typeof(MongoQueryableProvider).GetMethod("CreateQuery", 1, new Type[] { typeof(Expression) }).MakeGenericMethod(elementType).Invoke(this, new object[] { expression });
+                    return (IQueryable)typeof(MongoQueryableProvider).GetMethod("CreateQuery", 1, new Type[] { typeof(Expression) }).MakeGenericMethod(elementType).
+                                                                      Invoke(this, new object[] { expression });
                 }
                 catch (TargetInvocationException tie)
                 {
@@ -353,7 +354,8 @@ namespace Common.DAL
                     throw new NotSupportedException();
 
                 QueryableExecutionModel queryableExecutionModel = (QueryableExecutionModel)constantExpression.Value;
-                IEnumerable<BsonDocument> stages = (IEnumerable<BsonDocument>)typeof(AggregateQueryableExecutionModel<>).MakeGenericType(queryableExecutionModel.OutputType).GetProperty("Stages").GetValue(queryableExecutionModel);
+                IEnumerable<BsonDocument> stages = (IEnumerable<BsonDocument>)typeof(AggregateQueryableExecutionModel<>).MakeGenericType(queryableExecutionModel.OutputType).GetProperty("Stages").
+                                                                                                                         GetValue(queryableExecutionModel);
                 UpdateLookup(stages, m_joinItems);
 
                 DaoFactory.LogHelper.Info("mongoDB", queryableExecutionModel.ToString());
@@ -403,30 +405,36 @@ namespace Common.DAL
                         { $"{referenceKey}", $"${localField}" }
                     }));
 
-                    BsonArray pipline = new BsonArray { new BsonDocument("$match", new BsonDocument("$expr", new BsonDocument("$and", new BsonArray
+                    BsonArray pipline = new BsonArray
                     {
-                        new BsonDocument("$eq", new BsonArray { $"${foreignField}", $"$${referenceKey}" })
-                    })))};
+                        new BsonDocument("$match", new BsonDocument("$expr", new BsonDocument("$and", new BsonArray
+                        {
+                            new BsonDocument("$eq", new BsonArray { $"${foreignField}", $"$${referenceKey}" })
+                        })))
+                    };
 
                     if (joinItems.ContainsKey(key))
                     {
                         JoinItem joinItem = joinItems[key];
                         QueryableExecutionModel queryableExecutionModel = ((IMongoQueryable)joinItem.MongoQueryable.Provider.CreateQuery(joinItem.Expression)).GetExecutionModel();
-                        IEnumerable<BsonDocument> joinMatchs = (IEnumerable<BsonDocument>)typeof(AggregateQueryableExecutionModel<>).MakeGenericType(queryableExecutionModel.OutputType).GetProperty("Stages")
-                                                               .GetValue(queryableExecutionModel);
+                        IEnumerable<BsonDocument> joinMatchs = (IEnumerable<BsonDocument>)typeof(AggregateQueryableExecutionModel<>).MakeGenericType(queryableExecutionModel.OutputType).
+                            GetProperty("Stages").GetValue(queryableExecutionModel);
 
                         pipline.AddRange(joinMatchs);
                     }
 
                     lookupValue.Add(new BsonElement("pipeline",
-                        pipline));
+                                                    pipline));
                 }
             }
 
             private static Type GetSequenceElementType(Type type)
             {
                 Type ienum = FindIEnumerable(type);
-                if (ienum == null) { return type; }
+                if (ienum == null)
+                {
+                    return type;
+                }
                 return ienum.GetTypeInfo().GetGenericArguments()[0];
             }
 
@@ -461,12 +469,16 @@ namespace Common.DAL
                 }
 
                 Type[] ifaces = seqTypeInfo.GetInterfaces();
-                if (ifaces != null && ifaces.Length > 0)
+
+                if (ifaces.Length > 0)
                 {
                     foreach (Type iface in ifaces)
                     {
                         Type ienum = FindIEnumerable(iface);
-                        if (ienum != null) { return ienum; }
+                        if (ienum != null)
+                        {
+                            return ienum;
+                        }
                     }
                 }
 
@@ -571,7 +583,8 @@ namespace Common.DAL
                             FindOneAndReplace(Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i], new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
                     else
                         GetCollection(m_masterMongoDatabase, systemID).
-                            FindOneAndReplace(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i], new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
+                            FindOneAndReplace(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i],
+                                              new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
                 }
             }
 
@@ -590,9 +603,12 @@ namespace Common.DAL
                 for (int i = 0; i < datas.Length; i++)
                 {
                     if (!inTransaction)
-                        tasks[i] = GetCollection(m_masterMongoDatabase, systemID).FindOneAndReplaceAsync(Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i], new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
+                        tasks[i] = GetCollection(m_masterMongoDatabase, systemID).
+                            FindOneAndReplaceAsync(Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i], new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
                     else
-                        tasks[i] = GetCollection(m_masterMongoDatabase, systemID).FindOneAndReplaceAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i], new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
+                        tasks[i] = GetCollection(m_masterMongoDatabase, systemID).FindOneAndReplaceAsync(((MongoDBTransaction)transaction).ClientSessionHandle,
+                                                                                                         Builders<T>.Filter.Eq(nameof(IEntity.ID), datas[i].ID), datas[i],
+                                                                                                         new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
                 }
 
                 await Task.WhenAll(tasks);
@@ -621,7 +637,8 @@ namespace Common.DAL
 
             public void Update(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
-                DaoFactory.LogHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, updateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
+                DaoFactory.LogHelper.Info("mongoDB",
+                                          $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, updateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
 
                 IEnumerable<long> ids = null;
 
@@ -637,7 +654,7 @@ namespace Common.DAL
                     ids = GetQueryable(systemID, transaction).Where(predicate).Select(item => item.ID).ToList();
                 }
 
-                if (ids == null || ids.Count() == 0)
+                if (ids.Count() == 0)
                     return;
 
                 bool inTransaction = WriteApply<T>(transaction, systemID, ids);
@@ -673,7 +690,8 @@ namespace Common.DAL
                 if (!inTransaction)
                     await GetCollection(m_masterMongoDatabase, systemID).ReplaceOneAsync(Builders<T>.Filter.Eq(nameof(IEntity.ID), data.ID), data);
                 else
-                    await GetCollection(m_masterMongoDatabase, systemID).ReplaceOneAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), data.ID), data);
+                    await GetCollection(m_masterMongoDatabase, systemID).
+                        ReplaceOneAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), data.ID), data);
             }
 
             public Task UpdateAsync(T data, ITransaction transaction = null)
@@ -683,7 +701,8 @@ namespace Common.DAL
 
             public async Task UpdateAsync(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
-                await DaoFactory.LogHelper.Info("mongoDB", $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, updateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
+                await DaoFactory.LogHelper.Info("mongoDB",
+                                                $"update predicate: {predicate}{Environment.NewLine}values: {Environment.NewLine}{string.Join(Environment.NewLine, updateDictionary.Select(item => $"{item.Key}: {item.Value}"))}");
 
                 IEnumerable<long> ids = null;
 
@@ -699,7 +718,7 @@ namespace Common.DAL
                     ids = (await GetQueryableAsync(systemID, transaction)).Where(predicate).Select(item => item.ID).ToList();
                 }
 
-                if (ids == null || ids.Count() == 0)
+                if (ids.Count() == 0)
                     return;
 
                 bool inTransaction = await WriteApplyAsync<T>(transaction, systemID, ids);
@@ -822,7 +841,7 @@ namespace Common.DAL
                 await DaoFactory.LogHelper.Info("mongoDB", $"get id: {id}");
 
                 return await (await GetCollection(m_masterMongoDatabase, systemID).
-                    FindAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), id))).FirstOrDefaultAsync();
+                                  FindAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), id))).FirstOrDefaultAsync();
             }
 
             public Task<T> GetAsync(long id, ITransaction transaction, bool forUpdate = false)
@@ -899,10 +918,11 @@ namespace Common.DAL
                                          int count = int.MaxValue,
                                          bool forUpdate = false)
             {
-                DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
+                DaoFactory.LogHelper.Info("mongoDB",
+                                          $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
                 IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase, systemID).
-                    Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
+                                               Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
 
                 IEnumerable<long> ids = findFluent.GetIDProjectFluent().Skip(startIndex).Limit(count).ToList().Select(item => item.ID);
 
@@ -928,7 +948,8 @@ namespace Common.DAL
                                          int count = int.MaxValue,
                                          IDBResourceContent dbResourceContent = null)
             {
-                DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
+                DaoFactory.LogHelper.Info("mongoDB",
+                                          $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
                 IFindFluent<T, T> findFluent = GetCollection(m_slaveMongoDatabase, systemID).Find(predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
 
@@ -952,10 +973,11 @@ namespace Common.DAL
                                                           int count = int.MaxValue,
                                                           bool forUpdate = false)
             {
-                await DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
+                await DaoFactory.LogHelper.Info("mongoDB",
+                                                $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
                 IFindFluent<T, T> findFluent = GetCollection(m_masterMongoDatabase, systemID).
-                    Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
+                                               Find(((MongoDBTransaction)transaction).ClientSessionHandle, predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
 
                 IEnumerable<long> ids = (await findFluent.GetIDProjectFluent().Skip(startIndex).Limit(count).ToListAsync()).Select(item => item.ID);
 
@@ -981,7 +1003,8 @@ namespace Common.DAL
                                                           int count = int.MaxValue,
                                                           IDBResourceContent dbResourceContent = null)
             {
-                await DaoFactory.LogHelper.Info("mongoDB", $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
+                await DaoFactory.LogHelper.Info("mongoDB",
+                                                $"search{Environment.NewLine}predicate: {predicate}{Environment.NewLine}orderBy: {GetOrderByString(queryOrderBies)}{Environment.NewLine}startIndex: {startIndex}{Environment.NewLine}count: {count}");
 
                 IFindFluent<T, T> findFluent = GetCollection(m_slaveMongoDatabase, systemID).Find(predicate ?? EMPTY_PREDICATE).GetSortFluent(queryOrderBies);
 
@@ -989,10 +1012,10 @@ namespace Common.DAL
             }
 
             public Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null,
-                                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
-                                                          int startIndex = 0,
-                                                          int count = int.MaxValue,
-                                                          IDBResourceContent dbResourceContent = null)
+                                                    IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
+                                                    int startIndex = 0,
+                                                    int count = int.MaxValue,
+                                                    IDBResourceContent dbResourceContent = null)
             {
                 return SearchAsync(string.Empty, predicate, queryOrderBies, startIndex, count, dbResourceContent);
             }
@@ -1109,7 +1132,7 @@ namespace Common.DAL
         }
 
         public static IEditQuery<T> GetMongoDBEditQuery<T>()
-           where T : class, IEntity, new()
+            where T : class, IEntity, new()
         {
             return new MongoDBDaoInstance<T>();
         }
