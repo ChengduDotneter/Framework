@@ -93,6 +93,33 @@ namespace Common.ServiceCommon
         public string ErrorMessage { get; set; }
         public string FilePath { get; set; }
     }
+    
+    /// <summary>
+    /// 数据导入请求
+    /// </summary>
+    public class ImportRequest
+    {
+        public string FileName { get; set; }
+    }
+
+    /// <summary>
+    /// 分区数据导入请求
+    /// </summary>
+    public class SystemImportRequest : ImportRequest
+    {
+        public string SystemID { get; set; }
+    }
+
+    /// <summary>
+    /// 导入结果
+    /// </summary>
+    public class ImportResult
+    {
+        public int TotalCount { get; set; }
+        public int WriteCount { get; set; }
+        public ImportStatusTypeEnum ImportStatus { get; set; }
+        public string ErrorMessage { get; set; }
+    }
 
     /// <summary>
     /// 查询消息处理器
