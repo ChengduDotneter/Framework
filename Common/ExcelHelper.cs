@@ -1,12 +1,29 @@
-﻿using NPOI.HSSF.UserModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System.Data;
 using System.IO;
 using System.Text;
+using NPOI.SS.Util;
 
 namespace Common
 {
+    public class DropDownListDataCollection : Collection<DropDownListData>
+    {
+        public int DataColumn { get; set; }
+        public DropDownListDataCollection(IList<DropDownListData> dropDownListDatas) : base(dropDownListDatas) { }
+        public DropDownListDataCollection() { }
+    }
+
+    public class DropDownListData
+    {
+        public DropDownListDataCollection Children { get; set; }
+        public string Data { get; set; }
+    }
+
     /// <summary>
     /// Excel帮助类
     /// </summary>
@@ -109,18 +126,112 @@ namespace Common
             return dataTable;
         }
 
+        private static void CreateDropDwonListData(IWorkbook workbook,
+                                                   IEnumerable<ISheet> dataSheets,
+                                                   ISheet dropDownListDataSheet,
+                                                   string firstColumnName,
+                                                   string source,
+                                                   IEnumerable<DropDownListDataCollection> dropDownListDataCollections,
+                                                   ref int rowIndex,
+                                                   bool first = true)
+        {
+            foreach (DropDownListDataCollection dropDownListDataCollection in dropDownListDataCollections)
+            {
+                IName range = workbook.CreateName();
+                range.RefersToFormula = $"{dropDownListDataSheet.SheetName}!$A${rowIndex + 1}:${GetExcelColumnName(dropDownListDataCollection.Count)}${rowIndex + 1}";
+
+                if (first)
+                    range.NameName = $"{firstColumnName}{dropDownListDataCollection.DataColumn}";
+                else
+                    range.NameName = firstColumnName;
+
+                if (first)
+                {
+                    foreach (ISheet dataSheet in dataSheets)
+                    {
+                        if (dataSheet.LastRowNum > 0)
+                        {
+                            IDataValidationHelper helper = dataSheet.GetDataValidationHelper();
+                            CellRangeAddressList regions = new CellRangeAddressList(1, dataSheet.LastRowNum, dropDownListDataCollection.DataColumn, dropDownListDataCollection.DataColumn);
+                            IDataValidationConstraint constraint = helper.CreateFormulaListConstraint(range.NameName);
+                            IDataValidation dataValidate = helper.CreateValidation(constraint, regions);
+                            dataValidate.SuppressDropDownArrow = true;
+                            dataValidate.CreateErrorBox("输入不合法", "请选择下拉列表中的值。");
+                            dataValidate.ShowErrorBox = true;
+                            dataSheet.AddValidationData(dataValidate);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (ISheet dataSheet in dataSheets)
+                    {
+                        for (int i = 1; i < dataSheet.LastRowNum; i++)
+                        {
+                            IDataValidationHelper helper = dataSheet.GetDataValidationHelper();
+                            CellRangeAddressList regions = new CellRangeAddressList(i, i, dropDownListDataCollection.DataColumn, dropDownListDataCollection.DataColumn);
+                            IDataValidationConstraint constraint = helper.CreateFormulaListConstraint(string.Format(source, i + 1));
+                            IDataValidation dataValidate = helper.CreateValidation(constraint, regions);
+                            dataValidate.SuppressDropDownArrow = true;
+                            dataValidate.CreateErrorBox("输入不合法", "请选择下拉列表中的值。");
+                            dataValidate.ShowErrorBox = true;
+                            dataSheet.AddValidationData(dataValidate);
+                        }
+                    }
+                }
+
+                int cellIndex = 0;
+                IRow constraintRow = dropDownListDataSheet.CreateRow(rowIndex++);
+
+                foreach (DropDownListData dropDownListData in dropDownListDataCollection)
+                {
+                    constraintRow.CreateCell(cellIndex++).SetCellValue(dropDownListData.Data);
+
+                    if (dropDownListData.Children != null)
+                    {
+                        CreateDropDwonListData(workbook,
+                                               dataSheets,
+                                               dropDownListDataSheet,
+                                               dropDownListData.Data,
+                                               $"INDIRECT(${GetExcelColumnName(dropDownListDataCollection.DataColumn + 1)}${{0}})",
+                                               new[] { dropDownListData.Children },
+                                               ref rowIndex,
+                                               false);
+                    }
+                }
+            }
+        }
+
+        private static string GetExcelColumnName(int columnNumber)
+        {
+            int dividend = columnNumber;
+            string columnName = string.Empty;
+            int modulo;
+
+            while (dividend > 0)
+            {
+                modulo = (dividend - 1) % 26;
+                columnName = Convert.ToChar(65 + modulo).ToString() + columnName;
+                dividend = (dividend - modulo) / 26;
+            }
+
+            return columnName;
+        }
+
         /// <summary>
         /// 将DataTable转换为excel2003格式。
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="sheetName"></param>
+        /// <param name="dropDownListDataCollections"></param>
         /// <returns></returns>
-        public static byte[] DataTableToExcelByte(DataTable dt, string sheetName)
+        public static byte[] DataTableToExcelByte(DataTable dt, string sheetName, IEnumerable<DropDownListDataCollection> dropDownListDataCollections = null)
         {
             IWorkbook book = new XSSFWorkbook();
+            IList<ISheet> sheets = new List<ISheet>();
 
             if (dt.Rows.Count < EXCEL03_MaxRow)
-                DataWrite2Sheet(dt, 0, dt.Rows.Count - 1, book, sheetName);
+                sheets.Add(DataWrite2Sheet(dt, 0, dt.Rows.Count - 1, book, sheetName));
             else
             {
                 int page = dt.Rows.Count / EXCEL03_MaxRow;
@@ -131,21 +242,31 @@ namespace Common
 
                     int end = (i * EXCEL03_MaxRow) + EXCEL03_MaxRow - 1;
 
-                    DataWrite2Sheet(dt, start, end, book, sheetName + i.ToString());
+                    sheets.Add(DataWrite2Sheet(dt, start, end, book, sheetName + i.ToString()));
                 }
                 int lastPageItemCount = dt.Rows.Count % EXCEL03_MaxRow;
 
-                DataWrite2Sheet(dt, dt.Rows.Count - lastPageItemCount, dt.Rows.Count - 1, book, sheetName + page.ToString());
+                sheets.Add(DataWrite2Sheet(dt, dt.Rows.Count - lastPageItemCount, dt.Rows.Count - 1, book, sheetName + page.ToString()));
             }
 
-            MemoryStream ms = new MemoryStream();
+            if (dropDownListDataCollections != null)
+            {
+                int dropDownListRowIndex = 0;
+                ISheet constraintSheet = book.CreateSheet("constraint_sheet");
+                int hiddenSheetIndex = book.GetSheetIndex(constraintSheet);
+                book.SetSheetHidden(hiddenSheetIndex, SheetState.Hidden);
+                CreateDropDwonListData(book, sheets, constraintSheet, "dropDownList", "dropDownList", dropDownListDataCollections, ref dropDownListRowIndex);
+            }
+
+            using MemoryStream ms = new MemoryStream();
 
             book.Write(ms);
+            book.Close();
 
             return ms.ToArray();
         }
 
-        private static void DataWrite2Sheet(DataTable dt, int startRow, int endRow, IWorkbook book, string sheetName)
+        private static ISheet DataWrite2Sheet(DataTable dt, int startRow, int endRow, IWorkbook book, string sheetName)
         {
             ISheet sheet = book.CreateSheet(sheetName);
 
@@ -173,6 +294,8 @@ namespace Common
                     excelRow.CreateCell(j).SetCellValue(dtRow[j].ToString());
                 }
             }
+
+            return sheet;
         }
 
         /// <summary>
@@ -211,6 +334,7 @@ namespace Common
             int rowIndex = 0;
             foreach (DataRow row in dtSource.Rows)
             {
+
                 #region 新建表，填充表头，填充列头，样式
 
                 if (rowIndex == 65535 || rowIndex == 0)

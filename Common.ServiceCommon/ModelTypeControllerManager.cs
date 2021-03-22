@@ -146,20 +146,25 @@ namespace Common.ServiceCommon
                     if (linqSearchAttribute != null)
                         requestTypeFullName = linqSearchAttribute.SearchType.FullName;
 
-                    stringBuilder.AppendLine(string.Format(CONTROLLER_SEARCH_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName, requestTypeFullName, AppDomain.CurrentDomain.FriendlyName));
+                    stringBuilder.AppendLine(string.Format(CONTROLLER_SEARCH_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
+                                                           requestTypeFullName, AppDomain.CurrentDomain.FriendlyName));
                 }
 
                 if (!m_actionPaths.Contains(actionGetPath) && !(ignoreBuildControllerAttribute?.IgnoreGet ?? false))
-                    stringBuilder.AppendLine(string.Format(CONTROLLER_GET_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName, AppDomain.CurrentDomain.FriendlyName));
+                    stringBuilder.AppendLine(string.Format(CONTROLLER_GET_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
+                                                           AppDomain.CurrentDomain.FriendlyName));
 
                 if (!m_actionPaths.Contains(actionPostPath) && !(ignoreBuildControllerAttribute?.IgnorePost ?? false))
-                    stringBuilder.AppendLine(string.Format(CONTROLLER_POST_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName, AppDomain.CurrentDomain.FriendlyName));
+                    stringBuilder.AppendLine(string.Format(CONTROLLER_POST_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
+                                                           AppDomain.CurrentDomain.FriendlyName));
 
                 if (!m_actionPaths.Contains(actionPutPath) && !(ignoreBuildControllerAttribute?.IgnorePut ?? false))
-                    stringBuilder.AppendLine(string.Format(CONTROLLER_PUT_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName, AppDomain.CurrentDomain.FriendlyName));
+                    stringBuilder.AppendLine(string.Format(CONTROLLER_PUT_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
+                                                           AppDomain.CurrentDomain.FriendlyName));
 
                 if (!m_actionPaths.Contains(actionDeletePath) && !(ignoreBuildControllerAttribute?.IgnoreDelete ?? false))
-                    stringBuilder.AppendLine(string.Format(CONTROLLER_DELETE_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName, AppDomain.CurrentDomain.FriendlyName));
+                    stringBuilder.AppendLine(string.Format(CONTROLLER_DELETE_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
+                                                           AppDomain.CurrentDomain.FriendlyName));
             }
 
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(stringBuilder.ToString());
@@ -169,7 +174,7 @@ namespace Common.ServiceCommon
             {
                 try
                 {
-                    if (string.IsNullOrWhiteSpace(assembly.Location))
+                    if (assembly.IsDynamic || string.IsNullOrWhiteSpace(assembly.Location))
                         continue;
 
                     portableExecutableReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
@@ -181,10 +186,9 @@ namespace Common.ServiceCommon
             }
 
             CSharpCompilation compilation = CSharpCompilation.Create(
-                "DynamicController",
-                new[] { syntaxTree },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-            .AddReferences(portableExecutableReferences);
+                                                                     "DynamicController",
+                                                                     new[] { syntaxTree },
+                                                                     options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).AddReferences(portableExecutableReferences);
 
             using (MemoryStream memoryStream = new MemoryStream())
             {

@@ -25,7 +25,9 @@ namespace Common
             {
                 try
                 {
-                    if (Path.GetDirectoryName(loadedAssembly.Location) != null && !Path.GetDirectoryName(loadedAssembly.Location).Contains(Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory)))
+                    if (loadedAssembly.IsDynamic ||
+                        (Path.GetDirectoryName(loadedAssembly.Location) != null &&
+                         !Path.GetDirectoryName(loadedAssembly.Location).Contains(Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory))))
                         continue;
 
                     IList<Assembly> assemblies = new List<Assembly>();

@@ -84,14 +84,14 @@ namespace Common.ServiceCommon
             for (int i = 0; i < dynamicControllerTypes.Length; i++)
             {
                 //判断该接口类是否继承POSTControllerr基类
-                bool isPost = dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPostController<,>)
-                    || dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPostController<,,>)
-                    || dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPostController<>);
+                bool isPost = dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPostController<,>) ||
+                              dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPostController<,,>) ||
+                              dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPostController<>);
 
                 //判断该接口类是否继承PUTControllerr基类
-                bool isPut = dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPutController<,>)
-                    || dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPutController<,,>)
-                    || dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPutController<>);
+                bool isPut = dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPutController<,>) ||
+                             dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPutController<,,>) ||
+                             dynamicControllerTypes[i].BaseType.GetGenericTypeDefinition() == typeof(MultipleGenericPutController<>);
 
                 var constructors = dynamicControllerTypes[i].GetConstructors();
 
@@ -116,7 +116,8 @@ namespace Common.ServiceCommon
                 var dynamicDtoName = $"DynamicData{baseName}";
 
                 //生成动态DTO类型
-                string dynamicDataType = string.Format(DYNAMIC_DATA_TYPE_TEMPLATE, dynamicDtoName, GetDynamicDataTypeProperty(dynamicControllerTypes[i], isPost, isPut), AppDomain.CurrentDomain.FriendlyName);
+                string dynamicDataType = string.Format(DYNAMIC_DATA_TYPE_TEMPLATE, dynamicDtoName, GetDynamicDataTypeProperty(dynamicControllerTypes[i], isPost, isPut),
+                                                       AppDomain.CurrentDomain.FriendlyName);
 
                 //获取所需的私有属性
                 string dynamicPrivatePropertyString = GetDynamicPrivateProperty(dynamicControllerTypes[i]);
@@ -128,10 +129,10 @@ namespace Common.ServiceCommon
                 string constructorFunctionString = GetConstructorFunction(dynamicControllerTypes[i]);
 
                 //接口执行方法参数
-                string functionParametersString = $" { dynamicDtoName } request";
+                string functionParametersString = $" {dynamicDtoName} request";
 
                 //接口对象名称
-                string controllerObjectString = $"m_{ JsonUtils.PropertyNameToJavaScriptStyle(GetNameByType(dynamicControllerTypes[i]))}";
+                string controllerObjectString = $"m_{JsonUtils.PropertyNameToJavaScriptStyle(GetNameByType(dynamicControllerTypes[i]))}";
 
                 //接口对象方法调用参数
                 string basefunctionParametersString = GetBasefunctionParametersString(dynamicControllerTypes[i], isPost, isPut);
@@ -142,12 +143,16 @@ namespace Common.ServiceCommon
                 //如果接口类型满足以下条件，则将POST接口字符串加入字符串构造器
                 if (isPost)
                     stringBuilder.AppendLine(string.Format(DYNAMIC_CONTROLLER_POST_TEMPLATE, baseName, dynamicPrivatePropertyString, constructorParametersString,
-                    constructorFunctionString, functionParametersString, controllerObjectString, basefunctionParametersString, ((DynamicRouteAttribute)routeAttribute).Route, AppDomain.CurrentDomain.FriendlyName, dynamicControllerTypes[i].GetCustomAttributes<SkipValidationAttribute>().Count() > 0 ? SKIP_VALIDATION : null));
+                                                           constructorFunctionString, functionParametersString, controllerObjectString, basefunctionParametersString,
+                                                           ((DynamicRouteAttribute)routeAttribute).Route, AppDomain.CurrentDomain.FriendlyName,
+                                                           dynamicControllerTypes[i].GetCustomAttributes<SkipValidationAttribute>().Count() > 0 ? SKIP_VALIDATION : null));
 
                 //如果接口类型满足以下条件，则将PUT接口字符串加入字符串构造器
                 if (isPut)
                     stringBuilder.AppendLine(string.Format(DYNAMIC_CONTROLLER_PUT_TEMPLATE, baseName, dynamicPrivatePropertyString, constructorParametersString,
-                    constructorFunctionString, functionParametersString, controllerObjectString, basefunctionParametersString, ((DynamicRouteAttribute)routeAttribute).Route, AppDomain.CurrentDomain.FriendlyName, dynamicControllerTypes[i].GetCustomAttributes<SkipValidationAttribute>().Count() > 0 ? SKIP_VALIDATION : null));
+                                                           constructorFunctionString, functionParametersString, controllerObjectString, basefunctionParametersString,
+                                                           ((DynamicRouteAttribute)routeAttribute).Route, AppDomain.CurrentDomain.FriendlyName,
+                                                           dynamicControllerTypes[i].GetCustomAttributes<SkipValidationAttribute>().Count() > 0 ? SKIP_VALIDATION : null));
             }
 
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(stringBuilder.ToString());
@@ -157,7 +162,7 @@ namespace Common.ServiceCommon
             {
                 try
                 {
-                    if (string.IsNullOrWhiteSpace(assembly.Location))
+                    if (assembly.IsDynamic || string.IsNullOrWhiteSpace(assembly.Location))
                         continue;
 
                     portableExecutableReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
@@ -169,10 +174,10 @@ namespace Common.ServiceCommon
             }
 
             CSharpCompilation compilation = CSharpCompilation.Create(
-                "DynamicController",
-                new[] { syntaxTree },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).
-                AddReferences(portableExecutableReferences);
+                                                                     "DynamicController",
+                                                                     new[] { syntaxTree },
+                                                                     options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).
+                                                              AddReferences(portableExecutableReferences);
 
             using (MemoryStream memoryStream = new MemoryStream())
             {
@@ -181,9 +186,9 @@ namespace Common.ServiceCommon
                 if (!result.Success)
                     throw new Exception(string.Format("动态编译失败。{0}{1}",
                                                       Environment.NewLine,
-                                                      string.Join(Environment.NewLine, result.Diagnostics
-                                                                                             .Where(diagnostics => diagnostics.Severity == DiagnosticSeverity.Error)
-                                                                                             .Select(diagnostics => diagnostics.GetMessage()))));
+                                                      string.Join(Environment.NewLine,
+                                                                  result.Diagnostics.Where(diagnostics => diagnostics.Severity == DiagnosticSeverity.Error).
+                                                                         Select(diagnostics => diagnostics.GetMessage()))));
 
                 memoryStream.Seek(0, SeekOrigin.Begin);
                 return Assembly.Load(memoryStream.ToArray());
@@ -216,15 +221,17 @@ namespace Common.ServiceCommon
 
             IEnumerable<DynamicDisplayAttribute> dynamicDisplayAttributes = dynamicControllerType.GetCustomAttributes<DynamicDisplayAttribute>();
 
-            for (int i = 0; i < parameterInfos?.Length; i++)
+            for (int i = 0; i < parameterInfos.Length; i++)
             {
-                IEnumerable<DynamicDisplayAttribute> parameterDynamicDisplayAttributes = dynamicDisplayAttributes?.Where(
-                    dynamicDisplayAttribute => dynamicDisplayAttribute.ParameterName == parameterInfos[i].Name);
+                int index = i;
+                IEnumerable<DynamicDisplayAttribute> parameterDynamicDisplayAttributes = dynamicDisplayAttributes.Where(
+                                                                                                                         dynamicDisplayAttribute =>
+                                                                                                                             dynamicDisplayAttribute.ParameterName == parameterInfos[index].Name);
 
-                if (parameterDynamicDisplayAttributes?.Count() > 1)
+                if (parameterDynamicDisplayAttributes.Count() > 1)
                     throw new Exception($"{nameof(DynamicDisplayAttribute)}.{nameof(DynamicDisplayAttribute.ParameterName)}重复。");
 
-                DynamicDisplayAttribute dynamicDisplayAttribute = parameterDynamicDisplayAttributes?.FirstOrDefault();
+                DynamicDisplayAttribute dynamicDisplayAttribute = parameterDynamicDisplayAttributes.FirstOrDefault();
 
                 if (dynamicDisplayAttribute != null)
                     stringBuilder.AppendLine($" [System.ComponentModel.DataAnnotations.DisplayAttribute(Name = \"{dynamicDisplayAttribute.DisplayText}\")] ");
@@ -273,8 +280,9 @@ namespace Common.ServiceCommon
 
             if (pubConstrictors.Length == 1)
             {
-                stringBuilder.Append(string.Join(",", pubConstrictors[0].GetParameters()
-                    .Select(item => $"{GetFullTypeNameByType(item.ParameterType)} {JsonUtils.PropertyNameToJavaScriptStyle(item.Name)} ")));
+                stringBuilder.Append(string.Join(",",
+                                                 pubConstrictors[0].GetParameters().
+                                                                    Select(item => $"{GetFullTypeNameByType(item.ParameterType)} {JsonUtils.PropertyNameToJavaScriptStyle(item.Name)} ")));
             }
 
             return stringBuilder.ToString();
