@@ -93,7 +93,7 @@ namespace Common.ServiceCommon
         public string ErrorMessage { get; set; }
         public string FilePath { get; set; }
     }
-    
+
     /// <summary>
     /// 数据导入请求
     /// </summary>
@@ -119,6 +119,8 @@ namespace Common.ServiceCommon
         public int WriteCount { get; set; }
         public ImportStatusTypeEnum ImportStatus { get; set; }
         public string ErrorMessage { get; set; }
+        public int ErrorCount { get; set; }
+        public string ErrorFilePath { get; set; }
     }
 
     /// <summary>

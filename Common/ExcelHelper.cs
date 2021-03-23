@@ -14,8 +14,6 @@ namespace Common
     public class DropDownListDataCollection : Collection<DropDownListData>
     {
         public int DataColumn { get; set; }
-        public DropDownListDataCollection(IList<DropDownListData> dropDownListDatas) : base(dropDownListDatas) { }
-        public DropDownListDataCollection() { }
     }
 
     public class DropDownListData

@@ -4,7 +4,7 @@ namespace Common.Model
     {
         Downloading,
         Writting,
-        Success,
-        Error
+        Error,
+        End
     }
 }
