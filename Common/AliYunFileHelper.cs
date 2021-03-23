@@ -12,104 +12,112 @@ namespace Common
         private static string m_accessKeyId = Convert.ToString(ConfigManager.Configuration["AccessKeyId"]);
         private static string m_endpoint = Convert.ToString(ConfigManager.Configuration["Endpoint"]);
         private static string m_accessKeySecret = Convert.ToString(ConfigManager.Configuration["AccessKeySecret"]);
-        private static string m_bucketName = Convert.ToString(ConfigManager.Configuration["BucketName"]);//Bucket路径
 
         private static OssClient client;
 
         static AliYunFileHelper()
         {
             if (client == null)
-            {
                 client = new OssClient(m_endpoint, m_accessKeyId, m_accessKeySecret);
-                var exist = client.DoesBucketExist(m_bucketName);
+        }
 
-                if (!exist)
-                {
-                    client.CreateBucket(m_bucketName);
-                }
+        private static void CreatureBucketName(string bucketName)
+        {
+            if (!client.DoesBucketExist(bucketName))
+                client.CreateBucket(bucketName);
+        }
+
+        /// <summary>
+        /// 上传本地文件
+        /// </summary>
+        /// <param name="bucketName">阿里云服务器BUCKET</param>
+        /// <param name="localFileName">文件名</param>
+        /// <param name="filePath">本地文件地址</param>
+        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <returns></returns>
+        public static PutObjectResult UploadLocalFile(string bucketName, string localFileName, string filePath, string currentFilePath)
+        {
+            try
+            {
+                CreatureBucketName(bucketName);
+
+                return client.PutObject(bucketName, $"{currentFilePath}/{localFileName}", filePath);
+            }
+            catch (Exception exception)
+            {
+                throw new DealException($"上传文件失败,ERROR:{exception.Message}");
             }
         }
 
         /// <summary>
         /// 上传本地文件
         /// </summary>
+        ///  <param name="bucketName">阿里云服务器BUCKET</param>
         /// <param name="fileName">文件名</param>
         /// <param name="filePath">本地文件地址</param>
         /// <param name="currentFilePath">阿里云服务器文件夹</param>
         /// <returns></returns>
-        public static PutObjectResult UploadLocalFile(string fileName, string filePath, string currentFilePath)
+        public static PutObjectResult UploadFile(string bucketName, byte[] binaryData, string objectName, string currentFilePath)
         {
-            try
-            {
-                return client.PutObject(m_bucketName, $"{currentFilePath}/{fileName}", filePath);
-            }
-            catch
-            {
-                throw new DealException("上传文件失败");
-            }
+            return UploadFile(bucketName, new MemoryStream(binaryData), objectName, currentFilePath);
         }
 
         /// <summary>
         /// 上传文件
         /// </summary>
-        /// <param name="binaryData">上传文件流</param>
-        /// <param name="objectName">上传文件名</param>
-        /// <param name="currentFilePath">阿里云服务器文件夹</param>
-        /// <returns></returns>
-        public static PutObjectResult UploadFile(byte[] binaryData, string objectName, string currentFilePath)
-        {
-            return UploadFile(new MemoryStream(binaryData), objectName, currentFilePath);
-        }
-
-        /// <summary>
-        /// 上传文件
-        /// </summary>
+        /// <param name="bucketName">阿里云服务器BUCKET</param>
         /// <param name="requestContent">文件流</param>
         /// <param name="objectName">上传文件名</param>
         /// <param name="currentFilePath">阿里云服务器文件夹</param>
         /// <returns></returns>
-        public static PutObjectResult UploadFile(MemoryStream requestContent, string objectName, string currentFilePath)
+        public static PutObjectResult UploadFile(string bucketName, MemoryStream requestContent, string objectName, string currentFilePath)
         {
             try
             {
+                CreatureBucketName(bucketName);
+
                 // 上传文件。
-                return client.PutObject(m_bucketName, $"{currentFilePath}/{objectName}", requestContent);
+                return client.PutObject(bucketName, $"{currentFilePath}/{objectName}", requestContent);
             }
-            catch
+            catch (Exception exception)
             {
-                throw new DealException("上传文件失败");
+                throw new DealException($"上传文件失败,ERROR:{exception.Message}");
             }
         }
 
         /// <summary>
         /// 下载文件
         /// </summary>
+        /// <param name="bucketName">阿里云服务器BUCKET</param>
         /// <param name="objectName">文件名</param>
         /// <param name="currentFilePath">阿里云服务器文件夹</param>
         /// <returns></returns>
-        public static Stream DownLoadFile(string objectName, string currentFilePath)
+        public static Stream DownLoadFile(string bucketName, string objectName, string currentFilePath)
         {
             try
             {
-                var obj = client.GetObject(m_bucketName, $"{currentFilePath}/{objectName}");
+                CreatureBucketName(bucketName);
+
+                var obj = client.GetObject(bucketName, $"{currentFilePath}/{objectName}");
 
                 return obj.Content;
             }
-            catch
+            catch (Exception exception)
             {
-                throw new DealException("下载失败，请检查文件是否存在");
+                throw new DealException($"上传文件失败,ERROR:{exception.Message}");
             }
         }
 
         /// <summary>
         /// 判断文件是否存在
         /// </summary>
+        /// <param name="bucketName">阿里云服务器BUCKET</param>
         /// <param name="objectName">文件名</param>
         /// <param name="currentFilePath">阿里云服务器文件夹</param>
         /// <returns></returns>
-        public static bool FileExist(string objectName, string currentFilePath)
+        public static bool FileExist(string bucketName, string objectName, string currentFilePath)
         {
-            return client.DoesObjectExist(m_bucketName, $"{currentFilePath}/{objectName}");
+            return client.DoesObjectExist(bucketName, $"{currentFilePath}/{objectName}");
         }
     }
 }
