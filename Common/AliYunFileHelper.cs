@@ -31,17 +31,16 @@ namespace Common
         /// 上传本地文件
         /// </summary>
         /// <param name="bucketName">阿里云服务器BUCKET</param>
-        /// <param name="localFileName">文件名</param>
-        /// <param name="filePath">本地文件地址</param>
-        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <param name="objectFilePath">阿里云文件路径</param>
+        /// <param name="localFileName">本地文件地址</param>
         /// <returns></returns>
-        public static PutObjectResult UploadLocalFile(string bucketName, string localFileName, string filePath, string currentFilePath)
+        public static PutObjectResult UploadLocalFile(string bucketName, string localFileName, string objectFilePath)
         {
             try
             {
                 CreatureBucketName(bucketName);
 
-                return client.PutObject(bucketName, $"{currentFilePath}/{localFileName}", filePath);
+                return client.PutObject(bucketName, objectFilePath, localFileName);
             }
             catch (Exception exception)
             {
@@ -53,13 +52,12 @@ namespace Common
         /// 上传本地文件
         /// </summary>
         ///  <param name="bucketName">阿里云服务器BUCKET</param>
-        /// <param name="fileName">文件名</param>
-        /// <param name="filePath">本地文件地址</param>
-        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <param name="binaryData">文件流</param>
+        /// <param name="objectFilePath">阿里云文件路径</param>
         /// <returns></returns>
-        public static PutObjectResult UploadFile(string bucketName, byte[] binaryData, string objectName, string currentFilePath)
+        public static PutObjectResult UploadFile(string bucketName, byte[] binaryData, string objectFilePath)
         {
-            return UploadFile(bucketName, new MemoryStream(binaryData), objectName, currentFilePath);
+            return UploadFile(bucketName, new MemoryStream(binaryData), objectFilePath);
         }
 
         /// <summary>
@@ -67,17 +65,16 @@ namespace Common
         /// </summary>
         /// <param name="bucketName">阿里云服务器BUCKET</param>
         /// <param name="requestContent">文件流</param>
-        /// <param name="objectName">上传文件名</param>
-        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <param name="objectFilePath">阿里云文件路径</param>
         /// <returns></returns>
-        public static PutObjectResult UploadFile(string bucketName, MemoryStream requestContent, string objectName, string currentFilePath)
+        public static PutObjectResult UploadFile(string bucketName, MemoryStream requestContent, string objectFilePath)
         {
             try
             {
                 CreatureBucketName(bucketName);
 
                 // 上传文件。
-                return client.PutObject(bucketName, $"{currentFilePath}/{objectName}", requestContent);
+                return client.PutObject(bucketName, objectFilePath, requestContent);
             }
             catch (Exception exception)
             {
@@ -89,16 +86,15 @@ namespace Common
         /// 下载文件
         /// </summary>
         /// <param name="bucketName">阿里云服务器BUCKET</param>
-        /// <param name="objectName">文件名</param>
-        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <param name="objectFilePath">阿里云文件路径</param>
         /// <returns></returns>
-        public static Stream DownLoadFile(string bucketName, string objectName, string currentFilePath)
+        public static Stream DownLoadFile(string bucketName, string objectFilePath)
         {
             try
             {
                 CreatureBucketName(bucketName);
 
-                var obj = client.GetObject(bucketName, $"{currentFilePath}/{objectName}");
+                var obj = client.GetObject(bucketName, objectFilePath);
 
                 return obj.Content;
             }
@@ -112,12 +108,20 @@ namespace Common
         /// 判断文件是否存在
         /// </summary>
         /// <param name="bucketName">阿里云服务器BUCKET</param>
-        /// <param name="objectName">文件名</param>
-        /// <param name="currentFilePath">阿里云服务器文件夹</param>
+        /// <param name="objectFilePath">阿里云文件路径</param>
         /// <returns></returns>
-        public static bool FileExist(string bucketName, string objectName, string currentFilePath)
+        public static bool FileExist(string bucketName, string objectFilePath)
         {
-            return client.DoesObjectExist(bucketName, $"{currentFilePath}/{objectName}");
+            try
+            {
+                CreatureBucketName(bucketName);
+                return client.DoesObjectExist(bucketName, objectFilePath);
+            }
+            catch (Exception exception)
+            {
+                throw new DealException($"判断文件是否存在出错,ERROR:{exception.Message}");
+            }
+            
         }
     }
 }
