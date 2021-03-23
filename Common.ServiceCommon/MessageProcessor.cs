@@ -52,7 +52,7 @@ namespace Common.ServiceCommon
         {
             try
             {
-                return RecieveMessage((T)parameter, cancellationToken);
+                return RecieveMessage(JsonConvert.DeserializeObject<T>((string)parameter), cancellationToken);
             }
             catch (Exception exception)
             {
