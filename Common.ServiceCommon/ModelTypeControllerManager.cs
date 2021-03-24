@@ -148,24 +148,24 @@ namespace Common.ServiceCommon
                         requestTypeFullName = linqSearchAttribute.SearchType.FullName;
 
                     stringBuilder.AppendLine(string.Format(CONTROLLER_SEARCH_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           requestTypeFullName, AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
+                                                           requestTypeFullName, AppDomain.CurrentDomain.FriendlyName, (dontSplitSystemAttribute == null).ToString().ToLower()));
                 }
 
                 if (!m_actionPaths.Contains(actionGetPath) && !(ignoreBuildControllerAttribute?.IgnoreGet ?? false))
                     stringBuilder.AppendLine(string.Format(CONTROLLER_GET_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
+                                                           AppDomain.CurrentDomain.FriendlyName, (dontSplitSystemAttribute == null).ToString().ToLower()));
 
                 if (!m_actionPaths.Contains(actionPostPath) && !(ignoreBuildControllerAttribute?.IgnorePost ?? false))
                     stringBuilder.AppendLine(string.Format(CONTROLLER_POST_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
+                                                           AppDomain.CurrentDomain.FriendlyName, (dontSplitSystemAttribute == null).ToString().ToLower()));
 
                 if (!m_actionPaths.Contains(actionPutPath) && !(ignoreBuildControllerAttribute?.IgnorePut ?? false))
                     stringBuilder.AppendLine(string.Format(CONTROLLER_PUT_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
+                                                           AppDomain.CurrentDomain.FriendlyName, (dontSplitSystemAttribute == null).ToString().ToLower()));
 
                 if (!m_actionPaths.Contains(actionDeletePath) && !(ignoreBuildControllerAttribute?.IgnoreDelete ?? false))
                     stringBuilder.AppendLine(string.Format(CONTROLLER_DELETE_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
+                                                           AppDomain.CurrentDomain.FriendlyName, (dontSplitSystemAttribute == null).ToString().ToLower()));
             }
 
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(stringBuilder.ToString());
