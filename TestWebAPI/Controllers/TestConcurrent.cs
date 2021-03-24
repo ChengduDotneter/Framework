@@ -214,6 +214,9 @@ namespace TestWebAPI.Controllers
                     join right in b on left.ClassID equals right.ID
                     where left.ID > 0
                     select new { id = left.ID, name = left.StudentName, name_class = right.ClassName };
+            
+            a.Dispose();
+            b.Dispose();
 
             var sk = await m_searchQuery.SearchAsync(c);
 
