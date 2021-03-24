@@ -240,7 +240,7 @@ namespace Common.ServiceCommon
         {
             m_searchQuery = searchQuery;
             m_splitSystem = splitSystem;
-            m_dbResourceContent = dbResourceContent ?? HttpContext.RequestServices.GetService<IDBResourceContent>();
+            m_dbResourceContent = dbResourceContent;
         }
 
         /// <summary>
@@ -268,19 +268,22 @@ namespace Common.ServiceCommon
         protected virtual async Task<Tuple<IEnumerable<TResponse>, int>> SearchDatas(PageQuery<TRequest> pageQuery)
         {
             Expression<Func<TResponse, bool>> linq = GetBaseLinq(pageQuery.Condition);
+            IDBResourceContent dbResourceContent = m_dbResourceContent ?? HttpContext.RequestServices.GetService<IDBResourceContent>();
 
             if (HttpContext.CheckSystem(m_splitSystem))
                 return Tuple.Create(await m_searchQuery.SplitBySystemID(HttpContext).
                                                         FilterIsDeleted().
                                                         OrderByIDDesc().
-                                                        SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount, dbResourceContent: m_dbResourceContent),
+                                                        SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount,
+                                                                    dbResourceContent: dbResourceContent),
                                     await m_searchQuery.SplitBySystemID(HttpContext).
                                                         FilterIsDeleted().
                                                         CountAsync(linq, dbResourceContent: m_dbResourceContent));
             else
                 return Tuple.Create(await m_searchQuery.FilterIsDeleted().
                                                         OrderByIDDesc().
-                                                        SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount, dbResourceContent: m_dbResourceContent),
+                                                        SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount,
+                                                                    dbResourceContent: dbResourceContent),
                                     await m_searchQuery.FilterIsDeleted().
                                                         CountAsync(linq, dbResourceContent: m_dbResourceContent));
         }
