@@ -16,6 +16,7 @@ namespace Common.ServiceCommon
     public static class ValidSystem
     {
         internal const string SYSTEMID = "systemID";
+
         public static bool CheckSystem(this HttpContext httpContext, bool splitSystem)
         {
             if (splitSystem)
@@ -25,6 +26,7 @@ namespace Common.ServiceCommon
 
                 return true;
             }
+
             return false;
         }
     }
@@ -268,14 +270,13 @@ namespace Common.ServiceCommon
             Expression<Func<TResponse, bool>> linq = GetBaseLinq(pageQuery.Condition);
 
             if (HttpContext.CheckSystem(m_splitSystem))
-                return
-                    Tuple.Create(await m_searchQuery.SplitBySystemID(HttpContext).
-                                                     FilterIsDeleted().
-                                                     OrderByIDDesc().
-                                                     SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount, dbResourceContent: m_dbResourceContent),
-                                 await m_searchQuery.SplitBySystemID(HttpContext).
-                                                     FilterIsDeleted().
-                                                     CountAsync(linq, dbResourceContent: m_dbResourceContent));
+                return Tuple.Create(await m_searchQuery.SplitBySystemID(HttpContext).
+                                                        FilterIsDeleted().
+                                                        OrderByIDDesc().
+                                                        SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount, dbResourceContent: m_dbResourceContent),
+                                    await m_searchQuery.SplitBySystemID(HttpContext).
+                                                        FilterIsDeleted().
+                                                        CountAsync(linq, dbResourceContent: m_dbResourceContent));
             else
                 return Tuple.Create(await m_searchQuery.FilterIsDeleted().
                                                         OrderByIDDesc().
@@ -437,7 +438,7 @@ namespace Common.ServiceCommon
         [HttpPut]
         public virtual async Task<IActionResult> Put([FromBody] TRequest request)
         {
-            int count =  HttpContext.CheckSystem(m_splitSystem)
+            int count = HttpContext.CheckSystem(m_splitSystem)
                             ? m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().Count(item => item.ID == request.ID)
                             : m_searchQuery.FilterIsDeleted().Count(item => item.ID == request.ID);
 
@@ -500,7 +501,7 @@ namespace Common.ServiceCommon
         [HttpDelete("{id}")]
         public virtual async Task<IActionResult> Delete(long id)
         {
-            int count =  HttpContext.CheckSystem(m_splitSystem)
+            int count = HttpContext.CheckSystem(m_splitSystem)
                             ? await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().CountAsync(item => item.ID == id)
                             : await m_searchQuery.FilterIsDeleted().CountAsync(item => item.ID == id);
 
