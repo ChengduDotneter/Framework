@@ -67,7 +67,7 @@ namespace Common
         /// <param name="requestContent">文件流</param>
         /// <param name="objectFilePath">阿里云文件路径</param>
         /// <returns></returns>
-        public static PutObjectResult UploadFile(string bucketName, MemoryStream requestContent, string objectFilePath)
+        public static PutObjectResult UploadFile(string bucketName, Stream requestContent, string objectFilePath)
         {
             try
             {
@@ -88,7 +88,7 @@ namespace Common
         /// <param name="url"></param>
         /// <param name="requestContent"></param>
         /// <returns></returns>
-        public static PutObjectResult UploadFileAppointUrl(string url, MemoryStream requestContent)
+        public static PutObjectResult UploadFileAppointUrl(string url, Stream requestContent)
         {
             return UploadFileAppointUrl(new Uri(url), requestContent);
         }
@@ -110,7 +110,7 @@ namespace Common
         /// <param name="uri"></param>
         /// <param name="requestContent"></param>
         /// <returns></returns>
-        public static PutObjectResult UploadFileAppointUrl(Uri uri, MemoryStream requestContent)
+        public static PutObjectResult UploadFileAppointUrl(Uri uri, Stream requestContent)
         {
             try
             {
