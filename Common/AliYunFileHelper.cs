@@ -49,7 +49,7 @@ namespace Common
         }
 
         /// <summary>
-        /// 上传本地文件
+        /// 上传文件
         /// </summary>
         ///  <param name="bucketName">阿里云服务器BUCKET</param>
         /// <param name="binaryData">文件流</param>
@@ -75,6 +75,46 @@ namespace Common
 
                 // 上传文件。
                 return client.PutObject(bucketName, objectFilePath, requestContent);
+            }
+            catch (Exception exception)
+            {
+                throw new DealException($"上传文件失败,ERROR:{exception.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 将文件上传到指定的URL路径
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="requestContent"></param>
+        /// <returns></returns>
+        public static PutObjectResult UploadFileAppointUrl(string url, MemoryStream requestContent)
+        {
+            return UploadFileAppointUrl(new Uri(url), requestContent);
+        }
+
+        /// <summary>
+        /// 将文件上传到指定的URL路径
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="binaryData"></param>
+        /// <returns></returns>
+        public static PutObjectResult UploadFileAppointUrl(Uri uri, byte[] binaryData)
+        {
+            return UploadFileAppointUrl(uri, new MemoryStream(binaryData));
+        }
+
+        /// <summary>
+        /// 将文件上传到指定的URL路径
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="requestContent"></param>
+        /// <returns></returns>
+        public static PutObjectResult UploadFileAppointUrl(Uri uri, MemoryStream requestContent)
+        {
+            try
+            {
+                return client.PutObject(uri, requestContent);
             }
             catch (Exception exception)
             {
@@ -121,7 +161,6 @@ namespace Common
             {
                 throw new DealException($"判断文件是否存在出错,ERROR:{exception.Message}");
             }
-            
         }
     }
 }
