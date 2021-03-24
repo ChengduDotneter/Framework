@@ -9,9 +9,26 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 
 namespace Common.ServiceCommon
 {
+    public static class ValidSystem
+    {
+        internal const string SYSTEMID = "systemID";
+        public static bool CheckSystem(this HttpContext httpContext, bool splitSystem)
+        {
+            if (splitSystem)
+            {
+                if (string.IsNullOrWhiteSpace(httpContext.Request.Headers[SYSTEMID].FirstOrDefault()))
+                    throw new DealException($"请传入{SYSTEMID}。");
+
+                return true;
+            }
+            return false;
+        }
+    }
+
     /// <summary>
     /// Service中无相应的实体接受请求参数时使用且请求参数为JObject的接口基类
     /// </summary>
@@ -152,7 +169,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         protected virtual Task<TResponse> DoGet(long id)
         {
-            if (m_splitSystem)
+            if (HttpContext.CheckSystem(m_splitSystem))
                 return m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().GetAsync(id);
             else
                 return m_searchQuery.FilterIsDeleted().GetAsync(id);
@@ -250,7 +267,7 @@ namespace Common.ServiceCommon
         {
             Expression<Func<TResponse, bool>> linq = GetBaseLinq(pageQuery.Condition);
 
-            if (m_splitSystem)
+            if (HttpContext.CheckSystem(m_splitSystem))
                 return
                     Tuple.Create(await m_searchQuery.SplitBySystemID(HttpContext).
                                                      FilterIsDeleted().
@@ -379,7 +396,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         protected virtual async Task DoPost(long id, TRequest request)
         {
-            if (m_splitSystem)
+            if (HttpContext.CheckSystem(m_splitSystem))
                 await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().InsertAsync(datas: request);
             else
                 await m_editQuery.FilterIsDeleted().InsertAsync(datas: request);
@@ -420,7 +437,7 @@ namespace Common.ServiceCommon
         [HttpPut]
         public virtual async Task<IActionResult> Put([FromBody] TRequest request)
         {
-            int count = m_splitSystem
+            int count =  HttpContext.CheckSystem(m_splitSystem)
                             ? m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().Count(item => item.ID == request.ID)
                             : m_searchQuery.FilterIsDeleted().Count(item => item.ID == request.ID);
 
@@ -441,7 +458,7 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         protected virtual async Task DoPut(TRequest request)
         {
-            if (m_splitSystem)
+            if (HttpContext.CheckSystem(m_splitSystem))
                 await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().UpdateAsync(request);
             else
                 await m_editQuery.FilterIsDeleted().UpdateAsync(request);
@@ -483,7 +500,7 @@ namespace Common.ServiceCommon
         [HttpDelete("{id}")]
         public virtual async Task<IActionResult> Delete(long id)
         {
-            int count = m_splitSystem
+            int count =  HttpContext.CheckSystem(m_splitSystem)
                             ? await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().CountAsync(item => item.ID == id)
                             : await m_searchQuery.FilterIsDeleted().CountAsync(item => item.ID == id);
 
@@ -502,7 +519,7 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         protected virtual async Task DoDelete(long id)
         {
-            if (m_splitSystem)
+            if (HttpContext.CheckSystem(m_splitSystem))
                 await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().DeleteAsync(ids: id);
             else
                 await m_editQuery.FilterIsDeleted().DeleteAsync(ids: id);
