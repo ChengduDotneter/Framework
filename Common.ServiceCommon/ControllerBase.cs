@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Common.ServiceCommon
 {
@@ -126,6 +127,7 @@ namespace Common.ServiceCommon
         where TResponse : ViewModelBase, new()
     {
         private ISearchQuery<TResponse> m_searchQuery;
+        private readonly bool m_splitSystem;
 
         /// <summary>
         /// Get
@@ -150,16 +152,21 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         protected virtual Task<TResponse> DoGet(long id)
         {
-            return m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().GetAsync(id);
+            if (m_splitSystem)
+                return m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().GetAsync(id);
+            else
+                return m_searchQuery.FilterIsDeleted().GetAsync(id);
         }
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
         /// <param name="searchQuery"></param>
-        public GenericGetController(ISearchQuery<TResponse> searchQuery)
+        /// <param name="splitSystem"></param>
+        public GenericGetController(ISearchQuery<TResponse> searchQuery, bool splitSystem = true)
         {
             m_searchQuery = searchQuery;
+            m_splitSystem = splitSystem;
         }
     }
 
@@ -201,12 +208,21 @@ namespace Common.ServiceCommon
         where TResponse : ViewModelBase, new()
     {
         private ISearchQuery<TResponse> m_searchQuery;
+        private readonly bool m_splitSystem;
+        private readonly IDBResourceContent m_dbResourceContent;
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
         /// <param name="searchQuery"></param>
-        public GenericSearchController(ISearchQuery<TResponse> searchQuery) => m_searchQuery = searchQuery;
+        /// <param name="splitSystem"></param>
+        /// <param name="dbResourceContent"></param>
+        public GenericSearchController(ISearchQuery<TResponse> searchQuery, bool splitSystem = true, IDBResourceContent dbResourceContent = null)
+        {
+            m_searchQuery = searchQuery;
+            m_splitSystem = splitSystem;
+            m_dbResourceContent = dbResourceContent ?? HttpContext.RequestServices.GetService<IDBResourceContent>();
+        }
 
         /// <summary>
         /// Get
@@ -234,7 +250,21 @@ namespace Common.ServiceCommon
         {
             Expression<Func<TResponse, bool>> linq = GetBaseLinq(pageQuery.Condition);
 
-            return Tuple.Create(await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().OrderByIDDesc().SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount), await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().CountAsync(linq));
+            if (m_splitSystem)
+                return
+                    Tuple.Create(await m_searchQuery.SplitBySystemID(HttpContext).
+                                                     FilterIsDeleted().
+                                                     OrderByIDDesc().
+                                                     SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount, dbResourceContent: m_dbResourceContent),
+                                 await m_searchQuery.SplitBySystemID(HttpContext).
+                                                     FilterIsDeleted().
+                                                     CountAsync(linq, dbResourceContent: m_dbResourceContent));
+            else
+                return Tuple.Create(await m_searchQuery.FilterIsDeleted().
+                                                        OrderByIDDesc().
+                                                        SearchAsync(linq, startIndex: pageQuery.StartIndex, count: pageQuery.PageCount, dbResourceContent: m_dbResourceContent),
+                                    await m_searchQuery.FilterIsDeleted().
+                                                        CountAsync(linq, dbResourceContent: m_dbResourceContent));
         }
 
         /// <summary>
@@ -265,7 +295,7 @@ namespace Common.ServiceCommon
 
                 if (method != null)
                 {
-                    Func<TRequest, Expression<Func<TResponse, bool>>> predicateLinq = method.Invoke(null, null) as Func<TRequest, Expression<Func<TResponse, bool>>> ?? null;
+                    Func<TRequest, Expression<Func<TResponse, bool>>> predicateLinq = method.Invoke(null, null) as Func<TRequest, Expression<Func<TResponse, bool>>>;
 
                     if (predicateLinq != null)
                         return predicateLinq(queryCondition);
@@ -282,7 +312,7 @@ namespace Common.ServiceCommon
     /// <typeparam name="TRequest">请求实体参数，继承于ViewModelBase</typeparam>
     [ApiController]
     public abstract class GenericCustomSearchController<TRequest> : ControllerBase
-       where TRequest : ViewModelBase, new()
+        where TRequest : ViewModelBase, new()
     {
         /// <summary>
         /// Get
@@ -323,6 +353,7 @@ namespace Common.ServiceCommon
     {
         private IEditQuery<TRequest> m_editQuery;
         private ISSOUserService m_ssoUserService;
+        private readonly bool m_splitSystem;
 
         /// <summary>
         /// Post
@@ -348,18 +379,23 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         protected virtual async Task DoPost(long id, TRequest request)
         {
-            await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().InsertAsync(datas: request);
+            if (m_splitSystem)
+                await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().InsertAsync(datas: request);
+            else
+                await m_editQuery.FilterIsDeleted().InsertAsync(datas: request);
         }
 
         /// <summary>
-        ///
+        /// 
         /// </summary>
         /// <param name="editQuery"></param>
         /// <param name="ssoUserService"></param>
-        public GenericPostController(IEditQuery<TRequest> editQuery, ISSOUserService ssoUserService)
+        /// <param name="splitSystem"></param>
+        public GenericPostController(IEditQuery<TRequest> editQuery, ISSOUserService ssoUserService, bool splitSystem = true)
         {
             m_editQuery = editQuery;
             m_ssoUserService = ssoUserService;
+            m_splitSystem = splitSystem;
         }
     }
 
@@ -374,6 +410,7 @@ namespace Common.ServiceCommon
         private IEditQuery<TRequest> m_editQuery;
         private ISearchQuery<TRequest> m_searchQuery;
         private ISSOUserService m_ssoUserService;
+        private readonly bool m_splitSystem;
 
         /// <summary>
         /// Put
@@ -383,7 +420,11 @@ namespace Common.ServiceCommon
         [HttpPut]
         public virtual async Task<IActionResult> Put([FromBody] TRequest request)
         {
-            if (m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().Count(item => item.ID == request.ID) > 0)
+            int count = m_splitSystem
+                            ? m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().Count(item => item.ID == request.ID)
+                            : m_searchQuery.FilterIsDeleted().Count(item => item.ID == request.ID);
+
+            if (count > 0)
             {
                 request.AddUpdateUser(m_ssoUserService);
                 await DoPut(request);
@@ -400,7 +441,10 @@ namespace Common.ServiceCommon
         /// <param name="request"></param>
         protected virtual async Task DoPut(TRequest request)
         {
-            await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().UpdateAsync(request);
+            if (m_splitSystem)
+                await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().UpdateAsync(request);
+            else
+                await m_editQuery.FilterIsDeleted().UpdateAsync(request);
         }
 
         /// <summary>
@@ -409,11 +453,13 @@ namespace Common.ServiceCommon
         /// <param name="editQuery"></param>
         /// <param name="searchQuery"></param>
         /// <param name="ssoUserService"></param>
-        public GenericPutController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, ISSOUserService ssoUserService)
+        /// <param name="splitSystem"></param>
+        public GenericPutController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, ISSOUserService ssoUserService, bool splitSystem)
         {
             m_editQuery = editQuery;
             m_searchQuery = searchQuery;
             m_ssoUserService = ssoUserService;
+            m_splitSystem = splitSystem;
         }
     }
 
@@ -427,6 +473,7 @@ namespace Common.ServiceCommon
     {
         private IEditQuery<TRequest> m_editQuery;
         private ISearchQuery<TRequest> m_searchQuery;
+        private readonly bool m_splitSystem;
 
         /// <summary>
         /// Delete
@@ -436,7 +483,11 @@ namespace Common.ServiceCommon
         [HttpDelete("{id}")]
         public virtual async Task<IActionResult> Delete(long id)
         {
-            if (await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().CountAsync(item => item.ID == id) > 0)
+            int count = m_splitSystem
+                            ? await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().CountAsync(item => item.ID == id)
+                            : await m_searchQuery.FilterIsDeleted().CountAsync(item => item.ID == id);
+
+            if (count > 0)
             {
                 await DoDelete(id);
                 return Ok();
@@ -451,7 +502,10 @@ namespace Common.ServiceCommon
         /// <param name="id"></param>
         protected virtual async Task DoDelete(long id)
         {
-            await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().DeleteAsync(ids: id);
+            if (m_splitSystem)
+                await m_editQuery.SplitBySystemID(HttpContext).FilterIsDeleted().DeleteAsync(ids: id);
+            else
+                await m_editQuery.FilterIsDeleted().DeleteAsync(ids: id);
         }
 
         /// <summary>
@@ -459,10 +513,12 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="editQuery"></param>
         /// <param name="searchQuery"></param>
-        public GenericDeleteController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery)
+        /// <param name="splitSystem"></param>
+        public GenericDeleteController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, bool splitSystem)
         {
             m_editQuery = editQuery;
             m_searchQuery = searchQuery;
+            m_splitSystem = splitSystem;
         }
     }
 
@@ -473,8 +529,8 @@ namespace Common.ServiceCommon
     /// <typeparam name="TResponse2">请求实体泛型，继承于ViewModelBase</typeparam>
     [ApiController]
     public abstract class MultipleGenericGetController<TResponse1, TResponse2> : ControllerBase
-            where TResponse1 : ViewModelBase, new()
-            where TResponse2 : ViewModelBase, new()
+        where TResponse1 : ViewModelBase, new()
+        where TResponse2 : ViewModelBase, new()
     {
         /// <summary>
         /// get请求入口
@@ -573,7 +629,6 @@ namespace Common.ServiceCommon
         /// 构造函数
         /// </summary>
         /// <param name="httpContextAccessor"></param>
-
         public MultipleGenericPostController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
@@ -622,7 +677,6 @@ namespace Common.ServiceCommon
         /// 构造函数
         /// </summary>
         /// <param name="httpContextAccessor"></param>
-
         public MultipleGenericPostController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
@@ -674,7 +728,6 @@ namespace Common.ServiceCommon
         /// 构造函数
         /// </summary>
         /// <param name="httpContextAccessor"></param>
-
         public MultipleGenericPostController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
@@ -726,7 +779,6 @@ namespace Common.ServiceCommon
         /// 构造函数
         /// </summary>
         /// <param name="httpContextAccessor"></param>
-
         public MultipleGenericPutController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
@@ -760,7 +812,6 @@ namespace Common.ServiceCommon
         /// 构造函数
         /// </summary>
         /// <param name="httpContextAccessor"></param>
-
         public MultipleGenericPutController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }
@@ -797,7 +848,6 @@ namespace Common.ServiceCommon
         /// 构造函数
         /// </summary>
         /// <param name="httpContextAccessor"></param>
-
         public MultipleGenericPutController(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
         {
         }

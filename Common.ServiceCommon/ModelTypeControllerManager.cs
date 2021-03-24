@@ -24,7 +24,7 @@ namespace Common.ServiceCommon
                [Microsoft.AspNetCore.Mvc.Route({0})]
                 public class {1}SearchController : Common.ServiceCommon.GenericSearchController<{3}, {2}>
                 {{
-                    public {1}SearchController(Common.DAL.ISearchQuery<{2}> searchQuery) : base(searchQuery) {{ }}
+                    public {1}SearchController(Common.DAL.ISearchQuery<{2}> searchQuery) : base(searchQuery, {5}) {{ }}
                 }}
              }}";
 
@@ -34,7 +34,7 @@ namespace Common.ServiceCommon
                [Microsoft.AspNetCore.Mvc.Route({0})]
                 public class {1}GetController : Common.ServiceCommon.GenericGetController<{2}>
                 {{
-                    public {1}GetController(Common.DAL.ISearchQuery<{2}> searchQuery) : base(searchQuery) {{ }}
+                    public {1}GetController(Common.DAL.ISearchQuery<{2}> searchQuery) : base(searchQuery, {4}) {{ }}
                 }}
              }}";
 
@@ -44,7 +44,7 @@ namespace Common.ServiceCommon
                [Microsoft.AspNetCore.Mvc.Route({0})]
                 public class {1}PostController : Common.ServiceCommon.GenericPostController<{2}>
                 {{
-                    public {1}PostController(Common.DAL.IEditQuery<{2}> editQuery,Common.ServiceCommon.ISSOUserService ssoUserService) : base(editQuery, ssoUserService) {{ }}
+                    public {1}PostController(Common.DAL.IEditQuery<{2}> editQuery,Common.ServiceCommon.ISSOUserService ssoUserService) : base(editQuery, ssoUserService, {4}) {{ }}
                 }}
              }}";
 
@@ -54,7 +54,7 @@ namespace Common.ServiceCommon
                [Microsoft.AspNetCore.Mvc.Route({0})]
                 public class {1}PutController : Common.ServiceCommon.GenericPutController<{2}>
                 {{
-                    public {1}PutController(Common.DAL.IEditQuery<{2}> editQuery, Common.DAL.ISearchQuery<{2}> searchQuery,Common.ServiceCommon.ISSOUserService ssoUserService) : base(editQuery, searchQuery, ssoUserService) {{ }}
+                    public {1}PutController(Common.DAL.IEditQuery<{2}> editQuery, Common.DAL.ISearchQuery<{2}> searchQuery,Common.ServiceCommon.ISSOUserService ssoUserService) : base(editQuery, searchQuery, ssoUserService, {4}) {{ }}
                 }}
              }}";
 
@@ -64,7 +64,7 @@ namespace Common.ServiceCommon
                [Microsoft.AspNetCore.Mvc.Route({0})]
                 public class {1}DeleteController : Common.ServiceCommon.GenericDeleteController<{2}>
                 {{
-                    public {1}DeleteController(Common.DAL.IEditQuery<{2}> editQuery, Common.DAL.ISearchQuery<{2}> searchQuery) : base(editQuery, searchQuery) {{ }}
+                    public {1}DeleteController(Common.DAL.IEditQuery<{2}> editQuery, Common.DAL.ISearchQuery<{2}> searchQuery) : base(editQuery, searchQuery, {4}) {{ }}
                 }}
              }}";
 
@@ -136,6 +136,7 @@ namespace Common.ServiceCommon
                 string actionPutPath = $"{modelTypes[i].Name}/PUT/".ToLower();
 
                 IgnoreBuildControllerAttribute ignoreBuildControllerAttribute = modelTypes[i].GetCustomAttribute<IgnoreBuildControllerAttribute>();
+                DontSplitSystemAttribute dontSplitSystemAttribute = modelTypes[i].GetCustomAttribute<DontSplitSystemAttribute>();
 
                 if (!m_actionPaths.Contains(actionSearchPath) && !(ignoreBuildControllerAttribute?.IgnoreSearch ?? false))
                 {
@@ -147,24 +148,24 @@ namespace Common.ServiceCommon
                         requestTypeFullName = linqSearchAttribute.SearchType.FullName;
 
                     stringBuilder.AppendLine(string.Format(CONTROLLER_SEARCH_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           requestTypeFullName, AppDomain.CurrentDomain.FriendlyName));
+                                                           requestTypeFullName, AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
                 }
 
                 if (!m_actionPaths.Contains(actionGetPath) && !(ignoreBuildControllerAttribute?.IgnoreGet ?? false))
                     stringBuilder.AppendLine(string.Format(CONTROLLER_GET_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           AppDomain.CurrentDomain.FriendlyName));
+                                                           AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
 
                 if (!m_actionPaths.Contains(actionPostPath) && !(ignoreBuildControllerAttribute?.IgnorePost ?? false))
                     stringBuilder.AppendLine(string.Format(CONTROLLER_POST_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           AppDomain.CurrentDomain.FriendlyName));
+                                                           AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
 
                 if (!m_actionPaths.Contains(actionPutPath) && !(ignoreBuildControllerAttribute?.IgnorePut ?? false))
                     stringBuilder.AppendLine(string.Format(CONTROLLER_PUT_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           AppDomain.CurrentDomain.FriendlyName));
+                                                           AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
 
                 if (!m_actionPaths.Contains(actionDeletePath) && !(ignoreBuildControllerAttribute?.IgnoreDelete ?? false))
                     stringBuilder.AppendLine(string.Format(CONTROLLER_DELETE_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
-                                                           AppDomain.CurrentDomain.FriendlyName));
+                                                           AppDomain.CurrentDomain.FriendlyName, dontSplitSystemAttribute == null));
             }
 
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(stringBuilder.ToString());

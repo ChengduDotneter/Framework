@@ -100,7 +100,7 @@ namespace Common
             }
             catch (Exception exception)
             {
-                throw new DealException($"上传文件失败,ERROR:{exception.Message}");
+                throw new DealException($"下载文件失败,ERROR:{exception.Message}");
             }
         }
 
