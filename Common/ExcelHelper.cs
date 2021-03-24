@@ -135,6 +135,9 @@ namespace Common
         {
             foreach (DropDownListDataCollection dropDownListDataCollection in dropDownListDataCollections)
             {
+                if (dropDownListDataCollection.IsNullOrEmpty())
+                    continue;
+
                 IName range = workbook.CreateName();
                 range.RefersToFormula = $"{dropDownListDataSheet.SheetName}!$A${rowIndex + 1}:${GetExcelColumnName(dropDownListDataCollection.Count)}${rowIndex + 1}";
 
