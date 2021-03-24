@@ -40,5 +40,18 @@ namespace Common
         {
             return instance == null || instance.Count() == 0;
         }
+
+        /// <summary>
+        /// 添加元素
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="parameter"></param>
+        public static void Add<T>(this IEnumerable<T> instance, T parameter)
+        {
+            var list = instance as List<T>;
+
+            list.Add(parameter);
+        }
     }
 }
