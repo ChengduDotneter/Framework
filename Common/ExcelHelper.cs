@@ -14,6 +14,7 @@ namespace Common
     public class DropDownListDataCollection : Collection<DropDownListData>
     {
         public int DataColumn { get; set; }
+        public DropDownListDataCollection(IList<DropDownListData> dropDownListDatas) : base(dropDownListDatas) { }
     }
 
     public class DropDownListData
@@ -167,7 +168,7 @@ namespace Common
                 {
                     foreach (ISheet dataSheet in dataSheets)
                     {
-                        for (int i = 1; i < dataSheet.LastRowNum; i++)
+                        for (int i = 1; i <= dataSheet.LastRowNum; i++)
                         {
                             IDataValidationHelper helper = dataSheet.GetDataValidationHelper();
                             CellRangeAddressList regions = new CellRangeAddressList(i, i, dropDownListDataCollection.DataColumn, dropDownListDataCollection.DataColumn);
