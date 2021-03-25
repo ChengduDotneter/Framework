@@ -112,9 +112,25 @@ namespace Common
         /// <returns></returns>
         public static PutObjectResult UploadFileAppointUrl(Uri uri, Stream requestContent)
         {
+            using (var stream = new MemoryStream())
+            {
+                requestContent.CopyTo(stream);
+                return UploadFileAppointUrl(uri, stream);
+            }
+        }
+
+        /// <summary>
+        /// 指定位置上传文件
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="memoryStream"></param>
+        /// <returns></returns>
+        public static PutObjectResult UploadFileAppointUrl(Uri uri, MemoryStream memoryStream)
+        {
             try
             {
-                return client.PutObject(uri, requestContent);
+                memoryStream.Position = 0;
+                return client.PutObject(uri, memoryStream);
             }
             catch (Exception exception)
             {
