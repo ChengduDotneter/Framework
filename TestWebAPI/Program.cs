@@ -7,11 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using Common;
-
 // ReSharper disable UnusedMember.Local
 
 namespace TestWebAPI
