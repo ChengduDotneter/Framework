@@ -45,120 +45,120 @@ namespace TestWebAPI
 
         public static void Main(string[] args)
         {
-            IEnumerable<DropDownListDataCollection> dropDownListDatas = new[]
-            {
-                new DropDownListDataCollection(new[]
-                {
-                    new DropDownListData
-                    {
-                        Data = "itemA",
-                        Children = new DropDownListDataCollection(new[]
-                        {
-                            new DropDownListData
-                            {
-                                Data = "itemAA"
-                            },
-                            new DropDownListData
-                            {
-                                Data = "itemAB"
-                            },
-                            new DropDownListData
-                            {
-                                Data = "itemAC",
-                                Children = new DropDownListDataCollection(new[]
-                                {
-                                    new DropDownListData
-                                    {
-                                        Data = "ItemACA"
-                                    },
-                                    new DropDownListData
-                                    {
-                                        Data = "ItemACB"
-                                    },
-                                    new DropDownListData
-                                    {
-                                        Data = "ItemACC"
-                                    }
-                                })
-                                {
-                                    DataColumn = 3
-                                }
-                            }
-                        })
-                        {
-                            DataColumn = 2
-                        }
-                    },
-                    new DropDownListData
-                    {
-                        Data = "itemB",
-                        Children = new DropDownListDataCollection(new[]
-                        {
-                            new DropDownListData
-                            {
-                                Data = "itemBA"
-                            },
-                            new DropDownListData
-                            {
-                                Data = "itemBB"
-                            },
-                            new DropDownListData
-                            {
-                                Data = "itemBC"
-                            }
-                        })
-                        {
-                            DataColumn = 2
-                        }
-                    }
-                })
-                {
-                    DataColumn = 1
-                },
-                new DropDownListDataCollection(new[]
-                {
-                    new DropDownListData
-                    {
-                        Data = "HAHA1"
-                    },
-                    new DropDownListData
-                    {
-                        Data = "HAHA2"
-                    },
-                    new DropDownListData
-                    {
-                        Data = "HAHA3"
-                    },
-                    new DropDownListData
-                    {
-                        Data = "HAHA4"
-                    }
-                })
-                {
-                    DataColumn = 4
-                },
-            };
-            
-            DataTable dataTable = new DataTable();
-            dataTable.Columns.Add("Name");
-            dataTable.Columns.Add("Item1");
-            dataTable.Columns.Add("Item2");
-            dataTable.Columns.Add("Item3");
-            dataTable.Columns.Add("HAHA");
-            
-            for (int i = 0; i < 2000; i++)
-            {
-                DataRow dataRow = dataTable.NewRow();
-                dataRow["Name"] = "item" + (i + 1);
-                dataTable.Rows.Add(dataRow);
-            }
-            
-            byte[] buffer = ExcelHelper.DataTableToExcelByte(dataTable, "数据导出", dropDownListDatas);
-            
-            using (FileStream fileStream = new FileStream("/Users/zhangxiaoya/Desktop/test.xlsx", FileMode.OpenOrCreate))
-            {
-                fileStream.Write(buffer, 0, buffer.Length);
-            }
+            // IEnumerable<DropDownListDataCollection> dropDownListDatas = new[]
+            // {
+            //     new DropDownListDataCollection(new[]
+            //     {
+            //         new DropDownListData
+            //         {
+            //             Data = "itemA",
+            //             Children = new DropDownListDataCollection(new[]
+            //             {
+            //                 new DropDownListData
+            //                 {
+            //                     Data = "itemAA"
+            //                 },
+            //                 new DropDownListData
+            //                 {
+            //                     Data = "itemAB"
+            //                 },
+            //                 new DropDownListData
+            //                 {
+            //                     Data = "itemAC",
+            //                     Children = new DropDownListDataCollection(new[]
+            //                     {
+            //                         new DropDownListData
+            //                         {
+            //                             Data = "ItemACA"
+            //                         },
+            //                         new DropDownListData
+            //                         {
+            //                             Data = "ItemACB"
+            //                         },
+            //                         new DropDownListData
+            //                         {
+            //                             Data = "ItemACC"
+            //                         }
+            //                     })
+            //                     {
+            //                         DataColumn = 3
+            //                     }
+            //                 }
+            //             })
+            //             {
+            //                 DataColumn = 2
+            //             }
+            //         },
+            //         new DropDownListData
+            //         {
+            //             Data = "itemB",
+            //             Children = new DropDownListDataCollection(new[]
+            //             {
+            //                 new DropDownListData
+            //                 {
+            //                     Data = "itemBA"
+            //                 },
+            //                 new DropDownListData
+            //                 {
+            //                     Data = "itemBB"
+            //                 },
+            //                 new DropDownListData
+            //                 {
+            //                     Data = "itemBC"
+            //                 }
+            //             })
+            //             {
+            //                 DataColumn = 2
+            //             }
+            //         }
+            //     })
+            //     {
+            //         DataColumn = 1
+            //     },
+            //     new DropDownListDataCollection(new[]
+            //     {
+            //         new DropDownListData
+            //         {
+            //             Data = "HAHA1"
+            //         },
+            //         new DropDownListData
+            //         {
+            //             Data = "HAHA2"
+            //         },
+            //         new DropDownListData
+            //         {
+            //             Data = "HAHA3"
+            //         },
+            //         new DropDownListData
+            //         {
+            //             Data = "HAHA4"
+            //         }
+            //     })
+            //     {
+            //         DataColumn = 4
+            //     },
+            // };
+            //
+            // DataTable dataTable = new DataTable();
+            // dataTable.Columns.Add("Name");
+            // dataTable.Columns.Add("Item1");
+            // dataTable.Columns.Add("Item2");
+            // dataTable.Columns.Add("Item3");
+            // dataTable.Columns.Add("HAHA");
+            //
+            // for (int i = 0; i < 2000; i++)
+            // {
+            //     DataRow dataRow = dataTable.NewRow();
+            //     dataRow["Name"] = "item" + (i + 1);
+            //     dataTable.Rows.Add(dataRow);
+            // }
+            //
+            // byte[] buffer = ExcelHelper.DataTableToExcelByte(dataTable, "数据导出", dropDownListDatas);
+            //
+            // using (FileStream fileStream = new FileStream("/Users/zhangxiaoya/Desktop/test.xlsx", FileMode.OpenOrCreate))
+            // {
+            //     fileStream.Write(buffer, 0, buffer.Length);
+            // }
 
             IHostBuilder hostBuilder = CreateHostBuilder(args);
             IHost host = hostBuilder.Build();
