@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -72,10 +73,11 @@ namespace Common.ServiceCommon
             serviceCollection.AddHttpClient(Options.DefaultName, (serviceProvider, httpClient) =>
             {
                 IHttpContextAccessor httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
+                IHttpClientFactory httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
 
                 if (httpContextAccessor != null)
                 {
-                    SSOUserInfo ssoUserInfo = new SSOUserService(httpContextAccessor).GetUser();
+                    SSOUserInfo ssoUserInfo = new SSOUserService(httpContextAccessor, httpClientFactory).GetUser();
 
                     if (ssoUserInfo != SSOUserInfo.Empty)
                     {
@@ -154,9 +156,9 @@ namespace Common.ServiceCommon
                     IpFinder = new TcpDiscoveryStaticIpFinder()
                     {
                         Endpoints = ConfigManager.Configuration.GetSection("IgniteService:TcpDiscoveryStaticIpEndPoints").GetChildren().
-                                    Select(item => item.Value).
-                                    Concat(new[] { $"{ConfigManager.Configuration["IgniteService:LocalHost"]}:{ConfigManager.Configuration["IgniteService:DiscoverPort"]}" }).
-                                    ToArray()
+                                                  Select(item => item.Value).
+                                                  Concat(new[] { $"{ConfigManager.Configuration["IgniteService:LocalHost"]}:{ConfigManager.Configuration["IgniteService:DiscoverPort"]}" }).
+                                                  ToArray()
                     }
                 },
 
@@ -269,7 +271,8 @@ namespace Common.ServiceCommon
                 if (searchQueryProvider == null)
                 {
                     m_defaultSearchQueryProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
-                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchLinq2DBQuery)).MakeGenericMethod(modelType))).Compile());
+                                                                                                   Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchLinq2DBQuery)).
+                                                                                                                       MakeGenericMethod(modelType))).Compile());
 
                     serviceCollection.AddScoped(searchQueryType, sp => m_defaultSearchQueryProviderDic[modelType].Invoke());
                 }
@@ -281,7 +284,8 @@ namespace Common.ServiceCommon
                 if (editQueryProvider == null)
                 {
                     m_defaultEditQueryProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
-                           Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditLinq2DBQuery)).MakeGenericMethod(modelType))).Compile());
+                                                                                                 Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditLinq2DBQuery)).
+                                                                                                                                    MakeGenericMethod(modelType))).Compile());
 
                     serviceCollection.AddScoped(editQueryType, sp => m_defaultEditQueryProviderDic[modelType].Invoke());
                 }
@@ -293,7 +297,8 @@ namespace Common.ServiceCommon
                 if (cacheProviderProvider == null)
                 {
                     m_defaultCacheProviderDic.Add(modelType, Expression.Lambda<Func<object>>(
-                           Expression.Call(typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateMemoryCacheProvider)).MakeGenericMethod(modelType))).Compile());
+                                                                                             Expression.Call(typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateMemoryCacheProvider)).
+                                                                                                                                  MakeGenericMethod(modelType))).Compile());
 
                     serviceCollection.AddScoped(cacheProviderType, sp => m_defaultCacheProviderDic[modelType].Invoke());
                 }
