@@ -156,6 +156,8 @@ namespace Common.ServiceCommon
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(long id)
         {
+            HttpContext.CheckSystem(m_splitSystem);
+
             TResponse data = await DoGet(id);
 
             if (data == null)
@@ -251,6 +253,8 @@ namespace Common.ServiceCommon
         [HttpGet]
         public async Task<PageQueryResult<TResponse>> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
+            HttpContext.CheckSystem(m_splitSystem); 
+
             Tuple<IEnumerable<TResponse>, int> tupleDatas = await SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
 
             return new PageQueryResult<TResponse>()
