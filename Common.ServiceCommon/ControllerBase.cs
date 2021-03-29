@@ -384,6 +384,8 @@ namespace Common.ServiceCommon
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] TRequest request)
         {
+            HttpContext.CheckSystem(m_splitSystem);
+
             request.ID = IDGenerator.NextID();
             request.AddCreateUser(m_ssoUserService);
             request.IsDeleted = false;
