@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 // ReSharper disable UnusedVariable
 // ReSharper disable HeuristicUnreachableCode
 // ReSharper disable UnusedMember.Local
@@ -185,19 +186,28 @@ namespace TestWebAPI.Controllers
         private readonly ISearchQuery<Right> searchQuery1;
         private readonly IDBResourceContent dBResourceContent;
         private readonly IEditQuery<Right> editQuery1;
+        private readonly ISSOUserService m_ssoUserService;
 
-        public CCC(ISearchQuery<Left> searchQuery, IEditQuery<Left> editQuery, ISearchQuery<Right> searchQuery1, IDBResourceContent dBResourceContent, IEditQuery<Right> editQuery1)
+        public CCC(ISearchQuery<Left> searchQuery,
+                   IEditQuery<Left> editQuery,
+                   ISearchQuery<Right> searchQuery1,
+                   IDBResourceContent dBResourceContent,
+                   IEditQuery<Right> editQuery1,
+                   ISSOUserService ssoUserService)
         {
             m_searchQuery = searchQuery;
             m_editQuery = editQuery;
             this.searchQuery1 = searchQuery1;
             this.dBResourceContent = dBResourceContent;
             this.editQuery1 = editQuery1;
+            m_ssoUserService = ssoUserService;
         }
 
         [HttpGet]
         public async Task<Left> Get()
         {
+            SSOUserInfo user = m_ssoUserService.GetUser();
+            
             Left data = null;
 
             var datas = (await m_searchQuery.SplitBySystemID(HttpContext).
@@ -214,7 +224,7 @@ namespace TestWebAPI.Controllers
                     join right in b on left.ClassID equals right.ID
                     where left.ID > 0
                     select new { id = left.ID, name = left.StudentName, name_class = right.ClassName };
-            
+
             a.Dispose();
             b.Dispose();
 
@@ -278,9 +288,11 @@ namespace TestWebAPI.Controllers
     public class ABCD : MessageProcessor<string>
     {
         private readonly ITest m_test;
+        private readonly ISSOUserService m_ssoUserService;
 
         public override Task RecieveMessage(string parameter, CancellationToken cancellationToken)
         {
+            SSOUserInfo ssoUserInfo = m_ssoUserService.GetUser();
             m_test.Test();
 
             return Task.Factory.StartNew(async () =>
@@ -293,9 +305,10 @@ namespace TestWebAPI.Controllers
             });
         }
 
-        public ABCD(string identity, ITest test, ILogHelper logHelper) : base(identity, logHelper)
+        public ABCD(string identity, ITest test, ILogHelper logHelper, ISSOUserService ssoUserService) : base(identity, logHelper)
         {
             m_test = test;
+            m_ssoUserService = ssoUserService;
         }
     }
 }

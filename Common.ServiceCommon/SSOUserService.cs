@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System;
+using Microsoft.AspNetCore.Http;
 using System.Linq;
+using System.Net.Http;
 using System.Web;
+using Newtonsoft.Json.Linq;
 
 namespace Common.ServiceCommon
 {
@@ -63,12 +66,12 @@ namespace Common.ServiceCommon
 
         public static bool operator ==(SSOUserInfo a, SSOUserInfo b)
         {
-            return a.ID == b.ID;
+            return a?.ID == b?.ID;
         }
 
         public static bool operator !=(SSOUserInfo a, SSOUserInfo b)
         {
-            return a.ID != b.ID;
+            return a?.ID != b?.ID;
         }
 
         public override string ToString()
@@ -82,15 +85,19 @@ namespace Common.ServiceCommon
     /// </summary>
     public class SSOUserService : ISSOUserService
     {
-        private IHttpContextAccessor m_httpContextAccessor;
+        private readonly IHttpContextAccessor m_httpContextAccessor;
+        private readonly IHttpClientFactory m_httpClientFactory;
+        private SSOUserInfo m_ssoUserInfo;
 
         /// <summary>
         /// 初始化
         /// </summary>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        public SSOUserService(IHttpContextAccessor httpContextAccessor)
+        /// <param name="httpClientFactory"></param>
+        public SSOUserService(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory)
         {
             m_httpContextAccessor = httpContextAccessor;
+            m_httpClientFactory = httpClientFactory;
         }
 
         /// <summary>
@@ -99,16 +106,55 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public SSOUserInfo GetUser()
         {
-            IHeaderDictionary headers = m_httpContextAccessor.HttpContext?.Request?.Headers;
+            if (m_ssoUserInfo == null)
+            {
+                lock (this)
+                {
+                    if (m_ssoUserInfo == null)
+                    {
+                        m_ssoUserInfo = CreateSSOUserInfo();
+                    }
+                }
+            }
 
-            if (headers == null || headers["id"].Count == 0 || headers["userName"].Count == 0)
-                return SSOUserInfo.Empty;
+            return m_ssoUserInfo;
+        }
 
-            string phone = HttpUtility.UrlDecode(headers["phone"].FirstOrDefault() ?? "UNKNOWN");
+        private SSOUserInfo CreateSSOUserInfo()
+        {
+            if (!m_httpContextAccessor.HttpContext.WebSockets.IsWebSocketRequest)
+            {
+                IHeaderDictionary headers = m_httpContextAccessor.HttpContext?.Request?.Headers;
 
-            return new SSOUserInfo(long.Parse(HttpUtility.UrlDecode(headers["id"].ToString())),
-                                   HttpUtility.UrlDecode(headers["userName"].ToString()),
-                                   phone);
+                if (headers == null || headers["id"].Count == 0 || headers["userName"].Count == 0)
+                    return SSOUserInfo.Empty;
+
+                string phone = HttpUtility.UrlDecode(headers["phone"].FirstOrDefault() ?? "UNKNOWN");
+
+                return new SSOUserInfo(long.Parse(HttpUtility.UrlDecode(headers["id"].ToString())),
+                                       HttpUtility.UrlDecode(headers["userName"].ToString()),
+                                       phone);
+            }
+            else
+            {
+                string identity = m_httpContextAccessor.HttpContext?.Request.Query["identity"];
+
+                if (string.IsNullOrWhiteSpace(identity))
+                    return SSOUserInfo.Empty;
+
+                HttpClient httpClient = m_httpClientFactory.CreateClient("userinfo");
+                httpClient.BaseAddress = new Uri($"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}");
+                HttpResponseMessage httpResponseMessage = httpClient.AddAuthorizationHeader($"Bearer {identity}").GetAsync("connect/userinfo").Result;
+
+                if (!httpResponseMessage.IsSuccessStatusCode)
+                    return SSOUserInfo.Empty;
+
+                JObject jObject = JObject.Parse(httpResponseMessage.Content.ReadAsStringAsync().Result);
+
+                return new SSOUserInfo(long.Parse(HttpUtility.UrlDecode(jObject["sub"].ToString())),
+                                       jObject["userName"].ToString(),
+                                       jObject["phone"].ToString());
+            }
         }
     }
 }
