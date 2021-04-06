@@ -481,7 +481,7 @@ namespace Common.ServiceCommon
         /// <param name="searchQuery"></param>
         /// <param name="ssoUserService"></param>
         /// <param name="splitSystem"></param>
-        public GenericPutController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, ISSOUserService ssoUserService, bool splitSystem)
+        public GenericPutController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, ISSOUserService ssoUserService, bool splitSystem = true)
         {
             m_editQuery = editQuery;
             m_searchQuery = searchQuery;
@@ -541,7 +541,7 @@ namespace Common.ServiceCommon
         /// <param name="editQuery"></param>
         /// <param name="searchQuery"></param>
         /// <param name="splitSystem"></param>
-        public GenericDeleteController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, bool splitSystem)
+        public GenericDeleteController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, bool splitSystem = true)
         {
             m_editQuery = editQuery;
             m_searchQuery = searchQuery;
