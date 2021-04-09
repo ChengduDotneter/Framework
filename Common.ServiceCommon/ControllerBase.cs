@@ -156,6 +156,8 @@ namespace Common.ServiceCommon
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(long id)
         {
+            HttpContext.CheckSystem(m_splitSystem);
+
             TResponse data = await DoGet(id);
 
             if (data == null)
@@ -251,6 +253,8 @@ namespace Common.ServiceCommon
         [HttpGet]
         public async Task<PageQueryResult<TResponse>> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
+            HttpContext.CheckSystem(m_splitSystem); 
+
             Tuple<IEnumerable<TResponse>, int> tupleDatas = await SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
 
             return new PageQueryResult<TResponse>()
@@ -384,6 +388,8 @@ namespace Common.ServiceCommon
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] TRequest request)
         {
+            HttpContext.CheckSystem(m_splitSystem);
+
             request.ID = IDGenerator.NextID();
             request.AddCreateUser(m_ssoUserService);
             request.IsDeleted = false;
@@ -475,7 +481,7 @@ namespace Common.ServiceCommon
         /// <param name="searchQuery"></param>
         /// <param name="ssoUserService"></param>
         /// <param name="splitSystem"></param>
-        public GenericPutController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, ISSOUserService ssoUserService, bool splitSystem)
+        public GenericPutController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, ISSOUserService ssoUserService, bool splitSystem = true)
         {
             m_editQuery = editQuery;
             m_searchQuery = searchQuery;
@@ -535,7 +541,7 @@ namespace Common.ServiceCommon
         /// <param name="editQuery"></param>
         /// <param name="searchQuery"></param>
         /// <param name="splitSystem"></param>
-        public GenericDeleteController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, bool splitSystem)
+        public GenericDeleteController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, bool splitSystem = true)
         {
             m_editQuery = editQuery;
             m_searchQuery = searchQuery;

@@ -7,6 +7,7 @@ using Common.Const;
 using Common.DAL;
 using Common.DAL.Cache;
 using Common.Log;
+using Common.Log.LogModel;
 using Common.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -104,7 +105,11 @@ namespace Common.ServiceCommon
             ThreadPool.GetMinThreads(out int workerThreads, out int completionPortThreads);
             ThreadPool.SetMinThreads(Math.Max(workerThreads, threadCount), Math.Max(completionPortThreads, threadCount));
 
-            serviceCollection.DefaultLogHelperConfig();
+            if (!bool.Parse(ConfigManager.Configuration["UseKafka"]))
+                serviceCollection.DefaultLogHelperConfig(LogHelperTypeEnum.Log4netLog);
+            else
+                serviceCollection.DefaultLogHelperConfig(LogHelperTypeEnum.KafkaLog);
+
             serviceCollection.AddJsonSerialize();
 
             return hostBuilderContext;

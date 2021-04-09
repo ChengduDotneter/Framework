@@ -837,7 +837,6 @@ namespace Common.DAL
             public async Task<T> GetAsync(string systemID, long id, ITransaction transaction, bool forUpdate = false)
             {
                 await ValidTransactionAsync(systemID, transaction, new long[] { id }, forUpdate);
-
                 return await ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection.GetTable<T>().TableName(systemID).SingleOrDefaultAsync(item => item.ID == id);
             }
 

@@ -38,7 +38,7 @@ namespace Common.ServiceCommon
 
         private static void InitToken()
         {
-            string tokenRequestUrl = ConfigManager.Configuration["TokenRequestUrl"];
+            string tokenRequestUrl = $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/connect/token";
             string clientID = ConfigManager.Configuration["ClientID"];
             string clientSecret = ConfigManager.Configuration["ClientSecret"];
 

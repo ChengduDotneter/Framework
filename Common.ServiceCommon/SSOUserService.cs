@@ -122,6 +122,9 @@ namespace Common.ServiceCommon
 
         private SSOUserInfo CreateSSOUserInfo()
         {
+            if (m_httpContextAccessor == null || m_httpContextAccessor.HttpContext == null)
+                return SSOUserInfo.Empty;
+            
             if (!m_httpContextAccessor.HttpContext.WebSockets.IsWebSocketRequest)
             {
                 IHeaderDictionary headers = m_httpContextAccessor.HttpContext?.Request?.Headers;
