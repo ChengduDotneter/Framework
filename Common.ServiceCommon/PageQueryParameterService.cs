@@ -89,7 +89,13 @@ namespace Common.ServiceCommon
                             string[] values = item.Value.SelectMany(item => item.Split(",")).ToArray();
                             Type elementType = underlyingType.GenericTypeArguments[0];
 
-                            var enumerableValue = typeof(Enumerable).GetMethod("Cast").MakeGenericMethod(elementType).
+                            object enumerableValue = null;
+
+                            if (elementType.IsEnum)
+                                enumerableValue = typeof(Enumerable).GetMethod("Cast").MakeGenericMethod(elementType).
+                                  Invoke(null, new object[] { values.Select(item => Enum.Parse(elementType, item)) });
+                            else
+                                enumerableValue = typeof(Enumerable).GetMethod("Cast").MakeGenericMethod(elementType).
                                   Invoke(null, new object[] { values.Select(item => Convert.ChangeType(item, elementType)) });
 
                             propertyInfo.SetValue(pageQuery.Condition, enumerableValue);
