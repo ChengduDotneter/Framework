@@ -203,11 +203,17 @@ namespace TestWebAPI.Controllers
             m_ssoUserService = ssoUserService;
         }
 
+        [HttpPost]
+        public async Task Post()
+        {
+
+        }
+
         [HttpGet]
         public async Task<Left> Get()
         {
             SSOUserInfo user = m_ssoUserService.GetUser();
-            
+
             Left data = null;
 
             var datas = (await m_searchQuery.SplitBySystemID(HttpContext).
@@ -290,19 +296,16 @@ namespace TestWebAPI.Controllers
         private readonly ITest m_test;
         private readonly ISSOUserService m_ssoUserService;
 
-        public override Task RecieveMessage(string parameter, CancellationToken cancellationToken)
+        public override async Task RecieveMessage(string parameter, CancellationToken cancellationToken)
         {
             SSOUserInfo ssoUserInfo = m_ssoUserService.GetUser();
             m_test.Test();
 
-            return Task.Factory.StartNew(async () =>
+            while (!cancellationToken.IsCancellationRequested)
             {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    SendMessage($"{Environment.TickCount}_{parameter}");
-                    await Task.Delay(1000);
-                }
-            });
+                SendMessage($"{Environment.TickCount}_{parameter}");
+                await Task.Delay(1000);
+            }
         }
 
         public ABCD(string identity, ITest test, ILogHelper logHelper, ISSOUserService ssoUserService) : base(identity, logHelper)

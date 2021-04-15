@@ -113,6 +113,7 @@ namespace Common.ServiceCommon
                     {
                         if (webSocket.State != WebSocketState.Open)
                         {
+                            // ReSharper disable once AccessToDisposedClosure
                             cancellationTokenSource.Cancel(false);
                             break;
                         }
@@ -120,7 +121,7 @@ namespace Common.ServiceCommon
                         (bool success, string data) = await ReceiveStringAsync(webSocket);
 
                         if (success)
-                            await messageProcessor.RecieveMessage(data, cancellationTokenSource.Token);
+                            _ = messageProcessor.RecieveMessage(data, cancellationTokenSource.Token);
 
                         await Task.Delay(1);
                     }
