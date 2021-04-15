@@ -26,7 +26,7 @@ namespace Common
         public static string GetStackTrace(Exception exception)
         {
             if (exception.InnerException != null)
-                return GetStackTrace(exception.InnerException);
+                return $"{GetStackTrace(exception.InnerException)}{Environment.NewLine}{exception.StackTrace}";
             else
                 return exception.StackTrace;
         }
