@@ -253,7 +253,7 @@ namespace Common.ServiceCommon
         [HttpGet]
         public async Task<PageQueryResult<TResponse>> Get([FromServices] IPageQueryParameterService pageQueryParameterService)
         {
-            HttpContext.CheckSystem(m_splitSystem); 
+            HttpContext.CheckSystem(m_splitSystem);
 
             Tuple<IEnumerable<TResponse>, int> tupleDatas = await SearchDatas(pageQueryParameterService.GetQueryParameter<TRequest>());
 
@@ -448,8 +448,8 @@ namespace Common.ServiceCommon
         public virtual async Task<IActionResult> Put([FromBody] TRequest request)
         {
             int count = HttpContext.CheckSystem(m_splitSystem)
-                            ? m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().Count(item => item.ID == request.ID)
-                            : m_searchQuery.FilterIsDeleted().Count(item => item.ID == request.ID);
+                            ? await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().CountAsync(item => item.ID == request.ID)
+                            : await m_searchQuery.FilterIsDeleted().CountAsync(item => item.ID == request.ID);
 
             if (count > 0)
             {
