@@ -22,7 +22,7 @@ namespace Common.DAL
         private const int DEFAULT_CONNECTION_WAITTIMEOUT = 8 * 60 * 60 * 1000; //8小时
         private const int DEFAULT_MAX_TEMP_CONNECTION_COUNT = 10; //最大临时连接数
         private const int TEMP_CONNECTION_TIMEOUT = 60 * 10 * 1000; //临时连接数存活时间
-        private static IDictionary<string, DataConnectResourcePool> m_connectionPool;
+        private static IDictionary<int, DataConnectResourcePool> m_connectionPool;
         private static ISet<string> m_tableNames;
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
         private static LinqToDbConnectionOptions m_slavelinqToDbConnectionOptions;
@@ -71,7 +71,7 @@ namespace Common.DAL
             m_masterlinqToDbConnectionOptions = masterLinqToDbConnectionOptionsBuilder.Build();
             m_slavelinqToDbConnectionOptions = slaveLinqToDbConnectionOptionsBuilder.Build();
 
-            m_connectionPool = new Dictionary<string, DataConnectResourcePool>();
+            m_connectionPool = new Dictionary<int, DataConnectResourcePool>();
 
             int.TryParse(ConfigManager.Configuration["ConnectionCount"], out int connectionCount);
 
@@ -93,16 +93,16 @@ namespace Common.DAL
             if (tempConnectionTimeOut <= 0)
                 tempConnectionTimeOut = TEMP_CONNECTION_TIMEOUT;
 
-            if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.ConnectionString))
+            if (!m_connectionPool.ContainsKey(m_masterlinqToDbConnectionOptions.GetHashCode()))
             {
-                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.ConnectionString,
+                m_connectionPool.Add(m_masterlinqToDbConnectionOptions.GetHashCode(),
                                      new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, CreateMasterDataConnection,
                                                                  CloseDataConnection));
             }
 
-            if (!m_connectionPool.ContainsKey(m_slavelinqToDbConnectionOptions.ConnectionString))
+            if (!m_connectionPool.ContainsKey(m_slavelinqToDbConnectionOptions.GetHashCode()))
             {
-                m_connectionPool.Add(m_slavelinqToDbConnectionOptions.ConnectionString,
+                m_connectionPool.Add(m_slavelinqToDbConnectionOptions.GetHashCode(),
                                      new DataConnectResourcePool(connectionCount, m_dataConnectionOutTime, maxTempConnectionCount, tempConnectionTimeOut, CreateSlaveDataConnection,
                                                                  CloseDataConnection));
             }
@@ -126,7 +126,7 @@ namespace Common.DAL
 
         private static IResourceInstance<DataConnectionInstance> CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions)
         {
-            return m_connectionPool[linqToDbConnectionOptions.ConnectionString].ApplyInstance();
+            return m_connectionPool[linqToDbConnectionOptions.GetHashCode()].ApplyInstance();
         }
 
         private static void DisposeConnection(IResourceInstance<DataConnectionInstance> resourceInstance)
@@ -148,7 +148,7 @@ namespace Common.DAL
 
         public static IDBResourceContent GetDBResourceContent()
         {
-            return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.ConnectionString].ApplyInstance());
+            return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.GetHashCode()].ApplyInstance());
         }
 
         private static void CreateTable<T>(IDataContext dataContext, string tableName, bool codeFirst) where T : class, IEntity, new()
