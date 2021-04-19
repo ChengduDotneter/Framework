@@ -13,6 +13,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using LinqToDB.SchemaProvider;
 
 namespace Common.DAL
 {
@@ -23,7 +24,6 @@ namespace Common.DAL
         private const int DEFAULT_MAX_TEMP_CONNECTION_COUNT = 10; //最大临时连接数
         private const int TEMP_CONNECTION_TIMEOUT = 60 * 10 * 1000; //临时连接数存活时间
         private static IDictionary<int, DataConnectResourcePool> m_connectionPool;
-        private static ISet<string> m_tableNames;
         private static LinqToDbConnectionOptions m_masterlinqToDbConnectionOptions;
         private static LinqToDbConnectionOptions m_slavelinqToDbConnectionOptions;
 
@@ -45,8 +45,6 @@ namespace Common.DAL
 
         static Linq2DBDao()
         {
-            m_tableNames = new HashSet<string>();
-
             LinqToDbConnectionOptionsBuilder masterLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
             LinqToDbConnectionOptionsBuilder slaveLinqToDbConnectionOptionsBuilder = new LinqToDbConnectionOptionsBuilder();
 
@@ -156,24 +154,14 @@ namespace Common.DAL
             if (!codeFirst)
                 return;
 
-            if (!m_tableNames.Contains(tableName))
-            {
-                lock (m_tableNames)
-                {
-                    if (!m_tableNames.Contains(tableName))
-                    {
-                        try
-                        {
-                            dataContext.CreateTable<T>(tableName);
-                        }
-                        catch
-                        {
-                            // ignored
-                        }
+            DataConnection dataConnection = (DataConnection)dataContext;
 
-                        m_tableNames.Add(tableName);
-                    }
-                }
+            if (!dataConnection.DataProvider.GetSchemaProvider().GetSchema(dataConnection, new GetSchemaOptions
+            {
+                GetProcedures = false
+            }).Tables.Any(item => item.TableName == tableName))
+            {
+                dataContext.CreateTable<T>(tableName);
             }
         }
 
