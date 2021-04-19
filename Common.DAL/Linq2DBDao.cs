@@ -3,6 +3,7 @@ using LinqToDB;
 using LinqToDB.Configuration;
 using LinqToDB.Data;
 using LinqToDB.Linq;
+using LinqToDB.SchemaProvider;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections;
@@ -13,7 +14,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
-using LinqToDB.SchemaProvider;
 
 namespace Common.DAL
 {
@@ -31,14 +31,13 @@ namespace Common.DAL
 
         private static ITable<T> TableName<T>(this ITable<T> table, string systemID) where T : class, IEntity, new()
         {
-            return LinqExtensions.TableName(table, GetPartitionTableName<T>(table.DataContext, systemID));
+            return LinqExtensions.TableName(table, GetPartitionTableName<T>(systemID));
         }
 
-        private static string GetPartitionTableName<T>(IDataContext dataContext, string systemID) where T : class, IEntity, new()
+        private static string GetPartitionTableName<T>(string systemID) where T : class, IEntity, new()
         {
             string tablePostFix = string.IsNullOrEmpty(systemID) ? string.Empty : $"_{systemID}";
             string tableName = Convert.ToBoolean(ConfigManager.Configuration["IsNotLowerTableName"]) ? $"{typeof(T).Name}{tablePostFix}" : $"{typeof(T).Name}{tablePostFix}".ToLower();
-            CreateTable<T>(dataContext, tableName, Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]));
 
             return tableName;
         }
@@ -147,13 +146,13 @@ namespace Common.DAL
         public static void Linq2DBSearchQueryCreateTable<T>(string systemID)
              where T : class, IEntity, new()
         {
-            GetPartitionTableName<T>(CreateConnection(m_masterlinqToDbConnectionOptions).Instance, systemID);
+            CreateTable<T>(CreateConnection(m_slavelinqToDbConnectionOptions).Instance, GetPartitionTableName<T>(systemID), Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]));
         }
 
         public static void Linq2DBEditQueryCreateTable<T>(string systemID)
              where T : class, IEntity, new()
         {
-            GetPartitionTableName<T>(CreateConnection(m_masterlinqToDbConnectionOptions).Instance, systemID);
+            CreateTable<T>(CreateConnection(m_masterlinqToDbConnectionOptions).Instance, GetPartitionTableName<T>(systemID), Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]));
         }
 
         public static IDBResourceContent GetDBResourceContent()
@@ -522,7 +521,7 @@ namespace Common.DAL
                     try
                     {
                         for (int i = 0; i < datas.Length; i++)
-                            dataConnection.Instance.InsertOrReplace(datas[i], GetPartitionTableName<T>(dataConnection.Instance, systemID));
+                            dataConnection.Instance.InsertOrReplace(datas[i], GetPartitionTableName<T>(systemID));
                     }
                     finally
                     {
@@ -534,7 +533,7 @@ namespace Common.DAL
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
 
                     for (int i = 0; i < datas.Length; i++)
-                        dataConnection.InsertOrReplace(datas[i], GetPartitionTableName<T>(dataConnection, systemID));
+                        dataConnection.InsertOrReplace(datas[i], GetPartitionTableName<T>(systemID));
                 }
             }
 
@@ -557,7 +556,7 @@ namespace Common.DAL
                     {
                         for (int i = 0; i < datas.Length; i++)
                         {
-                            tasks[i] = dataConnection.Instance.InsertOrReplaceAsync(datas[i], GetPartitionTableName<T>(dataConnection.Instance, systemID));
+                            tasks[i] = dataConnection.Instance.InsertOrReplaceAsync(datas[i], GetPartitionTableName<T>(systemID));
                         }
                         await Task.WhenAll(tasks);
                     }
@@ -571,7 +570,7 @@ namespace Common.DAL
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
 
                     for (int i = 0; i < datas.Length; i++)
-                        tasks[i] = dataConnection.InsertOrReplaceAsync(datas[i], GetPartitionTableName<T>(dataConnection, systemID));
+                        tasks[i] = dataConnection.InsertOrReplaceAsync(datas[i], GetPartitionTableName<T>(systemID));
 
                     await Task.WhenAll(tasks);
                 }
@@ -592,7 +591,7 @@ namespace Common.DAL
 
                     try
                     {
-                        dataConnection.Instance.Update(data, GetPartitionTableName<T>(dataConnection.Instance, systemID));
+                        dataConnection.Instance.Update(data, GetPartitionTableName<T>(systemID));
                     }
                     finally
                     {
@@ -602,7 +601,7 @@ namespace Common.DAL
                 else
                 {
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
-                    dataConnection.Update(data, GetPartitionTableName<T>(dataConnection, systemID));
+                    dataConnection.Update(data, GetPartitionTableName<T>(systemID));
                 }
             }
 
@@ -688,7 +687,7 @@ namespace Common.DAL
 
                     try
                     {
-                        await dataConnection.Instance.UpdateAsync(data, GetPartitionTableName<T>(dataConnection.Instance, systemID));
+                        await dataConnection.Instance.UpdateAsync(data, GetPartitionTableName<T>(systemID));
                     }
                     finally
                     {
@@ -698,7 +697,7 @@ namespace Common.DAL
                 else
                 {
                     DataConnection dataConnection = ((DataConnectionTransaction)((Linq2DBTransaction)transaction).Context).DataConnection;
-                    await dataConnection.UpdateAsync(data, GetPartitionTableName<T>(dataConnection, systemID));
+                    await dataConnection.UpdateAsync(data, GetPartitionTableName<T>(systemID));
                 }
             }
 
