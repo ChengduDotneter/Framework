@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Common.Log;
 
 namespace Common.DAL
@@ -76,23 +73,19 @@ namespace Common.DAL
         /// <summary>
         /// 创建Linq2DB表
         /// </summary>
-        /// <param name="systemID"></param>
-        /// <param name="tableTypes"></param>
         /// <returns></returns>
-        public static Task CreateLinq2DBTables(string systemID, IEnumerable<Type> tableTypes)
+        public static ICreateTableQuery GetLinq2DBCreateTableQuery()
         {
-            return Linq2DBDao.CreateTables(systemID, tableTypes);
+            return Linq2DBDao.GetLinq2DBCreateTableQueryInstance();
         }
 
         /// <summary>
         /// 创建MongDB表
         /// </summary>
-        /// <param name="systemID"></param>
-        /// <param name="tableTypes"></param>
         /// <returns></returns>
-        public static Task CreateMongDBTables(string systemID, IEnumerable<Type> tableTypes)
+        public static ICreateTableQuery CreateMongDbCreateTableQuery()
         {
-            return MongoDBDao.CreateTables(systemID, tableTypes);
+            return MongoDBDao.GetMongoDBCreateTableQueryInstance();
         }
 
         static DaoFactory()

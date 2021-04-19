@@ -59,7 +59,20 @@ namespace Common.DAL
             return mongoDBTransaction != null;
         }
 
-        public static Task CreateTables(string systemID, IEnumerable<Type> tableTypes)
+        private class MongoDBCreateTableQueryInstance : ICreateTableQuery
+        {
+            public Task CreateTable(string systemID, IEnumerable<Type> tableTypes)
+            {
+                return CreateTables(systemID, tableTypes);
+            }
+        }
+
+        public static ICreateTableQuery GetMongoDBCreateTableQueryInstance()
+        {
+            return new MongoDBCreateTableQueryInstance();
+        }
+
+        private static Task CreateTables(string systemID, IEnumerable<Type> tableTypes)
         {
             if (tableTypes.IsNullOrEmpty())
                 return Task.CompletedTask;

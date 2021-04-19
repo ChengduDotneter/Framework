@@ -142,6 +142,19 @@ namespace Common.DAL
         {
             return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
         }
+        
+        private class Linq2DBCreateTableQueryInstance : ICreateTableQuery
+        {
+            public Task CreateTable(string systemID, IEnumerable<Type> tableTypes)
+            {
+                return CreateTables(systemID, tableTypes);
+            }
+        }
+
+        public static ICreateTableQuery GetLinq2DBCreateTableQueryInstance()
+        {
+            return new Linq2DBCreateTableQueryInstance();
+        }
 
         public static Task CreateTables(string systemID, IEnumerable<Type> tableTypes)
         {
