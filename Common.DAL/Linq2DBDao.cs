@@ -143,28 +143,48 @@ namespace Common.DAL
             return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
         }
 
-        public static void Linq2DBSearchQueryCreateTable<T>(string systemID)
-             where T : class, IEntity, new()
+        public static Task CreateTables(string systemID, IEnumerable<Type> tableTypes)
         {
-            CreateTable<T>(CreateConnection(m_slavelinqToDbConnectionOptions).Instance, GetPartitionTableName<T>(systemID), Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]));
+            if (tableTypes.IsNullOrEmpty())
+                return Task.CompletedTask;
+
+            return Task.Factory.StartNew(() =>
+            {
+                IResourceInstance<DataConnectionInstance> dataConnection = null;
+                bool codeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
+
+                if (!codeFirst)
+                    return;
+                
+                try
+                {
+                    dataConnection = CreateConnection(m_slavelinqToDbConnectionOptions);
+
+                    foreach (Type tableType in tableTypes)
+                    {
+                        if (!tableType.IsClass || tableType.GetConstructor(new Type[0]) == null || tableType.GetInterface(typeof(IEntity).Name) == null)
+                            continue;
+
+                        string tableName = (string)typeof(Linq2DBDao).GetMethod(nameof(GetPartitionTableName), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(tableType).
+                                                                      Invoke(null, new object[] { systemID });
+
+                        typeof(Linq2DBDao).GetMethod(nameof(CreateTable), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(tableType).Invoke(null, new object[]
+                        {
+                            dataConnection.Instance,
+                            tableName
+                        });
+                    }
+                }
+                finally
+                {
+                    if (dataConnection != null)
+                        DisposeConnection(dataConnection);
+                }
+            });
         }
-
-        public static void Linq2DBEditQueryCreateTable<T>(string systemID)
-             where T : class, IEntity, new()
+        
+        private static void CreateTable<T>(IDataContext dataContext, string tableName) where T : class, IEntity, new()
         {
-            CreateTable<T>(CreateConnection(m_masterlinqToDbConnectionOptions).Instance, GetPartitionTableName<T>(systemID), Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]));
-        }
-
-        public static IDBResourceContent GetDBResourceContent()
-        {
-            return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.GetHashCode()].ApplyInstance());
-        }
-
-        private static void CreateTable<T>(IDataContext dataContext, string tableName, bool codeFirst) where T : class, IEntity, new()
-        {
-            if (!codeFirst)
-                return;
-
             DataConnection dataConnection = (DataConnection)dataContext;
 
             if (!dataConnection.DataProvider.GetSchemaProvider().GetSchema(dataConnection, new GetSchemaOptions
@@ -174,6 +194,11 @@ namespace Common.DAL
             {
                 dataContext.CreateTable<T>(tableName);
             }
+        }
+
+        public static IDBResourceContent GetDBResourceContent()
+        {
+            return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.GetHashCode()].ApplyInstance());
         }
 
         private static bool Apply<TResource>(ITransaction transaction, string systemID) where TResource : class, IEntity

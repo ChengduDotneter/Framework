@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Common.Log;
 
 namespace Common.DAL
@@ -71,23 +74,25 @@ namespace Common.DAL
         }
 
         /// <summary>
-        /// 查询的Linq2DB库创建表
+        /// 创建Linq2DB表
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <param name="systemID"></param>
+        /// <param name="tableTypes"></param>
         /// <returns></returns>
-        public static void SearchLinq2DBQueryCreateTable<T>(string systemID) where T : class, IEntity, new()
+        public static Task CreateLinq2DBTables(string systemID, IEnumerable<Type> tableTypes)
         {
-            Linq2DBDao.Linq2DBSearchQueryCreateTable<T>(systemID);
+            return Linq2DBDao.CreateTables(systemID, tableTypes);
         }
 
         /// <summary>
-        /// 修改的Linq2DB库创建表
+        /// 创建MongDB表
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <param name="systemID"></param>
+        /// <param name="tableTypes"></param>
         /// <returns></returns>
-        public static void EditLinq2DBQueryCreateTable<T>(string systemID) where T : class, IEntity, new()
+        public static Task CreateMongDBTables(string systemID, IEnumerable<Type> tableTypes)
         {
-            Linq2DBDao.Linq2DBEditQueryCreateTable<T>(systemID);
+            return MongoDBDao.CreateTables(systemID, tableTypes);
         }
 
         static DaoFactory()

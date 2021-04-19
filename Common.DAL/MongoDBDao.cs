@@ -22,7 +22,6 @@ namespace Common.DAL
         private static MongoClient m_slaveMongoClient;
         private static IMongoDatabase m_masterMongoDatabase;
         private static IMongoDatabase m_slaveMongoDatabase;
-        private static ISet<string> m_collectionNames;
 
         private class MongoDbResourceContent : IDBResourceContent
         {
@@ -58,6 +57,37 @@ namespace Common.DAL
             }
 
             return mongoDBTransaction != null;
+        }
+
+        public static Task CreateTables(string systemID, IEnumerable<Type> tableTypes)
+        {
+            if (tableTypes.IsNullOrEmpty())
+                return Task.CompletedTask;
+
+            return Task.Factory.StartNew(() =>
+            {
+                bool codeFirst = Convert.ToBoolean(ConfigManager.Configuration["IsCodeFirst"]);
+
+                if (!codeFirst)
+                    return;
+
+                foreach (Type tableType in tableTypes)
+                {
+                    if (!tableType.IsClass || tableType.GetConstructor(new Type[0]) == null || tableType.GetInterface(typeof(IEntity).Name) == null)
+                        continue;
+
+                    string tableName = (string)typeof(MongoDBDao).GetMethod(nameof(GetPartitionTableName), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(tableType).
+                                                                  Invoke(null, new object[] { systemID });
+
+                    m_masterMongoDatabase.CreateCollection(tableName);
+                }
+            });
+        }
+
+        private static string GetPartitionTableName<T>(string systemID) where T : class, IEntity, new()
+        {
+            string tablePostFix = string.IsNullOrEmpty(systemID) ? string.Empty : $"_{systemID}";
+            return Convert.ToBoolean(ConfigManager.Configuration["IsNotLowerTableName"]) ? $"{typeof(T).Name}{tablePostFix}" : $"{typeof(T).Name}{tablePostFix}".ToLower();
         }
 
         internal static IDBResourceContent GetDBResourceContent()
@@ -418,7 +448,7 @@ namespace Common.DAL
                         JoinItem joinItem = joinItems[key];
                         QueryableExecutionModel queryableExecutionModel = ((IMongoQueryable)joinItem.MongoQueryable.Provider.CreateQuery(joinItem.Expression)).GetExecutionModel();
                         IEnumerable<BsonDocument> joinMatchs = (IEnumerable<BsonDocument>)typeof(AggregateQueryableExecutionModel<>).MakeGenericType(queryableExecutionModel.OutputType).
-                            GetProperty("Stages").GetValue(queryableExecutionModel);
+                                                                                                                                     GetProperty("Stages").GetValue(queryableExecutionModel);
 
                         pipline.AddRange(joinMatchs);
                     }
@@ -760,22 +790,9 @@ namespace Common.DAL
                 m_countMethodInfo = typeof(Queryable).GetMethods().Where(item => item.Name == "Count").ElementAt(0);
             }
 
-            private static string GetPartitionTableName(string systemID)
-            {
-                string tablePostFix = string.IsNullOrEmpty(systemID) ? string.Empty : $"_{systemID}";
-                return Convert.ToBoolean(ConfigManager.Configuration["IsNotLowerTableName"]) ? $"{typeof(T).Name}{tablePostFix}" : $"{typeof(T).Name}{tablePostFix}".ToLower();
-            }
-
             private static IMongoCollection<T> GetCollection(IMongoDatabase mongoDatabase, string systemID)
             {
-                string collectionName = GetPartitionTableName(systemID);
-
-                if (!m_collectionNames.Contains(collectionName))
-                {
-                    mongoDatabase.CreateCollection(collectionName);
-                    m_collectionNames.Add(collectionName);
-                }
-
+                string collectionName = GetPartitionTableName<T>(systemID);
                 return mongoDatabase.GetCollection<T>(collectionName);
             }
 
@@ -1157,8 +1174,6 @@ namespace Common.DAL
 
             m_masterMongoDatabase = m_masterMongoClient.GetDatabase(ConfigManager.Configuration["MongoDBService:Database"]);
             m_slaveMongoDatabase = m_slaveMongoClient.GetDatabase(ConfigManager.Configuration["MongoDBService:Database"]);
-
-            m_collectionNames = new HashSet<string>(m_masterMongoDatabase.ListCollectionNames().ToEnumerable());
 
             BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Local, BsonType.DateTime));
         }
