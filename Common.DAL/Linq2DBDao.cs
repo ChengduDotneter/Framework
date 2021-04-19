@@ -146,6 +146,18 @@ namespace Common.DAL
             return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
         }
 
+        public static void Linq2DBSearchQueryCreateTable<T>(string systemID)
+             where T : class, IEntity, new()
+        {
+            GetPartitionTableName<T>(CreateConnection(m_masterlinqToDbConnectionOptions).Instance, systemID);
+        }
+
+        public static void Linq2DBEditQueryCreateTable<T>(string systemID)
+             where T : class, IEntity, new()
+        {
+            GetPartitionTableName<T>(CreateConnection(m_masterlinqToDbConnectionOptions).Instance, systemID);
+        }
+
         public static IDBResourceContent GetDBResourceContent()
         {
             return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.GetHashCode()].ApplyInstance());

@@ -70,6 +70,26 @@ namespace Common.DAL
             return MongoDBDao.GetDBResourceContent();
         }
 
+        /// <summary>
+        /// 查询的Linq2DB库创建表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static void SearchLinq2DBQueryCreateTable<T>(string systemID) where T : class, IEntity, new()
+        {
+            Linq2DBDao.Linq2DBSearchQueryCreateTable<T>(systemID);
+        }
+
+        /// <summary>
+        /// 修改的Linq2DB库创建表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static void EditLinq2DBQueryCreateTable<T>(string systemID) where T : class, IEntity, new()
+        {
+            Linq2DBDao.Linq2DBEditQueryCreateTable<T>(systemID);
+        }
+
         static DaoFactory()
         {
             LogHelper = LogHelperFactory.GetDefaultLogHelper();
