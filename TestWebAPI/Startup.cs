@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
 using TestWebAPI.Controllers;
+
 // ReSharper disable NotAccessedField.Local
 
 namespace TestWebAPI
@@ -43,10 +44,22 @@ namespace TestWebAPI
     public class Startup
     {
         private IConfiguration m_configuration;
+        private Type[] m_modelTypes;
 
         public Startup(IConfiguration configuration)
         {
             m_configuration = configuration;
+            
+            m_modelTypes = TypeReflector.ReflectType((type) =>
+            {
+                if (type.GetInterface(typeof(IEntity).FullName) == null || type.IsInterface || type.IsAbstract)
+                    return false;
+
+                if (type.GetCustomAttribute<IgnoreTableAttribute>() != null)
+                    return false;
+
+                return true;
+            });
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -60,17 +73,6 @@ namespace TestWebAPI
                 });
             });
 
-            Type[] modelTypes = TypeReflector.ReflectType((type) =>
-            {
-                if (type.GetInterface(typeof(IEntity).FullName) == null || type.IsInterface || type.IsAbstract)
-                    return false;
-
-                if (type.GetCustomAttribute<IgnoreTableAttribute>() != null)
-                    return false;
-
-                return true;
-            });
-
             Type[] controllerTypes = TypeReflector.ReflectType((type) =>
             {
                 if (type.GetInterface(typeof(IDynamicController).FullName) == null ||
@@ -81,7 +83,7 @@ namespace TestWebAPI
                 return true;
             });
 
-            IMvcBuilder mvcBuilder = services.AddControllers(modelTypes, controllerTypes);
+            IMvcBuilder mvcBuilder = services.AddControllers(m_modelTypes, controllerTypes);
             services.ConfigureValidation(mvcBuilder, 10);
 
             Func<Type, object> cacheProviderHandler = (type) =>
@@ -89,7 +91,7 @@ namespace TestWebAPI
                 return typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateMemoryCacheProvider)).MakeGenericMethod(type).Invoke(null, null);
             };
 
-            services.AddQuerys(modelTypes, cacheProviderProvider: cacheProviderHandler /*,
+            services.AddQuerys(m_modelTypes, cacheProviderProvider: cacheProviderHandler /*,
             searchQueryProvider: (type) =>
             {
                 return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetSearchMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
@@ -98,16 +100,17 @@ namespace TestWebAPI
             {
                 return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
             }*/);
-
+            
             services.AddSwagger();
             //services.AddHostedService<CrossService>();
 
             services.AddScoped<ITest, Test1>();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime, ICreateTableQuery createTableQuery)
         {
             //app.ApplicationServices.GetService<ITccNotifyFactory>().RegisterNotify(new TestTCCNotify());
+            createTableQuery.CreateTable("s2b", m_modelTypes).Wait();
 
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
