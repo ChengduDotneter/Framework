@@ -206,7 +206,46 @@ namespace TestWebAPI.Controllers
         [HttpPost]
         public async Task Post()
         {
+            using (ITransaction transaction = await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().BeginTransactionAsync(false))
+            {
+                Left[] lefts1 = new Left[20];
+                
+                for (int i = 0; i < lefts1.Length; i++)
+                {
+                    lefts1[i] = new Left
+                    {
+                        ID = IDGenerator.NextID(),
+                        CreateTime = DateTime.Now,
+                        CreateUserID = 9999,
+                        UpdateTime = DateTime.Now,
+                        UpdateUserID = 9999,
+                        IsDeleted = false,
+                        StudentName = $"student_{i}",
+                        ClassID = 9999
+                    };
+                }
+                
+                await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().MergeAsync(transaction, lefts1);
 
+                int pageSize = 20;
+                int readCount = 0;
+                int totalCount = await m_searchQuery.SplitBySystemID("s2b").FilterIsDeleted().CountAsync(transaction);
+
+                while (readCount <= totalCount)
+                {
+                    IEnumerable<Left> lefts = await m_searchQuery.SplitBySystemID("s2b").FilterIsDeleted().SearchAsync(transaction, startIndex: readCount, count: pageSize);
+
+                    foreach (var left in lefts)
+                    {
+                        left.StudentName = "deleted";
+                        await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().UpdateAsync(left, transaction);
+                    }
+
+                    readCount += lefts.Count();
+                }
+
+                await transaction.SubmitAsync();
+            }
         }
 
         [HttpGet]

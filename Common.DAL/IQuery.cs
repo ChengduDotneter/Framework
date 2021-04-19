@@ -166,19 +166,20 @@ namespace Common.DAL
         /// <param name="ids"></param>
         Task DeleteAsync(ITransaction transaction = null, params long[] ids);
 
+        //TODO:默认全部不开启分布式事务
         /// <summary>
         /// 开启事务
         /// </summary>
         /// <param name="distributedLock">是否启用分布式事务锁</param>
         /// <param name="weight">事务权重</param>
-        ITransaction BeginTransaction(bool distributedLock = true, int weight = 0);
+        ITransaction BeginTransaction(bool distributedLock = false, int weight = 0);
 
         /// <summary>
         /// 开启事务
         /// </summary>
         /// <param name="distributedLock">是否启用分布式事务锁</param>
         /// <param name="weight">事务权重</param>
-        Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0);
+        Task<ITransaction> BeginTransactionAsync(bool distributedLock = false, int weight = 0);
     }
 
     /// <summary>
