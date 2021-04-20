@@ -177,9 +177,11 @@ namespace Common.DAL
                     {
                         if (!tableType.IsClass || tableType.GetConstructor(new Type[0]) == null || tableType.GetInterface(typeof(IEntity).Name) == null)
                             continue;
+                        
+                        DontSplitSystemAttribute dontSplitSystemAttribute = tableType.GetCustomAttribute<DontSplitSystemAttribute>();
 
                         string tableName = (string)typeof(Linq2DBDao).GetMethod(nameof(GetPartitionTableName), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(tableType).
-                                                                      Invoke(null, new object[] { systemID });
+                                                                      Invoke(null, new object[] { dontSplitSystemAttribute == null ? systemID : string.Empty });
 
                         typeof(Linq2DBDao).GetMethod(nameof(CreateTable), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(tableType).Invoke(null, new object[]
                         {

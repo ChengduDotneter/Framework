@@ -1,6 +1,7 @@
 using System;
 
-namespace Common.Model
+namespace Common.DAL
+
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class DontSplitSystemAttribute : Attribute
