@@ -254,17 +254,24 @@ namespace Common.ServiceCommon
         /// <param name="editQueryProvider"></param>
         /// <param name="cacheProviderProvider"></param>
         /// <param name="dbResourceContentProvider"></param>
+        /// <param name="createTableQueryProvider"></param>
         public static void AddQuerys(this IServiceCollection serviceCollection,
                                      Type[] modelTypes,
                                      Func<Type, object> searchQueryProvider = null,
                                      Func<Type, object> editQueryProvider = null,
                                      Func<Type, object> cacheProviderProvider = null,
-                                     Func<IDBResourceContent> dbResourceContentProvider = null)
+                                     Func<IDBResourceContent> dbResourceContentProvider = null,
+                                     Func<ICreateTableQuery> createTableQueryProvider = null)
         {
             if (dbResourceContentProvider != null)
                 serviceCollection.AddScoped(sp => dbResourceContentProvider.Invoke());
             else
                 serviceCollection.AddScoped(sp => DaoFactory.GetLinq2DBResourceContent());
+
+            if (createTableQueryProvider != null)
+                serviceCollection.AddScoped(sp => createTableQueryProvider.Invoke());
+            else
+                serviceCollection.AddScoped(sp => DaoFactory.GetLinq2DBCreateTableQuery());
 
             for (int i = 0; i < modelTypes.Length; i++)
             {

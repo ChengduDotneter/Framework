@@ -280,7 +280,8 @@ namespace Common.DAL
                               Expression<Func<T, bool>> predicate = null,
                               IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                               int startIndex = 0,
-                              int count = int.MaxValue, bool forUpdate = false);
+                              int count = int.MaxValue,
+                              bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询
@@ -315,7 +316,8 @@ namespace Common.DAL
                                          Expression<Func<T, bool>> predicate = null,
                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                          int startIndex = 0,
-                                         int count = int.MaxValue, bool forUpdate = false);
+                                         int count = int.MaxValue,
+                                         bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询（异步）
@@ -448,7 +450,8 @@ namespace Common.DAL
                               Expression<Func<T, bool>> predicate = null,
                               IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                               int startIndex = 0,
-                              int count = int.MaxValue, bool forUpdate = false);
+                              int count = int.MaxValue,
+                              bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询
@@ -479,7 +482,8 @@ namespace Common.DAL
                                          Expression<Func<T, bool>> predicate = null,
                                          IEnumerable<QueryOrderBy<T>> queryOrderBies = null,
                                          int startIndex = 0,
-                                         int count = int.MaxValue, bool forUpdate = false);
+                                         int count = int.MaxValue,
+                                         bool forUpdate = false);
 
         /// <summary>
         /// 根据Linq筛选条件查询（异步）
@@ -605,7 +609,9 @@ namespace Common.DAL
     /// 查询Queryable
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ISearchQueryable<T> : IQueryable<T>, IDisposable { }
+    public interface ISearchQueryable<T> : IQueryable<T>, IDisposable
+    {
+    }
 
     /// <summary>
     /// 事务接口
@@ -681,5 +687,19 @@ namespace Common.DAL
         /// 逆序
         /// </summary>
         Desc
+    }
+
+    /// <summary>
+    /// 创建表接口
+    /// </summary>
+    public interface ICreateTableQuery
+    {
+        /// <summary>
+        /// 创建表
+        /// </summary>
+        /// <param name="systemID"></param>
+        /// <param name="tableTypes"></param>
+        /// <returns></returns>
+        Task CreateTable(string systemID, IEnumerable<Type> tableTypes);
     }
 }

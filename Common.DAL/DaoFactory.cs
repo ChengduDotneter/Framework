@@ -71,23 +71,21 @@ namespace Common.DAL
         }
 
         /// <summary>
-        /// 查询的Linq2DB库创建表
+        /// 创建Linq2DB表
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static void SearchLinq2DBQueryCreateTable<T>(string systemID) where T : class, IEntity, new()
+        public static ICreateTableQuery GetLinq2DBCreateTableQuery()
         {
-            Linq2DBDao.Linq2DBSearchQueryCreateTable<T>(systemID);
+            return Linq2DBDao.GetLinq2DBCreateTableQueryInstance();
         }
 
         /// <summary>
-        /// 修改的Linq2DB库创建表
+        /// 创建MongDB表
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static void EditLinq2DBQueryCreateTable<T>(string systemID) where T : class, IEntity, new()
+        public static ICreateTableQuery CreateMongDbCreateTableQuery()
         {
-            Linq2DBDao.Linq2DBEditQueryCreateTable<T>(systemID);
+            return MongoDBDao.GetMongoDBCreateTableQueryInstance();
         }
 
         static DaoFactory()
