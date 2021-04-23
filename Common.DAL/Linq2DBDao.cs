@@ -121,37 +121,9 @@ namespace Common.DAL
             dataConnectionInstance.Dispose();
         }
 
-
-
-
-
-        /// <summary>
-        /// 资源池实例
-        /// </summary>
-        private class ResourceInstance : IResourceInstance<DataConnectionInstance>
-        {
-            /// <summary>
-            /// 资源实例
-            /// </summary>
-            public DataConnectionInstance Instance { get; set; }
-
-            public ResourceInstance(DataConnectionInstance instance)
-            {
-                Instance = instance;
-            }
-
-            public void Dispose()
-            {
-                Instance.Dispose();
-            }
-        }
-
-        //TODO
         private static IResourceInstance<DataConnectionInstance> CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions)
         {
-            return new ResourceInstance(new DataConnectionInstance(Environment.TickCount + m_dataConnectionOutTime, linqToDbConnectionOptions));
-
-            //return m_connectionPool[linqToDbConnectionOptions.GetHashCode()].ApplyInstance();
+            return m_connectionPool[linqToDbConnectionOptions.GetHashCode()].ApplyInstance();
         }
 
         private static void DisposeConnection(IResourceInstance<DataConnectionInstance> resourceInstance)
@@ -170,7 +142,7 @@ namespace Common.DAL
         {
             return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
         }
-        
+
         private class Linq2DBCreateTableQueryInstance : ICreateTableQuery
         {
             public Task CreateTable(string systemID, IEnumerable<Type> tableTypes)
@@ -196,7 +168,7 @@ namespace Common.DAL
 
                 if (!codeFirst)
                     return;
-                
+
                 try
                 {
                     dataConnection = CreateConnection(m_slavelinqToDbConnectionOptions);
@@ -205,7 +177,7 @@ namespace Common.DAL
                     {
                         if (!tableType.IsClass || tableType.GetConstructor(new Type[0]) == null || tableType.GetInterface(typeof(IEntity).Name) == null)
                             continue;
-                        
+
                         DontSplitSystemAttribute dontSplitSystemAttribute = tableType.GetCustomAttribute<DontSplitSystemAttribute>();
 
                         string tableName = (string)typeof(Linq2DBDao).GetMethod(nameof(GetPartitionTableName), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(tableType).
@@ -225,7 +197,7 @@ namespace Common.DAL
                 }
             });
         }
-        
+
         private static void CreateTable<T>(IDataContext dataContext, string tableName) where T : class, IEntity, new()
         {
             DataConnection dataConnection = (DataConnection)dataContext;

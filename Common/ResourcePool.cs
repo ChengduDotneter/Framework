@@ -55,7 +55,13 @@ namespace Common
             /// </summary>
             public int OverTimeMilliseconds { get; set; }
 
+            /// <summary>
+            /// 资源是否已经释放
+            /// </summary>
+            public bool IsDispose { get { return m_isDispose; } set { m_isDispose = value; } }
+
             private readonly ResourcePool<T> m_resourcePool;
+            private volatile bool m_isDispose;
 
             public ResourceInstance(T instance, bool isTemp, int overTimeMilliseconds, ResourcePool<T> resourcePool)
             {
@@ -68,21 +74,26 @@ namespace Common
 
             public void Dispose()
             {
-                if (IsTemp)
+                if (!IsDispose)
                 {
-                    if (OverTimeMilliseconds < Environment.TickCount)
+                    IsDispose = true;
+
+                    if (IsTemp)
                     {
-                        m_resourcePool.m_doDisposableInstance.Invoke(Instance);
-                        m_resourcePool.m_instanceCount--;
+                        if (OverTimeMilliseconds < Environment.TickCount)
+                        {
+                            m_resourcePool.m_doDisposableInstance.Invoke(Instance);
+                            m_resourcePool.m_instanceCount--;
+                        }
+                        else
+                        {
+                            OverTimeMilliseconds = Environment.TickCount + m_resourcePool.m_temporaryOverTimeMilliseconds;
+                            m_resourcePool.m_resourceInstanceQueue.Enqueue(this);
+                        }
                     }
                     else
-                    {
-                        OverTimeMilliseconds = Environment.TickCount + m_resourcePool.m_temporaryOverTimeMilliseconds;
                         m_resourcePool.m_resourceInstanceQueue.Enqueue(this);
-                    }
                 }
-                else
-                    m_resourcePool.m_resourceInstanceQueue.Enqueue(this);
             }
         }
 
@@ -164,6 +175,7 @@ namespace Common
                 }
             }
 
+            resourceInstance.IsDispose = false;
             return resourceInstance;
         }
     }
