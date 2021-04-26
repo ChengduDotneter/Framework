@@ -142,7 +142,7 @@ namespace Common.DAL
         {
             return new Linq2DBDaoInstance<T>(m_masterlinqToDbConnectionOptions);
         }
-        
+
         private class Linq2DBCreateTableQueryInstance : ICreateTableQuery
         {
             public Task CreateTable(string systemID, IEnumerable<Type> tableTypes)
@@ -168,7 +168,7 @@ namespace Common.DAL
 
                 if (!codeFirst)
                     return;
-                
+
                 try
                 {
                     dataConnection = CreateConnection(m_slavelinqToDbConnectionOptions);
@@ -177,7 +177,7 @@ namespace Common.DAL
                     {
                         if (!tableType.IsClass || tableType.GetConstructor(new Type[0]) == null || tableType.GetInterface(typeof(IEntity).Name) == null)
                             continue;
-                        
+
                         DontSplitSystemAttribute dontSplitSystemAttribute = tableType.GetCustomAttribute<DontSplitSystemAttribute>();
 
                         string tableName = (string)typeof(Linq2DBDao).GetMethod(nameof(GetPartitionTableName), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(tableType).
@@ -197,7 +197,7 @@ namespace Common.DAL
                 }
             });
         }
-        
+
         private static void CreateTable<T>(IDataContext dataContext, string tableName) where T : class, IEntity, new()
         {
             DataConnection dataConnection = (DataConnection)dataContext;

@@ -48,18 +48,17 @@ namespace Common.ServiceCommon
     {
         private readonly ILogHelper m_logHelper;
 
-        internal override Task RecieveMessage(object parameter, CancellationToken cancellationToken)
+        internal override async Task RecieveMessage(object parameter, CancellationToken cancellationToken)
         {
             try
             {
-                return RecieveMessage(JsonConvert.DeserializeObject<T>((string)parameter), cancellationToken);
+                await RecieveMessage(JsonConvert.DeserializeObject<T>((string)parameter), cancellationToken);
             }
             catch (Exception exception)
             {
                 string errorMessage = ExceptionHelper.GetMessage(exception);
                 SendMessage(errorMessage);
-                m_logHelper.Error(this.GetType().Name, errorMessage);
-                return Task.CompletedTask;
+                await m_logHelper.Error(this.GetType().Name, errorMessage);
             }
         }
 
