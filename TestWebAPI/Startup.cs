@@ -49,7 +49,7 @@ namespace TestWebAPI
         public Startup(IConfiguration configuration)
         {
             m_configuration = configuration;
-            
+
             m_modelTypes = TypeReflector.ReflectType((type) =>
             {
                 if (type.GetInterface(typeof(IEntity).FullName) == null || type.IsInterface || type.IsAbstract)
@@ -100,9 +100,11 @@ namespace TestWebAPI
             {
                 return typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditMongoDBQuery)).MakeGenericMethod(type).Invoke(null, null);
             }*/);
-            
+
             services.AddSwagger();
             //services.AddHostedService<CrossService>();
+
+            services.AddHostedService<TestService>();
 
             services.AddScoped<ITest, Test1>();
         }

@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Common.MessageQueueClient;
+using Common.MessageQueueClient.RabbitMQ;
+using Microsoft.Extensions.Hosting;
 
 // ReSharper disable UnusedVariable
 // ReSharper disable HeuristicUnreachableCode
@@ -36,6 +39,58 @@ namespace TestWebAPI.Controllers
         public int Count { get; set; }
 
         public long CommodityID { get; set; }
+    }
+
+    public class TestMQData : IMQData
+    {
+        public string Data { get; set; }
+        public DateTime CreateTime { get; set; }
+    }
+
+    public class TestService : IHostedService
+    {
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            string mqName = "test_mq";
+
+            Task.Factory.StartNew(() =>
+            {
+                MQContext mqContext = new MQContext(mqName, new RabbitMqContent() { RoutingKey = mqName });
+                IMQConsumer<TestMQData> mqConsumer = MessageQueueFactory.GetRabbitMQConsumer<TestMQData>(ExChangeTypeEnum.Direct);
+                mqConsumer.Subscribe(mqContext);
+
+                mqConsumer.Consume(mqContext, (testData) =>
+                {
+                    Console.WriteLine(testData.Data);
+                    return true;
+                });
+            });
+
+            Task.Factory.StartNew(async () =>
+            {
+                MQContext mQContext = new MQContext(mqName, new RabbitMqContent() { RoutingKey = mqName });
+                IMQProducer<TestMQData> mQProducer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>(ExChangeTypeEnum.Direct);
+
+                while (true)
+                {
+                    TestMQData mqData = new TestMQData
+                    {
+                        Data = Guid.NewGuid().ToString(),
+                        CreateTime = DateTime.Now
+                    };
+
+                    await mQProducer.ProduceAsync(mQContext, mqData);
+                    await Task.Delay(100);
+                }
+            });
+
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
 
     [ApiController]
@@ -209,7 +264,7 @@ namespace TestWebAPI.Controllers
             using (ITransaction transaction = await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().BeginTransactionAsync(false))
             {
                 Left[] lefts1 = new Left[20];
-                
+
                 for (int i = 0; i < lefts1.Length; i++)
                 {
                     lefts1[i] = new Left
@@ -224,7 +279,7 @@ namespace TestWebAPI.Controllers
                         ClassID = 9999
                     };
                 }
-                
+
                 await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().MergeAsync(transaction, lefts1);
 
                 int pageSize = 20;
