@@ -40,8 +40,13 @@ namespace Common.DAL
 
             if (resourceInstance.Instance.OverTimeMilliseconds < Environment.TickCount)
             {
-                m_doDisposableInstance.Invoke(resourceInstance.Instance);
-                resourceInstance.GetType().GetProperty(nameof(resourceInstance.Instance)).SetValue(resourceInstance, m_doCreateInstance.Invoke());
+                IResourceInstance<DataConnectionInstance> resource = resourceInstance;
+                
+                if (resource is SafeDisposeableResourceInstance<DataConnectionInstance>)
+                    resource = ((SafeDisposeableResourceInstance<DataConnectionInstance>)resource).Proxy;
+
+                m_doDisposableInstance.Invoke(resource.Instance);
+                resource.GetType().GetProperty(nameof(resource.Instance)).SetValue(resource, m_doCreateInstance.Invoke());
             }
 
             return resourceInstance;

@@ -30,6 +30,48 @@ namespace Common
     }
 
     /// <summary>
+    /// 安全释放资源池代理对象
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class SafeDisposeableResourceInstance<T> : IResourceInstance<T>
+    {
+        private readonly IResourceInstance<T> m_resourceInstanceImplementation;
+        private volatile bool m_disposed;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="resourceInstanceImplementation"></param>
+        public SafeDisposeableResourceInstance(IResourceInstance<T> resourceInstanceImplementation)
+        {
+            m_disposed = false;
+            m_resourceInstanceImplementation = resourceInstanceImplementation;
+        }
+
+        /// <summary>
+        /// 释放
+        /// </summary>
+        public void Dispose()
+        {
+            if (!m_disposed)
+            {
+                m_disposed = true;
+                m_resourceInstanceImplementation.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// 代理对象实例
+        /// </summary>
+        public T Instance => m_resourceInstanceImplementation.Instance;
+
+        /// <summary>
+        /// 代理对象
+        /// </summary>
+        public IResourceInstance<T> Proxy => m_resourceInstanceImplementation;
+    }
+
+    /// <summary>
     /// 资源池（单个队列锁）
     /// </summary>
     /// <typeparam name="T"></typeparam>
@@ -55,13 +97,7 @@ namespace Common
             /// </summary>
             public int OverTimeMilliseconds { get; set; }
 
-            /// <summary>
-            /// 资源是否已经释放
-            /// </summary>
-            public bool IsDispose { get { return m_isDispose; } set { m_isDispose = value; } }
-
             private readonly ResourcePool<T> m_resourcePool;
-            private volatile bool m_isDispose;
 
             public ResourceInstance(T instance, bool isTemp, int overTimeMilliseconds, ResourcePool<T> resourcePool)
             {
@@ -74,26 +110,21 @@ namespace Common
 
             public void Dispose()
             {
-                if (!IsDispose)
+                if (IsTemp)
                 {
-                    IsDispose = true;
-
-                    if (IsTemp)
+                    if (OverTimeMilliseconds < Environment.TickCount)
                     {
-                        if (OverTimeMilliseconds < Environment.TickCount)
-                        {
-                            m_resourcePool.m_doDisposableInstance.Invoke(Instance);
-                            m_resourcePool.m_instanceCount--;
-                        }
-                        else
-                        {
-                            OverTimeMilliseconds = Environment.TickCount + m_resourcePool.m_temporaryOverTimeMilliseconds;
-                            m_resourcePool.m_resourceInstanceQueue.Enqueue(this);
-                        }
+                        m_resourcePool.m_doDisposableInstance.Invoke(Instance);
+                        m_resourcePool.m_instanceCount--;
                     }
                     else
+                    {
+                        OverTimeMilliseconds = Environment.TickCount + m_resourcePool.m_temporaryOverTimeMilliseconds;
                         m_resourcePool.m_resourceInstanceQueue.Enqueue(this);
+                    }
                 }
+                else
+                    m_resourcePool.m_resourceInstanceQueue.Enqueue(this);
             }
         }
 
@@ -175,8 +206,7 @@ namespace Common
                 }
             }
 
-            resourceInstance.IsDispose = false;
-            return resourceInstance;
+            return new SafeDisposeableResourceInstance<T>(resourceInstance);
         }
     }
 }
