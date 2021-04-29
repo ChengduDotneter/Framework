@@ -86,6 +86,7 @@ namespace Common
                             logDir = Path.Combine(logDir, names[i]);
 
                         RollingFileAppender fileAppender = new RollingFileAppender();
+                        fileAppender.LockingModel = new FileAppender.MinimalLock();
                         fileAppender.Name = $"{m_assemblyName}_{loggerRepository.Name}_{names[0]}_FileAppender";
                         fileAppender.File = logDir;
                         fileAppender.AppendToFile = true;
