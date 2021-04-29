@@ -36,7 +36,7 @@ namespace Common
     public class SafeDisposeableResourceInstance<T> : IResourceInstance<T>
     {
         private readonly IResourceInstance<T> m_resourceInstanceImplementation;
-        private volatile bool m_disposed;
+        private bool m_disposed;
 
         /// <summary>
         /// 构造函数
@@ -53,10 +53,13 @@ namespace Common
         /// </summary>
         public void Dispose()
         {
-            if (!m_disposed)
+            lock (this)
             {
-                m_disposed = true;
-                m_resourceInstanceImplementation.Dispose();
+                if (!m_disposed)
+                {
+                    m_disposed = true;
+                    m_resourceInstanceImplementation.Dispose();
+                }
             }
         }
 
@@ -69,7 +72,7 @@ namespace Common
             {
                 if (m_disposed)
                     throw new DealException("连接已被释放，请勿再次使用。");
-                
+
                 return m_resourceInstanceImplementation.Instance;
             }
         }
