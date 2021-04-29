@@ -357,7 +357,9 @@ namespace Common.DAL
             {
                 await m_dataConnectionTransaction.DisposeAsync();
                 DisposeConnection(m_resourceInstance);
-                Release(Identity);
+
+                if (DistributedLock)
+                    Release(Identity);
             }
 
             public void Rollback()
