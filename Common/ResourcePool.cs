@@ -63,12 +63,30 @@ namespace Common
         /// <summary>
         /// 代理对象实例
         /// </summary>
-        public T Instance => m_resourceInstanceImplementation.Instance;
+        public T Instance
+        {
+            get
+            {
+                if (m_disposed)
+                    throw new DealException("连接已被释放，请勿再次使用。");
+                
+                return m_resourceInstanceImplementation.Instance;
+            }
+        }
 
         /// <summary>
         /// 代理对象
         /// </summary>
-        public IResourceInstance<T> Proxy => m_resourceInstanceImplementation;
+        public IResourceInstance<T> Proxy
+        {
+            get
+            {
+                if (m_disposed)
+                    throw new DealException("连接已被释放，请勿再次使用。");
+
+                return m_resourceInstanceImplementation;
+            }
+        }
     }
 
     /// <summary>

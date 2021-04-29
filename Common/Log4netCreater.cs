@@ -89,8 +89,10 @@ namespace Common
                         fileAppender.Name = $"{m_assemblyName}_{loggerRepository.Name}_{names[0]}_FileAppender";
                         fileAppender.File = logDir;
                         fileAppender.AppendToFile = true;
-                        fileAppender.RollingStyle = RollingFileAppender.RollingMode.Date;
+                        fileAppender.RollingStyle = RollingFileAppender.RollingMode.Composite;
+                        fileAppender.MaximumFileSize = "2MB";
                         fileAppender.DatePattern = "_yyyy-MM-dd'.log'";
+                        fileAppender.MaxSizeRollBackups = -1;
                         fileAppender.StaticLogFileName = false;
                         fileAppender.Layout = new PatternLayout(layoutFormat);
                         fileAppender.AddFilter(infoFilter);
