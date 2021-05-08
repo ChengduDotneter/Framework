@@ -16,6 +16,10 @@ namespace TestMessageQueue.Controllers
         private static IMQConsumer<KafkaMQData> mqConsumer;
         public async Task Get()
         {
+            var productor = MessageQueueFactory.GetKafkaProducer<KafkaMQData>();
+            MQContext context = new MQContext(KafkaAsyncTestController.KafkaAsyncTest, null);
+            await productor.ProduceAsync(context, new KafkaMQData());
+
             MQContext mqContext = new MQContext(KafkaAsyncTest, new KafkaMQData());
             mqConsumer = MessageQueueFactory.GetKafkaConsumer<KafkaMQData>(KafkaAsyncTest);
             mqConsumer.Subscribe(mqContext);

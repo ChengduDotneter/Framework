@@ -1,6 +1,5 @@
 ﻿using Common.MessageQueueClient;
 using Common.MessageQueueClient.RabbitMQ;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,17 +9,15 @@ using TestMessageQueue.MQData;
 
 namespace TestMessageQueue.Controllers
 {
-    [Route("RabbitMQAsycnTest")]
-    [ApiController]
-    public class RabbitMQAsycnTestController : ControllerBase
+    public class RabbitMQAckAsyncTrueTestController
     {
-        private static IMQConsumer<RabbitMQData> mqConsumer;
+        private static IMQAckConsumer<RabbitMQData> mqConsumer;
         private static MQContext mqContext;
 
         ISet<string> sendGuids;
         ISet<string> recieveGuids;
 
-        public RabbitMQAsycnTestController()
+        public RabbitMQAckAsyncTrueTestController()
         {
             sendGuids = new HashSet<string>();
             recieveGuids = new HashSet<string>();
@@ -29,8 +26,8 @@ namespace TestMessageQueue.Controllers
         public async Task Get()
         {
             var productor = MessageQueueFactory.GetRabbitMQProducer<RabbitMQData>(ExChangeTypeEnum.Direct);
-            TestRabbitMqContent context = new TestRabbitMqContent() { RoutingKey = RabbitMQAsycnTestConsts.RoutingKey };
-            MQContext context1 = new MQContext(RabbitMQAsycnTestConsts.RabbitMQAsycnTest, context);
+            TestRabbitMqContent context = new TestRabbitMqContent() { RoutingKey = RabbitMQAckAsyncTrueTestConsts.RoutingKey };
+            MQContext context1 = new MQContext(RabbitMQAckAsyncTrueTestConsts.RabbitMQAckAsyncTrueTest, context);
 
 
             for (int i = 0; i < 100; i++)
@@ -40,14 +37,14 @@ namespace TestMessageQueue.Controllers
                 await productor.ProduceAsync(context1, data);
             }
 
-            mqContext = new MQContext(RabbitMQAsycnTestConsts.RabbitMQAsycnTest, context);
-            mqConsumer = MessageQueueFactory.GetRabbitMQConsumer<RabbitMQData>(ExChangeTypeEnum.Direct);
+            mqContext = new MQContext(RabbitMQAckAsyncTrueTestConsts.RabbitMQAckAsyncTrueTest, context);
+            mqConsumer = MessageQueueFactory.GetRabbitMQAckConsumer<RabbitMQData>(ExChangeTypeEnum.Direct);
             mqConsumer.Subscribe(mqContext);
 
-            await mqConsumer.ConsumeAsync(mqContext, data =>
+            await mqConsumer.AckConsumeAsync(mqContext, data =>
             {
-                recieveGuids.Add(data.MyGuid);
-                return Task.FromResult(true);
+                recieveGuids.Add(data.Data.MyGuid);
+                return Task.FromResult(false);
             });
 
             await Task.Delay(15000);

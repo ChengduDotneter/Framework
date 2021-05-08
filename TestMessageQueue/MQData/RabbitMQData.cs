@@ -9,5 +9,10 @@ namespace TestMessageQueue.MQData
     public class RabbitMQData : IMQData
     {
         public DateTime CreateTime => DateTime.Now;
+        public string MyGuid { get; set; }
+        public RabbitMQData()
+        {
+            MyGuid = Guid.NewGuid().ToString();
+        }
     }
 }

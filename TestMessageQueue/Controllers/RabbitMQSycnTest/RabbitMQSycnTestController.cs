@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TestMessageQueue.MqContents;
 using TestMessageQueue.MQData;
 
 namespace TestMessageQueue.Controllers
@@ -13,22 +14,43 @@ namespace TestMessageQueue.Controllers
     [ApiController]
     public class RabbitMQSycnTestController : ControllerBase
     {
-        public static readonly string RabbitMQSycnTest = "RabbitMQSycnTest";
         private static IMQConsumer<RabbitMQData> mqConsumer;
+        private static MQContext mqContext;
+        ISet<string> sendGuids;
+        ISet<string> recieveGuids;
+
+        public RabbitMQSycnTestController()
+        {
+            sendGuids = new HashSet<string>();
+            recieveGuids = new HashSet<string>();
+        }
         public void Get()
         {
-            
-            MQContext mqContext = new MQContext(RabbitMQSycnTest, new KafkaMQData());
+            var productor = MessageQueueFactory.GetRabbitMQProducer<RabbitMQData>(ExChangeTypeEnum.Direct);
+            TestRabbitMqContent context = new TestRabbitMqContent() { RoutingKey = RabbitMQAsycnTestConsts.RoutingKey };
+            MQContext context1 = new MQContext(RabbitMQAsycnTestConsts.RabbitMQAsycnTest, context);
+
+
+            for (int i = 0; i < 100; i++)
+            {
+                var data = new RabbitMQData();
+                sendGuids.Add(data.MyGuid);
+                productor.Produce(context1, data);
+            }
+
+            mqContext = new MQContext(RabbitMQAsycnTestConsts.RabbitMQAsycnTest, context);
             mqConsumer = MessageQueueFactory.GetRabbitMQConsumer<RabbitMQData>(ExChangeTypeEnum.Direct);
             mqConsumer.Subscribe(mqContext);
 
-            Task.Run( () =>
+            mqConsumer.Consume(mqContext, data =>
             {
-                mqConsumer.Consume(mqContext, data =>
-                {
-                    return true;
-                });
+                recieveGuids.Add(data.MyGuid);
+                return true;
             });
+
+            Task.Delay(15000);
+            sendGuids.ExceptWith(recieveGuids);
+            Console.WriteLine(sendGuids.Count == 0);
         }
     }
 }

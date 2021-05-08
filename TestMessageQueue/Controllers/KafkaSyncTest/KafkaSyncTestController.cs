@@ -17,6 +17,10 @@ namespace TestMessageQueue.Controllers
         [HttpGet]
         public void Get()
         {
+            var productor = MessageQueueFactory.GetKafkaProducer<KafkaMQData>();
+            MQContext context = new MQContext(KafkaSyncTestController.KafkaSyncTest, null);
+            productor.Produce(context, new KafkaMQData());
+
             MQContext mqContext = new MQContext(KafkaSyncTest, new KafkaMQData());
             IMQConsumer<KafkaMQData> mqConsumer = MessageQueueFactory.GetKafkaConsumer<KafkaMQData>(KafkaSyncTest);
             mqConsumer.Subscribe(mqContext);
