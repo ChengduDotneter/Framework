@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TestMessageQueue.MQData;
 
-namespace TestMessageQueue.Controllers.KafkaSyncTest
+namespace TestMessageQueue.Controllers
 {
     [Route("KafkaSyncProduceTest")]
     [ApiController]
@@ -16,7 +16,7 @@ namespace TestMessageQueue.Controllers.KafkaSyncTest
         public void Get()
         {
             var productor = MessageQueueFactory.GetKafkaProducer<KafkaMQData>();
-            MQContext context = new MQContext(KafkaSyncTestController.KafkaTest, null);
+            MQContext context = new MQContext(KafkaSyncTestController.KafkaSyncTest, null);
             productor.Produce(context, new KafkaMQData());
         }
     }

@@ -1,3 +1,4 @@
+using Common;
 using Common.MessageQueueClient;
 using Common.MessageQueueClient.RabbitMQ;
 using Common.ServiceCommon;
@@ -30,6 +31,8 @@ namespace TestMessageQueue
             services.AddControllers();
 
             services.AddSwagger();
+
+            ConfigManager.Init(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development" ? "Development" : "Development");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
