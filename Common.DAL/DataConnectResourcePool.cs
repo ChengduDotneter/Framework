@@ -41,7 +41,7 @@ namespace Common.DAL
             if (resourceInstance.Instance.OverTimeMilliseconds < Environment.TickCount)
             {
                 IResourceInstance<DataConnectionInstance> resource = resourceInstance;
-                
+
                 if (resource is SafeDisposeableResourceInstance<DataConnectionInstance>)
                     resource = ((SafeDisposeableResourceInstance<DataConnectionInstance>)resource).Proxy;
 

@@ -1,17 +1,43 @@
 ﻿using Confluent.Kafka;
 using Newtonsoft.Json;
 using System;
+using System.Threading.Tasks;
 
 namespace Common.MessageQueueClient.Kafka
 {
     /// <summary>
     /// Kafka消费者操作类
     /// </summary>
-    public class KafkaConsumer<T> : IMQConsumer<T> where T : class, IMQData, new()
+    public class KafkaConsumer<T> : IMQConsumer<T>, IMQAckConsumer<T> where T : class, IMQData, new()
     {
         private readonly IConsumer<string, string> m_consumer;
         private readonly bool m_enableAutoOffsetStore;
         private string m_subscribeMessageQueueName;
+
+        private class KafkaAckData : IAckData<T>
+        {
+            private TopicPartitionOffset m_topicPartitionOffset;
+            private readonly KafkaConsumer<T> m_consumer;
+
+            public KafkaAckData(TopicPartitionOffset topicPartitionOffset, KafkaConsumer<T> consumer, T data)
+            {
+                m_topicPartitionOffset = topicPartitionOffset;
+                m_consumer = consumer;
+                Data = data;
+            }
+
+            public T Data { get; }
+            
+            public void Commit()
+            {
+                m_consumer.m_consumer.Commit(new[] { m_topicPartitionOffset });
+            }
+
+            public void Cancel()
+            {
+                //ignore
+            }
+        }
 
         /// <summary>
         /// 构造函数
@@ -23,7 +49,10 @@ namespace Common.MessageQueueClient.Kafka
             m_enableAutoOffsetStore = enableAutoOffsetStore;
             m_consumer = new ConsumerBuilder<string, string>(KafkaConfigBuilder.GetConsumerConfig(groupId, m_enableAutoOffsetStore)).Build();
 
-            AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
+            AppDomain.CurrentDomain.ProcessExit += (send, e) =>
+            {
+                Dispose();
+            };
         }
 
         /// <summary>
@@ -63,6 +92,80 @@ namespace Common.MessageQueueClient.Kafka
 
                 if ((callback?.Invoke(ConvertMessageToData(consumeResult.Message)) ?? false) && !m_enableAutoOffsetStore)
                     m_consumer.Commit(new[] { consumeResult.TopicPartitionOffset });
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"数据消费失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 异步消费
+        /// </summary>
+        /// <param name="mQContext">消息队列上下文</param>
+        /// <param name="callback">回调</param>
+        public async Task ConsumeAsync(MQContext mQContext, Func<T, Task<bool>> callback)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
+                    throw new Exception("该消费者未订阅任何队列，请先订阅队列");
+
+                ConsumeResult<string, string> consumeResult = m_consumer.Consume();
+
+                bool success;
+
+                if (callback == null)
+                    success = false;
+                else
+                    success = await callback.Invoke(ConvertMessageToData(consumeResult.Message));
+
+                if (success && !m_enableAutoOffsetStore)
+                    m_consumer.Commit(new[] { consumeResult.TopicPartitionOffset });
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"数据消费失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Ack消费
+        /// </summary>
+        /// <param name="mQContext">消息队列上下文</param>
+        /// <param name="callback">回调</param>
+        public void AckConsume(MQContext mQContext, Action<IAckData<T>> callback)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
+                    throw new Exception("该消费者未订阅任何队列，请先订阅队列");
+
+                ConsumeResult<string, string> consumeResult = m_consumer.Consume();
+                KafkaAckData kafkaAckData = new KafkaAckData(consumeResult.TopicPartitionOffset, this, ConvertMessageToData(consumeResult.Message));
+                callback?.Invoke(kafkaAckData);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"数据消费失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 异步Ack消费
+        /// </summary>
+        /// <param name="mQContext">消息队列上下文</param>
+        /// <param name="callback">回调</param>
+        public async Task AckConsumeAsync(MQContext mQContext, Func<IAckData<T>, Task> callback)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
+                    throw new Exception("该消费者未订阅任何队列，请先订阅队列");
+
+                ConsumeResult<string, string> consumeResult = m_consumer.Consume();
+                KafkaAckData kafkaAckData = new KafkaAckData(consumeResult.TopicPartitionOffset, this, ConvertMessageToData(consumeResult.Message));
+                await callback?.Invoke(kafkaAckData);
             }
             catch (Exception ex)
             {

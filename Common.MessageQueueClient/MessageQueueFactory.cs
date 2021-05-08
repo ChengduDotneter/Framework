@@ -27,6 +27,16 @@ namespace Common.MessageQueueClient
         {
             return new RabbitmqConsumer<T>(exChangeTypeEnum);
         }
+        
+        /// <summary>
+        /// 获取RabbitMQ Ack消费者
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IMQAckConsumer<T> GetRabbitMQAckConsumer<T>(ExChangeTypeEnum exChangeTypeEnum) where T : class, IMQData, new()
+        {
+            return new RabbitmqConsumer<T>(exChangeTypeEnum);
+        }
 
         /// <summary>
         /// 获取Kafka生产者
@@ -48,6 +58,17 @@ namespace Common.MessageQueueClient
         public static IMQConsumer<T> GetKafkaConsumer<T>(string groupId, bool enableAutoOffsetStore = true) where T : class, IMQData, new()
         {
             return new KafkaConsumer<T>(groupId, enableAutoOffsetStore);
+        }
+        
+        /// <summary>
+        /// 获取Kafka Ack消费者
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="groupId">消费者组ID</param>
+        /// <returns></returns>
+        public static IMQAckConsumer<T> GetKafkaAckConsumer<T>(string groupId) where T : class, IMQData, new()
+        {
+            return new KafkaConsumer<T>(groupId, false);
         }
     }
 }

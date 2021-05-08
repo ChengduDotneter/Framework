@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Common.MessageQueueClient;
 using Common.MessageQueueClient.RabbitMQ;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 // ReSharper disable UnusedVariable
@@ -406,6 +407,61 @@ namespace TestWebAPI.Controllers
         {
             m_test = test;
             m_ssoUserService = ssoUserService;
+        }
+    }
+
+    public interface IScopeInstance : IDisposable
+    {
+        string Status { get; }
+    }
+
+    public class ScopeInstance : IScopeInstance
+    {
+        public ScopeInstance()
+        {
+            Status = "running";
+        }
+
+        public void Dispose()
+        {
+            Status = "disposed";
+        }
+
+        public string Status { get; private set; }
+    }
+
+    [Route("scopetest")]
+    [ApiController]
+    public class ScopeTest : ControllerBase
+    {
+        private IServiceProvider m_serviceProvider;
+        private IScopeInstance m_scopeInstance;
+        // ReSharper disable once NotAccessedField.Local
+        private readonly IDBResourceContent m_dbResourceContent;
+
+        public ScopeTest(IServiceProvider serviceProvider, IScopeInstance scopeInstance, IDBResourceContent dbResourceContent)
+        {
+            m_serviceProvider = serviceProvider;
+            m_scopeInstance = scopeInstance;
+            m_dbResourceContent = dbResourceContent;
+        }
+
+        [HttpGet]
+        public void Get()
+        {
+            IServiceScope serviceScope = m_serviceProvider.CreateScope();
+
+            Task.Factory.StartNew(async (state) =>
+            {
+                IScopeInstance scopeInstance = ((IServiceScope)state).ServiceProvider.GetRequiredService<IScopeInstance>();
+
+                while (true)
+                {
+                    Console.WriteLine(scopeInstance.Status);
+                    Console.WriteLine(m_scopeInstance.Status);
+                    await Task.Delay(1000);
+                }
+            }, serviceScope);
         }
     }
 }

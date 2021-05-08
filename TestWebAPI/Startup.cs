@@ -104,7 +104,8 @@ namespace TestWebAPI
             services.AddSwagger();
             //services.AddHostedService<CrossService>();
 
-            services.AddHostedService<TestService>();
+            //services.AddHostedService<TestService>();
+            services.AddScoped<IScopeInstance, ScopeInstance>();
 
             services.AddScoped<ITest, Test1>();
         }

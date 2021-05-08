@@ -121,9 +121,27 @@ namespace Common.DAL
             dataConnectionInstance.Dispose();
         }
 
+        //TODO: 连接池BUG
+        private class ConnectionInstance : IResourceInstance<DataConnectionInstance>
+        {
+            public ConnectionInstance(LinqToDbConnectionOptions linqToDbConnectionOptions)
+            {
+                Instance = new DataConnectionInstance(0, linqToDbConnectionOptions);
+            }
+
+            public void Dispose()
+            {
+                Instance.Dispose();
+            }
+
+            public DataConnectionInstance Instance { get; private set; }
+        }
+
+        //TODO: 连接池BUG
         private static IResourceInstance<DataConnectionInstance> CreateConnection(LinqToDbConnectionOptions linqToDbConnectionOptions)
         {
-            return m_connectionPool[linqToDbConnectionOptions.GetHashCode()].ApplyInstance();
+            //return m_connectionPool[linqToDbConnectionOptions.GetHashCode()].ApplyInstance();
+            return new ConnectionInstance(linqToDbConnectionOptions);
         }
 
         private static void DisposeConnection(IResourceInstance<DataConnectionInstance> resourceInstance)
