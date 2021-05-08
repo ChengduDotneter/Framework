@@ -39,6 +39,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Log", "Common.Log\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IgniteCompute", "IgniteCompute\IgniteCompute.csproj", "{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestMessageQueue", "TestMessageQueue\TestMessageQueue.csproj", "{A7992453-AC87-404B-AE7D-8DE08DC7D0FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,10 @@ Global
 		{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7992453-AC87-404B-AE7D-8DE08DC7D0FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7992453-AC87-404B-AE7D-8DE08DC7D0FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7992453-AC87-404B-AE7D-8DE08DC7D0FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7992453-AC87-404B-AE7D-8DE08DC7D0FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
