@@ -86,6 +86,7 @@ namespace Common.ServiceCommon
 
                         if (queryResult == null || queryResult.Response == null || queryResult.Response.Length == 0 || queryResult.Response.Count(item => item.ServiceID == registration.ID) == 0)
                         {
+                            Log.LogHelperFactory.GetDefaultLogHelper().Error(nameof(RegisterConsul),"Consul上未发现本服务，服务自动关闭。");
                             consulClient.Agent.ServiceDeregister(registration.ID).Wait();
                             Environment.Exit(0);
                         }
