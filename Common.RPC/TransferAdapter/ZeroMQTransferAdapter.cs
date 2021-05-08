@@ -104,7 +104,7 @@ namespace Common.RPC.TransferAdapter
                     break;
 
                 default:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
             }
 
             return socket;
@@ -123,7 +123,7 @@ namespace Common.RPC.TransferAdapter
                     return false;
 
                 default:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
             }
         }
 
@@ -140,7 +140,7 @@ namespace Common.RPC.TransferAdapter
                     return false;
 
                 default:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
             }
         }
 

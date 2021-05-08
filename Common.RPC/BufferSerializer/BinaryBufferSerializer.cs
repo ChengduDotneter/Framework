@@ -394,7 +394,7 @@ namespace Common.RPC.BufferSerializer
                 case "System.Int64":
                 case "System.Double":
                 case "System.DateTime": return 8;
-                default: throw new NotImplementedException();
+                default: throw new NotSupportedException();
             }
         }
 

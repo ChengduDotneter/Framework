@@ -68,7 +68,7 @@ namespace Common.Model
                     case JTokenType.Null: writer.WriteNullValue(); break;
                     case JTokenType.Object: new JObjectConverter().Write(writer, item.ToObject<JObject>(), options); break;
                     case JTokenType.Array: Write(writer, item.ToObject<JArray>(), options); break;
-                    default: throw new NotImplementedException();
+                    default: throw new NotSupportedException();
                 }
             }
 

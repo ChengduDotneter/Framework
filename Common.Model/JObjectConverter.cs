@@ -86,7 +86,7 @@ namespace Common.Model
                     case JTokenType.Null: writer.WriteNull(item.Key); break;
                     case JTokenType.Object: Write(writer, item.Value.ToObject<JObject>(), options, item.Key); break;
                     case JTokenType.Array: new JArrayConverter().Write(writer, item.Value.ToObject<JArray>(), options, item.Key); break;
-                    default: throw new NotImplementedException();
+                    default: throw new NotSupportedException();
                 }
             }
 
