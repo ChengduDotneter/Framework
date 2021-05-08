@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Common.MessageQueueClient
@@ -44,25 +45,29 @@ namespace Common.MessageQueueClient
         /// <param name="callback"></param>
         Task ConsumeAsync(MQContext mQContext, Func<T, Task<bool>> callback);
     }
-    
+
     /// <summary>
-    /// Ack消费者相关操作接口
+    /// 批量消费者相关操作接口
     /// </summary>
-    public interface IMQAckConsumer<T> : IMQConsumerBase where T : class, IMQData, new()
+    public interface IMQBatchConsumer<T> : IMQConsumerBase where T : class, IMQData, new()
     {
         /// <summary>
-        /// 同步Ack消费
+        /// 同步批量消费
         /// </summary>
         /// <param name="mQContext">队列上下文</param>
         /// <param name="callback"></param>
-        void AckConsume(MQContext mQContext, Action<IAckData<T>> callback);
+        /// <param name="pullingTimeSpan">拉取数据时间间隔</param>
+        /// <param name="pullingCount">拉取数据数据包大小分割</param>
+        void Consume(MQContext mQContext, Func<IEnumerable<T>, bool> callback, TimeSpan pullingTimeSpan, int pullingCount);
 
         /// <summary>
-        /// 异步Ack消费
+        /// 异步批量消费
         /// </summary>
         /// <param name="mQContext">队列上下文</param>
         /// <param name="callback"></param>
-        Task AckConsumeAsync(MQContext mQContext, Func<IAckData<T>, Task> callback);
+        /// <param name="pullingTimeSpan">拉取数据时间间隔</param>
+        /// <param name="pullingCount">拉取数据数据包大小分割</param>
+        Task ConsumeAsync(MQContext mQContext, Func<IEnumerable<T>, Task<bool>> callback, TimeSpan pullingTimeSpan, int pullingCount);
     }
 
     /// <summary>

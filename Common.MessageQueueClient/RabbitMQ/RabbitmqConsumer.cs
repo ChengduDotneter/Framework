@@ -3,6 +3,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace Common.MessageQueueClient.RabbitMQ
     /// RabbitMq消费者操作类
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class RabbitmqConsumer<T> : IMQConsumer<T>, IMQAckConsumer<T> where T : class, IMQData, new()
+    public class RabbitmqConsumer<T> : IMQConsumer<T>, IMQBatchConsumer<T> where T : class, IMQData, new()
     {
         private static IConnectionFactory m_connectionFactory;
         private IConnection m_connection;
@@ -23,26 +24,14 @@ namespace Common.MessageQueueClient.RabbitMQ
 
         private readonly ExChangeTypeEnum m_exChangeTypeEnum;
 
-        private class RabbitMQAckData : IAckData<T>
+        private class BatchData
         {
-            private readonly ulong m_deliveryTag;
-            private readonly RabbitmqConsumer<T> m_consumer;
+            public ulong DeliveryTag { get; }
             public T Data { get; }
 
-            public void Commit()
+            public BatchData(ulong deliveryTag, T data)
             {
-                m_consumer.m_channel.BasicAck(m_deliveryTag, true);
-            }
-
-            public void Cancel()
-            {
-                m_consumer.m_channel.BasicReject(m_deliveryTag, true);
-            }
-
-            public RabbitMQAckData(ulong deliveryTag, RabbitmqConsumer<T> consumer, T data)
-            {
-                m_deliveryTag = deliveryTag;
-                m_consumer = consumer;
+                DeliveryTag = deliveryTag;
                 Data = data;
             }
         }
@@ -99,7 +88,7 @@ namespace Common.MessageQueueClient.RabbitMQ
 
                 try
                 {
-                    if (callback.Invoke(data))
+                    if (callback?.Invoke(data) ?? false)
                         //返回消息确认
                         m_channel.BasicAck(args.DeliveryTag, true);
                     else
@@ -140,7 +129,7 @@ namespace Common.MessageQueueClient.RabbitMQ
 
                 try
                 {
-                    if (await callback.Invoke(data))
+                    if (callback == null ? false : await callback.Invoke(data))
                         //返回消息确认
                         m_channel.BasicAck(args.DeliveryTag, true);
                     else
@@ -154,87 +143,177 @@ namespace Common.MessageQueueClient.RabbitMQ
                     throw;
                 }
             });
-            
+
             return Task.CompletedTask;
         }
 
         /// <summary>
-        /// 同步Ack消费
+        /// 同步批量消费
         /// </summary>
         /// <param name="mQContext">MQ上下文</param>
         /// <param name="callback">消息回调</param>
-        public void AckConsume(MQContext mQContext, Action<IAckData<T>> callback)
+        /// <param name="pullingTimeSpan">拉取数据时间间隔</param>
+        /// <param name="pullingCount">拉取数据数据包大小分割</param>
+        public void Consume(MQContext mQContext, Func<IEnumerable<T>, bool> callback, TimeSpan pullingTimeSpan, int pullingCount)
         {
-            Consume(mQContext, (eventSender, args) =>
+            if (m_queueNames.Contains(mQContext.MessageQueueName))
             {
-                byte[] message = args.Body; //接收到的消息
-                T data = null;
+                _ = Task.Factory.StartNew(async () =>
+                {
+                    IList<BatchData> batchDatas = new List<BatchData>();
 
-                try
-                {
-                    data = ConvertMessageToData(Encoding.UTF8.GetString(message));
-                }
-                catch
-                {
-                    //数据convert失败时，直接删除该数据
-                    m_channel.BasicReject(args.DeliveryTag, false);
-                    throw;
-                }
+                    while (true)
+                    {
+                        while (true)
+                        {
+                            BasicGetResult basicGetResult = m_channel.BasicGet(mQContext.MessageQueueName, false);
 
-                RabbitMQAckData rabbitMqAckData = new RabbitMQAckData(args.DeliveryTag, this, data);
+                            if (basicGetResult == null)
+                                break;
 
-                try
-                {
-                    callback.Invoke(rabbitMqAckData);
-                }
-                catch (Exception exception)
-                {
-                    //处理逻辑失败时，该消息扔回消息队列
-                    m_channel.BasicReject(args.DeliveryTag, true);
-                    Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
-                    throw;
-                }
-            });
+                            T data = null;
+
+                            try
+                            {
+                                data = ConvertMessageToData(Encoding.UTF8.GetString(basicGetResult.Body));
+                            }
+                            catch
+                            {
+                                //数据convert失败时，直接删除该数据
+                                m_channel.BasicReject(basicGetResult.DeliveryTag, false);
+                                throw;
+                            }
+
+                            batchDatas.Add(new BatchData(basicGetResult.DeliveryTag, data));
+
+                            if (batchDatas.Count >= pullingCount)
+                                break;
+                        }
+
+                        if (batchDatas.Count > 0)
+                        {
+                            try
+                            {
+                                bool result = false;
+
+                                if (callback != null)
+                                    result = callback.Invoke(batchDatas.Select(item => item.Data));
+
+                                if (result)
+                                {
+                                    //返回消息确认
+                                    m_channel.BasicAck(batchDatas.Last().DeliveryTag, true);
+                                }
+                                else
+                                {
+                                    for (int i = 0; i < batchDatas.Count; i++)
+                                        m_channel.BasicReject(batchDatas[i].DeliveryTag, true);
+                                }
+                            }
+                            catch (Exception exception)
+                            {
+                                //处理逻辑失败时，该消息扔回消息队列
+                                for (int i = 0; i < batchDatas.Count; i++)
+                                    m_channel.BasicReject(batchDatas[i].DeliveryTag, true);
+                                
+                                Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
+                                throw;
+                            }
+                            finally
+                            {
+                                batchDatas.Clear();
+                            }
+                        }
+
+                        await Task.Delay(pullingTimeSpan);
+                    }
+                }, TaskCreationOptions.LongRunning);
+            }
         }
 
         /// <summary>
-        /// 异步Ack消费
+        /// 异步批量消费
         /// </summary>
         /// <param name="mQContext">MQ上下文</param>
         /// <param name="callback">消息回调</param>
-        public Task AckConsumeAsync(MQContext mQContext, Func<IAckData<T>, Task> callback)
+        /// <param name="pullingTimeSpan">拉取数据时间间隔</param>
+        /// <param name="pullingCount">拉取数据数据包大小分割</param>
+        public Task ConsumeAsync(MQContext mQContext, Func<IEnumerable<T>, Task<bool>> callback, TimeSpan pullingTimeSpan, int pullingCount)
         {
-            Consume(mQContext, async (eventSender, args) =>
+            if (m_queueNames.Contains(mQContext.MessageQueueName))
             {
-                byte[] message = args.Body; //接收到的消息
-                T data = null;
+                _ = Task.Factory.StartNew(async () =>
+                {
+                    IList<BatchData> batchDatas = new List<BatchData>();
 
-                try
-                {
-                    data = ConvertMessageToData(Encoding.UTF8.GetString(message));
-                }
-                catch
-                {
-                    //数据convert失败时，直接删除该数据
-                    m_channel.BasicReject(args.DeliveryTag, false);
-                    throw;
-                }
+                    while (true)
+                    {
+                        while (true)
+                        {
+                            BasicGetResult basicGetResult = m_channel.BasicGet(mQContext.MessageQueueName, false);
 
-                RabbitMQAckData rabbitMqAckData = new RabbitMQAckData(args.DeliveryTag, this, data);
+                            if (basicGetResult == null)
+                                break;
 
-                try
-                {
-                    await callback.Invoke(rabbitMqAckData);
-                }
-                catch (Exception exception)
-                {
-                    //处理逻辑失败时，该消息扔回消息队列
-                    m_channel.BasicReject(args.DeliveryTag, true);
-                    Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
-                    throw;
-                }
-            });
-            
+                            T data = null;
+
+                            try
+                            {
+                                data = ConvertMessageToData(Encoding.UTF8.GetString(basicGetResult.Body));
+                            }
+                            catch
+                            {
+                                //数据convert失败时，直接删除该数据
+                                m_channel.BasicReject(basicGetResult.DeliveryTag, false);
+                                throw;
+                            }
+
+                            batchDatas.Add(new BatchData(basicGetResult.DeliveryTag, data));
+
+                            if (batchDatas.Count >= pullingCount)
+                                break;
+                        }
+
+                        if (batchDatas.Count > 0)
+                        {
+                            try
+                            {
+                                bool result = false;
+
+                                if (callback != null)
+                                    result = await callback.Invoke(batchDatas.Select(item => item.Data));
+
+                                if (result)
+                                {
+                                    //返回消息确认
+                                    m_channel.BasicAck(batchDatas.Last().DeliveryTag, true);
+                                }
+                                else
+                                {
+                                    for (int i = 0; i < batchDatas.Count; i++)
+                                        m_channel.BasicReject(batchDatas[i].DeliveryTag, true);
+                                }
+                            }
+                            catch (Exception exception)
+                            {
+                                //处理逻辑失败时，该消息扔回消息队列
+                                for (int i = 0; i < batchDatas.Count; i++)
+                                    m_channel.BasicReject(batchDatas[i].DeliveryTag, true);
+                                
+                                Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
+                                throw;
+                            }
+                            finally
+                            {
+                                batchDatas.Clear();
+                            }
+                        }
+
+                        await Task.Delay(pullingTimeSpan);
+                    }
+                }, TaskCreationOptions.LongRunning);
+            }
+
             return Task.CompletedTask;
         }
 

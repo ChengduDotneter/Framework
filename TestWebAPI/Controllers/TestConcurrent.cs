@@ -436,6 +436,7 @@ namespace TestWebAPI.Controllers
     {
         private IServiceProvider m_serviceProvider;
         private IScopeInstance m_scopeInstance;
+
         // ReSharper disable once NotAccessedField.Local
         private readonly IDBResourceContent m_dbResourceContent;
 
@@ -462,6 +463,43 @@ namespace TestWebAPI.Controllers
                     await Task.Delay(1000);
                 }
             }, serviceScope);
+        }
+    }
+
+    [Route("mqtest")]
+    [ApiController]
+    public class MqTest : ControllerBase
+    {
+        [HttpGet("produce")]
+        public async Task Produce()
+        {
+            MQContext mQContext = new MQContext("testmq", new RabbitMqContent() { RoutingKey = "testmq" });
+            using IMQProducer<TestMQData> producer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>(ExChangeTypeEnum.Direct);
+
+            for (int i = 0; i < 10; i++)
+            {
+                await producer.ProduceAsync(mQContext, new TestMQData { Data = (i + 1).ToString(), CreateTime = DateTime.Now });
+            }
+        }
+
+        [HttpGet("consume")]
+        public async Task Consume()
+        {
+            MQContext mQContext = new MQContext("testmq", new RabbitMqContent() { RoutingKey = "testmq" });
+            using IMQBatchConsumer<TestMQData> consumer = MessageQueueFactory.GetRabbitMQBatchConsumer<TestMQData>(ExChangeTypeEnum.Direct);
+            consumer.Subscribe(mQContext);
+            
+            consumer.Consume(mQContext, (datas) =>
+            {
+                foreach (var data in datas)
+                {
+                    Console.WriteLine(data.Data);
+                }
+                
+                return datas.Last().Data == "3";
+            }, TimeSpan.FromSeconds(1), 3);
+            
+            await Task.Delay(int.MaxValue);
         }
     }
 }
