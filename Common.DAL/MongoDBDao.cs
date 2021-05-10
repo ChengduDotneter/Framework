@@ -542,12 +542,12 @@ namespace Common.DAL
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
             private static readonly MethodInfo m_countMethodInfo;
 
-            public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
+            public ITransaction BeginTransaction(bool distributedLock = false, int weight = 0)
             {
                 return new MongoDBTransaction(weight, distributedLock);
             }
 
-            public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
+            public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = false, int weight = 0)
             {
                 return await Task.FromResult(new MongoDBTransaction(weight, distributedLock));
             }

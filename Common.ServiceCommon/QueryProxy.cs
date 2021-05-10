@@ -310,12 +310,12 @@ namespace Common.ServiceCommon
             m_editQuery = editQuery;
         }
 
-        public virtual ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
+        public virtual ITransaction BeginTransaction(bool distributedLock = false, int weight = 0)
         {
             return m_editQuery.BeginTransaction(distributedLock, weight);
         }
 
-        public virtual Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
+        public virtual Task<ITransaction> BeginTransactionAsync(bool distributedLock = false, int weight = 0)
         {
             return m_editQuery.BeginTransactionAsync(distributedLock, weight);
         }

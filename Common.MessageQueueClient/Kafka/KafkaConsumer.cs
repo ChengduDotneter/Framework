@@ -2,6 +2,8 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Common.MessageQueueClient.Kafka
@@ -14,6 +16,18 @@ namespace Common.MessageQueueClient.Kafka
         private readonly IConsumer<string, string> m_consumer;
         private readonly bool m_enableAutoOffsetStore;
         private string m_subscribeMessageQueueName;
+
+        private class BatchData
+        {
+            public TopicPartitionOffset TopicPartitionOffset { get; }
+            public T Data { get; }
+
+            public BatchData(TopicPartitionOffset topicPartitionOffset, T data)
+            {
+                TopicPartitionOffset = topicPartitionOffset;
+                Data = data;
+            }
+        }
 
         /// <summary>
         /// 构造函数
@@ -38,7 +52,6 @@ namespace Common.MessageQueueClient.Kafka
         public void Subscribe(MQContext mQContext)
         {
             m_subscribeMessageQueueName = mQContext.MessageQueueName;
-
             m_consumer.Subscribe(mQContext.MessageQueueName);
         }
 
@@ -48,7 +61,6 @@ namespace Common.MessageQueueClient.Kafka
         public void DeSubscribe()
         {
             m_subscribeMessageQueueName = string.Empty;
-
             m_consumer.Unsubscribe();
         }
 
@@ -107,12 +119,94 @@ namespace Common.MessageQueueClient.Kafka
 
         public void Consume(MQContext mQContext, Func<IEnumerable<T>, bool> callback, TimeSpan pullingTimeSpan, int pullingCount)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
+                throw new Exception("该消费者未订阅任何队列，请先订阅队列");
+
+            IList<BatchData> batchDatas = new List<BatchData>();
+
+            while (true)
+            {
+                while (true)
+                {
+                    try
+                    {
+                        ConsumeResult<string, string> consumeResult = m_consumer.Consume();
+                        batchDatas.Add(new BatchData(consumeResult.TopicPartitionOffset, ConvertMessageToData(consumeResult.Message)));
+
+                        if (batchDatas.Count >= pullingCount)
+                        {
+                            try
+                            {
+                                bool result = false;
+
+                                if (callback != null)
+                                    result = callback.Invoke(batchDatas.Select(item => item.Data));
+
+                                if (result)
+                                    m_consumer.Commit(new[] { batchDatas.Last().TopicPartitionOffset });
+
+                                batchDatas.Clear();
+                            }
+                            finally
+                            {
+                                batchDatas.Clear();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"数据消费失败：{ex.Message}");
+                    }
+
+                    Thread.Sleep(pullingTimeSpan);
+                }
+            }
         }
 
-        public Task ConsumeAsync(MQContext mQContext, Func<IEnumerable<T>, Task<bool>> callback, TimeSpan pullingTimeSpan, int pullingCount)
+        public async Task ConsumeAsync(MQContext mQContext, Func<IEnumerable<T>, Task<bool>> callback, TimeSpan pullingTimeSpan, int pullingCount)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
+                throw new Exception("该消费者未订阅任何队列，请先订阅队列");
+
+            IList<BatchData> batchDatas = new List<BatchData>();
+
+            while (true)
+            {
+                while (true)
+                {
+                    try
+                    {
+                        ConsumeResult<string, string> consumeResult = m_consumer.Consume();
+                        batchDatas.Add(new BatchData(consumeResult.TopicPartitionOffset, ConvertMessageToData(consumeResult.Message)));
+
+                        if (batchDatas.Count >= pullingCount)
+                        {
+                            try
+                            {
+                                bool result = false;
+
+                                if (callback != null)
+                                    result = await callback.Invoke(batchDatas.Select(item => item.Data));
+
+                                if (result)
+                                    m_consumer.Commit(new[] { batchDatas.Last().TopicPartitionOffset });
+
+                                batchDatas.Clear();
+                            }
+                            finally
+                            {
+                                batchDatas.Clear();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"数据消费失败：{ex.Message}");
+                    }
+
+                    await Task.Delay(pullingTimeSpan);
+                }
+            }
         }
 
         /// <summary>

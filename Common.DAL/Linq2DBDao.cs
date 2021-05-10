@@ -444,13 +444,13 @@ namespace Common.DAL
             private LinqToDbConnectionOptions m_linqToDbConnectionOptions;
             private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
 
-            public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
+            public ITransaction BeginTransaction(bool distributedLock = false, int weight = 0)
             {
                 IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
                 return new Linq2DBTransaction(resourceInstance.Instance.BeginTransaction(IsolationLevel.ReadCommitted), distributedLock, weight, resourceInstance);
             }
 
-            public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
+            public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = false, int weight = 0)
             {
                 IResourceInstance<DataConnectionInstance> resourceInstance = CreateConnection(m_linqToDbConnectionOptions);
                 return new Linq2DBTransaction(await resourceInstance.Instance.BeginTransactionAsync(IsolationLevel.ReadCommitted), distributedLock, weight, resourceInstance);

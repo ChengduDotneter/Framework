@@ -112,12 +112,12 @@ namespace Common.DAL.Cache
             m_conditionCache = conditionCache;
         }
 
-        public ITransaction BeginTransaction(bool distributedLock = true, int weight = 0)
+        public ITransaction BeginTransaction(bool distributedLock = false, int weight = 0)
         {
             return new TransactionProxy(m_editQuery.BeginTransaction(distributedLock, weight), m_keyCache, m_conditionCache);
         }
 
-        public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = true, int weight = 0)
+        public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = false, int weight = 0)
         {
             return new TransactionProxy(await m_editQuery.BeginTransactionAsync(distributedLock, weight), m_keyCache, m_conditionCache);
         }

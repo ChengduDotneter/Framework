@@ -166,7 +166,6 @@ namespace Common.DAL
         /// <param name="ids"></param>
         Task DeleteAsync(ITransaction transaction = null, params long[] ids);
 
-        //TODO:默认全部不开启分布式事务
         /// <summary>
         /// 开启事务
         /// </summary>
