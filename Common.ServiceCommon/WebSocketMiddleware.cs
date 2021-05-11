@@ -86,7 +86,7 @@ namespace Common.ServiceCommon
 
                     Task sendTask = Task.Factory.StartNew(async () =>
                     {
-                        while (true)
+                        while (webSocket.State == WebSocketState.Open)
                         {
                             string data = string.Empty;
 
@@ -101,29 +101,32 @@ namespace Common.ServiceCommon
                             }
 
                             // ReSharper disable once AccessToDisposedClosure
-                            if (webSocket.State != WebSocketState.Open)
-                                break;
-
-                            // ReSharper disable once AccessToDisposedClosure
                             await SendStringAsync(webSocket, data);
                         }
                     });
 
-                    while (true)
+                    _ = Task.Factory.StartNew(async () =>
                     {
-                        if (webSocket.State != WebSocketState.Open)
+                        while (true)
                         {
-                            // ReSharper disable once AccessToDisposedClosure
-                            cancellationTokenSource.Cancel(false);
-                            break;
-                        }
+                            if (webSocket.State != WebSocketState.Open)
+                            {
+                                cancellationTokenSource.Cancel(false);
+                                break;
+                            }
 
+                            await Task.Delay(10);
+                        }
+                    });
+
+                    while (webSocket.State == WebSocketState.Open)
+                    {
                         (bool success, string data) = await ReceiveStringAsync(webSocket);
 
                         if (success)
                             _ = messageProcessor.RecieveMessage(data, cancellationTokenSource.Token);
 
-                        await Task.Delay(1);
+                        await Task.Delay(10);
                     }
 
                     await sendTask;
