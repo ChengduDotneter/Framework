@@ -119,6 +119,7 @@ namespace Common.ServiceCommon
                         }
                     });
 
+                    //TODO:代码执行循环中必须加入Task.Delay进行CPU中断 使cancellationTokenSource生效
                     while (webSocket.State == WebSocketState.Open)
                     {
                         (bool success, string data) = await ReceiveStringAsync(webSocket);
