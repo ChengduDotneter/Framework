@@ -39,7 +39,8 @@ namespace Common
         public static DataTable GetExcel(Stream stream)
         {
             IWorkbook hs = CreateWorkbook(stream);
-
+            if (hs == null)
+                return null;
             return ExportToDataTable(hs.GetSheetAt(0));
         }
 
@@ -51,7 +52,15 @@ namespace Common
             }
             catch
             {
-                return new HSSFWorkbook(stream); //03
+                try
+                {
+                    return new HSSFWorkbook(stream); //03
+                }
+                catch
+                {
+                    return null;
+                }
+                
             }
         }
 

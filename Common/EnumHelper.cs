@@ -1,28 +1,33 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Reflection;
 
 namespace Common
 {
     /// <summary>
-    /// 枚举帮助类
+    /// DisplayAttribute帮助类
     /// </summary>
     public static class EnumHelper
     {
         /// <summary>
-        /// 获取枚举值得Display
+        /// 获取DisplayAttribute的Name属性
         /// </summary>
         /// <param name="thisValue"></param>
         /// <returns></returns>
         public static string GetEnumDisplayName(object thisValue)
         {
-            Type enumType = thisValue.GetType();
-            FieldInfo field = enumType.GetField(Enum.GetName(enumType, thisValue));
+            Type thisType = thisValue.GetType();
+            FieldInfo field = thisType.GetField(Enum.GetName(thisType, thisValue));
 
             if (field == null)
                 return string.Empty;
 
-            return ((DisplayAttribute)field.GetCustomAttributes(typeof(DisplayAttribute), true)[0])?.Name;
+            object[] attrs = field.GetCustomAttributes(typeof(DisplayAttribute), false);
+            if (attrs.Count() != 1)
+                throw new DealException("获取描述失败");
+
+            return ((DisplayAttribute)attrs[0]).Name;
         }
     }
 }
