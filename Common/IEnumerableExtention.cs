@@ -18,16 +18,7 @@ namespace Common
         public static void RemoveAll<T>(this IEnumerable<T> instance, Predicate<T> match)
         {
             var list = instance as List<T>;
-
-            int index = list.Count - 1;
-
-            while (index >= 0)
-            {
-                if (match(list[index]))
-                    list.RemoveAt(index);
-
-                index--;
-            }
+            list.RemoveAll(match);
         }
 
         /// <summary>

@@ -16,15 +16,8 @@ namespace Common
         /// <param name="match"></param>
         public static void RemoveAll<T>(this IList<T> instance, Predicate<T> match)
         {
-            int index = instance.Count - 1;
-
-            while (index >= 0)
-            {
-                if (match(instance[index]))
-                    instance.RemoveAt(index);
-
-                index--;
-            }
+            var list = instance as List<T>;
+            list.RemoveAll(match);
         }
 
         /// <summary>
@@ -36,8 +29,10 @@ namespace Common
         public static void AddRange<T>(this IList<T> instance, IEnumerable<T> other)
         {
             if (other != null)
-                foreach (T item in other)
-                    instance.Add(item);
+            {
+                var list = instance as List<T>;
+                list.AddRange(other);
+            }
         }
 
         /// <summary>
