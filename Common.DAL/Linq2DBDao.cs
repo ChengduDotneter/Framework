@@ -231,7 +231,9 @@ namespace Common.DAL
 
         public static IDBResourceContent GetDBResourceContent()
         {
-            return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.GetHashCode()].ApplyInstance());
+            //return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.GetHashCode()].ApplyInstance());
+
+            return new Linq2DBResourceContent(new ConnectionInstance(m_slavelinqToDbConnectionOptions));
         }
 
         private static bool Apply<TResource>(ITransaction transaction, string systemID) where TResource : class, IEntity
