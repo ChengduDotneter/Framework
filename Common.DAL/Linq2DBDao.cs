@@ -229,10 +229,10 @@ namespace Common.DAL
             }
         }
 
+        //TODO: 连接池BUG
         public static IDBResourceContent GetDBResourceContent()
         {
             //return new Linq2DBResourceContent(m_connectionPool[m_slavelinqToDbConnectionOptions.GetHashCode()].ApplyInstance());
-
             return new Linq2DBResourceContent(new ConnectionInstance(m_slavelinqToDbConnectionOptions));
         }
 
