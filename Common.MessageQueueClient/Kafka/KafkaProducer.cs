@@ -18,8 +18,6 @@ namespace Common.MessageQueueClient.Kafka
         public KafkaProducer()
         {
             m_kafkaProducer = new ProducerBuilder<string, string>(KafkaConfigBuilder.GetProducerConfig()).Build();
-
-            AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
 
         /// <summary>

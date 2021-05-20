@@ -48,10 +48,7 @@ namespace Common.MessageQueueClient.RabbitMQ
         public RabbitmqProducer(ExChangeTypeEnum exChangeTypeEnum)
         {
             m_exChangeTypeEnum = exChangeTypeEnum;
-
             RabbitMqProducerInit();
-
-            AppDomain.CurrentDomain.ProcessExit += (send, e) => { Dispose(); };
         }
 
         /// <summary>
