@@ -42,8 +42,9 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public JObject GetJObject()
         {
+            //从http请求读取数据转为utf8编码json文本
             Utf8JsonReader jsonReader = new Utf8JsonReader(SteamHelper.ReadSteamToBuffer(m_httpContextAccessor.HttpContext.Request.Body, m_httpContextAccessor.HttpContext.Request.ContentLength ?? 0));
-            return m_jObjectConverter.Read(ref jsonReader, typeof(JObject), null);
+            return m_jObjectConverter.Read(ref jsonReader, typeof(JObject), null);//转为json数组
         }
     }
 }

@@ -19,8 +19,8 @@ namespace Common.ServiceCommon
     {
         private class ComputeAssembly
         {
-            public string Version { get; }
-            public IDictionary<string, ComputeFuncType> ComputeTypes { get; }
+            public string Version { get; }//版本
+            public IDictionary<string, ComputeFuncType> ComputeTypes { get; }//并行计算类型
 
             public ComputeAssembly(string version)
             {
@@ -29,10 +29,10 @@ namespace Common.ServiceCommon
             }
         }
 
-        private class ComputeFuncType
+        private class ComputeFuncType//并行计算函数类型
         {
-            public Type FuncType { get; }
-            public Type ParameterType { get; }
+            public Type FuncType { get; }//方法类型
+            public Type ParameterType { get; }//参数类型
 
             public ComputeFuncType(Type type, Type parameterType)
             {
@@ -41,10 +41,10 @@ namespace Common.ServiceCommon
             }
         }
 
-        private static ILogHelper m_logHelper;
-        private static IDictionary<string, ComputeAssembly> m_computeAssemblys;
-        private IHttpContextAccessor m_httpContextAccessor;
-        private IComputeFactory m_computeFactory;
+        private static ILogHelper m_logHelper;//日志
+        private static IDictionary<string, ComputeAssembly> m_computeAssemblys;//
+        private IHttpContextAccessor m_httpContextAccessor;//httpcontext
+        private IComputeFactory m_computeFactory;//并行计算工厂
 
         public HttpCompute(IHttpContextAccessor httpContextAccessor, IComputeFactory computeFactory)
         {
@@ -52,14 +52,14 @@ namespace Common.ServiceCommon
             m_computeFactory = computeFactory;
         }
 
-        static HttpCompute()
+        static HttpCompute()//http并行计算
         {
-            m_logHelper = LogHelperFactory.GetDefaultLogHelper();
-            m_computeAssemblys = new Dictionary<string, ComputeAssembly>();
+            m_logHelper = LogHelperFactory.GetDefaultLogHelper();//创建日志对象
+            m_computeAssemblys = new Dictionary<string, ComputeAssembly>();//实例化
 
-            TypeReflector.ReflectType((type) =>
+            TypeReflector.ReflectType((type) =>//类型反射期 筛选符合条件的对象
             {
-                Type interfaceType = type.GetInterfaces().FirstOrDefault(item => item.IsGenericType &&
+                Type interfaceType = type.GetInterfaces().FirstOrDefault(item => item.IsGenericType &&//判断是否为泛型 且当前泛型IComputeFunc是否为两个参数或者一个参数的函数
                                                                                  (item.GetGenericTypeDefinition() == typeof(IComputeFunc<,>) ||
                                                                                   item.GetGenericTypeDefinition() == typeof(IComputeFunc<>)));
 

@@ -27,7 +27,7 @@ namespace Common.ServiceCommon
                 {{
                     public {1}SearchController(Common.DAL.ISearchQuery<{2}> searchQuery) : base(searchQuery, {5}) {{ }}
                 }}
-             }}";
+             }}";//search方法
 
         private const string CONTROLLER_GET_TEMPLATE = @"
              namespace {3}.DynamicControllers
@@ -37,7 +37,7 @@ namespace Common.ServiceCommon
                 {{
                     public {1}GetController(Common.DAL.ISearchQuery<{2}> searchQuery) : base(searchQuery, {4}) {{ }}
                 }}
-             }}";
+             }}";//get方法
 
         private const string CONTROLLER_POST_TEMPLATE = @"
              namespace {3}.DynamicControllers
@@ -47,7 +47,7 @@ namespace Common.ServiceCommon
                 {{
                     public {1}PostController(Common.DAL.IEditQuery<{2}> editQuery,Common.ServiceCommon.ISSOUserService ssoUserService) : base(editQuery, ssoUserService, {4}) {{ }}
                 }}
-             }}";
+             }}";//post方法
 
         private const string CONTROLLER_PUT_TEMPLATE = @"
              namespace {3}.DynamicControllers
@@ -57,7 +57,7 @@ namespace Common.ServiceCommon
                 {{
                     public {1}PutController(Common.DAL.IEditQuery<{2}> editQuery, Common.DAL.ISearchQuery<{2}> searchQuery,Common.ServiceCommon.ISSOUserService ssoUserService) : base(editQuery, searchQuery, ssoUserService, {4}) {{ }}
                 }}
-             }}";
+             }}";//put方法
 
         private const string CONTROLLER_DELETE_TEMPLATE = @"
              namespace {3}.DynamicControllers
@@ -67,13 +67,13 @@ namespace Common.ServiceCommon
                 {{
                     public {1}DeleteController(Common.DAL.IEditQuery<{2}> editQuery, Common.DAL.ISearchQuery<{2}> searchQuery) : base(editQuery, searchQuery, {4}) {{ }}
                 }}
-             }}";
+             }}";//delete方法
 
         static ModelTypeControllerManager()
         {
-            m_actionPaths = new HashSet<string>();
+            m_actionPaths = new HashSet<string>();//初始化
 
-            Type[] controllerTypes = TypeReflector.ReflectType((type) =>
+            Type[] controllerTypes = TypeReflector.ReflectType((type) =>//筛选出程序里满足条件的类 不是抽象类不是继承自ControllerBase
             {
                 if (!type.GetBaseTypes().Any(type => type == typeof(ControllerBase)) || type.IsAbstract)
                     return false;
@@ -151,7 +151,7 @@ namespace Common.ServiceCommon
                     stringBuilder.AppendLine(string.Format(CONTROLLER_SEARCH_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
                                                            requestTypeFullName, AppDomain.CurrentDomain.FriendlyName, (dontSplitSystemAttribute == null).ToString().ToLower()));
                 }
-
+                //判断IgnoreBuildControllerAttribute特性是否设置了自动生成接口 并且是否有重复
                 if (!m_actionPaths.Contains(actionGetPath) && !(ignoreBuildControllerAttribute?.IgnoreGet ?? false))
                     stringBuilder.AppendLine(string.Format(CONTROLLER_GET_TEMPLATE, string.Format("\"{0}\"", modelTypes[i].Name.ToLower()), modelTypes[i].Name, modelTypes[i].FullName,
                                                            AppDomain.CurrentDomain.FriendlyName, (dontSplitSystemAttribute == null).ToString().ToLower()));
@@ -169,14 +169,14 @@ namespace Common.ServiceCommon
                                                            AppDomain.CurrentDomain.FriendlyName, (dontSplitSystemAttribute == null).ToString().ToLower()));
             }
 
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(stringBuilder.ToString());
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(stringBuilder.ToString());//生成语法树
             IList<PortableExecutableReference> portableExecutableReferences = new List<PortableExecutableReference>();
 
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
                 {
-                    if (assembly.IsDynamic || string.IsNullOrWhiteSpace(assembly.Location))
+                    if (assembly.IsDynamic || string.IsNullOrWhiteSpace(assembly.Location))//获取路径是否为空和判断是不是动态生成的
                         continue;
 
                     portableExecutableReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
@@ -187,7 +187,7 @@ namespace Common.ServiceCommon
                 }
             }
 
-            CSharpCompilation compilation = CSharpCompilation.Create(
+            CSharpCompilation compilation = CSharpCompilation.Create(//生成动态控制器和方法
                                                                      "DynamicController",
                                                                      new[] { syntaxTree },
                                                                      options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).AddReferences(portableExecutableReferences);

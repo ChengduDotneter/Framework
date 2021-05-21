@@ -181,7 +181,13 @@ namespace Common.ServiceCommon
                                                                                                isNullable ? type.GenericTypeArguments[0] : type,
                                                                                                value)));
         }
-
+        /// <summary>
+        /// 参数设置
+        /// </summary>
+        /// <param name="isNullable"></param>
+        /// <param name="valueType"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         private static Expression SetParameter(bool isNullable, Type valueType, Expression value)
         {
             if (valueType == typeof(DateTime))

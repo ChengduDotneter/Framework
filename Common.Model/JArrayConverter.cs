@@ -5,15 +5,39 @@ using System.Text.Json.Serialization;
 
 namespace Common.Model
 {
+    /// <summary>
+    /// json数组转换类
+    /// </summary>
     public interface IJArrayConverter
     {
+        /// <summary>
+        /// 读
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="typeToConvert"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
         JArray Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options);
-
+        /// <summary>
+        /// 写
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="value"></param>
+        /// <param name="options"></param>
         void Write(Utf8JsonWriter writer, JArray value, JsonSerializerOptions options);
     }
-
+    /// <summary>
+    /// json数组转换具体实现
+    /// </summary>
     public class JArrayConverter : JsonConverter<JArray>, IJArrayConverter
     {
+        /// <summary>
+        /// 读取数组
+        /// </summary>
+        /// <param name="reader">读取编码格式</param>
+        /// <param name="typeToConvert">转换类型</param>
+        /// <param name="options"></param>
+        /// <returns></returns>
         public override JArray Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             return Read(ref reader, typeToConvert, options);

@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.4.6</Version>
-    <AssemblyVersion>2.4.6.0</AssemblyVersion>
-    <FileVersion>2.4.6.0</FileVersion>
+    <Version>2.4.7</Version>
+    <AssemblyVersion>2.4.7.0</AssemblyVersion>
+    <FileVersion>2.4.7.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -22,13 +22,8 @@
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="2.11.1" />
     <PackageReference Include="linq2db" Version="3.1.3" />
-    <PackageReference Include="RestSharp" Version="106.11.4" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Common.Log\Common.Log.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Common.DAL.Transaction\Common.DAL.Transaction.csproj" />
   </ItemGroup>

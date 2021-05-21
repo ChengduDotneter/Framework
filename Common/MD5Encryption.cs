@@ -13,7 +13,7 @@ namespace Common
         /// <summary>
         /// 获取MD5加密字符串
         /// </summary>
-        /// <param name="encryptedString"></param>
+        /// <param name="encryptedString">需要加密的字符串</param>
         /// <param name="charset">默认UTF-8</param>
         /// <returns></returns>
         public static string GetMD5(string encryptedString, string charset = "UTF-8")

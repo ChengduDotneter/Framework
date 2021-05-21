@@ -13,8 +13,8 @@ namespace Common
         /// 移除所有元素
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="instance"></param>
-        /// <param name="match"></param>
+        /// <param name="instance">要移除的数据集合</param>
+        /// <param name="match">要移除的元素的条件</param>
         public static void RemoveAll<T>(this IEnumerable<T> instance, Predicate<T> match)
         {
             var list = instance as List<T>;

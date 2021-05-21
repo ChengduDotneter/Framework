@@ -10,15 +10,18 @@ namespace Common.Log.KafkaLog
     /// </summary>
     public class KafkaLogHelper : ILogHelper
     {
+        /// <summary>
+        /// Kafka日志操作实例
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         private class KafkaInstance<T> where T : class, IMQData, new()
         {
-            private static readonly IMQProducer<T> m_mQProducer;
+            private static readonly IMQProducer<T> m_mQProducer;//mq生产者
 
             static KafkaInstance()
             {
-                m_mQProducer = MessageQueueFactory.GetKafkaProducer<T>();
-
-                AppDomain.CurrentDomain.ProcessExit += (sender, e) => { m_mQProducer.Dispose(); };
+                m_mQProducer = MessageQueueFactory.GetKafkaProducer<T>();//通过工厂获取kafka生产者
+                AppDomain.CurrentDomain.ProcessExit += (sender, e) => { m_mQProducer.Dispose(); };//父进程退出时注销
             }
 
             public static IMQProducer<T> GetMQProducer()

@@ -13,20 +13,23 @@ using System.Threading.Tasks;
 
 namespace Common.ServiceCommon
 {
+    /// <summary>
+    /// 转码写入流
+    /// </summary>
     internal sealed class TranscodingWriteStream : Stream
     {
-        internal const int MaxCharBufferSize = 4096;
-        internal const int MaxByteBufferSize = 4 * MaxCharBufferSize;
-        private readonly int _maxByteBufferSize;
+        internal const int MaxCharBufferSize = 4096;//最大字节长度
+        internal const int MaxByteBufferSize = 4 * MaxCharBufferSize;//最大byte长度
+        private readonly int _maxByteBufferSize;//最大字节长度
 
-        private readonly Stream _stream;
-        private readonly Decoder _decoder;
-        private readonly Encoder _encoder;
-        private readonly char[] _charBuffer;
+        private readonly Stream _stream;//要转码解码的流
+        private readonly Decoder _decoder;//解码格式
+        private readonly Encoder _encoder;//转码格式
+        private readonly char[] _charBuffer;//字节数组
         private int _charsDecoded;
         private bool _disposed;
 
-        public TranscodingWriteStream(Stream stream, Encoding targetEncoding)
+        public TranscodingWriteStream(Stream stream, Encoding targetEncoding)//构造函数
         {
             _stream = stream;
 

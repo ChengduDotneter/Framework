@@ -177,7 +177,7 @@ namespace Common.RPC
         /// <param name="data">接收的数据</param>
         private void ProcessData(SessionContext sessionContext, TRecieveData data)
         {
-            TaskBody taskBody;
+            TaskBody taskBody; 
 
             lock (m_taskWaits)
             {

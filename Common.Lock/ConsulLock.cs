@@ -78,15 +78,22 @@ namespace Common.Lock
         static ConsulLock()
         {
             m_lockInstances = new ConcurrentDictionary<string, LockInstance>();
-            ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
-            ConfigManager.Configuration.Bind("ConsulService", serviceEntity);
+            ConsulServiceEntity serviceEntity = new ConsulServiceEntity();//consul服务实体
+            ConfigManager.Configuration.Bind("ConsulService", serviceEntity);//绑定
 
             if (string.IsNullOrWhiteSpace(serviceEntity.ConsulIP) || serviceEntity.ConsulPort == 0)
                 throw new Exception("ConsulIP和ConsulPort不能为空。");
 
-            m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));
+            m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));//consul客户端
         }
-
+        /// <summary>
+        /// 互斥锁同步申请资源
+        /// </summary>
+        /// <param name="key">锁的唯一key</param>
+        /// <param name="identity">所对象唯一身份</param>
+        /// <param name="weight"></param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
         bool ILock.AcquireMutex(string key, string identity, int weight, int timeOut)
         {
             string lockKey = $"{LOCK_PREFIX}/{key}";
@@ -107,7 +114,7 @@ namespace Common.Lock
                     SessionTTL = TTL
                 };
 
-                IDistributedLock distributedLock = m_consulClient.CreateLock(lockOptions);
+                IDistributedLock distributedLock = m_consulClient.CreateLock(lockOptions);//服务发现加锁
 
                 try
                 {
@@ -128,7 +135,14 @@ namespace Common.Lock
                 return m_lockInstances[identity].Locks[lockKey].IsHeld;
             }
         }
-
+        /// <summary>
+        /// 互斥锁异步申请
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="identity"></param>
+        /// <param name="weight"></param>
+        /// <param name="timeOut"></param>
+        /// <returns></returns>
         async Task<bool> ILock.AcquireMutexAsync(string key, string identity, int weight, int timeOut)
         {
             string lockKey = $"{LOCK_PREFIX}/{key}";
@@ -170,7 +184,10 @@ namespace Common.Lock
                 return m_lockInstances[identity].Locks[lockKey].IsHeld;
             }
         }
-
+        /// <summary>
+        /// 同步释放锁资源
+        /// </summary>
+        /// <param name="identity"></param>
         void ILock.Release(string identity)
         {
             if (!m_lockInstances.TryGetValue(identity, out LockInstance lockInstance))
@@ -187,7 +204,11 @@ namespace Common.Lock
             lock (lockInstance)
                 lockInstance.Dispose();
         }
-
+        /// <summary>
+        /// 异步释放锁资源
+        /// </summary>
+        /// <param name="identity"></param>
+        /// <returns></returns>
         async Task ILock.ReleaseAsync(string identity)
         {
             if (!m_lockInstances.TryGetValue(identity, out LockInstance lockInstance))

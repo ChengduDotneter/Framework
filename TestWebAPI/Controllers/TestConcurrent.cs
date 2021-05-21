@@ -14,6 +14,8 @@ using Common.MessageQueueClient;
 using Common.MessageQueueClient.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Common.RPC.BufferSerializer;
+using System.Text;
 
 // ReSharper disable UnusedVariable
 // ReSharper disable HeuristicUnreachableCode
@@ -24,6 +26,7 @@ namespace TestWebAPI.Controllers
 {
     public class TCCTestData : ViewModelBase
     {
+    
         public string Data { get; set; }
     }
 
@@ -53,7 +56,23 @@ namespace TestWebAPI.Controllers
         public Task StartAsync(CancellationToken cancellationToken)
         {
             string mqName = "test_mq";
+            Task.Factory.StartNew(async () =>
+            {
+                MQContext mQContext = new MQContext(mqName, new RabbitMqContent() { RoutingKey = mqName });
+                IMQProducer<TestMQData> mQProducer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>(ExChangeTypeEnum.Direct);
+                int i = 0;
+                while (i<10)
+                {
+                    TestMQData mqData = new TestMQData
+                    {
+                        Data = "屌你"+i+"次",
+                        CreateTime = DateTime.Now
+                    };
 
+                    await mQProducer.ProduceAsync(mQContext, mqData);
+                    await Task.Delay(500);i++;
+                }
+            });
             Task.Factory.StartNew(() =>
             {
                 MQContext mqContext = new MQContext(mqName, new RabbitMqContent() { RoutingKey = mqName });
@@ -67,23 +86,20 @@ namespace TestWebAPI.Controllers
                 });
             });
 
-            Task.Factory.StartNew(async () =>
+            mqName = "test_mq1";
+            Task.Factory.StartNew(() =>
             {
-                MQContext mQContext = new MQContext(mqName, new RabbitMqContent() { RoutingKey = mqName });
-                IMQProducer<TestMQData> mQProducer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>(ExChangeTypeEnum.Direct);
+                MQContext mqContext = new MQContext(mqName, new RabbitMqContent() { RoutingKey = mqName });
+                IMQConsumer<TestMQData> mqConsumer = MessageQueueFactory.GetRabbitMQConsumer<TestMQData>(ExChangeTypeEnum.Direct);
+                mqConsumer.Subscribe(mqContext);
 
-                while (true)
+                mqConsumer.Consume(mqContext, (testData) =>
                 {
-                    TestMQData mqData = new TestMQData
-                    {
-                        Data = Guid.NewGuid().ToString(),
-                        CreateTime = DateTime.Now
-                    };
-
-                    await mQProducer.ProduceAsync(mQContext, mqData);
-                    await Task.Delay(100);
-                }
+                    Console.WriteLine(testData.Data);
+                    return true;
+                });
             });
+
 
             return Task.CompletedTask;
         }
@@ -238,25 +254,140 @@ namespace TestWebAPI.Controllers
     public class CCC : ControllerBase
     {
         private ISearchQuery<Left> m_searchQuery;
+        private ISearchQuery<testname> m_searchQuery2;
+        private ISearchQuery<score> m_searchQuery3;
+        
         private IEditQuery<Left> m_editQuery;
+
+        private IEditQuery<testcreate> m_editQuery4;
         private readonly ISearchQuery<Right> searchQuery1;
         private readonly IDBResourceContent dBResourceContent;
         private readonly IEditQuery<Right> editQuery1;
+        private readonly IEditQuery<testname> m_editQuery2;
+        private readonly IEditQuery<score> m_editQuery3;
         private readonly ISSOUserService m_ssoUserService;
 
         public CCC(ISearchQuery<Left> searchQuery,
-                   IEditQuery<Left> editQuery,
+                   IEditQuery<Left> editQuery, IEditQuery<testcreate> editQuery4,
                    ISearchQuery<Right> searchQuery1,
                    IDBResourceContent dBResourceContent,
                    IEditQuery<Right> editQuery1,
-                   ISSOUserService ssoUserService)
+                       IEditQuery<testname> editQuery2,
+                   ISSOUserService ssoUserService,
+                   ISearchQuery<testname> searchQuery2,
+                   ISearchQuery<score> searchQuery3, IEditQuery<score> editQuery3)
         {
             m_searchQuery = searchQuery;
-            m_editQuery = editQuery;
-            this.searchQuery1 = searchQuery1;
+            m_editQuery = editQuery; m_editQuery4 = editQuery4;
+            this.searchQuery1 = searchQuery1; m_searchQuery3 = searchQuery3; m_editQuery3 = editQuery3;
             this.dBResourceContent = dBResourceContent;
-            this.editQuery1 = editQuery1;
-            m_ssoUserService = ssoUserService;
+            this.editQuery1 = editQuery1; m_editQuery2 = editQuery2;
+             m_ssoUserService = ssoUserService; m_searchQuery2 = searchQuery2;
+        }
+        [HttpGet("testget")]
+        public async Task<Left> testget()
+        {
+            TestService service = new TestService();
+           var tsc= service.StartAsync(new CancellationToken() { });
+            SSOUserInfo user = m_ssoUserService.GetUser();
+            ITransaction transaction1 = m_editQuery4.BeginTransaction();
+            try
+            {
+                await m_editQuery4.SplitBySystemID("s2b").InsertAsync(transaction1, new testcreate() { ID = IDGenerator.NextID(), StudentName = "掉你老母" });
+                await m_editQuery2.FilterIsDeleted().UpdateAsync(new testname() { ID = 319502795642566849, name = "叼你大得到爷的" });
+                Left data = null;
+                var datas = (await m_searchQuery.SplitBySystemID(HttpContext).
+                                                 FilterIsDeleted().
+                                                 ConditionCache(HttpContext.RequestServices).
+                                                 GetAsync(item => item.ID > 0, systemID: HttpContext.Request.Headers["systemID"].FirstOrDefault())).ToArray();
+
+                await editQuery1.SplitBySystemID(HttpContext).MergeAsync(datas: new Right { ClassName = "abc", ID = 123 });
+
+                var a = await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().GetQueryableAsync();
+                var b = await searchQuery1.SplitBySystemID(HttpContext).FilterIsDeleted().GetQueryableAsync();
+                testc(a,b);
+                var c = from left in a
+                        join right in b on left.ClassID equals right.ID
+                        where left.ID > 0
+                        select new { id = left.ID, name = left.StudentName, name_class = right.ClassName };
+                var d = await m_searchQuery2.FilterIsDeleted().GetQueryableAsync(dBResourceContent);
+                var g = await m_searchQuery3.FilterIsDeleted().GetQueryableAsync(dBResourceContent);
+                var f = from testname in d join sco in g on testname.ID equals sco.stuid where testname.ID > 0 select new { id = testname.ID, name = testname.name, score = sco.Stuscore };
+                var test = c.Skip(10).Take(5).ToList();
+                var sk = await m_searchQuery.SearchAsync(c);
+                var list = await m_searchQuery2.SearchAsync(f);
+                var list1 = await m_searchQuery2.SearchAsync(item => item.ID > 0);
+                d.Dispose();
+                a.Dispose();
+                b.Dispose();
+                transaction1.Submit();
+                tsc.Dispose();
+                return null;
+
+                //return await m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().KeyCache(HttpContext.RequestServices).GetAsync(289340350911224001L, systemID: HttpContext.Request.Headers["systemID"].FirstOrDefault());
+
+                Random random = new Random();
+
+                long id = datas[random.Next(0, datas.Length - 1)].ID;
+
+
+                using (ITransaction transaction = m_editQuery.BeginTransaction())
+                {
+                    try
+                    {
+                        data = m_searchQuery.FilterIsDeleted().Get(id, transaction);
+
+                        if (data == null)
+                            throw new Exception();
+
+                        var datas2 = m_searchQuery.FilterIsDeleted().Search(transaction, item => item.ClassID == data.ClassID);
+
+                        data.UpdateUserID = random.Next(1000, 9999);
+
+                        m_editQuery.Update(data, transaction);
+
+                        m_editQuery.FilterIsDeleted().Delete(transaction, data.ID);
+
+                        m_editQuery.Update(item => item.ID == data.ID, new Dictionary<string, object>() { [nameof(Left.UpdateTime)] = DateTime.Now }, transaction);
+
+                        m_editQuery.Insert(transaction,
+                                           new Left()
+                                           {
+                                               ID = IDGenerator.NextID(),
+                                               ClassID = random.Next(0, 100),
+                                               CreateTime = DateTime.Now,
+                                               CreateUserID = -9999,
+                                               StudentName = Guid.NewGuid().ToString()
+                                           });
+
+                        transaction.Submit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                transaction1.Rollback();
+                throw;
+            }
+         
+
+
+
+        }
+        public static IQueryable<Left> testc(ISearchQueryable<Left> lefts, ISearchQueryable<Right> rights)
+        {
+            var c = from left in lefts
+                    join right in rights on left.ClassID equals right.ID
+                    where left.ID > 0
+                    select left;
+            return c;
         }
 
         [HttpPost]
@@ -264,49 +395,81 @@ namespace TestWebAPI.Controllers
         {
             using (ITransaction transaction = await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().BeginTransactionAsync(false))
             {
+                //var buff = BufferSerialzerFactory.CreateBinaryBufferSerializer(Encoding.UTF8);
+                //buff.Serialize(testme);
                 Left[] lefts1 = new Left[20];
-
-                for (int i = 0; i < lefts1.Length; i++)
+                testname le = new testname() {ID= 319502795642550465,name="23456456" };
+                await m_editQuery2.FilterIsDeleted().UpdateAsync(le, transaction);
+                try
                 {
-                    lefts1[i] = new Left
-                    {
-                        ID = IDGenerator.NextID(),
-                        CreateTime = DateTime.Now,
-                        CreateUserID = 9999,
-                        UpdateTime = DateTime.Now,
-                        UpdateUserID = 9999,
-                        IsDeleted = false,
-                        StudentName = $"student_{i}",
-                        ClassID = 9999
-                    };
+                    throw new DealException("测试报错");
                 }
-
-                await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().MergeAsync(transaction, lefts1);
-
-                int pageSize = 20;
-                int readCount = 0;
-                int totalCount = await m_searchQuery.SplitBySystemID("s2b").FilterIsDeleted().CountAsync(transaction);
-
-                while (readCount <= totalCount)
+                catch (Exception)
                 {
-                    IEnumerable<Left> lefts = await m_searchQuery.SplitBySystemID("s2b").FilterIsDeleted().SearchAsync(transaction, startIndex: readCount, count: pageSize);
 
-                    foreach (var left in lefts)
-                    {
-                        left.StudentName = "deleted";
-                        await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().UpdateAsync(left, transaction);
-                    }
-
-                    readCount += lefts.Count();
+                    throw;
                 }
+                
+                //for (int i = 0; i < lefts1.Length; i++)
+                //{
+                //    lefts1[i] = new Left
+                //    {
+                //        ID = IDGenerator.NextID(),
+                //        CreateTime = DateTime.Now,
+                //        CreateUserID = 9999,
+                //        UpdateTime = DateTime.Now,
+                //        UpdateUserID = 9999,
+                //        IsDeleted = false,
+                //        StudentName = $"student_{i}",
+                //        ClassID = 9999
+                //    };
+                //}
+                //await m_editQuery2.FilterIsDeleted().UpdateAsync(new testname() { ID = 319502795642566849, name = "叼你大得到爷的" },transaction);
+                //await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().MergeAsync(transaction, lefts1);
+
+                //int pageSize = 20;
+                //int readCount = 0;
+                //int totalCount = await m_searchQuery.SplitBySystemID("s2b").FilterIsDeleted().CountAsync(transaction);
+
+                //while (readCount <= totalCount)
+                //{
+                //    IEnumerable<Left> lefts = await m_searchQuery.SplitBySystemID("s2b").FilterIsDeleted().SearchAsync(transaction, startIndex: readCount, count: pageSize);
+
+                //    foreach (var left in lefts)
+                //    {
+                //        left.StudentName = "deleted";
+                //        await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().UpdateAsync(left, transaction);
+                //    }
+
+                //    readCount += lefts.Count();
+                //}
 
                 await transaction.SubmitAsync();
             }
         }
 
-        [HttpGet]
+        [HttpGet("get")]
         public async Task<Left> Get()
         {
+            string mqName = "test_mq1";
+           await Task.Factory.StartNew(async () =>
+            {
+                MQContext mQContext = new MQContext(mqName, new RabbitMqContent() { RoutingKey = mqName });
+                IMQProducer<TestMQData> mQProducer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>(ExChangeTypeEnum.Direct);
+                int i = 0;
+                while (i < 10)
+                {
+                    TestMQData mqData = new TestMQData
+                    {
+                        Data = "测试屌你" + i + "次",
+                        CreateTime = DateTime.Now
+                    };
+
+                    await mQProducer.ProduceAsync(mQContext, mqData);
+                    await Task.Delay(500); i++;
+                }
+            });
+            return new Left();
             SSOUserInfo user = m_ssoUserService.GetUser();
 
             Left data = null;
@@ -377,13 +540,57 @@ namespace TestWebAPI.Controllers
 
             return data;
         }
+        [HttpPut]
+        public async void put()
+        {
+            ITransaction transaction = await m_editQuery.SplitBySystemID("s2b").FilterIsDeleted().BeginTransactionAsync(false);
+            try
+            {
+               
+                await m_editQuery2.DeleteAsync(null,319502795642566849);
+                await m_editQuery2.UpdateAsync(null, item => item.CreateTime >DateTime.Now.AddDays(-5), new Dictionary<string, object>() { ["name"] = "星期五啦",["CreateUserID"]=520}, transaction);
+                var list = await m_searchQuery2.FilterIsDeleted().SearchAsync(item=>item.name.Contains("你")&&item.UpdateUserID==9999);
+                transaction.Submit();
+            }
+            catch(Exception ex)
+            {
+                transaction.Rollback();
+            }
+            finally
+            {
 
+            }
+
+        }
         private void Sleep()
         {
             Thread.Sleep(5000);
         }
     }
+    [Route("wo")]
+    [ApiController]
+    public class wode: GenericPostController<testname>
+    {
+        private readonly ISearchQuery<testname> m_searchQuery;
+        private readonly IEditQuery<testname> m_editQuery;
 
+        public wode(ISearchQuery<testname> searchQuery,
+            IEditQuery<testname> editQuery,
+            ISSOUserService ssoUserService) :base(editQuery,ssoUserService)
+        {
+            m_searchQuery = searchQuery;
+            m_editQuery = editQuery;
+        }
+        protected override async Task DoPost(long id,testname test)
+        {
+           base.DoPost(id,test);
+        }
+        [HttpGet]
+        public async Task<IActionResult> get()
+        {
+            return Ok(await m_searchQuery.FilterIsDeleted().SearchAsync(item=>item.ID>0));
+        }
+    }
 
     [MessageProcessorRoute("abcds")]
     public class ABCD : MessageProcessor<string>
@@ -478,7 +685,7 @@ namespace TestWebAPI.Controllers
 
             for (int i = 0; i < 10; i++)
             {
-                await producer.ProduceAsync(mQContext, new TestMQData { Data = (i + 1).ToString(), CreateTime = DateTime.Now });
+                await producer.ProduceAsync(mQContext, new TestMQData { Data = (i).ToString(), CreateTime = DateTime.Now });
             }
         }
 
@@ -493,12 +700,31 @@ namespace TestWebAPI.Controllers
             {
                 foreach (var data in datas)
                 {
-                    Console.WriteLine(data.Data);
+                    Console.WriteLine("1号消费者："+data.Data+":"+data.CreateTime);
                 }
                 
-                return datas.Last().Data == "3";
-            }, TimeSpan.FromSeconds(1), 3);
+                return datas.Last().Data == "9";
+            }, TimeSpan.FromSeconds(1), 10);
             
+           // await Task.Delay(int.MaxValue);
+        }
+        [HttpGet("consume1")]
+        public async Task Consume1()
+        {
+            MQContext mQContext = new MQContext("testmq", new RabbitMqContent() { RoutingKey = "testm" });
+            using IMQBatchConsumer<TestMQData> consumer = MessageQueueFactory.GetRabbitMQBatchConsumer<TestMQData>(ExChangeTypeEnum.Direct);
+            consumer.Subscribe(mQContext);
+
+            consumer.Consume(mQContext, (datas) =>
+            {
+                    foreach (var data in datas)
+                    {
+                        Console.WriteLine("2号消费者"+data.Data + ":" + data.CreateTime);
+                    }
+                    return true;
+
+            }, TimeSpan.FromSeconds(1), 10);
+
             await Task.Delay(int.MaxValue);
         }
     }

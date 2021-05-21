@@ -21,7 +21,10 @@ namespace Common.ServiceCommon
             m_getTokenSuccess = true;
             m_lockThis = new object();
         }
-
+        /// <summary>
+        /// 获取token
+        /// </summary>
+        /// <returns></returns>
         public Tuple<bool, string> GetToken()
         {
             if (string.IsNullOrEmpty(m_accessToken) && m_getTokenSuccess)
@@ -36,10 +39,10 @@ namespace Common.ServiceCommon
             return Tuple.Create(m_getTokenSuccess, m_accessToken);
         }
 
-        private static void InitToken()
+        private static void InitToken()//创建token
         {
-            string tokenRequestUrl = $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/connect/token";
-            string clientID = ConfigManager.Configuration["ClientID"];
+            string tokenRequestUrl = $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/connect/token";//token请求地址
+            string clientID = ConfigManager.Configuration["ClientID"];//客户端id
             string clientSecret = ConfigManager.Configuration["ClientSecret"];
 
             if (string.IsNullOrEmpty(tokenRequestUrl) ||

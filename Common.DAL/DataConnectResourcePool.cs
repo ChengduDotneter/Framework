@@ -16,7 +16,9 @@ namespace Common.DAL
             OverTimeMilliseconds = overTimeMilliseconds;
         }
     }
-
+    /// <summary>
+    /// 资源创建
+    /// </summary>
     internal class DataConnectResourcePool : ResourcePool<DataConnectionInstance>
     {
         private readonly Func<DataConnectionInstance> m_doCreateInstance;
