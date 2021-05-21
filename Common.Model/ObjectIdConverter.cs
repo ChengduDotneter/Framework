@@ -289,6 +289,31 @@ namespace Common.Model
     }
 
     /// <summary>
+    /// 可为空的本地时间转换
+    /// </summary>
+    public class DateTimeToLocalConverter : JsonConverter<DateTime?>
+    {
+        public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
+
+            if (string.IsNullOrWhiteSpace(stringValue))
+                return null;
+
+            DateTime dateTime = Convert.ToDateTime(stringValue).ToLocalTime();
+
+            return dateTime;
+        }
+
+        public override void Write(Utf8JsonWriter writer, DateTime? value, JsonSerializerOptions options)
+        {
+            if (value.HasValue)
+                writer.WriteStringValue(value.Value);
+            else writer.WriteNullValue();
+        }
+    }
+
+    /// <summary>
     /// 数组long类型转换
     /// </summary>
     public class ObjectIdEnumerableConverter : JsonConverter<IEnumerable<long>>
