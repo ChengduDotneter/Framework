@@ -17,7 +17,6 @@ namespace Common.Log.KafkaLog
             static KafkaInstance()
             {
                 m_mQProducer = MessageQueueFactory.GetKafkaProducer<T>();
-
                 AppDomain.CurrentDomain.ProcessExit += (sender, e) => { m_mQProducer.Dispose(); };
             }
 

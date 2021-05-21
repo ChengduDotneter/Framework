@@ -44,11 +44,6 @@ namespace Common.MessageQueueClient.RabbitMQ
         {
             m_exChangeTypeEnum = exChangeTypeEnum;
             RabbitMqConsumerInit();
-
-            AppDomain.CurrentDomain.ProcessExit += (send, e) =>
-            {
-                Dispose();
-            };
         }
 
         private void Consume(MQContext mQContext, EventHandler<BasicDeliverEventArgs> eventHandler)
