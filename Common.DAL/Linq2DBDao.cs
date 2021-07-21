@@ -14,6 +14,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Common.DAL
 {
@@ -375,11 +376,20 @@ namespace Common.DAL
 
             public async void Dispose()
             {
-                await m_dataConnectionTransaction.DisposeAsync();
-                DisposeConnection(m_resourceInstance);
-
-                if (DistributedLock)
-                    Release(Identity);
+                try
+                {
+                    await m_dataConnectionTransaction.DisposeAsync();
+                    DisposeConnection(m_resourceInstance);
+                }
+                catch (Exception exception)
+                {
+                    await DaoFactory.LogHelper.Error($"{nameof(Linq2DBTransaction)}_{nameof(Dispose)}", JsonConvert.SerializeObject(exception));
+                }
+                finally
+                {
+                    if (DistributedLock)
+                        Release(Identity);
+                }
             }
 
             public void Rollback()
