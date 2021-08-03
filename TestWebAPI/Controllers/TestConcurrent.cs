@@ -14,6 +14,7 @@ using Common.MessageQueueClient;
 using Common.MessageQueueClient.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 
 // ReSharper disable UnusedVariable
 // ReSharper disable HeuristicUnreachableCode
@@ -488,18 +489,61 @@ namespace TestWebAPI.Controllers
             MQContext mQContext = new MQContext("testmq", new RabbitMqContent() { RoutingKey = "testmq" });
             using IMQBatchConsumer<TestMQData> consumer = MessageQueueFactory.GetRabbitMQBatchConsumer<TestMQData>(ExChangeTypeEnum.Direct);
             consumer.Subscribe(mQContext);
-            
+
             consumer.Consume(mQContext, (datas) =>
             {
                 foreach (var data in datas)
                 {
                     Console.WriteLine(data.Data);
                 }
-                
+
                 return datas.Last().Data == "3";
             }, TimeSpan.FromSeconds(1), 3);
-            
+
             await Task.Delay(int.MaxValue);
+        }
+    }
+
+    public class CommodityArchives : ViewModelBase
+    {
+    }
+
+    [Route("connectiontest")]
+    [ApiController]
+    public class ConnectionTest : ControllerBase
+    {
+        private readonly IEditQuery<CommodityArchives> m_editQuery;
+
+        public ConnectionTest(IEditQuery<CommodityArchives> editQuery)
+        {
+            m_editQuery = editQuery;
+        }
+
+        [HttpGet]
+        public async Task<string> Get()
+        {
+            try
+            {
+                using (ITransaction transaction = await m_editQuery.SplitBySystemID("s2b").BeginTransactionAsync())
+                {
+                    try
+                    {
+                        await m_editQuery.SplitBySystemID("s2b").InsertAsync(datas: new CommodityArchives { ID = IDGenerator.NextID() });
+                        await transaction.SubmitAsync();
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
+                }
+
+                return "ok";
+            }
+            catch (Exception exception)
+            {
+                return JsonConvert.SerializeObject(exception);
+            }
         }
     }
 }

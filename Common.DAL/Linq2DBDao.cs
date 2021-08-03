@@ -394,12 +394,26 @@ namespace Common.DAL
 
             public void Rollback()
             {
-                m_dataConnectionTransaction.Rollback();
+                try
+                {
+                    m_dataConnectionTransaction.Rollback();
+                }
+                catch (Exception exception)
+                {
+                    DaoFactory.LogHelper.Error($"{nameof(Linq2DBTransaction)}_{nameof(Rollback)}", JsonConvert.SerializeObject(exception));
+                }
             }
 
             public async Task RollbackAsync()
             {
-                await m_dataConnectionTransaction.RollbackAsync();
+                try
+                {
+                    await m_dataConnectionTransaction.RollbackAsync();
+                }
+                catch (Exception exception)
+                {
+                    await DaoFactory.LogHelper.Error($"{nameof(Linq2DBTransaction)}_{nameof(RollbackAsync)}", JsonConvert.SerializeObject(exception));
+                }
             }
 
             public void Submit()
