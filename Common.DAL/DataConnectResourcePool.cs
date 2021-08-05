@@ -14,6 +14,10 @@ namespace Common.DAL
         public DataConnectionInstance(int overTimeMilliseconds, LinqToDbConnectionOptions linqToDbConnectionOptions) : base(linqToDbConnectionOptions)
         {
             OverTimeMilliseconds = overTimeMilliseconds;
+            
+            //命令超时时间
+            if (int.TryParse(ConfigManager.Configuration["CommandTimeout"], out int CommandTimeout))
+                Instance.CommandTimeout = CommandTimeout;
         }
     }
 
