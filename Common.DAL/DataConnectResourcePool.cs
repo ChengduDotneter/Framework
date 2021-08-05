@@ -1,6 +1,6 @@
-﻿using System;
-using LinqToDB.Configuration;
+﻿using LinqToDB.Configuration;
 using LinqToDB.Data;
+using System;
 
 namespace Common.DAL
 {
@@ -14,10 +14,10 @@ namespace Common.DAL
         public DataConnectionInstance(int overTimeMilliseconds, LinqToDbConnectionOptions linqToDbConnectionOptions) : base(linqToDbConnectionOptions)
         {
             OverTimeMilliseconds = overTimeMilliseconds;
-            
+
             //命令超时时间
-            if (int.TryParse(ConfigManager.Configuration["CommandTimeout"], out int CommandTimeout))
-                Instance.CommandTimeout = CommandTimeout;
+            if (int.TryParse(ConfigManager.Configuration["CommandTimeout"], out int commandTimeout))
+                CommandTimeout = commandTimeout;
         }
     }
 
