@@ -128,10 +128,6 @@ namespace Common.DAL
             public ConnectionInstance(LinqToDbConnectionOptions linqToDbConnectionOptions)
             {
                 Instance = new DataConnectionInstance(0, linqToDbConnectionOptions);
-
-                //命令超时时间
-                if (int.TryParse(ConfigManager.Configuration["CommandTimeout"], out int CommandTimeout))
-                    Instance.CommandTimeout = CommandTimeout;
             }
 
             public void Dispose()
