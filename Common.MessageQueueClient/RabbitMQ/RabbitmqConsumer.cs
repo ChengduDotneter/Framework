@@ -105,7 +105,7 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <param name="callback">消息回调</param>
         public Task ConsumeAsync(MQContext mQContext, Func<T, Task<bool>> callback)
         {
-            Consume(mQContext, async (eventSender, args) =>
+            async void EventHandler(object eventSender, BasicDeliverEventArgs args)
             {
                 byte[] message = args.Body; //接收到的消息
                 T data = null;
@@ -136,7 +136,9 @@ namespace Common.MessageQueueClient.RabbitMQ
                     Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
                     throw;
                 }
-            });
+            }
+
+            Consume(mQContext, EventHandler);
 
             return Task.CompletedTask;
         }
@@ -209,7 +211,7 @@ namespace Common.MessageQueueClient.RabbitMQ
                                 //处理逻辑失败时，该消息扔回消息队列
                                 for (int i = 0; i < batchDatas.Count; i++)
                                     m_channel.BasicReject(batchDatas[i].DeliveryTag, true);
-                                
+
                                 Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
                                 throw;
                             }
@@ -293,7 +295,7 @@ namespace Common.MessageQueueClient.RabbitMQ
                                 //处理逻辑失败时，该消息扔回消息队列
                                 for (int i = 0; i < batchDatas.Count; i++)
                                     m_channel.BasicReject(batchDatas[i].DeliveryTag, true);
-                                
+
                                 Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
                                 throw;
                             }
