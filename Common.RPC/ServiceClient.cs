@@ -1,5 +1,4 @@
-﻿using Common.Log;
-using Common.RPC.BufferSerializer;
+﻿using Common.RPC.BufferSerializer;
 using Common.RPC.TransferAdapter;
 using System;
 using System.Collections.Concurrent;
@@ -177,6 +176,7 @@ namespace Common.RPC
                 catch (Exception ex)
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
+                    // ignored
 #if OUTPUT_LOG
                     m_logHelper.Info("RPC", $"serialize error, message_id: {sendingData.Data.MessageID}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");
 #endif
@@ -199,6 +199,7 @@ namespace Common.RPC
                 catch (Exception ex)
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
+                    // ignored
 #if OUTPUT_LOG
                     m_logHelper.Info("RPC", $"process error, message_id: {BitConverter.ToInt32(recieveData.Buffer, 0)}{Environment.NewLine}message: {Environment.NewLine}{ExceptionHelper.GetMessage(ex)}{Environment.NewLine}stack_trace: {Environment.NewLine}{ExceptionHelper.GetStackTrace(ex)}");
 #endif
