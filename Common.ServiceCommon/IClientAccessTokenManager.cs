@@ -39,7 +39,7 @@ namespace Common.ServiceCommon
             return Tuple.Create(m_getTokenSuccess, m_accessToken);
         }
 
-        private static void InitToken()//创建token
+        private static void InitToken()//token初始化
         {
             string tokenRequestUrl = $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}/connect/token";//token请求地址
             string clientID = ConfigManager.Configuration["ClientID"];//客户端id
@@ -58,7 +58,7 @@ namespace Common.ServiceCommon
                 ["client_id"] = clientID,
                 ["client_secret"] = clientSecret,
                 ["grant_type"] = "client_credentials"
-            });
+            });//请求token
 
             if (httpWebResponseResult.HttpStatus != HttpStatusCode.OK)
             {
@@ -66,7 +66,7 @@ namespace Common.ServiceCommon
                 return;
             }
 
-            JObject @object = JObject.Parse(httpWebResponseResult.DataString);
+            JObject @object = JObject.Parse(httpWebResponseResult.DataString);//获取token
             m_accessToken = $"{@object["token_type"]} {@object["access_token"]}";
         }
     }

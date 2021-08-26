@@ -233,6 +233,7 @@ namespace Common.RPC.TransferAdapter
                 catch (Exception ex)
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
+                    // ignored
 #if OUTPUT_LOG
                     m_logHelper.Info("Transfer_ZeroMQ", $"send error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif
@@ -289,6 +290,7 @@ namespace Common.RPC.TransferAdapter
                         catch (Exception ex)
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                         {
+                            // ignored
 #if OUTPUT_LOG
                             m_logHelper.Info("Transfer_ZeroMQ", $"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
 #endif

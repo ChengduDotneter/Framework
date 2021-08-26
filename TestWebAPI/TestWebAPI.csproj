@@ -5,20 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.0.21" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common.DAL.ETL\Common.DAL.ETL.csproj" />
     <ProjectReference Include="..\Common.Model\Common.Model.csproj" />
     <ProjectReference Include="..\Common.RPC\Common.RPC.csproj" />
     <ProjectReference Include="..\Common.ServiceCommon\Common.ServiceCommon.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
-    <ProjectReference Include="..\Common.DAL.ETL\Common.DAL.ETL.csproj">
-      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
-    </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MySql.Data" Version="8.0.21" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Controllers\" />
   </ItemGroup>
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 

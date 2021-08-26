@@ -200,7 +200,7 @@ namespace Common.DAL.Cache
                 await m_editQuery.DeleteAsync(systemID, transactionProxy.Transaction, ids);
 
                 transactionProxy.ClearConditionCache = true;
-                transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>//事务代理队列
+                transactionProxy.TaskQueue.Enqueue(new Task<Task>(async (state) =>
                 {
                     IList<Task> tasks = new List<Task>();
 
@@ -356,7 +356,7 @@ namespace Common.DAL.Cache
                 await m_editQuery.MergeAsync(systemID, transactionProxy.Transaction, datas);
                 transactionProxy.ClearConditionCache = true;
 
-                transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>
+                transactionProxy.TaskQueue.Enqueue(new Task<Task>(async (state) =>
                 {
                     T[] datas = (T[])state;
 
@@ -467,7 +467,7 @@ namespace Common.DAL.Cache
                 await m_editQuery.UpdateAsync(systemID, data, transactionProxy.Transaction);
                 transactionProxy.ClearConditionCache = true;
 
-                transactionProxy.TaskQueue.Enqueue(new Task(async (state) =>
+                transactionProxy.TaskQueue.Enqueue(new Task<Task>(async (state) =>
                 {
                     T data = (T)state;
                     (bool exists, _) = await m_keyCache.TryGetValueAsync<T>(data.ID.ToSystemObjectID(systemID));

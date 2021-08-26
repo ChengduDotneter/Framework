@@ -29,7 +29,7 @@ namespace Common.ServiceCommon
         /// </summary>
         public readonly static SSOUserInfo Empty = new SSOUserInfo(-9999, "UNKNOWN", "UNKNOWN");
 
-        internal SSOUserInfo(long id, string userName, string phone)
+        public SSOUserInfo(long id, string userName, string phone)
         {
             ID = id;
             UserName = userName;

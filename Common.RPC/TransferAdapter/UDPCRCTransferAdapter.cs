@@ -142,6 +142,7 @@ namespace Common.RPC.TransferAdapter
 
                         fixed (byte* sendBufferPtr = sendBufferData.Buffer)
                         {
+                            // ReSharper disable once UnusedVariable
                             long sessionID = *(long*)(sendBufferPtr + DATA_ID_BUFFER_LENGTH);
 
                             try
@@ -154,6 +155,7 @@ namespace Common.RPC.TransferAdapter
                             catch (Exception ex)
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                             {
+                                // ignored
 #if OUTPUT_LOG
                                 m_logHelper.Info("Transfer_UDP",
                                                  $"send error session_id: {sessionID}{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
@@ -243,6 +245,7 @@ namespace Common.RPC.TransferAdapter
                 catch (Exception ex)
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
+                    // ignored
 #if OUTPUT_LOG
                     m_logHelper.Info("Transfer_UDP",
                                      $"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
