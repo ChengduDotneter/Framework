@@ -16,7 +16,12 @@ namespace Common.ServiceCommon
     public static class ValidSystem
     {
         internal const string SYSTEMID = "systemID";
-
+        /// <summary>
+        /// 检查系统id
+        /// </summary>
+        /// <param name="httpContext">http请求</param>
+        /// <param name="splitSystem">是否分区</param>
+        /// <returns></returns>
         public static bool CheckSystem(this HttpContext httpContext, bool splitSystem)
         {
             if (splitSystem)
@@ -38,6 +43,7 @@ namespace Common.ServiceCommon
     [ApiController]
     public abstract class JObjectGenericPostController<TResponse> : ControllerBase
     {
+        //因为Service中无相应的实体 所以使用FromServices 方法属性注入
         /// <summary>
         /// Post
         /// </summary>
@@ -56,7 +62,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         protected abstract Task<TResponse> DoPost(JObject request);
     }
-
+    //因为Service中无相应的实体 所以使用FromServices 方法属性注入
     /// <summary>
     /// Service中无相应的实体接受请求参数时使用且请求参数为JArray的接口基类
     /// </summary>
@@ -84,7 +90,7 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
-    /// 根据ID查询自定义结果的接口基类
+    /// 根据ID查询自定义结果的接口基类 也就是说这个返回的结果并不是数据库实体
     /// </summary>
     /// <typeparam name="TResponse">返回实体泛型</typeparam>
     public abstract class CustomGetController<TResponse> : ControllerBase
@@ -332,7 +338,7 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
-    /// 自定义返回值，根据查询出的实体对返回值进行拼装
+    /// 自定义返回值，根据查询出的实体对返回值进行拼装 请求实体继承于ViewModelBase
     /// </summary>
     /// <typeparam name="TRequest">请求实体参数，继承于ViewModelBase</typeparam>
     [ApiController]
@@ -370,7 +376,7 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
-    /// 新增接口基类
+    /// 新增接口基类 请求实体泛型，继承于ViewModelBase
     /// </summary>
     /// <typeparam name="TRequest">请求实体泛型，继承于ViewModelBase</typeparam>
     [ApiController]

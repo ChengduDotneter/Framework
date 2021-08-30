@@ -51,7 +51,7 @@ namespace Common.ServiceCommon
         public static IKeyCache<T> KeyCache<T>(this ISearchQuery<T> searchQuery, IServiceProvider serviceProvider)
             where T : ViewModelBase, new()
         {
-            return serviceProvider.GetRequiredService<ICacheProvider<T>>().CreateKeyCache(searchQuery);
+            return serviceProvider.GetRequiredService<ICacheProvider<T>>().CreateKeyCache(searchQuery);//创建ICacheProvider接口并创建缓存
         }
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
-    /// QueryProxyHelper
+    /// QueryProxyHelper 帮助类 用于添加扩展的条件
     /// </summary>
     internal static class QueryProxyHelper
     {

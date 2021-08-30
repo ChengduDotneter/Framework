@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 
 namespace Common.Model
-{
+{/// <summary>
+/// 分页Search查询
+/// </summary>
+/// <typeparam name="T"></typeparam>
     public class PageQuery<T> where T : new()
     {
         public int PageIndex { get; set; }
@@ -10,7 +13,10 @@ namespace Common.Model
         public int PageCount { get; set; }
         public T Condition { get; set; }
     }
-
+    /// <summary>
+    /// Search查询返回结果
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class PageQueryResult<T> where T : new()
     {
         public int TotalCount { get; set; }
@@ -18,10 +24,10 @@ namespace Common.Model
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class LinqSearchAttribute : Attribute
+    public class LinqSearchAttribute : Attribute//linq查询特性
     {
-        public Type SearchType { get; }
-        public string GetLinqFunctionName { get; }
+        public Type SearchType { get; }//实体
+        public string GetLinqFunctionName { get; }//linq实现方法名
 
         public LinqSearchAttribute(Type searchType, string getLinqFunctionName)
         {

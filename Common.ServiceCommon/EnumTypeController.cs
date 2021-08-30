@@ -57,7 +57,11 @@ namespace Common.ServiceCommon
 
             return GetEnumItemValuesByEnumType(propertyInfo.PropertyType);
         }
-
+        /// <summary>
+        /// 获取需要查找的类
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
         private static Type GetTypeByObjectTypeName(string typeName)
         {
             if (string.IsNullOrWhiteSpace(typeName))
@@ -94,12 +98,12 @@ namespace Common.ServiceCommon
         ///<returns>键值对</returns>
         private static IEnumerable<EnumValues> GetEnumItemValuesByEnumType(Type enumType)
         {
-            if (enumType.IsGenericType && enumType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (enumType.IsGenericType && enumType.GetGenericTypeDefinition() == typeof(Nullable<>))//判断当前type是不是泛型并且是不是可控
             {
                 if (enumType.GetGenericArguments().Length == 0)
                     throw new NotSupportedException();
                 else
-                    enumType = enumType.GetGenericArguments()[0];
+                    enumType = enumType.GetGenericArguments()[0];//返回类型
             }
 
             if (!enumType.IsEnum)
@@ -109,7 +113,7 @@ namespace Common.ServiceCommon
 
             foreach (FieldInfo field in enumType.GetFields())
             {
-                if (field.FieldType.IsEnum)
+                if (field.FieldType.IsEnum)//是不是枚举
                 {
                     EnumValues enumValue = new EnumValues
                     {

@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 namespace Common.Model
 {
     [MongoDB.Bson.Serialization.Attributes.BsonIgnoreExtraElements]
-    public abstract class ViewModelBase : IEntity
+    public abstract class ViewModelBase : IEntity//基础模型 每张表必须的字段
     {
         /// <summary>
         /// 主键ID

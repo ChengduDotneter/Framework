@@ -10,8 +10,7 @@ namespace Common.Model
 {
     public class ObjectIdConverter : JsonConverter<long>
     {
-        public override long Read(
-            ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var stringValue = JsonSerializer.Deserialize<object>(ref reader, options).ToString();
 

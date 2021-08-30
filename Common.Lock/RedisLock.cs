@@ -9,12 +9,15 @@ using System.Threading.Tasks;
 
 namespace Common.Lock
 {
+    /// <summary>
+    /// redis锁
+    /// </summary>
     internal class RedisLock : ILock
     {
         private class LockInstance
         {
             private CancellationTokenSource m_cancellationTokenSource;
-            public RedisValue Token { get; }
+            public RedisValue Token { get; }//token
             public ISet<RedisKey> MutexLocks { get; }
             public ISet<RedisKey> ReadWriteLocks { get; }
             public bool Running { get; private set; }
@@ -23,8 +26,8 @@ namespace Common.Lock
             {
                 m_cancellationTokenSource = new CancellationTokenSource();
                 Token = new RedisValue(identity);
-                MutexLocks = new HashSet<RedisKey>();
-                ReadWriteLocks = new HashSet<RedisKey>();
+                MutexLocks = new HashSet<RedisKey>();//互斥锁
+                ReadWriteLocks = new HashSet<RedisKey>();//读写锁
                 Running = true;
 
                 Task.Factory.StartNew(async () =>
@@ -37,13 +40,13 @@ namespace Common.Lock
 
                             Task<RedisResult> readWriteLockTask = null;
 
-                            lock (MutexLocks)
+                            lock (MutexLocks)//上互斥锁 线程独享
                             {
                                 foreach (RedisKey item in MutexLocks)
-                                    tasks.Add(m_saveRedisClient.LockExtendAsync(item, Token, TTL));
+                                    tasks.Add(m_saveRedisClient.LockExtendAsync(item, Token, TTL));//使用item锁住
                             }
 
-                            lock (ReadWriteLocks)
+                            lock (ReadWriteLocks)//读写锁锁住
                             {
                                 if (ReadWriteLocks.Count() > 0)
                                 {
@@ -54,13 +57,13 @@ namespace Common.Lock
                                     evaluatParameters.Add(ReadWriteLocks.Count().ToString());
                                     evaluatParameters.AddRange(ReadWriteLocks);
 
-                                    readWriteLockTask = m_saveRedisClient.ScriptEvaluateAsync(SAVE_DB_LOCK_HASH, evaluatParameters.ToArray());
+                                    readWriteLockTask = m_saveRedisClient.ScriptEvaluateAsync(SAVE_DB_LOCK_HASH, evaluatParameters.ToArray());//加锁
 
-                                    tasks.Add(readWriteLockTask);
+                                    tasks.Add(readWriteLockTask);//把task任务添加进集合
                                 }
                             }
 
-                            await Task.WhenAll(tasks);
+                            await Task.WhenAll(tasks);//执行
 
                             if (readWriteLockTask != null && readWriteLockTask.Result.ToString() != "1")
                                 throw new ResourceException("读写锁续锁失败。");

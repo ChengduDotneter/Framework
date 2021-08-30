@@ -27,12 +27,15 @@ namespace Common.MessageQueueClient.RabbitMQ
             m_queueNames = new HashSet<string>();
 
             if (m_connectionFactory == null)
+                //1:创建一个连接的工厂类 
                 m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
 
             if (m_connection == null)
+                //创建连接
                 m_connection = m_connectionFactory.CreateConnection();
 
             if (m_channel == null)
+                //创建通道
                 m_channel = m_connection.CreateModel();
 
             if (m_properties == null)

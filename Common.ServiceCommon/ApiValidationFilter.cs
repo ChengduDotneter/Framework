@@ -14,13 +14,14 @@ namespace Common.ServiceCommon
     /// <summary>
     /// 跳过验证器的特性
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-    public class SkipValidationAttribute : Attribute { }
+    //如果允许指定多个实例，AllowMultiple则为true Attribute可以应用于类AttributeTargets.class
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]//如果属性可以由派生类和重写成员继承，则为true
+    public class SkipValidationAttribute : Attribute { }//跳过验证 不需要鉴权
 
     /// <summary>
     /// Api验证管道
     /// </summary>
-    public class ApiValidationFilter : IActionFilter
+    public class ApiValidationFilter : IActionFilter//参数验证
     {
         /// <summary>
         /// 允许复合验证
@@ -39,7 +40,7 @@ namespace Common.ServiceCommon
         /// <param name="actionExecutingContext"></param>
         public void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
-            if (!actionExecutingContext.ModelState.IsValid &&
+            if (!actionExecutingContext.ModelState.IsValid &&//未验证 请求方式不是get  没有跳过验证器特性
                  actionExecutingContext.HttpContext.Request.Method != HttpMethodConst.GET_UPPER &&
                  actionExecutingContext.Controller.GetType().GetCustomAttributes(typeof(SkipValidationAttribute), false).Count() == 0)
             {

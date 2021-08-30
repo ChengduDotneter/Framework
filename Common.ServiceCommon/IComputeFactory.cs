@@ -51,23 +51,31 @@ namespace Common.ServiceCommon
         {
             m_serviceProvider = serviceProvider;
         }
-
+        /// <summary>
+        /// 创建并行计算Job
+        /// </summary>
         public T CreateComputeFunc<T, TParameter, TResult>() where T : class, IComputeFunc<TParameter, TResult>
         {
             return m_serviceProvider.CreateInstanceFromServiceProvider<T>();
         }
-
+        /// <summary>
+        /// 创建并行计算Job
+        /// </summary>
         public T CreateComputeFunc<T, TResult>() where T : class, IComputeFunc<TResult>
         {
             return m_serviceProvider.CreateInstanceFromServiceProvider<T>();
         }
-
+        /// <summary>
+        /// 创建并行计算任务
+        /// </summary>
         public T CreateComputeMapReduceTask<T, TParameter, TResult, TSplitParameter, TSplitResult>()
             where T : class, IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult>
         {
             return m_serviceProvider.CreateInstanceFromServiceProvider<T>();
         }
-
+        /// <summary>
+        /// 创建并行计算Job
+        /// </summary>
         public object CreateComputeFunc(Type computeFuncType)
         {
             if (computeFuncType.GetInterfaces().All(item => !item.IsGenericType ||

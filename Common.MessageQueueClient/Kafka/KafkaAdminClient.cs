@@ -11,13 +11,13 @@ namespace Common.MessageQueueClient.Kafka
     /// </summary>
     public static class KafkaAdminClient
     {
-        private static readonly IAdminClient m_adminClient;
+        private static readonly IAdminClient m_adminClient;//kafka客户端
 
         static KafkaAdminClient()
         {
-            m_adminClient = new AdminClientBuilder(KafkaConfigBuilder.GetClientConfig()).Build();
+            m_adminClient = new AdminClientBuilder(KafkaConfigBuilder.GetClientConfig()).Build();//根据配置创建客户端
 
-            AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) =>//父进程退出时 注销
             {
                 m_adminClient.Dispose();
             };

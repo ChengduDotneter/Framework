@@ -16,7 +16,7 @@ namespace Common
         /// 节点编号
         /// </summary>
         private static readonly uint m_node;
-
+        
         /// <summary>
         /// 线程锁
         /// </summary>

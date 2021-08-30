@@ -32,7 +32,7 @@ namespace Common
         /// 创建日志
         /// </summary>
         /// <param name="repositoryName"></param>
-        /// <param name="names"></param>
+        /// <param name="names">参数组</param>
         /// <returns></returns>
         public static ILog CreateLog(string repositoryName, params string[] names)
         {
@@ -40,14 +40,14 @@ namespace Common
 
             string repositoryKey = $"{repositoryName}-{string.Join("-", names)}";
 
-            if (!m_loggerRepositorys.ContainsKey(repositoryKey))
+            if (!m_loggerRepositorys.ContainsKey(repositoryKey))//不存在时去创建
             {
-                lock (m_loggerRepositorys)
+                lock (m_loggerRepositorys)//加锁
                 {
-                    if (!m_loggerRepositorys.ContainsKey(repositoryKey))
+                    if (!m_loggerRepositorys.ContainsKey(repositoryKey))//再次验证
                     {
-                        loggerRepository = LogManager.CreateRepository(repositoryKey);
-                        m_loggerRepositorys.Add(repositoryKey, loggerRepository);
+                        loggerRepository = LogManager.CreateRepository(repositoryKey);//创建日志操作
+                        m_loggerRepositorys.Add(repositoryKey, loggerRepository);//添加日志操作对象
                     }
                     else
                     {
@@ -62,7 +62,12 @@ namespace Common
 
             return DoCreateLog(loggerRepository, names.Length > 0 ? names : new string[] { repositoryName });
         }
-
+        /// <summary>
+        /// 创建日志
+        /// </summary>
+        /// <param name="loggerRepository">日志操作对象</param>
+        /// <param name="names">参数</param>
+        /// <returns></returns>
         private static ILog DoCreateLog(ILoggerRepository loggerRepository, params string[] names)
         {
             string logKey = loggerRepository.Name + names[0];

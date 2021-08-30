@@ -29,7 +29,7 @@ namespace Common
         /// <summary>
         /// 配置文件初始化
         /// </summary>
-        /// <param name="enviroment"></param>
+        /// <param name="enviroment">配置文件名字</param>
         public static void Init(string enviroment)
         {
             m_configuration = new ConfigurationBuilder()

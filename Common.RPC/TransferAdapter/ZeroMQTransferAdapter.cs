@@ -1,4 +1,5 @@
-﻿using NetMQ;
+﻿using Common.Log;
+using NetMQ;
 using NetMQ.Sockets;
 using System;
 using System.Collections.Concurrent;
@@ -142,7 +143,12 @@ namespace Common.RPC.TransferAdapter
                     throw new NotSupportedException();
             }
         }
-
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        /// <param name="sessionContext"></param>
+        /// <param name="buffer"></param>
+        /// <param name="length"></param>
         public void SendBuffer(SessionContext sessionContext, byte[] buffer, int length)
         {
             if (!m_start)

@@ -15,14 +15,14 @@ namespace Common.MessageQueueClient.RabbitMQ
     /// <typeparam name="T"></typeparam>
     public class RabbitmqConsumer<T> : IMQConsumer<T>, IMQBatchConsumer<T> where T : class, IMQData, new()
     {
-        private static IConnectionFactory m_connectionFactory;
-        private IConnection m_connection;
-        private IModel m_channel;
-        private string m_routingKey;
-        private ISet<string> m_queueNames;
+        private static IConnectionFactory m_connectionFactory;//连接工厂
+        private IConnection m_connection;//连接管道
+        private IModel m_channel;//会话模型
+        private string m_routingKey;//路由key
+        private ISet<string> m_queueNames;//队列名
         private EventingBasicConsumer m_consumer;
 
-        private readonly ExChangeTypeEnum m_exChangeTypeEnum;
+        private readonly ExChangeTypeEnum m_exChangeTypeEnum;//路由匹配模式
 
         private class BatchData
         {
@@ -42,16 +42,20 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <param name="exChangeTypeEnum">数据分发模式</param>
         public RabbitmqConsumer(ExChangeTypeEnum exChangeTypeEnum)
         {
-            m_exChangeTypeEnum = exChangeTypeEnum;
-            RabbitMqConsumerInit();
+            m_exChangeTypeEnum = exChangeTypeEnum;//mq消费者消费模式
+            RabbitMqConsumerInit();//mq初始化
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mQContext">消息队列上下文</param>
+        /// <param name="eventHandler">事件</param>
         private void Consume(MQContext mQContext, EventHandler<BasicDeliverEventArgs> eventHandler)
         {
             if (m_queueNames.Contains(mQContext.MessageQueueName))
             {
                 //接收事件
-                m_consumer.Received += eventHandler;
+                m_consumer.Received += eventHandler;//接收消息触发的事件
                 //开启监听
                 m_channel.BasicConsume(queue: mQContext.MessageQueueName, autoAck: false, consumer: m_consumer);
             }
@@ -202,6 +206,7 @@ namespace Common.MessageQueueClient.RabbitMQ
                                 }
                                 else
                                 {
+                                    //该消息扔回消息队列
                                     for (int i = 0; i < batchDatas.Count; i++)
                                         m_channel.BasicReject(batchDatas[i].DeliveryTag, true);
                                 }
@@ -321,17 +326,20 @@ namespace Common.MessageQueueClient.RabbitMQ
             Dispose();
         }
 
-        private void RabbitMqConsumerInit()
+        private void RabbitMqConsumerInit()//mq初始化
         {
             m_queueNames = new HashSet<string>();
 
             if (m_connectionFactory == null)
+                //1:创建一个连接的工厂类 
                 m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
 
             if (m_connection == null)
+                //打开连接    
                 m_connection = m_connectionFactory.CreateConnection();
 
             if (m_channel == null)
+                //获取一个通道
                 m_channel = m_connection.CreateModel();
 
             //申明是否手动确认

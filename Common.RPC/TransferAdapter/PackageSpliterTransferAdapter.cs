@@ -7,9 +7,12 @@ using System.Threading;
 
 namespace Common.RPC.TransferAdapter
 {
+    /// <summary>
+    /// 分包拆包
+    /// </summary>
     internal class PackageSpliterTransferAdapter : ITransferAdapter, IDisposable
     {
-        public event OnBufferRecievedHandler OnBufferRecieved;
+        public event OnBufferRecievedHandler OnBufferRecieved;//数据转换处理事件
 
         private const int SPLIT_PACKAGE_LENGTH = 1024; //1kb
         private const int CLEAR_TIME_SPAN = 1000;
@@ -21,9 +24,9 @@ namespace Common.RPC.TransferAdapter
 
         private class PackageDataCache
         {
-            public byte[] Buffer { get; }
-            public ISet<int> IndexSet { get; }
-            public int LastRefreshTime { get; private set; }
+            public byte[] Buffer { get; }//字节数组
+            public ISet<int> IndexSet { get; }//下表
+            public int LastRefreshTime { get; private set; }//最后刷新时间
 
             public void RefreshTime()
             {
@@ -41,11 +44,11 @@ namespace Common.RPC.TransferAdapter
         [StructLayout(LayoutKind.Sequential)]
         private struct PackageData
         {
-            public long PackageID;
-            public int PackageIndex;
-            public int PackageCount;
-            public int TotalLength;
-            public int Length;
+            public long PackageID;//包id
+            public int PackageIndex;//包下标
+            public int PackageCount;//包总数
+            public int TotalLength;//包总长度
+            public int Length;//长度
 
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = SPLIT_PACKAGE_LENGTH)]
             public byte[] Buffer;
@@ -65,7 +68,12 @@ namespace Common.RPC.TransferAdapter
             m_clearThread.IsBackground = true;
             m_clearThread.Name = "PACKAGE_SPLITER_THREAD";
         }
-
+        /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="sessionContext">通讯上下文</param>
+        /// <param name="buffer">字节数组发送的数据</param>
+        /// <param name="length">数据长度</param>
         public void SendBuffer(SessionContext sessionContext, byte[] buffer, int length)
         {
             int index = 0;
@@ -94,7 +102,11 @@ namespace Common.RPC.TransferAdapter
             }
             while (index * SPLIT_PACKAGE_LENGTH < length);
         }
-
+        /// <summary>
+        /// 接收数据并组包
+        /// </summary>
+        /// <param name="sessionContext"></param>
+        /// <param name="buffer"></param>
         private void DoRecieve(SessionContext sessionContext, byte[] buffer)
         {
             IntPtr structPtr = Marshal.AllocHGlobal(m_size);
@@ -132,7 +144,11 @@ namespace Common.RPC.TransferAdapter
                 Marshal.FreeHGlobal(structPtr);
             }
         }
-
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        /// <param name="sessionContext"></param>
+        /// <param name="packageData"></param>
         private void DoSend(SessionContext sessionContext, PackageData packageData)
         {
             byte[] bytes = new byte[m_size];
@@ -149,7 +165,9 @@ namespace Common.RPC.TransferAdapter
                 Marshal.FreeHGlobal(structPtr);
             }
         }
-
+        /// <summary>
+        /// 清空缓存
+        /// </summary>
         private void DoClear()
         {
             while (true)

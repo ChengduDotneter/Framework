@@ -15,7 +15,7 @@ namespace Common.DAL
         /// <summary>
         /// 获取查询的MongoDB操作实体
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">要查询的实体类</typeparam>
         /// <returns></returns>
         public static ISearchQuery<T> GetSearchMongoDBQuery<T>() where T : class, IEntity, new()
         {

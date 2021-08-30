@@ -22,13 +22,21 @@ namespace Common.DAL
         private static MongoClient m_slaveMongoClient;
         private static IMongoDatabase m_masterMongoDatabase;
         private static IMongoDatabase m_slaveMongoDatabase;
-
+        /// <summary>
+        /// 数据库资源实例
+        /// </summary>
         private class MongoDbResourceContent : IDBResourceContent
         {
             public object Content { get { return m_slaveMongoDatabase; } }
             public void Dispose() { }
         }
-
+        /// <summary>
+        /// 同步申请事务资源 表锁
+        /// </summary>
+        /// <typeparam name="TResource"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="systemID"></param>
+        /// <returns></returns>
         private static bool Apply<TResource>(ITransaction transaction, string systemID) where TResource : class, IEntity
         {
             MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;
@@ -43,10 +51,16 @@ namespace Common.DAL
 
             return mongoDBTransaction != null;
         }
-
+        /// <summary>
+        /// 异步申请事务资源 表锁
+        /// </summary>
+        /// <typeparam name="TResource"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="systemID"></param>
+        /// <returns></returns>
         private static async Task<bool> ApplyAsync<TResource>(ITransaction transaction, string systemID) where TResource : class, IEntity
         {
-            MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;
+            MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;//获取事务具体实现类
 
             if (mongoDBTransaction != null && mongoDBTransaction.DistributedLock)
             {
@@ -58,7 +72,9 @@ namespace Common.DAL
 
             return mongoDBTransaction != null;
         }
-
+        /// <summary>
+        /// 创建表资源
+        /// </summary>
         private class MongoDBCreateTableQueryInstance : ICreateTableQuery
         {
             public Task CreateTable(string systemID, IEnumerable<Type> tableTypes)
@@ -66,12 +82,20 @@ namespace Common.DAL
                 return CreateTables(systemID, tableTypes);
             }
         }
-
+        /// <summary>
+        /// 创建表接口
+        /// </summary>
+        /// <returns></returns>
         public static ICreateTableQuery GetMongoDBCreateTableQueryInstance()
         {
             return new MongoDBCreateTableQueryInstance();
         }
-
+        /// <summary>
+        /// 创建表实现
+        /// </summary>
+        /// <param name="systemID"></param>
+        /// <param name="tableTypes"></param>
+        /// <returns></returns>
         private static Task CreateTables(string systemID, IEnumerable<Type> tableTypes)
         {
             if (tableTypes.IsNullOrEmpty())
@@ -98,18 +122,33 @@ namespace Common.DAL
                 }
             });
         }
-
+        /// <summary>
+        /// 获取表名
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="systemID"></param>
+        /// <returns></returns>
         private static string GetPartitionTableName<T>(string systemID) where T : class, IEntity, new()
         {
             string tablePostFix = string.IsNullOrEmpty(systemID) ? string.Empty : $"_{systemID}";
             return Convert.ToBoolean(ConfigManager.Configuration["IsNotLowerTableName"]) ? $"{typeof(T).Name}{tablePostFix}" : $"{typeof(T).Name}{tablePostFix}".ToLower();
         }
-
+        /// <summary>
+        /// 统一数据库连接接口
+        /// </summary>
+        /// <returns></returns>
         internal static IDBResourceContent GetDBResourceContent()
         {
             return new MongoDbResourceContent();
         }
-
+        /// <summary>
+        /// 申请事务资源 行写锁
+        /// </summary>
+        /// <typeparam name="TResource"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="systemID"></param>
+        /// <param name="ids"></param>
+        /// <returns></returns>
         private static bool WriteApply<TResource>(ITransaction transaction, string systemID, IEnumerable<long> ids) where TResource : class, IEntity
         {
             MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;
@@ -124,7 +163,14 @@ namespace Common.DAL
 
             return mongoDBTransaction != null;
         }
-
+        /// <summary>
+        /// 异步申请事务资源 行写锁
+        /// </summary>
+        /// <typeparam name="TResource"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="systemID"></param>
+        /// <param name="ids"></param>
+        /// <returns></returns>
         private static async Task<bool> WriteApplyAsync<TResource>(ITransaction transaction, string systemID, IEnumerable<long> ids) where TResource : class, IEntity
         {
             MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;
@@ -139,7 +185,14 @@ namespace Common.DAL
 
             return mongoDBTransaction != null;
         }
-
+        /// <summary>
+        /// 申请事务资源 行读锁
+        /// </summary>
+        /// <typeparam name="TResource"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="systemID"></param>
+        /// <param name="ids"></param>
+        /// <returns></returns>
         private static bool ReadApply<TResource>(ITransaction transaction, string systemID, IEnumerable<long> ids) where TResource : class, IEntity
         {
             MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;
@@ -154,7 +207,14 @@ namespace Common.DAL
 
             return mongoDBTransaction != null;
         }
-
+        /// <summary>
+        /// 异步申请资源 行读锁
+        /// </summary>
+        /// <typeparam name="TResource"></typeparam>
+        /// <param name="transaction"></param>
+        /// <param name="systemID"></param>
+        /// <param name="ids"></param>
+        /// <returns></returns>
         private static async Task<bool> ReadApplyAsync<TResource>(ITransaction transaction, string systemID, IEnumerable<long> ids) where TResource : class, IEntity
         {
             MongoDBTransaction mongoDBTransaction = transaction as MongoDBTransaction;
@@ -169,12 +229,17 @@ namespace Common.DAL
 
             return mongoDBTransaction != null;
         }
-
+        /// <summary>
+        /// 根据事务标识 释放事务资源
+        /// </summary>
+        /// <param name="identity"></param>
         private static async void Release(string identity)
         {
             await TransactionResourceHelper.ReleaseResourceAsync(identity);
         }
-
+        /// <summary>
+        /// 事务具体实现
+        /// </summary>
         private class MongoDBTransaction : ITransaction
         {
             public string Identity { get; }
@@ -220,7 +285,10 @@ namespace Common.DAL
                 await ClientSessionHandle.CommitTransactionAsync();
             }
         }
-
+        /// <summary>
+        /// 查询query实现
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         private class MongoQueryable<T> : ISearchQueryable<T>
         {
             public IQueryable<T> InnerQuery { get; }
@@ -252,14 +320,19 @@ namespace Common.DAL
                 Provider = queryProvider;
             }
         }
-
+        /// <summary>
+        /// 排序query
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         private class OrderedMongoQueryable<T> : MongoQueryable<T>, IOrderedQueryable<T>
         {
             public OrderedMongoQueryable(IQueryable<T> innerQuery, IQueryProvider queryProvider) : base(innerQuery, queryProvider)
             {
             }
         }
-
+        /// <summary>
+        /// linq查询接口实现
+        /// </summary>
         private class MongoQueryableProvider : IQueryProvider
         {
             private class JoinItem
@@ -289,8 +362,10 @@ namespace Common.DAL
 
                 try
                 {
-                    return (IQueryable)typeof(MongoQueryableProvider).GetMethod("CreateQuery", 1, new Type[] { typeof(Expression) }).MakeGenericMethod(elementType).
-                                                                      Invoke(this, new object[] { expression });
+                    return (IQueryable)typeof(MongoQueryableProvider).GetMethod("CreateQuery", new Type[] { typeof(Expression) }).MakeGenericMethod(elementType).
+                                                  Invoke(this, new object[] { expression });
+                    //return (IQueryable)typeof(MongoQueryableProvider).GetMethod("CreateQuery", 1, new Type[] { typeof(Expression) }).MakeGenericMethod(elementType).
+                    //                                                  Invoke(this, new object[] { expression });
                 }
                 catch (TargetInvocationException tie)
                 {
@@ -536,38 +611,63 @@ namespace Common.DAL
             }
         }
 
-        private class MongoDBDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>
+        private class MongoDBDaoInstance<T> : ISearchQuery<T>, IEditQuery<T>//数据库操作具体实现
             where T : class, IEntity, new()
         {
-            private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;
-            private static readonly MethodInfo m_countMethodInfo;
-
+            private static readonly Expression<Func<T, bool>> EMPTY_PREDICATE;//默认查询条件
+            private static readonly MethodInfo m_countMethodInfo;//反射指定类并获取他的方法来使用
+            /// <summary>
+            /// 开始食物
+            /// </summary>
+            /// <param name="distributedLock"></param>
+            /// <param name="weight"></param>
+            /// <returns></returns>
             public ITransaction BeginTransaction(bool distributedLock = false, int weight = 0)
             {
                 return new MongoDBTransaction(weight, distributedLock);
             }
-
+            /// <summary>
+            /// 异步开始事务
+            /// </summary>
+            /// <param name="distributedLock"></param>
+            /// <param name="weight"></param>
+            /// <returns></returns>
             public async Task<ITransaction> BeginTransactionAsync(bool distributedLock = false, int weight = 0)
             {
                 return await Task.FromResult(new MongoDBTransaction(weight, distributedLock));
             }
-
+            /// <summary>
+            /// 删除 事务中
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="transaction"></param>
+            /// <param name="ids"></param>
             public void Delete(string systemID, ITransaction transaction = null, params long[] ids)
             {
-                bool inTransaction = WriteApply<T>(transaction, systemID, ids);
-                DaoFactory.LogHelper.Info("mongoDB", $"delete ids: {string.Join(",", ids)}");
+                bool inTransaction = WriteApply<T>(transaction, systemID, ids);//申请事务资源
+                DaoFactory.LogHelper.Info("mongoDB", $"delete ids: {string.Join(",", ids)}");//日主记录
 
                 if (!inTransaction)
                     GetCollection(m_masterMongoDatabase, systemID).DeleteMany(Builders<T>.Filter.In(nameof(IEntity.ID), ids));
                 else
                     GetCollection(m_masterMongoDatabase, systemID).DeleteMany(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.In(nameof(IEntity.ID), ids));
             }
-
+            /// <summary>
+            /// 删除
+            /// </summary>
+            /// <param name="transaction"></param>
+            /// <param name="ids"></param>
             public void Delete(ITransaction transaction = null, params long[] ids)
             {
                 Delete(string.Empty, transaction, ids);
             }
-
+            /// <summary>
+            /// 事务中异步删除
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="transaction"></param>
+            /// <param name="ids"></param>
+            /// <returns></returns>
             public async Task DeleteAsync(string systemID, ITransaction transaction = null, params long[] ids)
             {
                 bool inTransaction = await WriteApplyAsync<T>(transaction, systemID, ids);
@@ -578,15 +678,25 @@ namespace Common.DAL
                 else
                     await GetCollection(m_masterMongoDatabase, systemID).DeleteManyAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.In(nameof(IEntity.ID), ids));
             }
-
+            /// <summary>
+            /// 同上
+            /// </summary>
+            /// <param name="transaction"></param>
+            /// <param name="ids"></param>
+            /// <returns></returns>
             public Task DeleteAsync(ITransaction transaction = null, params long[] ids)
             {
                 return DeleteAsync(string.Empty, transaction, ids);
             }
-
+            /// <summary>
+            /// 事务中同步插入
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="transaction"></param>
+            /// <param name="datas"></param>
             public void Insert(string systemID, ITransaction transaction = null, params T[] datas)
             {
-                bool inTransaction = Apply<T>(transaction, systemID);
+                bool inTransaction = Apply<T>(transaction, systemID);//申请表锁事务资源
                 DaoFactory.LogHelper.Info("mongoDB", $"insert datas: {Environment.NewLine}{string.Join(Environment.NewLine, datas.Select(data => JObject.FromObject(data)))}");
 
                 if (!inTransaction)
@@ -594,12 +704,22 @@ namespace Common.DAL
                 else
                     GetCollection(m_masterMongoDatabase, systemID).InsertMany(((MongoDBTransaction)transaction).ClientSessionHandle, datas);
             }
-
+            /// <summary>
+            /// 事务中同步插入
+            /// </summary>
+            /// <param name="transaction"></param>
+            /// <param name="datas"></param>
             public void Insert(ITransaction transaction = null, params T[] datas)
             {
                 Insert(string.Empty, transaction, datas);
             }
-
+            /// <summary>
+            /// 事务中异步插入
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="transaction"></param>
+            /// <param name="datas"></param>
+            /// <returns></returns>
             public async Task InsertAsync(string systemID, ITransaction transaction = null, params T[] datas)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction, systemID);
@@ -610,12 +730,22 @@ namespace Common.DAL
                 else
                     await GetCollection(m_masterMongoDatabase, systemID).InsertManyAsync(((MongoDBTransaction)transaction).ClientSessionHandle, datas);
             }
-
+            /// <summary>
+            /// 事务中异步插入
+            /// </summary>
+            /// <param name="transaction"></param>
+            /// <param name="datas"></param>
+            /// <returns></returns>
             public Task InsertAsync(ITransaction transaction = null, params T[] datas)
             {
                 return InsertAsync(string.Empty, transaction, datas);
             }
-
+            /// <summary>
+            /// 合并 事务中 存在则替换 不存在则新增
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="transaction"></param>
+            /// <param name="datas"></param>
             public void Merge(string systemID, ITransaction transaction = null, params T[] datas)
             {
                 bool inTransaction = Apply<T>(transaction, systemID) && WriteApply<T>(transaction, systemID, datas.Select(item => item.ID));
@@ -632,12 +762,22 @@ namespace Common.DAL
                                               new FindOneAndReplaceOptions<T, T> { IsUpsert = true });
                 }
             }
-
+            /// <summary>
+            /// 不传系统id的合并
+            /// </summary>
+            /// <param name="transaction"></param>
+            /// <param name="datas"></param>
             public void Merge(ITransaction transaction = null, params T[] datas)
             {
                 Merge(string.Empty, transaction, datas);
             }
-
+            /// <summary>
+            /// 异步合并
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="transaction"></param>
+            /// <param name="datas"></param>
+            /// <returns></returns>
             public async Task MergeAsync(string systemID, ITransaction transaction = null, params T[] datas)
             {
                 bool inTransaction = await ApplyAsync<T>(transaction, systemID) && await WriteApplyAsync<T>(transaction, systemID, datas.Select(item => item.ID));
@@ -658,12 +798,22 @@ namespace Common.DAL
 
                 await Task.WhenAll(tasks);
             }
-
+            /// <summary>
+            /// 同上
+            /// </summary>
+            /// <param name="transaction"></param>
+            /// <param name="datas"></param>
+            /// <returns></returns>
             public Task MergeAsync(ITransaction transaction = null, params T[] datas)
             {
                 return MergeAsync(string.Empty, transaction, datas);
             }
-
+            /// <summary>
+            /// 事务中修改
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="data"></param>
+            /// <param name="transaction"></param>
             public void Update(string systemID, T data, ITransaction transaction = null)
             {
                 bool inTransaction = WriteApply<T>(transaction, systemID, new long[] { data.ID });
@@ -674,12 +824,22 @@ namespace Common.DAL
                 else
                     GetCollection(m_masterMongoDatabase, systemID).ReplaceOne(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), data.ID), data);
             }
-
+            /// <summary>
+            /// 事务中修改 不传系统id 
+            /// </summary>
+            /// <param name="data"></param>
+            /// <param name="transaction"></param>
             public void Update(T data, ITransaction transaction = null)
             {
                 Update(string.Empty, data, transaction);
             }
-
+            /// <summary>
+            /// 带查询条件传系统id的修改 在事务中
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="predicate"></param>
+            /// <param name="updateDictionary"></param>
+            /// <param name="transaction"></param>
             public void Update(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
                 DaoFactory.LogHelper.Info("mongoDB",
@@ -709,7 +869,7 @@ namespace Common.DAL
                     foreach (var item in updateDictionary)
                     {
                         GetCollection(m_masterMongoDatabase, systemID).
-                            UpdateMany(item => ids.Contains(item.ID), Builders<T>.Update.Set(item.Key, item.Value));
+                            UpdateMany(items => ids.Contains(items.ID), Builders<T>.Update.Set(item.Key, item.Value));
                     }
                 }
                 else
@@ -717,7 +877,7 @@ namespace Common.DAL
                     foreach (var item in updateDictionary)
                     {
                         GetCollection(m_masterMongoDatabase, systemID).
-                            UpdateMany(((MongoDBTransaction)transaction).ClientSessionHandle, item => ids.Contains(item.ID), Builders<T>.Update.Set(item.Key, item.Value));
+                            UpdateMany(((MongoDBTransaction)transaction).ClientSessionHandle, items => ids.Contains(items.ID), Builders<T>.Update.Set(item.Key, item.Value));
                     }
                 }
             }
@@ -726,7 +886,13 @@ namespace Common.DAL
             {
                 Update(string.Empty, predicate, updateDictionary, transaction);
             }
-
+            /// <summary>
+            /// 事务中异步修改
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="data"></param>
+            /// <param name="transaction"></param>
+            /// <returns></returns>
             public async Task UpdateAsync(string systemID, T data, ITransaction transaction = null)
             {
                 bool inTransaction = await WriteApplyAsync<T>(transaction, systemID, new long[] { data.ID });
@@ -738,12 +904,24 @@ namespace Common.DAL
                     await GetCollection(m_masterMongoDatabase, systemID).
                         ReplaceOneAsync(((MongoDBTransaction)transaction).ClientSessionHandle, Builders<T>.Filter.Eq(nameof(IEntity.ID), data.ID), data);
             }
-
+            /// <summary>
+            /// 同上
+            /// </summary>
+            /// <param name="data"></param>
+            /// <param name="transaction"></param>
+            /// <returns></returns>
             public Task UpdateAsync(T data, ITransaction transaction = null)
             {
                 return UpdateAsync(string.Empty, data, transaction);
             }
-
+            /// <summary>
+            /// 事务中异步修改
+            /// </summary>
+            /// <param name="systemID"></param>
+            /// <param name="predicate"></param>
+            /// <param name="updateDictionary"></param>
+            /// <param name="transaction"></param>
+            /// <returns></returns>
             public async Task UpdateAsync(string systemID, Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
                 await DaoFactory.LogHelper.Info("mongoDB",
@@ -773,7 +951,7 @@ namespace Common.DAL
                     foreach (var item in updateDictionary)
                     {
                         await GetCollection(m_masterMongoDatabase, systemID).
-                            UpdateManyAsync(item => ids.Contains(item.ID), Builders<T>.Update.Set(item.Key, item.Value));
+                            UpdateManyAsync(items => ids.Contains(items.ID), Builders<T>.Update.Set(item.Key, item.Value));
                     }
                 }
                 else
@@ -781,16 +959,26 @@ namespace Common.DAL
                     foreach (var item in updateDictionary)
                     {
                         await GetCollection(m_masterMongoDatabase, systemID).
-                            UpdateManyAsync(((MongoDBTransaction)transaction).ClientSessionHandle, item => ids.Contains(item.ID), Builders<T>.Update.Set(item.Key, item.Value));
+                            UpdateManyAsync(((MongoDBTransaction)transaction).ClientSessionHandle, items => ids.Contains(items.ID), Builders<T>.Update.Set(item.Key, item.Value));
                     }
                 }
             }
-
+            /// <summary>
+            /// 同上
+            /// </summary>
+            /// <param name="predicate"></param>
+            /// <param name="updateDictionary"></param>
+            /// <param name="transaction"></param>
+            /// <returns></returns>
             public Task UpdateAsync(Expression<Func<T, bool>> predicate, IDictionary<string, object> updateDictionary, ITransaction transaction = null)
             {
                 return UpdateAsync(string.Empty, predicate, updateDictionary, transaction);
             }
-
+            /// <summary>
+            /// 获取排序
+            /// </summary>
+            /// <param name="queryOrderBies"></param>
+            /// <returns></returns>
             private static string GetOrderByString(IEnumerable<QueryOrderBy<T>> queryOrderBies)
             {
                 if (queryOrderBies == null)
@@ -804,7 +992,12 @@ namespace Common.DAL
                 EMPTY_PREDICATE = _ => true;
                 m_countMethodInfo = typeof(Queryable).GetMethods().Where(item => item.Name == "Count").ElementAt(0);
             }
-
+            /// <summary>
+            /// 获取数据库操作对象
+            /// </summary>
+            /// <param name="mongoDatabase"></param>
+            /// <param name="systemID"></param>
+            /// <returns></returns>
             private static IMongoCollection<T> GetCollection(IMongoDatabase mongoDatabase, string systemID)
             {
                 string collectionName = GetPartitionTableName<T>(systemID);

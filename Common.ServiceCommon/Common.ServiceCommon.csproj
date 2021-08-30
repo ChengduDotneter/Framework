@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>2.4.9</Version>
@@ -27,7 +27,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Common.DAL.Cache\Common.DAL.Cache.csproj" />
     <ProjectReference Include="..\Common.DAL\Common.DAL.csproj" />
-    <ProjectReference Include="..\Common.Log\Common.Log.csproj" />
     <ProjectReference Include="..\Common.MessageQueueClient\Common.MessageQueueClient.csproj" />
     <ProjectReference Include="..\Common.Model\Common.Model.csproj" />
     <ProjectReference Include="..\Common.DAL.Transaction\Common.DAL.Transaction.csproj" />
