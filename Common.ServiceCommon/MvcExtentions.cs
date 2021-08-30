@@ -264,14 +264,14 @@ namespace Common.ServiceCommon
                                      Func<ICreateTableQuery> createTableQueryProvider = null)
         {
             if (dbResourceContentProvider != null)
-                serviceCollection.AddScoped(sp => dbResourceContentProvider.Invoke());
+                serviceCollection.AddScoped(_ => dbResourceContentProvider.Invoke());
             else
-                serviceCollection.AddScoped(sp => DaoFactory.GetLinq2DBResourceContent());
+                serviceCollection.AddScoped(_ => DaoFactory.GetLinq2DBResourceContent());
 
             if (createTableQueryProvider != null)
-                serviceCollection.AddScoped(sp => createTableQueryProvider.Invoke());
+                serviceCollection.AddScoped(_ => createTableQueryProvider.Invoke());
             else
-                serviceCollection.AddScoped(sp => DaoFactory.GetLinq2DBCreateTableQuery());
+                serviceCollection.AddScoped(_ => DaoFactory.GetLinq2DBCreateTableQuery());
 
             for (int i = 0; i < modelTypes.Length; i++)
             {
@@ -287,12 +287,12 @@ namespace Common.ServiceCommon
                                                                                                                            MakeGenericMethod(modelType))).Compile());
                                                                                                                         //使用 modelType替换掉泛型方法 Compile好像是编译为委托
                     // 往servers里添加 modelType类型的查询操作
-                    serviceCollection.AddScoped(searchQueryType, sp => m_defaultSearchQueryProviderDic[modelType].Invoke());
+                    serviceCollection.AddScoped(searchQueryType, _ => m_defaultSearchQueryProviderDic[modelType].Invoke());
                 }
                 else
                 {
                     //注入时传入了表达式则执行传入的
-                    serviceCollection.AddScoped(searchQueryType, sp => searchQueryProvider.Invoke(modelType));
+                    serviceCollection.AddScoped(searchQueryType, _ => searchQueryProvider.Invoke(modelType));
                 }
 
                 if (editQueryProvider == null)
@@ -301,11 +301,11 @@ namespace Common.ServiceCommon
                                                                                                  Expression.Call(typeof(DaoFactory).GetMethod(nameof(DaoFactory.GetEditLinq2DBQuery)).
                                                                                                                                     MakeGenericMethod(modelType))).Compile());
                     //这是添加修改的操作
-                    serviceCollection.AddScoped(editQueryType, sp => m_defaultEditQueryProviderDic[modelType].Invoke());
+                    serviceCollection.AddScoped(editQueryType, _ => m_defaultEditQueryProviderDic[modelType].Invoke());
                 }
                 else
                 {
-                    serviceCollection.AddScoped(editQueryType, sp => editQueryProvider.Invoke(modelType));
+                    serviceCollection.AddScoped(editQueryType, _ => editQueryProvider.Invoke(modelType));
                 }
 
                 if (cacheProviderProvider == null)
@@ -314,11 +314,11 @@ namespace Common.ServiceCommon
                                                                                              Expression.Call(typeof(CacheFactory).GetMethod(nameof(CacheFactory.CreateMemoryCacheProvider)).
                                                                                                                                   MakeGenericMethod(modelType))).Compile());
 
-                    serviceCollection.AddScoped(cacheProviderType, sp => m_defaultCacheProviderDic[modelType].Invoke());
+                    serviceCollection.AddScoped(cacheProviderType, _ => m_defaultCacheProviderDic[modelType].Invoke());
                 }
                 else
                 {
-                    serviceCollection.AddScoped(cacheProviderType, sp => cacheProviderProvider.Invoke(modelType));
+                    serviceCollection.AddScoped(cacheProviderType, _ => cacheProviderProvider.Invoke(modelType));
                 }
             }
         }

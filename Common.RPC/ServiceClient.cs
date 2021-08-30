@@ -1,5 +1,4 @@
-﻿using Common.Log;
-using Common.RPC.BufferSerializer;
+﻿using Common.RPC.BufferSerializer;
 using Common.RPC.TransferAdapter;
 using System;
 using System.Collections.Concurrent;

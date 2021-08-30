@@ -1,5 +1,4 @@
-﻿using Common.Log;
-using NetMQ;
+﻿using NetMQ;
 using NetMQ.Sockets;
 using System;
 using System.Collections.Concurrent;

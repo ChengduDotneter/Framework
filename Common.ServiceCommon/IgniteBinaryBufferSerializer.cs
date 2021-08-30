@@ -204,7 +204,7 @@ namespace Common.ServiceCommon
             }
 
             Expression value = Expression.Call(reader, methodInfo, Expression.Constant(memberExpression.Member.Name, typeof(string)));
-            Expression ifCheck = isNullable ? Expression.Property(value, "HasValue") : (Expression)Expression.Constant(true);
+            Expression ifCheck = isNullable ? Expression.Property(value, "HasValue") : Expression.Constant(true);
 
             return Expression.IfThen(ifCheck, Expression.Assign(memberExpression, SetParameter(isNullable,
                                                                                                isNullable ? type.GenericTypeArguments[0] : type,

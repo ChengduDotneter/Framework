@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 // ReSharper disable UnusedVariable
 // ReSharper disable RedundantCatchClause
+// ReSharper disable UnusedParameter.Local
 
 namespace TestStorge.Controllers
 {

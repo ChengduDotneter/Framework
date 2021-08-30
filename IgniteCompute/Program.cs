@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+// ReSharper disable UnusedParameter.Local
 
 namespace IgniteCompute
 {
@@ -90,25 +91,25 @@ namespace IgniteCompute
             }
 
             await Host.CreateDefaultBuilder().
-                   ConfigureServices((hostBuilderContext, serviceCollection) =>
-                   {
-                       ConfigManager.Init("Development");
-                       //serviceCollection.AddComputeFactory();
-                       //serviceCollection.AddHttpCompute();
+                       ConfigureServices((hostBuilderContext, serviceCollection) =>
+                       {
+                           ConfigManager.Init("Development");
+                           //serviceCollection.AddComputeFactory();
+                           //serviceCollection.AddHttpCompute();
 
-                       //hostBuilderContext.ConfigIgnite();
+                           //hostBuilderContext.ConfigIgnite();
 
-                       //System.Threading.Tasks.Task.Factory.StartNew(async () =>
-                       //{
-                       //    while (true)
-                       //    {
-                       //        var result = await Common.Compute.ComputeFactory.GetIgniteCompute().BordercastAsync(new ComputeFunc(), new ComputeParameter() { RequestData = "ZZZ" });
-                       //        Console.WriteLine(string.Join(Environment.NewLine, result.Select(item => item.ResponseData)));
+                           //System.Threading.Tasks.Task.Factory.StartNew(async () =>
+                           //{
+                           //    while (true)
+                           //    {
+                           //        var result = await Common.Compute.ComputeFactory.GetIgniteCompute().BordercastAsync(new ComputeFunc(), new ComputeParameter() { RequestData = "ZZZ" });
+                           //        Console.WriteLine(string.Join(Environment.NewLine, result.Select(item => item.ResponseData)));
 
-                       //        await Task.Delay(1000);
-                       //    }
-                       //});
-                   }).
+                           //        await Task.Delay(1000);
+                           //    }
+                           //});
+                       }).
                    ConfigureLogging((loggingBuilder) =>
                    {
                        loggingBuilder.ClearProviders();

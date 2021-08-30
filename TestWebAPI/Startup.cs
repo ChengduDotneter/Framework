@@ -69,7 +69,7 @@ namespace TestWebAPI
             {
                 options.AddPolicy("any", builder =>
                 {
-                    builder.SetIsOriginAllowed(origin => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                    builder.SetIsOriginAllowed(_ => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                 });
             });
 

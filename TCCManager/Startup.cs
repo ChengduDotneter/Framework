@@ -36,7 +36,7 @@ namespace TCCManager
             {
                 options.AddPolicy("any", builder =>
                 {
-                    builder.SetIsOriginAllowed(origin => true)
+                    builder.SetIsOriginAllowed(_ => true)
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();
@@ -45,7 +45,7 @@ namespace TCCManager
 
             IMvcBuilder mvcBuilder = services.AddControllers(new Type[0], new Type[0]);
 
-            services.AddSingleton((sp) => LockFactory.GetRedisLock());
+            services.AddSingleton((_) => LockFactory.GetRedisLock());
             services.AddHttpContextAccessor();
             services.ConfigureValidation(mvcBuilder, 10);
             services.AddSwagger();
