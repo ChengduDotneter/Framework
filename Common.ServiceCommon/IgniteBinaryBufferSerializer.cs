@@ -34,7 +34,11 @@ namespace Common.ServiceCommon
             m_writeBinaryHandler = CreateWriteBinaryHandler(data);
             m_readBinaryHandler = CreateReadBinaryHandler(data);
         }
-
+        /// <summary>
+        /// 创建二进制写
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         private static WriteBinaryHandler<T> CreateWriteBinaryHandler(ParameterExpression data)
         {
             ParameterExpression writer = Expression.Parameter(typeof(IBinaryWriter), "writer");
@@ -50,7 +54,11 @@ namespace Common.ServiceCommon
 
             return Expression.Lambda<WriteBinaryHandler<T>>(Expression.Block(methods), data, writer).Compile();
         }
-
+        /// <summary>
+        /// 创建二进制读
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         private static ReadBinaryHandler<T> CreateReadBinaryHandler(ParameterExpression data)
         {
             ParameterExpression reader = Expression.Parameter(typeof(IBinaryReader), "reader");
@@ -70,31 +78,41 @@ namespace Common.ServiceCommon
         private static bool CheckSerializabled(MemberInfo memberInfo, out Type valueType)
         {
             if (memberInfo.MemberType != MemberTypes.Property ||
-              !((PropertyInfo)memberInfo).CanWrite)
+              !((PropertyInfo)memberInfo).CanWrite)//判断是否可以写入属性
             {
                 valueType = null;
                 return false;
             }
 
-            QuerySqlFieldAttribute querySqlFieldAttribute = memberInfo.GetCustomAttribute<QuerySqlFieldAttribute>();
+            QuerySqlFieldAttribute querySqlFieldAttribute = memberInfo.GetCustomAttribute<QuerySqlFieldAttribute>();//查找QuerySqlFieldAttribute自定义属性
 
-            if (querySqlFieldAttribute == null)
+            if (querySqlFieldAttribute == null)//没有就返回false
             {
                 valueType = null;
                 return false;
             }
 
-            valueType = ((PropertyInfo)memberInfo).PropertyType;
+            valueType = ((PropertyInfo)memberInfo).PropertyType;//获取这个属性的类型
             return true;
         }
-
+        /// <summary>
+        /// 检查是不是可空类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private static bool CheckIsNullable(Type type)
         {
             return type.IsGenericType &&
                    type.IsValueType &&
                    type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
-
+        /// <summary>
+        /// 写入
+        /// </summary>
+        /// <param name="memberExpression"></param>
+        /// <param name="type"></param>
+        /// <param name="writer"></param>
+        /// <returns></returns>
         private static Expression Write(MemberExpression memberExpression, Type type, ParameterExpression writer)
         {
             MethodInfo methodInfo = null;
@@ -135,7 +153,12 @@ namespace Common.ServiceCommon
                                        GetParameter(methodInfo, memberExpression));
             }
         }
-
+        /// <summary>
+        /// 获取参数
+        /// </summary>
+        /// <param name="methodInfo">类</param>
+        /// <param name="parameter">条件</param>
+        /// <returns></returns>
         private static Expression GetParameter(MethodInfo methodInfo, Expression parameter)
         {
             Type parameterType = methodInfo.GetParameters()[1].ParameterType;
@@ -150,7 +173,13 @@ namespace Common.ServiceCommon
             else
                 return parameter;
         }
-
+        /// <summary>
+        /// 读
+        /// </summary>
+        /// <param name="memberExpression"></param>
+        /// <param name="type"></param>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         private static Expression Read(MemberExpression memberExpression, Type type, ParameterExpression reader)
         {
             MethodInfo methodInfo = null;
@@ -175,13 +204,19 @@ namespace Common.ServiceCommon
             }
 
             Expression value = Expression.Call(reader, methodInfo, Expression.Constant(memberExpression.Member.Name, typeof(string)));
-            Expression ifCheck = isNullable ? Expression.Property(value, "HasValue") : (Expression)Expression.Constant(true);
+            Expression ifCheck = isNullable ? Expression.Property(value, "HasValue") : Expression.Constant(true);
 
             return Expression.IfThen(ifCheck, Expression.Assign(memberExpression, SetParameter(isNullable,
                                                                                                isNullable ? type.GenericTypeArguments[0] : type,
                                                                                                value)));
         }
-
+        /// <summary>
+        /// 参数设置
+        /// </summary>
+        /// <param name="isNullable"></param>
+        /// <param name="valueType"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         private static Expression SetParameter(bool isNullable, Type valueType, Expression value)
         {
             if (valueType == typeof(DateTime))

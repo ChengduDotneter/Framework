@@ -12,26 +12,42 @@ namespace Common.ServiceCommon
     /// </summary>
     public class MicroServiceHelper
     {
+        /// <summary>
+        /// 返回请求数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="microServiceName"></param>
+        /// <param name="httpResponseMessage"></param>
+        /// <returns></returns>
         private static T ReturnEntity<T>(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
-            if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
-                return HttpJsonHelper.GetResponse<T>(httpResponseMessage);
+            if (httpResponseMessage.StatusCode == HttpStatusCode.OK)//http请求状态很ok
+                return HttpJsonHelper.GetResponse<T>(httpResponseMessage);//返回http请求携带的结果
 
-            CheckReturn(microServiceName, httpResponseMessage);
+            CheckReturn(microServiceName, httpResponseMessage);//检查接口与调用不成功原因
 
             throw new DealException($"{microServiceName}接口调用失败");
         }
-
+        /// <summary>
+        /// 返回成功与否
+        /// </summary>
+        /// <param name="microServiceName"></param>
+        /// <param name="httpResponseMessage"></param>
+        /// <returns></returns>
         private static bool ReturnEntity(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
-            if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
+            if (httpResponseMessage.StatusCode == HttpStatusCode.OK)//返回true
                 return true;
 
             CheckReturn(microServiceName, httpResponseMessage);
 
             throw new DealException($"{microServiceName}接口调用失败");
         }
-
+        /// <summary>
+        /// 检查接口未成功原因
+        /// </summary>
+        /// <param name="microServiceName"></param>
+        /// <param name="httpResponseMessage"></param>
         private static void CheckReturn(string microServiceName, HttpResponseMessage httpResponseMessage)
         {
             if (httpResponseMessage.StatusCode == HttpStatusCode.PaymentRequired)
@@ -60,17 +76,17 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public static T SendMicroServicePost<T>(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
         {
-            HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);
+            HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);//把发送的数据体包装秤http
 
-            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
-                                httpClientFactory,
-                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
-                                $"{ConfigManager.Configuration[microServiceName]}/{functionName}",
-                                httpContent,
-                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]
+            HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(//http post同步请求接口
+                                httpClientFactory,//工厂
+                                $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",//服务地址
+                                $"{ConfigManager.Configuration[microServiceName]}/{functionName}",//服务名称和接口名称
+                                httpContent,//发送的数据体
+                                httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]//添加验证头
                                 );
 
-            return ReturnEntity<T>(microServiceName, httpResponseMessage);
+            return ReturnEntity<T>(microServiceName, httpResponseMessage);//返回请求到的数据
         }
 
         /// <summary>
@@ -84,7 +100,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         public static bool SendMicroServicePost(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string functionName, object sendText)
         {
-            HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);
+            HttpContent httpContent = HttpJsonHelper.ObjectToByteArrayContent(sendText);//请求携带的数据
 
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpPost(
                                 httpClientFactory,
@@ -94,11 +110,11 @@ namespace Common.ServiceCommon
                                 httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]
                                 );
 
-            return ReturnEntity(microServiceName, httpResponseMessage);
+            return ReturnEntity(microServiceName, httpResponseMessage);//返回请求成功与否
         }
 
         /// <summary>
-        /// 微服务Put
+        /// 微服务Put 返回bool值
         /// </summary>
         /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
@@ -122,7 +138,7 @@ namespace Common.ServiceCommon
         }
 
         /// <summary>
-        /// 微服务Put
+        /// 微服务Put 返回数据
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="httpClientFactory">HttpClient构造工厂</param>
@@ -160,14 +176,14 @@ namespace Common.ServiceCommon
             HttpResponseMessage httpResponseMessage = HttpJsonHelper.HttpGet(
                                 httpClientFactory,
                                 $"{ConfigManager.Configuration["CommunicationScheme"]}{ConfigManager.Configuration["GatewayIP"]}",
-                                $"{ConfigManager.Configuration[microServiceName]}/{functionName}/{parameter}",
+                                $"{ConfigManager.Configuration[microServiceName]}/{functionName}/{parameter}",   //因为是get 所以id拼接在url后面就行了
                                 httpContextAccessor?.HttpContext?.Request.Headers[HttpHeaderConst.AUTHORIZATION]);
 
-            return ReturnEntity<JObject>(microServiceName, httpResponseMessage);
+            return ReturnEntity<JObject>(microServiceName, httpResponseMessage);//获取接口返回的数据
         }
 
         /// <summary>
-        /// 微服务Get，通过条件
+        /// 微服务Get，通过条件 这应该是就是search了
         /// </summary>
         /// <param name="httpClientFactory">HttpClient构造工厂</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
@@ -229,10 +245,10 @@ namespace Common.ServiceCommon
         /// get方式调用
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="httpClientFactory"></param>
+        /// <param name="httpClientFactory">http工厂</param>
         /// <param name="httpContextAccessor"></param>
-        /// <param name="microServiceName"></param>
-        /// <param name="parameter"></param>
+        /// <param name="microServiceName">服务名称</param>
+        /// <param name="parameter">参数</param>
         /// <returns></returns>
         public static T MicroServiceGetByCondition<T>(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string microServiceName, string parameter)
         {

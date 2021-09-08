@@ -6,14 +6,17 @@ using System.Text;
 
 namespace Common.RPC.BufferSerializer
 {
+    /// <summary>
+    /// 字节序列化
+    /// </summary>
     internal class BinaryBufferSerializer : IBufferSerializer
     {
         private class SerializerContext
         {
-            public GetBuffer GetBuffer { get; set; }
-            public CreateData CreateData { get; set; }
-            public GetDataSize GetDataSize { get; set; }
-            public Type ObjectType { get; }
+            public GetBuffer GetBuffer { get; set; }//序列化
+            public CreateData CreateData { get; set; }//把字节数组反序列化
+            public GetDataSize GetDataSize { get; set; }//获取数据大小
+            public Type ObjectType { get; }//序列化对象
 
             public SerializerContext(Type objectType)
             {
@@ -21,7 +24,7 @@ namespace Common.RPC.BufferSerializer
             }
         }
 
-        private static readonly DateTime MIN_TIME;
+        private static readonly DateTime MIN_TIME;//最小时间
 
         private delegate int GetDataSize(IRPCData data, Encoding encoding);
 
@@ -31,7 +34,10 @@ namespace Common.RPC.BufferSerializer
 
         private static IDictionary<byte, SerializerContext> m_serializerContexts;
         private Encoding m_encoding;
-
+        /// <summary>
+        /// 编码格式
+        /// </summary>
+        /// <param name="encoding"></param>
         public BinaryBufferSerializer(Encoding encoding)
         {
             m_encoding = encoding;
@@ -39,10 +45,10 @@ namespace Common.RPC.BufferSerializer
 
         static BinaryBufferSerializer()
         {
-            MIN_TIME = DateTime.MinValue.AddYears(1970);
+            MIN_TIME = DateTime.MinValue.AddYears(1970);//
             m_serializerContexts = new Dictionary<byte, SerializerContext>();
 
-            Type[] dataTypes = TypeReflector.ReflectType(type =>
+            Type[] dataTypes = TypeReflector.ReflectType(type =>//查出所有符合条件的tytpe
             {
                 if (type.GetInterface(nameof(IRPCData)) == null || type.IsInterface)
                     return false;
@@ -55,13 +61,13 @@ namespace Common.RPC.BufferSerializer
                 if (type.IsClass)
                     throw new Exception("序列化对象必须为结构体。");
 
-                IRPCData template = (IRPCData)Activator.CreateInstance(type);
-                byte messageID = template.MessageID;
+                IRPCData template = (IRPCData)Activator.CreateInstance(type);//反射创建对象
+                byte messageID = template.MessageID;//获取消息id
 
-                if (m_serializerContexts.ContainsKey(messageID))
+                if (m_serializerContexts.ContainsKey(messageID))//判断该对象是否被系列化过
                     throw new Exception(string.Format("序列化对象ID重复，重复ID：{0}，对象类型：{1}和{2}。", messageID, m_serializerContexts[messageID].ObjectType.FullName, type.FullName));
 
-                m_serializerContexts.Add(messageID, new SerializerContext(type));
+                m_serializerContexts.Add(messageID, new SerializerContext(type));//添加
                 InitGetDataSizeHandler(type, messageID);
                 InitGetBufferHandler(type, messageID);
                 InitCreateDataHandler(type, messageID);
@@ -134,7 +140,13 @@ namespace Common.RPC.BufferSerializer
             GetDataSize getDataSizeHandler = Expression.Lambda<GetDataSize>(body, data, encoding).Compile();
             m_serializerContexts[messageID].GetDataSize = getDataSizeHandler;
         }
-
+        /// <summary>
+        /// 获得长度
+        /// </summary>
+        /// <param name="dataType"></param>
+        /// <param name="data"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
         private static Expression InitGetDataSizeHandler(Type dataType, Expression data, ParameterExpression encoding)
         {
             ParameterExpression bufferLength = Expression.Variable(typeof(int), "bufferLength");
@@ -357,7 +369,11 @@ namespace Common.RPC.BufferSerializer
 
             return Expression.Block(variables, methods);
         }
-
+        /// <summary>
+        /// 反序列化
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
         public IRPCData Deserialize(byte[] buffer)
         {
             int offset = 0;
@@ -370,7 +386,12 @@ namespace Common.RPC.BufferSerializer
 
             return data;
         }
-
+        /// <summary>
+        /// 序列化
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
         public int Serialize(IRPCData data, byte[] buffer)
         {
             int offset = 0;
@@ -381,7 +402,11 @@ namespace Common.RPC.BufferSerializer
 
             return offset;
         }
-
+        /// <summary>
+        /// 获取当前类型占用字节大小
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private static int GetSize(Type type)
         {
             switch (type.FullName)
@@ -397,7 +422,12 @@ namespace Common.RPC.BufferSerializer
                 default: throw new NotSupportedException();
             }
         }
-
+        /// <summary>
+        /// 获取数据大小
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
         private static int GetSize(IRPCData data, Encoding encoding)
         {
             return m_serializerContexts[data.MessageID].GetDataSize(data, encoding);
@@ -493,7 +523,14 @@ namespace Common.RPC.BufferSerializer
         #endregion CopyBytes
 
         #region GetData
-
+        /// <summary>
+        /// 字节数组转数组
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="arrayLength"></param>
+        /// <param name="elementType"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         private static Array GetArray(byte[] buffer, int arrayLength, Type elementType, ref int offset)
         {
             Array array = Array.CreateInstance(elementType, arrayLength);
@@ -503,7 +540,13 @@ namespace Common.RPC.BufferSerializer
 
             return array;
         }
-
+        /// <summary>
+        /// buff转时间数组
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="count"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         private static DateTime[] GetDateTimeArray(byte[] buffer, int count, ref int offset)
         {
             DateTime[] array = new DateTime[count];

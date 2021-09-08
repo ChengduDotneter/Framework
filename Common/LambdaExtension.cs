@@ -16,9 +16,9 @@ namespace Common
         /// Lambda表达式拼接
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
-        /// <param name="merge"></param>
+        /// <param name="first">第一个表达式</param>
+        /// <param name="second">第二个表达式</param>
+        /// <param name="merge">合并</param>
         /// <returns></returns>
         public static Expression<T> Compose<T>(this Expression<T> first, Expression<T> second, Func<Expression, Expression, Expression> merge)
         {
@@ -26,7 +26,7 @@ namespace Common
             var map = first.Parameters.Select((f, i) => new { f, s = second.Parameters[i] }).ToDictionary(p => p.s, p => p.f);
             // replace parameters in the second lambda expression with parameters from the first
             var secondBody = ParameterRebinder.ReplaceParameters(map, second.Body);
-            // apply composition of lambda expression bodies to parameters from the first expression
+            // apply composition of lambda expression bodies to parameters from the first expression  拼接后的表达式用第一个表达式的参数
             return Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
         }
 
@@ -34,11 +34,12 @@ namespace Common
         /// And扩展
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
+        /// <param name="first">第一个表达式</param>
+        /// <param name="second">第二个表达式</param>
         /// <returns></returns>
         public static Expression<T> And<T>(this Expression<T> first, Expression<T> second)
         {
+            //表达式拼接后 使用第一个表达式的参数
             return first.Compose(second, Expression.And);
         }
 
@@ -46,8 +47,8 @@ namespace Common
         /// AndAlso扩展
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
+        /// <param name="first">第一个表达式</param>
+        /// <param name="second">第二个表达式</param>
         /// <returns></returns>
         public static Expression<T> AndAlso<T>(this Expression<T> first, Expression<T> second)
         {
@@ -58,8 +59,8 @@ namespace Common
         /// Or扩展
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
+        /// <param name="first">第一个表达式</param>
+        /// <param name="second">第二个表达式</param>
         /// <returns></returns>
         public static Expression<T> Or<T>(this Expression<T> first, Expression<T> second)
         {
@@ -70,8 +71,8 @@ namespace Common
         /// OrElse扩展
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
+        /// <param name="first">第一个表达式</param>
+        /// <param name="second">第二个表达式</param>
         /// <returns></returns>
         public static Expression<T> OrElse<T>(this Expression<T> first, Expression<T> second)
         {

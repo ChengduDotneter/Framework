@@ -63,7 +63,7 @@ namespace Common.ServiceCommon
                 return;
             }
 
-            string identity = context.Request.Query["identity"].FirstOrDefault();
+            string identity = context.Request.Query["identity"].FirstOrDefault();//需要传identity身份 乱写都行
 
             if (string.IsNullOrWhiteSpace(identity))
             {
@@ -137,13 +137,13 @@ namespace Common.ServiceCommon
             }
         }
 
-        private static Task SendStringAsync(WebSocket socket, string data)
+        private static Task SendStringAsync(WebSocket socket, string data)//发送数据
         {
             var segment = new ArraySegment<byte>(Encoding.UTF8.GetBytes(data));
             return socket.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
-        private static async Task<Tuple<bool, string>> ReceiveStringAsync(WebSocket socket)
+        private static async Task<Tuple<bool, string>> ReceiveStringAsync(WebSocket socket)//接收数据
         {
             ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[8192]);
             using (MemoryStream memoryStream = new MemoryStream())

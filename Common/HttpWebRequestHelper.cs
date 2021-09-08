@@ -102,7 +102,12 @@ namespace Common
         {
             return GetHttpRequest(url, bearerToken).AddDeleteMethod().GetResponseDataAsync();
         }
-
+        /// <summary>
+        /// 获取http请求
+        /// </summary>
+        /// <param name="url">请求url</param>
+        /// <param name="bearerToken">token</param>
+        /// <returns></returns>
         private static HttpWebRequest GetHttpRequest(string url, string bearerToken = "")
         {
             HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);

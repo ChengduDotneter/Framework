@@ -16,7 +16,7 @@ namespace Common
         /// <summary>
         /// 添加JsonContenttype
         /// </summary>
-        /// <param name="httpWebRequest"></param>
+        /// <param name="httpWebRequest">http请求</param>
         /// <returns></returns>
 
         public static HttpWebRequest AddJsonContentType(this HttpWebRequest httpWebRequest)
@@ -28,7 +28,7 @@ namespace Common
         /// <summary>
         /// 添加FormContenttype
         /// </summary>
-        /// <param name="httpWebRequest"></param>
+        /// <param name="httpWebRequest">http请求</param>
         /// <returns></returns>
         public static HttpWebRequest AddFormContentType(this HttpWebRequest httpWebRequest)
         {
@@ -39,7 +39,7 @@ namespace Common
         /// <summary>
         /// 设置post的请求方法
         /// </summary>
-        /// <param name="httpWebRequest"></param>
+        /// <param name="httpWebRequest">http请求</param>
         /// <returns></returns>
         public static HttpWebRequest AddPostMethod(this HttpWebRequest httpWebRequest)
         {
@@ -50,7 +50,7 @@ namespace Common
         /// <summary>
         /// 设置get的请求方法
         /// </summary>
-        /// <param name="httpWebRequest"></param>
+        /// <param name="httpWebRequest">http请求</param>
         /// <returns></returns>
         public static HttpWebRequest AddGetMethod(this HttpWebRequest httpWebRequest)
         {
@@ -61,7 +61,7 @@ namespace Common
         /// <summary>
         /// 设置delete的请求方法
         /// </summary>
-        /// <param name="httpWebRequest"></param>
+        /// <param name="httpWebRequest">http请求</param>
         /// <returns></returns>
         public static HttpWebRequest AddDeleteMethod(this HttpWebRequest httpWebRequest)
         {
@@ -72,7 +72,7 @@ namespace Common
         /// <summary>
         /// 设置put的请求方法
         /// </summary>
-        /// <param name="httpWebRequest"></param>
+        /// <param name="httpWebRequest">http请求</param>
         /// <returns></returns>
         public static HttpWebRequest AddPutMethod(this HttpWebRequest httpWebRequest)
         {
@@ -83,8 +83,8 @@ namespace Common
         /// <summary>
         /// 添加Authorization的请求头
         /// </summary>
-        /// <param name="httpWebRequest"></param>
-        /// <param name="authorization"></param>
+        /// <param name="httpWebRequest">http请求</param>
+        /// <param name="authorization">权限验证</param>
         /// <returns></returns>
         public static HttpWebRequest AddAuthorizationHeader(this HttpWebRequest httpWebRequest, string authorization)
         {
@@ -100,8 +100,8 @@ namespace Common
         /// <summary>
         /// 添加请求body
         /// </summary>
-        /// <param name="httpWebRequest"></param>
-        /// <param name="postData"></param>
+        /// <param name="httpWebRequest">http请求</param>
+        /// <param name="postData">请求数据</param>
         /// <returns></returns>
         public static HttpWebRequest AddContent(this HttpWebRequest httpWebRequest, byte[] postData)
         {

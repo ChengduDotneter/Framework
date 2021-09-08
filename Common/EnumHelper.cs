@@ -13,7 +13,7 @@ namespace Common
         /// <summary>
         /// 获取DisplayAttribute的Name属性
         /// </summary>
-        /// <param name="thisValue"></param>
+        /// <param name="thisValue">获取的对象</param>
         /// <returns></returns>
         public static string GetEnumDisplayName(object thisValue)
         {

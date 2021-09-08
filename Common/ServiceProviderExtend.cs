@@ -7,6 +7,13 @@ namespace Common
 {
     public static class ServiceProviderExtend
     {
+        /// <summary>
+        /// 从服务提供程序创建实例
+        /// </summary>
+        /// <param name="serviceProvider">服务提供程序</param>
+        /// <param name="type">要实例化程序的类型</param>
+        /// <param name="arguments">参数</param>
+        /// <returns></returns>
         public static object CreateInstanceFromServiceProvider(this IServiceProvider serviceProvider, Type type, object[] arguments = null)
         {
             ConstructorInfo[] constructorInfos = type.GetConstructors();

@@ -54,7 +54,11 @@ namespace Common.RPC.BufferSerializer
         {
             m_encoding = encoding;
         }
-
+        /// <summary>
+        /// 反序列化
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
         public IRPCData Deserialize(byte[] buffer)
         {
             JObject jObject = JObject.Parse(m_encoding.GetString(buffer));
@@ -63,7 +67,12 @@ namespace Common.RPC.BufferSerializer
 
             return (IRPCData)jObject.ToObject(m_typeDic[jsonData.MessageID]);
         }
-
+        /// <summary>
+        /// 序列化
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
         public unsafe int Serialize(IRPCData data, byte[] buffer)
         {
             JObject jObject = JObject.FromObject(data);

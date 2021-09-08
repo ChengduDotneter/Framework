@@ -16,8 +16,8 @@ namespace Common.DAL
         /// 新增
         /// </summary>
         /// <param name="systemID">系统ID</param>
-        /// <param name="transaction"></param>
-        /// <param name="datas"></param>
+        /// <param name="transaction">执行事务</param>
+        /// <param name="datas">添加的参数</param>
         void Insert(string systemID, ITransaction transaction = null, params T[] datas);
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace Common.DAL
         /// </summary>
         /// <param name="systemID">系统ID</param>
         /// <param name="transaction">执行的事务</param>
-        /// <param name="datas"></param>
+        /// <param name="datas">添加的参数</param>
         Task InsertAsync(string systemID, ITransaction transaction = null, params T[] datas);
 
         /// <summary>

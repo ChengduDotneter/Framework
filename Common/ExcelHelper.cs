@@ -34,7 +34,7 @@ namespace Common
         /// <summary>
         /// 根据数据流读物Excel表格数据
         /// </summary>
-        /// <param name="stream"></param>
+        /// <param name="stream">流</param>
         /// <returns></returns>
         public static DataTable GetExcel(Stream stream)
         {
@@ -43,7 +43,11 @@ namespace Common
                 return null;
             return ExportToDataTable(hs.GetSheetAt(0));
         }
-
+        /// <summary>
+        /// 创建excel
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
         private static IWorkbook CreateWorkbook(Stream stream)
         {
             try
@@ -67,7 +71,7 @@ namespace Common
         /// <summary>
         /// 把Sheet中的数据转换为DataTable
         /// </summary>
-        /// <param name="sheet"></param>
+        /// <param name="sheet">excel表</param>
         /// <returns></returns>
         private static DataTable ExportToDataTable(ISheet sheet)
         {
@@ -134,7 +138,17 @@ namespace Common
 
             return dataTable;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="workbook">用于创建excel</param>
+        /// <param name="dataSheets">多个excel表</param>
+        /// <param name="dropDownListDataSheet">单个excel表</param>
+        /// <param name="firstColumnName">第一行名字</param>
+        /// <param name="source"></param>
+        /// <param name="dropDownListDataCollections">数据行数</param>
+        /// <param name="rowIndex">行号</param>
+        /// <param name="first">底一个</param>
         private static void CreateDropDwonListData(IWorkbook workbook,
                                                    IEnumerable<ISheet> dataSheets,
                                                    ISheet dropDownListDataSheet,
@@ -233,8 +247,8 @@ namespace Common
         /// <summary>
         /// 将DataTable转换为excel2003格式。
         /// </summary>
-        /// <param name="dt"></param>
-        /// <param name="sheetName"></param>
+        /// <param name="dt">要转换的数据源</param>
+        /// <param name="sheetName">转换后的excel表名</param>
         /// <param name="dropDownListDataCollections"></param>
         /// <returns></returns>
         public static byte[] DataTableToExcelByte(DataTable dt, string sheetName, IEnumerable<DropDownListDataCollection> dropDownListDataCollections = null)
@@ -270,14 +284,25 @@ namespace Common
                 CreateDropDwonListData(book, sheets, constraintSheet, "dropDownList", "dropDownList", dropDownListDataCollections, ref dropDownListRowIndex);
             }
 
-            using MemoryStream ms = new MemoryStream();
+            using (MemoryStream ms = new MemoryStream())
+            {
 
-            book.Write(ms);
-            book.Close();
+                book.Write(ms);
+                book.Close();
 
-            return ms.ToArray();
+                return ms.ToArray();
+            }
+
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt">要转换为excel表的数据</param>
+        /// <param name="startRow">开始行</param>
+        /// <param name="endRow">结束行</param>
+        /// <param name="book">excel生成操作类</param>
+        /// <param name="sheetName">excel表名</param>
+        /// <returns></returns>
         private static ISheet DataWrite2Sheet(DataTable dt, int startRow, int endRow, IWorkbook book, string sheetName)
         {
             ISheet sheet = book.CreateSheet(sheetName);

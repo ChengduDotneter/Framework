@@ -45,9 +45,9 @@ namespace Common.ServiceCommon
         /// <summary>
         /// Try
         /// </summary>
-        /// <param name="tccID"></param>
-        /// <param name="timeOut"></param>
-        /// <param name="data"></param>
+        /// <param name="tccID">分布式事务id</param>
+        /// <param name="timeOut">超时时间</param>
+        /// <param name="data">数据</param>
         [HttpPost("try/{tccID:required:long}/{timeOut:required:int}")]
         public abstract Task Try(long tccID, int timeOut, [FromBody] Request data);
 
@@ -196,7 +196,14 @@ namespace Common.ServiceCommon
                 throw new DealException($"未找到ID为：{tccID}的TCC事务。");
             }
         }
-
+        /// <summary>
+        /// 是否是本地请求
+        /// </summary>
+        /// <param name="httpContextAccessor"></param>
+        /// <param name="typeNameSapce"></param>
+        /// <param name="typeName"></param>
+        /// <param name="tccID"></param>
+        /// <returns></returns>
         private static async Task<Tuple<bool, TCCTransaction>> IsLocalRequest(IHttpContextAccessor httpContextAccessor, string typeNameSapce, string typeName, long tccID)
         {
             TCCTransaction tccTransaction = null;
@@ -294,7 +301,7 @@ namespace Common.ServiceCommon
         void Notify(long tccID, bool successed, T data);
     }
 
-    internal class TccNotifyFactory : ITccNotifyFactory
+    internal class TccNotifyFactory : ITccNotifyFactory//tcc通知工厂实现
     {
         private IDictionary<Type, object> m_notifys;
 
@@ -310,7 +317,11 @@ namespace Common.ServiceCommon
                     return null;
             }
         }
-
+        /// <summary>
+        /// tcc注入通知
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tccNotify"></param>
         public void RegisterNotify<T>(ITccNotify<T> tccNotify)
         {
             Type type = typeof(T);
@@ -324,7 +335,11 @@ namespace Common.ServiceCommon
                 }
             }
         }
-
+        /// <summary>
+        /// tcc解除注册
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tccNotify"></param>
         public void UnRegisterNotify<T>(ITccNotify<T> tccNotify)
         {
             Type type = typeof(T);
@@ -342,7 +357,7 @@ namespace Common.ServiceCommon
         }
     }
 
-    internal class TccTransactionManager : ITccTransactionManager
+    internal class TccTransactionManager : ITccTransactionManager//tcc管理实现
     {
         private class TCCTransactionInstance
         {
@@ -365,7 +380,7 @@ namespace Common.ServiceCommon
         private ITccNotifyFactory m_tccNotifyFactory;
         private Thread m_thread;
 
-        public TccTransactionManager(ITccNotifyFactory tccNotifyFactory)
+        public TccTransactionManager(ITccNotifyFactory tccNotifyFactory)//构造函数
         {
             m_tccNotifyFactory = tccNotifyFactory;
             m_tccTransactionInstances = new Dictionary<long, TCCTransactionInstance>();
@@ -375,13 +390,13 @@ namespace Common.ServiceCommon
             m_thread.Start();
         }
 
-        public void AddTransaction(long tccID, int timeOut, DAL.ITransaction transaction, object data)
+        public void AddTransaction(long tccID, int timeOut, DAL.ITransaction transaction, object data)//添加事务
         {
             lock (m_tccTransactionInstances)
                 m_tccTransactionInstances.Add(tccID, new TCCTransactionInstance(transaction, timeOut, data));
         }
 
-        public void Rollback(long tccID)
+        public void Rollback(long tccID)//回滚
         {
             lock (m_tccTransactionInstances)
             {
@@ -411,7 +426,7 @@ namespace Common.ServiceCommon
             }
         }
 
-        public void Submit(long tccID)
+        public void Submit(long tccID)//提交
         {
             lock (m_tccTransactionInstances)
             {
@@ -441,7 +456,7 @@ namespace Common.ServiceCommon
             }
         }
 
-        private void DoClear()
+        private void DoClear()//清空
         {
             while (true)
             {
@@ -486,7 +501,7 @@ namespace Common.ServiceCommon
             }
         }
 
-        private void End(long tccID, bool successed, object data)
+        private void End(long tccID, bool successed, object data)//结束
         {
             ThreadPool.QueueUserWorkItem((state) =>
             {

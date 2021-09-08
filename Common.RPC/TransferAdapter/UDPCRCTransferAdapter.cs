@@ -1,5 +1,4 @@
-﻿using Common.Log;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
@@ -8,8 +7,14 @@ using System.Threading;
 
 namespace Common.RPC.TransferAdapter
 {
+    /// <summary>
+    /// udp适配器
+    /// </summary>
     internal class UDPCRCTransferAdapter : ITransferAdapter, IDisposable
     {
+        /// <summary>
+        /// 发送的数据体
+        /// </summary>
         private class SendBufferData
         {
             public int RepeatCount { get; set; }
@@ -74,7 +79,12 @@ namespace Common.RPC.TransferAdapter
             m_sendThread.IsBackground = true;
             m_sendThread.Name = "UDPCRC_SEND_THREAD";
         }
-
+        /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="sessionContext">通讯上下文</param>
+        /// <param name="buffer">发送的字节数组</param>
+        /// <param name="length">数据长度</param>
         public void SendBuffer(SessionContext sessionContext, byte[] buffer, int length)
         {
             if (m_sendBuffers.Count > MAX_SEND_BUFFER_COUNT)
@@ -108,7 +118,9 @@ namespace Common.RPC.TransferAdapter
                 }
             }
         }
-
+        /// <summary>
+        /// 发送数据
+        /// </summary>
         private unsafe void DoSendBuffer()
         {
             while (true)
@@ -129,6 +141,7 @@ namespace Common.RPC.TransferAdapter
 
                         fixed (byte* sendBufferPtr = sendBufferData.Buffer)
                         {
+                            // ReSharper disable once UnusedVariable
                             long sessionID = *(long*)(sendBufferPtr + DATA_ID_BUFFER_LENGTH);
 
                             try
@@ -141,6 +154,7 @@ namespace Common.RPC.TransferAdapter
                             catch (Exception ex)
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                             {
+                                // ignored
 #if OUTPUT_LOG
                                 m_logHelper.Info("Transfer_UDP",
                                                  $"send error session_id: {sessionID}{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");
@@ -153,7 +167,9 @@ namespace Common.RPC.TransferAdapter
                 Thread.Sleep(THREAD_TIME_SPAN);
             }
         }
-
+        /// <summary>
+        /// 接收数据
+        /// </summary>
         private void DoRecieveBuffer()
         {
             IPEndPoint ip;
@@ -228,6 +244,7 @@ namespace Common.RPC.TransferAdapter
                 catch (Exception ex)
 #pragma warning restore CS0168 // 声明了变量，但从未使用过
                 {
+                    // ignored
 #if OUTPUT_LOG
                     m_logHelper.Info("Transfer_UDP",
                                      $"recv error{Environment.NewLine}message: {Environment.NewLine}{ex.Message}{Environment.NewLine}stack_trace: {Environment.NewLine}{ex.StackTrace}");

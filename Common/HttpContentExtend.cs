@@ -9,10 +9,10 @@ namespace Common
     public static class HttpClientExtend
     {
         /// <summary>
-        /// 添加AuthorizationHeader
+        /// 添加AuthorizationHeader 添加权限认证
         /// </summary>
-        /// <param name="httpClient"></param>
-        /// <param name="authorization"></param>
+        /// <param name="httpClient">http请求基类</param>
+        /// <param name="authorization">权限认证</param>
         /// <returns></returns>
         public static HttpClient AddAuthorizationHeader(this HttpClient httpClient, string authorization)
         {

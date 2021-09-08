@@ -69,7 +69,7 @@ namespace TestWebAPI
             {
                 options.AddPolicy("any", builder =>
                 {
-                    builder.SetIsOriginAllowed(origin => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                    builder.SetIsOriginAllowed(_ => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                 });
             });
 
@@ -105,9 +105,9 @@ namespace TestWebAPI
             //services.AddHostedService<CrossService>();
 
             //services.AddHostedService<TestService>();
-            services.AddScoped<IScopeInstance, ScopeInstance>();
+            //services.AddScoped<IScopeInstance, ScopeInstance>();
 
-            services.AddScoped<ITest, Test1>();
+            //services.AddScoped<ITest, Test1>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime, ICreateTableQuery createTableQuery)

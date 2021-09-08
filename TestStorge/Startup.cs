@@ -28,7 +28,7 @@ namespace TestStorge
             {
                 options.AddPolicy("any", builder =>
                 {
-                    builder.SetIsOriginAllowed(origin => true)
+                    builder.SetIsOriginAllowed(_ => true)
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

@@ -4,7 +4,7 @@ using System;
 namespace Common
 {
     /// <summary>
-    /// Apache Ignite管理
+    /// Apache Ignite管理 分布式内存管理平台 
     /// </summary>
     public static class IgniteManager
     {
