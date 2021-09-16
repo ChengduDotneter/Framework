@@ -18,6 +18,7 @@ namespace Common.MessageQueueClient.RabbitMQ
     {
         private static IConnectionFactory m_connectionFactory; //连接工厂
         private static ILog m_log;
+        private static readonly object m_lockObj = new object();
         private IConnection m_connection; //连接管道
         private IModel m_channel; //会话模型
         private string m_routingKey; //路由key
@@ -325,9 +326,15 @@ namespace Common.MessageQueueClient.RabbitMQ
         {
             m_queueNames = new HashSet<string>();
 
-            if (m_connectionFactory == null)
-                //1:创建一个连接的工厂类 
-                m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
+            lock (m_lockObj)
+            {
+                if (m_connectionFactory == null)
+                    //1:创建一个连接的工厂类 
+                    m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
+
+                if (m_log == null)
+                    m_log = Log4netCreater.CreateLog("RabbitmqConsumer");
+            }
 
             if (m_connection == null)
                 //打开连接    
@@ -336,9 +343,6 @@ namespace Common.MessageQueueClient.RabbitMQ
             if (m_channel == null)
                 //获取一个通道
                 m_channel = m_connection.CreateModel();
-
-            if (m_log == null)
-                m_log = Log4netCreater.CreateLog("RabbitmqConsumer");
 
             //申明是否手动确认
             m_channel.BasicQos(0, 1, false);

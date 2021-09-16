@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using log4net;
 
 namespace Common.MessageQueueClient.Kafka
 {
@@ -13,6 +14,8 @@ namespace Common.MessageQueueClient.Kafka
     /// </summary>
     public class KafkaConsumer<T> : IMQConsumer<T>, IMQBatchConsumer<T> where T : class, IMQData, new()
     {
+        private static ILog m_log;
+        private static readonly object m_lockObj = new object();
         private readonly IConsumer<string, string> m_consumer;
         private readonly bool m_enableAutoOffsetStore;
         private string m_subscribeMessageQueueName;
@@ -38,6 +41,17 @@ namespace Common.MessageQueueClient.Kafka
         {
             m_enableAutoOffsetStore = enableAutoOffsetStore;
             m_consumer = new ConsumerBuilder<string, string>(KafkaConfigBuilder.GetConsumerConfig(groupId, m_enableAutoOffsetStore)).Build();
+
+            KafkaConsumerInit();
+        }
+
+        private void KafkaConsumerInit()
+        {
+            lock (m_lockObj)
+            {
+                if (m_log == null)
+                    m_log = Log4netCreater.CreateLog("KafkaConsumer");
+            }
         }
 
         /// <summary>
@@ -150,7 +164,7 @@ namespace Common.MessageQueueClient.Kafka
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception($"数据消费失败：{ex.Message}");
+                        m_log.Error($"数据消费失败：{ex.Message}");
                     }
 
                     Thread.Sleep(pullingTimeSpan);
@@ -196,7 +210,7 @@ namespace Common.MessageQueueClient.Kafka
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception($"数据消费失败：{ex.Message}");
+                        m_log.Error($"数据消费失败：{ex.Message}");
                     }
 
                     await Task.Delay(pullingTimeSpan);
@@ -211,7 +225,15 @@ namespace Common.MessageQueueClient.Kafka
         /// <returns></returns>
         private T ConvertMessageToData(Message<string, string> message)
         {
-            return JsonConvert.DeserializeObject<T>(message.Value);
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(message.Value);
+            }
+            catch
+            {
+                m_log.Error($"反序列化失败: {message.Value}");
+                throw new Exception("反序列化失败。");
+            }
         }
 
         /// <summary>
