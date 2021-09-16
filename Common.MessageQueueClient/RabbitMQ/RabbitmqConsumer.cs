@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using log4net;
 
 namespace Common.MessageQueueClient.RabbitMQ
 {
@@ -15,14 +16,15 @@ namespace Common.MessageQueueClient.RabbitMQ
     /// <typeparam name="T"></typeparam>
     public class RabbitmqConsumer<T> : IMQConsumer<T>, IMQBatchConsumer<T> where T : class, IMQData, new()
     {
-        private static IConnectionFactory m_connectionFactory;//连接工厂
-        private IConnection m_connection;//连接管道
-        private IModel m_channel;//会话模型
-        private string m_routingKey;//路由key
-        private ISet<string> m_queueNames;//队列名
+        private static IConnectionFactory m_connectionFactory; //连接工厂
+        private static ILog m_log;
+        private IConnection m_connection; //连接管道
+        private IModel m_channel; //会话模型
+        private string m_routingKey; //路由key
+        private ISet<string> m_queueNames; //队列名
         private EventingBasicConsumer m_consumer;
 
-        private readonly ExChangeTypeEnum m_exChangeTypeEnum;//路由匹配模式
+        private readonly ExChangeTypeEnum m_exChangeTypeEnum; //路由匹配模式
 
         private class BatchData
         {
@@ -42,9 +44,10 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// <param name="exChangeTypeEnum">数据分发模式</param>
         public RabbitmqConsumer(ExChangeTypeEnum exChangeTypeEnum)
         {
-            m_exChangeTypeEnum = exChangeTypeEnum;//mq消费者消费模式
-            RabbitMqConsumerInit();//mq初始化
+            m_exChangeTypeEnum = exChangeTypeEnum; //mq消费者消费模式
+            RabbitMqConsumerInit(); //mq初始化
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -55,7 +58,7 @@ namespace Common.MessageQueueClient.RabbitMQ
             if (m_queueNames.Contains(mQContext.MessageQueueName))
             {
                 //接收事件
-                m_consumer.Received += eventHandler;//接收消息触发的事件
+                m_consumer.Received += eventHandler; //接收消息触发的事件
                 //开启监听
                 m_channel.BasicConsume(queue: mQContext.MessageQueueName, autoAck: false, consumer: m_consumer);
             }
@@ -81,7 +84,6 @@ namespace Common.MessageQueueClient.RabbitMQ
                 {
                     //数据convert失败时，直接删除该数据
                     m_channel.BasicReject(args.DeliveryTag, false);
-                    throw;
                 }
 
                 try
@@ -96,8 +98,7 @@ namespace Common.MessageQueueClient.RabbitMQ
                 {
                     //处理逻辑失败时，该消息扔回消息队列
                     m_channel.BasicReject(args.DeliveryTag, true);
-                    Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
-                    throw;
+                    m_log.Error($"{exception.InnerException},{exception.StackTrace} ");
                 }
             });
         }
@@ -122,7 +123,6 @@ namespace Common.MessageQueueClient.RabbitMQ
                 {
                     //数据convert失败时，直接删除该数据
                     m_channel.BasicReject(args.DeliveryTag, false);
-                    throw;
                 }
 
                 try
@@ -137,8 +137,7 @@ namespace Common.MessageQueueClient.RabbitMQ
                 {
                     //处理逻辑失败时，该消息扔回消息队列
                     m_channel.BasicReject(args.DeliveryTag, true);
-                    Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
-                    throw;
+                    m_log.Error($"{exception.InnerException},{exception.StackTrace} ");
                 }
             }
 
@@ -181,7 +180,6 @@ namespace Common.MessageQueueClient.RabbitMQ
                             {
                                 //数据convert失败时，直接删除该数据
                                 m_channel.BasicReject(basicGetResult.DeliveryTag, false);
-                                throw;
                             }
 
                             batchDatas.Add(new BatchData(basicGetResult.DeliveryTag, data));
@@ -217,8 +215,7 @@ namespace Common.MessageQueueClient.RabbitMQ
                                 for (int i = 0; i < batchDatas.Count; i++)
                                     m_channel.BasicReject(batchDatas[i].DeliveryTag, true);
 
-                                Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
-                                throw;
+                                m_log.Error($"{exception.InnerException},{exception.StackTrace} ");
                             }
                             finally
                             {
@@ -266,7 +263,6 @@ namespace Common.MessageQueueClient.RabbitMQ
                             {
                                 //数据convert失败时，直接删除该数据
                                 m_channel.BasicReject(basicGetResult.DeliveryTag, false);
-                                throw;
                             }
 
                             batchDatas.Add(new BatchData(basicGetResult.DeliveryTag, data));
@@ -301,8 +297,7 @@ namespace Common.MessageQueueClient.RabbitMQ
                                 for (int i = 0; i < batchDatas.Count; i++)
                                     m_channel.BasicReject(batchDatas[i].DeliveryTag, true);
 
-                                Log4netCreater.CreateLog("RabbitmqConsumer").Error($"{exception.InnerException},{exception.StackTrace} ");
-                                throw;
+                                m_log.Error($"{exception.InnerException},{exception.StackTrace} ");
                             }
                             finally
                             {
@@ -326,7 +321,7 @@ namespace Common.MessageQueueClient.RabbitMQ
             Dispose();
         }
 
-        private void RabbitMqConsumerInit()//mq初始化
+        private void RabbitMqConsumerInit() //mq初始化
         {
             m_queueNames = new HashSet<string>();
 
@@ -341,6 +336,9 @@ namespace Common.MessageQueueClient.RabbitMQ
             if (m_channel == null)
                 //获取一个通道
                 m_channel = m_connection.CreateModel();
+
+            if (m_log == null)
+                m_log = Log4netCreater.CreateLog("RabbitmqConsumer");
 
             //申明是否手动确认
             m_channel.BasicQos(0, 1, false);
@@ -395,7 +393,7 @@ namespace Common.MessageQueueClient.RabbitMQ
             {
                 string errorMessage = $"RabbitMQConsum序列化失败：{message}。";
 
-                Log4netCreater.CreateLog("RabbitmqConsumer").Error(errorMessage);
+                m_log.Error(errorMessage);
                 throw new Exception(errorMessage);
             }
         }
