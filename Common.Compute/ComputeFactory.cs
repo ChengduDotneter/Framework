@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace Common.Compute
 {
@@ -13,8 +14,14 @@ namespace Common.Compute
         /// <param name="httpClientFactory"></param>
         /// <param name="consulServiceEntity"></param>
         /// <returns></returns>
-        public static ICompute GetHttpCompute(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
+        public static ICompute GetHttpCompute(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity = null)
         {
+            if (consulServiceEntity == null)
+            {
+                consulServiceEntity = new ConsulServiceEntity();
+                ConfigManager.Configuration.Bind("ConsulService", consulServiceEntity); //绑定
+            }
+
             return HttpTask.CreateCompute(httpClientFactory, consulServiceEntity);
         }
 
@@ -23,8 +30,14 @@ namespace Common.Compute
         /// </summary>
         /// <param name="httpClientFactory"></param>
         /// <param name="consulServiceEntity"></param>
-        public static IMapReduce GetHttpMapReduce(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
+        public static IMapReduce GetHttpMapReduce(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity = null)
         {
+            if (consulServiceEntity == null)
+            {
+                consulServiceEntity = new ConsulServiceEntity();
+                ConfigManager.Configuration.Bind("ConsulService", consulServiceEntity); //绑定
+            }
+            
             return HttpTask.CreateMapReduce(httpClientFactory, consulServiceEntity);
         }
 
@@ -33,8 +46,14 @@ namespace Common.Compute
         /// </summary>
         /// <param name="httpClientFactory"></param>
         /// <param name="consulServiceEntity"></param>
-        public static IAsyncMapReduce GetHttpAsyncMapReduce(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
+        public static IAsyncMapReduce GetHttpAsyncMapReduce(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity = null)
         {
+            if (consulServiceEntity == null)
+            {
+                consulServiceEntity = new ConsulServiceEntity();
+                ConfigManager.Configuration.Bind("ConsulService", consulServiceEntity); //绑定
+            }
+            
             return HttpTask.CreateAsyncMapReduce(httpClientFactory, consulServiceEntity);
         }
     }
