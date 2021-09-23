@@ -8,55 +8,34 @@ namespace Common.Compute
     public static class ComputeFactory
     {
         /// <summary>
-        /// 创建Ignite并行计算
-        /// </summary>
-        public static ICompute GetIgniteCompute()
-        {
-            return IgniteTask.CreateCompute();
-        }
-
-        /// <summary>
         /// 创建Http并行计算
         /// </summary>
         /// <param name="httpClientFactory"></param>
+        /// <param name="consulServiceEntity"></param>
         /// <returns></returns>
-        public static ICompute GetHttpCompute(IHttpClientFactory httpClientFactory)
+        public static ICompute GetHttpCompute(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
         {
-            return HttpTask.CreateCompute(httpClientFactory);
-        }
-
-        /// <summary>
-        /// 创建同步IgniteMapReduce
-        /// </summary>
-        public static IMapReduce GetIgniteMapReduce()
-        {
-            return IgniteTask.CreateMapReduce();
-        }
-
-        /// <summary>
-        /// 创建异步IgniteMapReduce
-        /// </summary>
-        public static IAsyncMapReduce GetIgniteAsyncMapReduce()
-        {
-            return IgniteTask.CreateAsyncMapReduce();
+            return HttpTask.CreateCompute(httpClientFactory, consulServiceEntity);
         }
 
         /// <summary>
         /// 创建同步HttpMapReduce
         /// </summary>
         /// <param name="httpClientFactory"></param>
-        public static IMapReduce GetHttpMapReduce(IHttpClientFactory httpClientFactory)
+        /// <param name="consulServiceEntity"></param>
+        public static IMapReduce GetHttpMapReduce(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
         {
-            return HttpTask.CreateMapReduce(httpClientFactory);
+            return HttpTask.CreateMapReduce(httpClientFactory, consulServiceEntity);
         }
 
         /// <summary>
         /// 创建异步HttpMapReduce
         /// </summary>
         /// <param name="httpClientFactory"></param>
-        public static IAsyncMapReduce GetHttpAsyncMapReduce(IHttpClientFactory httpClientFactory)
+        /// <param name="consulServiceEntity"></param>
+        public static IAsyncMapReduce GetHttpAsyncMapReduce(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
         {
-            return HttpTask.CreateAsyncMapReduce(httpClientFactory);
+            return HttpTask.CreateAsyncMapReduce(httpClientFactory, consulServiceEntity);
         }
     }
 }

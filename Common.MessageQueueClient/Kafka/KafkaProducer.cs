@@ -9,14 +9,27 @@ namespace Common.MessageQueueClient.Kafka
     /// </summary>
     public class KafkaProducer<T> : IMQProducer<T> where T : class, IMQData, new()
     {
+        private readonly KafkaConfig m_kafkaConfig;
         private readonly IProducer<string, string> m_kafkaProducer;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public KafkaProducer()
+        public KafkaProducer(KafkaConfig kafkaConfig)
         {
-            m_kafkaProducer = new ProducerBuilder<string, string>(KafkaConfigBuilder.GetProducerConfig()).Build();
+            m_kafkaConfig = kafkaConfig;
+
+            ProducerConfig producerConfig = new ProducerConfig
+            {
+                //Kafka的服务地址，多个用逗号隔开
+                BootstrapServers = m_kafkaConfig.HostName,
+                //是否开启生产者幂等性
+                EnableIdempotence = true,
+                //生产者提交消息延时时间 单位 毫秒
+                LingerMs = 10
+            };
+
+            m_kafkaProducer = new ProducerBuilder<string, string>(producerConfig).Build();
         }
 
         /// <summary>
@@ -30,22 +43,20 @@ namespace Common.MessageQueueClient.Kafka
         /// <summary>
         /// 同步推送消息
         /// </summary>
-        /// <param name="mQContext">消息队列上下文</param>
         /// <param name="message">需要推送的消息</param>
-        public void Produce(MQContext mQContext, T message)
+        public void Produce(T message)
         {
-            m_kafkaProducer.Produce(mQContext.MessageQueueName, ConvertDataToMessage(message));
+            m_kafkaProducer.Produce(m_kafkaConfig.QueueName, ConvertDataToMessage(message));
         }
 
         /// <summary>
         /// 异步推送消息
         /// </summary>
-        /// <param name="mQContext">消息队列上下文</param>
         /// <param name="message">需要推送的消息</param>
         /// <returns></returns>
-        public Task ProduceAsync(MQContext mQContext, T message)
+        public Task ProduceAsync(T message)
         {
-            m_kafkaProducer.ProduceAsync(mQContext.MessageQueueName, ConvertDataToMessage(message));
+            m_kafkaProducer.ProduceAsync(m_kafkaConfig.QueueName, ConvertDataToMessage(message));
             return Task.CompletedTask;
         }
 

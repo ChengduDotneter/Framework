@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,68 +12,65 @@ namespace Common.MessageQueueClient.RabbitMQ
     /// <typeparam name="T"></typeparam>
     public class RabbitmqProducer<T> : IMQProducer<T> where T : class, IMQData, new()
     {
-        private static IConnectionFactory m_connectionFactory;
-        private IConnection m_connection;
-        private IModel m_channel;
-        private IBasicProperties m_properties;
-        private ISet<string> m_queueNames;
-        private string m_routingKey;
-
-        private readonly ExChangeTypeEnum m_exChangeTypeEnum;
-
-        private void RabbitMqProducerInit()
-        {
-            m_queueNames = new HashSet<string>();
-
-            if (m_connectionFactory == null)
-                //1:创建一个连接的工厂类 
-                m_connectionFactory = RabbitmqHelper.CreateConnectionFactory();
-
-            if (m_connection == null)
-                //创建连接
-                m_connection = m_connectionFactory.CreateConnection();
-
-            if (m_channel == null)
-                //创建通道
-                m_channel = m_connection.CreateModel();
-
-            if (m_properties == null)
-            {
-                m_properties = m_channel.CreateBasicProperties();
-                m_properties.Persistent = true;
-            }
-        }
+        private readonly IConnection m_connection;
+        private readonly IModel m_channel;
+        private readonly IBasicProperties m_properties;
+        private readonly RabbitMQConfig m_rabbitMqConfig;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public RabbitmqProducer(ExChangeTypeEnum exChangeTypeEnum)
+        public RabbitmqProducer(RabbitMQConfig rabbitMqConfig)
         {
-            m_exChangeTypeEnum = exChangeTypeEnum;
-            RabbitMqProducerInit();
+            m_rabbitMqConfig = rabbitMqConfig;
+            
+            ConnectionFactory connectionFactory = new ConnectionFactory()
+            {
+                HostName = m_rabbitMqConfig.HostName,
+                Port = m_rabbitMqConfig.Port,
+                UserName = m_rabbitMqConfig.UserName,
+                Password = m_rabbitMqConfig.Password,
+                RequestedHeartbeat = m_rabbitMqConfig.RequestedHeartbeat,
+                AutomaticRecoveryEnabled = true //自动重连
+            };
+
+            m_connection = connectionFactory.CreateConnection();
+            m_channel = m_connection.CreateModel();
+            m_properties = m_channel.CreateBasicProperties();
+            m_properties.Persistent = true;
+           
+            m_channel.ExchangeDeclare(m_rabbitMqConfig.QueueName, type: m_rabbitMqConfig.ExChangeType.ToString().ToLower(), durable: true, autoDelete: false, null); //设置交换器类型
+            m_channel.QueueDeclare(m_rabbitMqConfig.QueueName, true, false, false, null);
+            m_channel.QueueBind(m_rabbitMqConfig.QueueName, m_rabbitMqConfig.QueueName, m_rabbitMqConfig.RoutingKey); // 设置路由关键字即为队列的名称
         }
 
         /// <summary>
         /// 同步推送消息
         /// </summary>
-        /// <param name="mQContext">消息队列上下文</param>
         /// <param name="message">需要推送的消息</param>
-        public void Produce(MQContext mQContext, T message)
+        public void Produce(T message)
         {
-            ProduceData(m_channel, mQContext, message);
+            try
+            {
+                m_channel.BasicPublish(exchange: m_rabbitMqConfig.QueueName, routingKey: m_rabbitMqConfig.RoutingKey, mandatory: false, basicProperties: m_properties,
+                                       body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
+            }
+            catch (Exception ex)
+            {
+                throw new DealException($"RabbitMq推送数据发生错误：{ex.Message}");
+            }
         }
 
         /// <summary>
         /// 异步推送消息
         /// </summary>
-        /// <param name="mQContext"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public Task ProduceAsync(MQContext mQContext, T message)
+        public Task ProduceAsync(T message)
         {
             return Task.Factory.StartNew(() =>
             {
-                Produce(mQContext, message);
+                Produce(message);
             });
         }
 
@@ -104,40 +100,6 @@ namespace Common.MessageQueueClient.RabbitMQ
             catch
             {
                 throw new Exception($"序列化失败。");
-            }
-        }
-
-        /// <summary>
-        /// 推送消息
-        /// </summary>
-        /// <param name="channel">通道</param>
-        /// <param name="mQContext">上下文</param>
-        /// <param name="message">推送的消息</param>
-        private void ProduceData(IModel channel, MQContext mQContext, T message)
-        {
-            try
-            {
-                if (mQContext.Context is RabbitMqContent rabbitMqContent)
-                {
-                    if (string.IsNullOrWhiteSpace(m_routingKey) && !string.IsNullOrWhiteSpace(rabbitMqContent.RoutingKey))
-                        m_routingKey = rabbitMqContent.RoutingKey;
-
-                    if (string.IsNullOrWhiteSpace(m_routingKey))
-                        throw new Exception("路由关键字出错。");
-
-                    if (!m_queueNames.Contains(mQContext.MessageQueueName))
-                    {
-                        m_queueNames.Add(mQContext.MessageQueueName);
-
-                        RabbitmqHelper.BindingQueues(mQContext.MessageQueueName, m_exChangeTypeEnum, channel, m_routingKey, m_queueNames);
-                    }
-
-                    channel.BasicPublish(exchange: mQContext.MessageQueueName, routingKey: m_routingKey, mandatory: false, basicProperties: m_properties, body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new DealException($"RabbitMq推送数据发生错误：{ex.Message}");
             }
         }
     }

@@ -35,8 +35,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestStorge", "TestStorge\Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Lock", "Common.Lock\Common.Lock.csproj", "{4815C9D2-9C06-4301-9867-F370D4CD3A9A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IgniteCompute", "IgniteCompute\IgniteCompute.csproj", "{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Log", "Common.Log\Common.Log.csproj", "{FFE1C610-C0A3-4B1F-BAA3-6C00C2F96DBC}"
 EndProject
 Global
@@ -109,10 +107,6 @@ Global
 		{4815C9D2-9C06-4301-9867-F370D4CD3A9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4815C9D2-9C06-4301-9867-F370D4CD3A9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4815C9D2-9C06-4301-9867-F370D4CD3A9A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1DCC724F-0153-4D4E-A5FA-9010DBAFE95E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FFE1C610-C0A3-4B1F-BAA3-6C00C2F96DBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FFE1C610-C0A3-4B1F-BAA3-6C00C2F96DBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFE1C610-C0A3-4B1F-BAA3-6C00C2F96DBC}.Release|Any CPU.ActiveCfg = Release|Any CPU

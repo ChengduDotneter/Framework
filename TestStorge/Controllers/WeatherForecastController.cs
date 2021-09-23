@@ -1,5 +1,4 @@
-﻿using Apache.Ignite.Core.Cache.Configuration;
-using Common.DAL;
+﻿using Common.DAL;
 using Common.Model;
 using Common.ServiceCommon;
 using LinqToDB.Mapping;
@@ -144,7 +143,6 @@ namespace TestStorge.Controllers
     public class StockInfo : ViewModelBase
     {
         [Column(CanBeNull = true)]
-        [QuerySqlField]
         public decimal? Number { get; set; }
     }
 }

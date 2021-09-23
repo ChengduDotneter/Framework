@@ -1,8 +1,3 @@
-using Apache.Ignite.Core;
-using Apache.Ignite.Core.Binary;
-using Apache.Ignite.Core.Configuration;
-using Apache.Ignite.Core.Discovery.Tcp;
-using Apache.Ignite.Core.Discovery.Tcp.Static;
 using Common.Const;
 using Common.DAL;
 using Common.DAL.Cache;
@@ -16,11 +11,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 
@@ -113,76 +105,6 @@ namespace Common.ServiceCommon
             serviceCollection.AddJsonSerialize();//注入JSON序列化相关接口
 
             return hostBuilderContext;
-        }
-
-        /// <summary>
-        /// Ignite初始化配置
-        /// </summary>
-        /// <param name="hostBuilderContext"></param>
-        /// <returns></returns>
-        public static HostBuilderContext ConfigIgnite(this HostBuilderContext hostBuilderContext)
-        {
-            IgniteManager.Init(ConfigIgnite(Path.Combine(hostBuilderContext.HostingEnvironment.ContentRootPath, "spring.xml")));
-            return hostBuilderContext;
-        }
-
-        private static IgniteConfiguration ConfigIgnite(string springConfigPath)
-        {
-            IList<BinaryTypeConfiguration> binaryTypeConfigurations = new List<BinaryTypeConfiguration>();
-
-            Type[] modelTypes = TypeReflector.ReflectType((type) =>
-            {
-                if (type.GetInterface(typeof(IEntity).FullName) == null || type.IsInterface || type.IsAbstract)
-                    return false;
-
-                if (type.GetCustomAttribute<IgnoreTableAttribute>() != null)
-                    return false;
-
-                return true;
-            });
-
-            for (int i = 0; i < modelTypes.Length; i++)
-            {
-                binaryTypeConfigurations.Add(new BinaryTypeConfiguration(modelTypes[i])
-                {
-                    Serializer = (IBinarySerializer)Activator.CreateInstance(typeof(IgniteBinaryBufferSerializer<>).MakeGenericType(modelTypes[i])),
-                });
-            }
-
-            IgniteConfiguration igniteConfiguration = new IgniteConfiguration()
-            {
-                Localhost = ConfigManager.Configuration["IgniteService:LocalHost"],
-                SpringConfigUrl = springConfigPath,
-
-                DiscoverySpi = new TcpDiscoverySpi()
-                {
-                    LocalAddress = ConfigManager.Configuration["IgniteService:LocalHost"],
-                    LocalPort = Convert.ToInt32(ConfigManager.Configuration["IgniteService:DiscoverPort"]),
-                    IpFinder = new TcpDiscoveryStaticIpFinder()
-                    {
-                        Endpoints = ConfigManager.Configuration.GetSection("IgniteService:TcpDiscoveryStaticIpEndPoints").GetChildren().
-                                                  Select(item => item.Value).
-                                                  Concat(new[] { $"{ConfigManager.Configuration["IgniteService:LocalHost"]}:{ConfigManager.Configuration["IgniteService:DiscoverPort"]}" }).
-                                                  ToArray()
-                    }
-                },
-
-                DataStorageConfiguration = new DataStorageConfiguration
-                {
-                    DefaultDataRegionConfiguration = new DataRegionConfiguration
-                    {
-                        Name = ConfigManager.Configuration["IgniteService:RegionName"],
-                        PersistenceEnabled = false
-                    }
-                },
-
-                BinaryConfiguration = new BinaryConfiguration
-                {
-                    TypeConfigurations = binaryTypeConfigurations
-                }
-            };
-
-            return igniteConfiguration;
         }
 
         /// <summary>

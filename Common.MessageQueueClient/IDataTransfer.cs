@@ -13,17 +13,15 @@ namespace Common.MessageQueueClient
         /// <summary>
         /// 推送泛型对象
         /// </summary>
-        /// <param name="mQContext">队列上下文</param>
         /// <param name="message"></param>
-        void Produce(MQContext mQContext, T message);
+        void Produce(T message);
 
         /// <summary>
         /// 异步推送
         /// </summary>
-        /// <param name="mQContext">队列上下文</param>
         /// <param name="message"></param>
         /// <returns></returns>
-        Task ProduceAsync(MQContext mQContext, T message);
+        Task ProduceAsync(T message);
     }
 
     /// <summary>
@@ -34,16 +32,14 @@ namespace Common.MessageQueueClient
         /// <summary>
         /// 同步消费
         /// </summary>
-        /// <param name="mQContext">队列上下文</param>
         /// <param name="callback"></param>
-        void Consume(MQContext mQContext, Func<T, bool> callback);
+        void Consume(Func<T, bool> callback);
 
         /// <summary>
         /// 异步消费
         /// </summary>
-        /// <param name="mQContext">队列上下文</param>
         /// <param name="callback"></param>
-        Task ConsumeAsync(MQContext mQContext, Func<T, Task<bool>> callback);
+        Task ConsumeAsync(Func<T, Task<bool>> callback);
     }
 
     /// <summary>
@@ -54,20 +50,18 @@ namespace Common.MessageQueueClient
         /// <summary>
         /// 同步批量消费
         /// </summary>
-        /// <param name="mQContext">队列上下文</param>
         /// <param name="callback"></param>
         /// <param name="pullingTimeSpan">拉取数据时间间隔</param>
         /// <param name="pullingCount">拉取数据数据包大小分割</param>
-        void Consume(MQContext mQContext, Func<IEnumerable<T>, bool> callback, TimeSpan pullingTimeSpan, int pullingCount);
+        void Consume(Func<IEnumerable<T>, bool> callback, TimeSpan pullingTimeSpan, int pullingCount);
 
         /// <summary>
         /// 异步批量消费
         /// </summary>
-        /// <param name="mQContext">队列上下文</param>
         /// <param name="callback"></param>
         /// <param name="pullingTimeSpan">拉取数据时间间隔</param>
         /// <param name="pullingCount">拉取数据数据包大小分割</param>
-        Task ConsumeAsync(MQContext mQContext, Func<IEnumerable<T>, Task<bool>> callback, TimeSpan pullingTimeSpan, int pullingCount);
+        Task ConsumeAsync(Func<IEnumerable<T>, Task<bool>> callback, TimeSpan pullingTimeSpan, int pullingCount);
     }
 
     /// <summary>
@@ -78,8 +72,7 @@ namespace Common.MessageQueueClient
         /// <summary>
         /// 订阅
         /// </summary>
-        /// <param name="mQContext">队列上下文</param>
-        void Subscribe(MQContext mQContext);
+        void Subscribe();
 
         /// <summary>
         /// 取消订阅

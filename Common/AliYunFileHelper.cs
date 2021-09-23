@@ -17,8 +17,7 @@ namespace Common
 
         static AliYunFileHelper()
         {
-            if (client == null)
-                client = new OssClient(m_endpoint, m_accessKeyId, m_accessKeySecret);
+            client = new OssClient(m_endpoint, m_accessKeyId, m_accessKeySecret);
         }
 
         private static void CreatureBucketName(string bucketName)

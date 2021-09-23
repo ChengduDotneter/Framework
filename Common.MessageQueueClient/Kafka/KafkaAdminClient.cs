@@ -11,18 +11,6 @@ namespace Common.MessageQueueClient.Kafka
     /// </summary>
     public static class KafkaAdminClient
     {
-        private static readonly IAdminClient m_adminClient;//kafka客户端
-
-        static KafkaAdminClient()
-        {
-            m_adminClient = new AdminClientBuilder(KafkaConfigBuilder.GetClientConfig()).Build();//根据配置创建客户端
-
-            AppDomain.CurrentDomain.ProcessExit += (sender, e) =>//父进程退出时 注销
-            {
-                m_adminClient.Dispose();
-            };
-        }
-
         /// <summary>
         /// 同步创建分区
         /// </summary>
@@ -44,8 +32,18 @@ namespace Common.MessageQueueClient.Kafka
         {
             try
             {
-                await m_adminClient.CreatePartitionsAsync(new PartitionsSpecification[] {
-                        new PartitionsSpecification { Topic = topic, IncreaseTo = GetTopicPartitionCount(topic) + createCount } });
+                ClientConfig clientConfig = new ClientConfig
+                {
+                    //Kafka的服务地址，多个用逗号隔开
+                    BootstrapServers = ConfigManager.Configuration["KafkaService:Host"]
+                };
+
+                using IAdminClient adminClient = new AdminClientBuilder(clientConfig).Build(); //根据配置创建客户端
+
+                await adminClient.CreatePartitionsAsync(new PartitionsSpecification[]
+                {
+                    new PartitionsSpecification { Topic = topic, IncreaseTo = GetTopicPartitionCount(adminClient, topic) + createCount }
+                });
             }
             catch (Exception ex)
             {
@@ -76,11 +74,21 @@ namespace Common.MessageQueueClient.Kafka
         {
             try
             {
-                if (IsTopicExisted(name, out _))
+                ClientConfig clientConfig = new ClientConfig
+                {
+                    //Kafka的服务地址，多个用逗号隔开
+                    BootstrapServers = ConfigManager.Configuration["KafkaService:Host"]
+                };
+
+                using IAdminClient adminClient = new AdminClientBuilder(clientConfig).Build(); //根据配置创建客户端
+
+                if (IsTopicExisted(adminClient, name, out _))
                     throw new Exception("已存在该Topic主题");
 
-                await m_adminClient.CreateTopicsAsync(new TopicSpecification[] {
-                        new TopicSpecification { Name = name, NumPartitions = numPartitions, ReplicationFactor = replicationFactor } });
+                await adminClient.CreateTopicsAsync(new TopicSpecification[]
+                {
+                    new TopicSpecification { Name = name, NumPartitions = numPartitions, ReplicationFactor = replicationFactor }
+                });
             }
             catch (Exception ex)
             {
@@ -91,24 +99,25 @@ namespace Common.MessageQueueClient.Kafka
         /// <summary>
         /// 根据Topic名称判断该topic是否存在
         /// </summary>
+        /// <param name="adminClient"></param>
         /// <param name="topic">topic名称</param>
         /// <param name="metaData">相关元数据信息</param>
         /// <returns></returns>
-        public static bool IsTopicExisted(string topic, out Metadata metaData)
+        public static bool IsTopicExisted(IAdminClient adminClient, string topic, out Metadata metaData)
         {
-            metaData = GetMetaDataByTopic(topic);
-
+            metaData = GetMetaDataByTopic(adminClient, topic);
             return metaData.Topics != null && metaData.Topics.Count() > 0;
         }
 
         /// <summary>
         /// 根据Topic名称获取该Topic下的分区数
         /// </summary>
+        /// <param name="adminClient"></param>
         /// <param name="topic">主题名称</param>
         /// <returns></returns>
-        public static int GetTopicPartitionCount(string topic)
+        public static int GetTopicPartitionCount(IAdminClient adminClient, string topic)
         {
-            if (!IsTopicExisted(topic, out Metadata metaData))
+            if (!IsTopicExisted(adminClient, topic, out Metadata metaData))
                 throw new Exception("未找到该Topic");
 
             return metaData.Topics.Sum(item => item.Partitions.Count);
@@ -117,11 +126,12 @@ namespace Common.MessageQueueClient.Kafka
         /// <summary>
         /// 根据Topic名称获取Kafka相关元数据
         /// </summary>
+        /// <param name="adminClient"></param>
         /// <param name="topic">主题名称</param>
         /// <returns></returns>
-        private static Metadata GetMetaDataByTopic(string topic)
+        private static Metadata GetMetaDataByTopic(IAdminClient adminClient, string topic)
         {
-            return m_adminClient.GetMetadata(topic, TimeSpan.FromSeconds(10));
+            return adminClient.GetMetadata(topic, TimeSpan.FromSeconds(10));
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using Common.MessageQueueClient;
-using Common.MessageQueueClient.RabbitMQ;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 // ReSharper disable UnusedVariable
 // ReSharper disable RedundantCatchClause
 // ReSharper disable UnusedParameter.Local
@@ -33,7 +33,6 @@ namespace TestStorge.Controllers
 
     public class MBCloudCommodityDownLoad : IHostedService
     {
-        private MQContext m_mQContext;
         private IMQConsumer<CommodityMQData> m_mQConsumer;
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -50,13 +49,10 @@ namespace TestStorge.Controllers
 
         private void MessageQueueInit()
         {
-            if (m_mQContext == null)
-                m_mQContext = new MQContext("StoreERP", new RabbitMqContent() { RoutingKey = "StoreERP" });
-
             if (m_mQConsumer == null)
             {
-                m_mQConsumer = MessageQueueFactory.GetRabbitMQConsumer<CommodityMQData>(ExChangeTypeEnum.Direct);
-                m_mQConsumer.Subscribe(m_mQContext);
+                m_mQConsumer = MessageQueueFactory.GetRabbitMQConsumer<CommodityMQData>("StoreERP", "StoreERP");
+                m_mQConsumer.Subscribe();
 
                 ConsumeDatas();
             }
@@ -66,12 +62,12 @@ namespace TestStorge.Controllers
         {
             try
             {
-                m_mQConsumer.Consume(m_mQContext, commodityMQData =>
+                m_mQConsumer.Consume(commodityMQData =>
                 {
                     Random random = new Random();
 
-                  //  if (random.Next(10) % 2 == 0)
-                        throw new Exception("模拟错误");
+                    //  if (random.Next(10) % 2 == 0)
+                    throw new Exception("模拟错误");
 
                     //return true;
                 });

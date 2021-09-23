@@ -1,7 +1,6 @@
 ﻿using Common.Log;
 using Common.Model;
 using Consul;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -88,7 +87,6 @@ namespace Common.Compute
             }
         }
 
-        private static ConsulClient m_consulClient;
         private static ILogHelper m_logHelper;
         private static CatalogServiceEqualityComparer m_catalogServiceEqualityComparer;
 
@@ -96,30 +94,28 @@ namespace Common.Compute
         {
             m_catalogServiceEqualityComparer = new CatalogServiceEqualityComparer();
             m_logHelper = LogHelperFactory.GetDefaultLogHelper();
-            ConsulServiceEntity serviceEntity = new ConsulServiceEntity();
-            ConfigManager.Configuration.Bind("ConsulService", serviceEntity);
-            m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));
         }
 
-        public static ICompute CreateCompute(IHttpClientFactory httpClientFactory)
+        public static ICompute CreateCompute(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
         {
-            return new HttpComputeInstance(httpClientFactory);
+            return new HttpComputeInstance(httpClientFactory, consulServiceEntity);
         }
 
-        public static IMapReduce CreateMapReduce(IHttpClientFactory httpClientFactory)
+        public static IMapReduce CreateMapReduce(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
         {
-            return new HttpMapReduceInstance(httpClientFactory);
+            return new HttpMapReduceInstance(httpClientFactory, consulServiceEntity);
         }
 
-        public static IAsyncMapReduce CreateAsyncMapReduce(IHttpClientFactory httpClientFactory)
+        public static IAsyncMapReduce CreateAsyncMapReduce(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
         {
-            return new HttpMapReduceInstance(httpClientFactory);
+            return new HttpMapReduceInstance(httpClientFactory, consulServiceEntity);
         }
 
-        private static async Task<IEnumerable<string>> GetServiceEndPoints(Type type)
+        private static async Task<IEnumerable<string>> GetServiceEndPoints(Type type, ConsulServiceEntity consulServiceEntity)
         {
+            using ConsulClient consulClient = new ConsulClient(x => x.Address = new Uri($"http://{consulServiceEntity.ConsulIP}:{consulServiceEntity.ConsulPort}"));
             string serviceName = HttpComputeServiceNameGenerator.GeneratName(type);
-            CatalogService[] catalogServices = (await m_consulClient.Catalog.Service(serviceName)).Response;
+            CatalogService[] catalogServices = (await consulClient.Catalog.Service(serviceName)).Response;
 
             return catalogServices.Distinct(m_catalogServiceEqualityComparer).Select(item => $"{item.ServiceAddress}:{item.ServicePort}");
         }
@@ -181,16 +177,18 @@ namespace Common.Compute
         internal class HttpComputeInstance : ICompute
         {
             private IHttpClientFactory m_httpClientFactory;
+            private ConsulServiceEntity m_consulServiceEntity;
 
-            public HttpComputeInstance(IHttpClientFactory httpClientFactory)
+            public HttpComputeInstance(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
             {
                 m_httpClientFactory = httpClientFactory;
+                m_consulServiceEntity = consulServiceEntity;
             }
 
             public IEnumerable<TResult> Apply<TParameter, TResult>(IComputeFunc<TParameter, TResult> computeFunc, IEnumerable<TParameter> parameters)
             {
                 IList<Task<HttpResponseMessage>> tasks = new List<Task<HttpResponseMessage>>();
-                string[] serviceEndPoints = GetServiceEndPoints(computeFunc.GetType()).Result.ToArray();
+                string[] serviceEndPoints = GetServiceEndPoints(computeFunc.GetType(), m_consulServiceEntity).Result.ToArray();
 
                 if (serviceEndPoints.Length == 0)
                 {
@@ -207,7 +205,7 @@ namespace Common.Compute
                     {
                         HttpComputeParameter httpComputeParameter = CreateParameter(computeFunc, parameter);
                         return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/apply", httpComputeParameter).Result;
+                                                                         m_httpClientFactory, $"http://{serviceEndPoint}/compute/apply", httpComputeParameter).Result;
                     }, serviceEndPoints[index % serviceEndPoints.Length]));
 
                     index++;
@@ -219,7 +217,7 @@ namespace Common.Compute
             public async Task<IEnumerable<TResult>> ApplyAsync<TParameter, TResult>(IComputeFunc<TParameter, TResult> computeFunc, IEnumerable<TParameter> parameters)
             {
                 IList<Task<Task<HttpResponseMessage>>> tasks = new List<Task<Task<HttpResponseMessage>>>();
-                string[] serviceEndPoints = (await GetServiceEndPoints(computeFunc.GetType())).ToArray();
+                string[] serviceEndPoints = (await GetServiceEndPoints(computeFunc.GetType(), m_consulServiceEntity)).ToArray();
 
                 if (serviceEndPoints.Length == 0)
                 {
@@ -236,7 +234,7 @@ namespace Common.Compute
                     {
                         HttpComputeParameter httpComputeParameter = CreateParameter(computeFunc, parameter);
                         return await HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{serviceEndPoint}/compute/apply", httpComputeParameter);
+                                                                               m_httpClientFactory, $"http://{serviceEndPoint}/compute/apply", httpComputeParameter);
                     }, serviceEndPoints[index % serviceEndPoints.Length]));
 
                     index++;
@@ -249,7 +247,7 @@ namespace Common.Compute
             {
                 IList<Task<HttpResponseMessage>> tasks = new List<Task<HttpResponseMessage>>();
                 HttpComputeParameter httpComputeParameter = CreateParameter(computeFunc, parameter);
-                string[] serviceEndPoints = GetServiceEndPoints(computeFunc.GetType()).Result.ToArray();
+                string[] serviceEndPoints = GetServiceEndPoints(computeFunc.GetType(), m_consulServiceEntity).Result.ToArray();
 
                 if (serviceEndPoints.Length == 0)
                 {
@@ -263,7 +261,7 @@ namespace Common.Compute
                     tasks.Add(Task.Factory.StartNew((item) =>
                     {
                         return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{item}/compute/boardcast", httpComputeParameter).Result;
+                                                                         m_httpClientFactory, $"http://{item}/compute/boardcast", httpComputeParameter).Result;
                     }, serviceEndPoint));
                 }
 
@@ -274,7 +272,7 @@ namespace Common.Compute
             {
                 IList<Task<Task<HttpResponseMessage>>> tasks = new List<Task<Task<HttpResponseMessage>>>();
                 HttpComputeParameter httpComputeParameter = CreateParameter(computeFunc, parameter);
-                string[] serviceEndPoints = (await GetServiceEndPoints(computeFunc.GetType())).ToArray();
+                string[] serviceEndPoints = (await GetServiceEndPoints(computeFunc.GetType(), m_consulServiceEntity)).ToArray();
 
                 if (serviceEndPoints.Length == 0)
                 {
@@ -288,7 +286,7 @@ namespace Common.Compute
                     tasks.Add(Task.Factory.StartNew(async (item) =>
                     {
                         return await HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{item}/compute/boardcast", httpComputeParameter);
+                                                                               m_httpClientFactory, $"http://{item}/compute/boardcast", httpComputeParameter);
                     }, serviceEndPoint));
                 }
 
@@ -301,7 +299,7 @@ namespace Common.Compute
 
                 foreach (IComputeFunc<TResult> computeFunc in computeFuncs)
                 {
-                    string serviceEndPoint = GetServiceEndPoints(computeFunc.GetType()).Result.FirstOrDefault();
+                    string serviceEndPoint = GetServiceEndPoints(computeFunc.GetType(), m_consulServiceEntity).Result.FirstOrDefault();
 
                     if (string.IsNullOrWhiteSpace(serviceEndPoint))
                     {
@@ -313,7 +311,7 @@ namespace Common.Compute
                     tasks.Add(Task.Factory.StartNew((item) =>
                     {
                         return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{item}/compute/call", CreateParameter(computeFunc)).Result;
+                                                                         m_httpClientFactory, $"http://{item}/compute/call", CreateParameter(computeFunc)).Result;
                     }, serviceEndPoint));
                 }
 
@@ -326,7 +324,7 @@ namespace Common.Compute
 
                 foreach (IComputeFunc<TResult> computeFunc in computeFuncs)
                 {
-                    string serviceEndPoint = (await GetServiceEndPoints(computeFunc.GetType())).FirstOrDefault();
+                    string serviceEndPoint = (await GetServiceEndPoints(computeFunc.GetType(), m_consulServiceEntity)).FirstOrDefault();
 
                     if (string.IsNullOrWhiteSpace(serviceEndPoint))
                     {
@@ -338,7 +336,7 @@ namespace Common.Compute
                     tasks.Add(Task.Factory.StartNew(async (item) =>
                     {
                         return await HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{item}/compute/call", CreateParameter(computeFunc));
+                                                                               m_httpClientFactory, $"http://{item}/compute/call", CreateParameter(computeFunc));
                     }, serviceEndPoint));
                 }
 
@@ -349,17 +347,18 @@ namespace Common.Compute
         internal class HttpMapReduceInstance : IMapReduce, IAsyncMapReduce
         {
             private IHttpClientFactory m_httpClientFactory;
+            private ConsulServiceEntity m_consulServiceEntity;
 
-            public HttpMapReduceInstance(IHttpClientFactory httpClientFactory)
+            public HttpMapReduceInstance(IHttpClientFactory httpClientFactory, ConsulServiceEntity consulServiceEntity)
             {
                 m_httpClientFactory = httpClientFactory;
+                m_consulServiceEntity = consulServiceEntity;
             }
 
-            public TResult Excute<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>
-                (IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
+            public TResult Excute<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>(IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
             {
                 IList<Task<HttpResponseMessage>> tasks = new List<Task<HttpResponseMessage>>();
-                string[] serviceEndPoints = GetServiceEndPoints(typeof(TComputeFunc)).Result.ToArray();
+                string[] serviceEndPoints = GetServiceEndPoints(typeof(TComputeFunc), m_consulServiceEntity).Result.ToArray();
 
                 if (serviceEndPoints.Length == 0)
                 {
@@ -388,18 +387,17 @@ namespace Common.Compute
                     tasks.Add(Task.Factory.StartNew((item) =>
                     {
                         return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{item}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter)).Result;
+                                                                         m_httpClientFactory, $"http://{item}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter)).Result;
                     }, serviceEndPoint));
                 }
 
                 return mapReduceTask.Reduce(GetResults<TSplitResult>(tasks));
             }
 
-            public async Task<TResult> ExcuteAsync<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>
-                (IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
+            public async Task<TResult> ExcuteAsync<TComputeFunc, TParameter, TResult, TSplitParameter, TSplitResult>(IMapReduceTask<TParameter, TResult, TSplitParameter, TSplitResult> mapReduceTask, TParameter parameter)
             {
                 IList<Task<Task<HttpResponseMessage>>> tasks = new List<Task<Task<HttpResponseMessage>>>();
-                string[] serviceEndPoints = (await GetServiceEndPoints(typeof(TComputeFunc))).ToArray();
+                string[] serviceEndPoints = (await GetServiceEndPoints(typeof(TComputeFunc), m_consulServiceEntity)).ToArray();
 
                 if (serviceEndPoints.Length == 0)
                 {
@@ -428,7 +426,7 @@ namespace Common.Compute
                     tasks.Add(Task.Factory.StartNew((item) =>
                     {
                         return HttpJsonHelper.HttpPostByAbsoluteUriAsync(
-                            m_httpClientFactory, $"http://{item}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter));
+                                                                         m_httpClientFactory, $"http://{item}/compute/mapReduce", CreateParameter(mapReduceSplitJob.ComputeFunc, mapReduceSplitJob.Parameter));
                     }, serviceEndPoint));
                 }
 

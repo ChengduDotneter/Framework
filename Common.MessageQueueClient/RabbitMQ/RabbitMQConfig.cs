@@ -1,5 +1,16 @@
 ﻿namespace Common.MessageQueueClient.RabbitMQ
 {
+    public class RabbitMQConfig : QueueConfigBase
+    {
+        public string HostName { get; set; }
+        public int Port { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+        public ushort RequestedHeartbeat { get; set; }
+        public string RoutingKey { get; set; }
+        public ExChangeTypeEnum ExChangeType { get; set; }
+    }
+    
     /// <summary>
     /// 转换类型枚举
     /// </summary>

@@ -1,5 +1,4 @@
-﻿using Apache.Ignite.Core.Cache.Configuration;
-using Common;
+﻿using Common;
 using Common.DAL;
 using Common.MessageQueueClient;
 using Common.Model;
@@ -79,7 +78,6 @@ namespace TestOrder.Controllers
 
     public class OrderInfo : ViewModelBase
     {
-        [QuerySqlField]
         public string OrderNo { get; set; }
 
         public IEnumerable<OrderCommodity> OrderCommodities { get; set; }
@@ -87,13 +85,10 @@ namespace TestOrder.Controllers
 
     public class OrderCommodity : ViewModelBase
     {
-        [QuerySqlField]
         public string CommodityName { get; set; }
 
-        [QuerySqlField]
         public decimal? Number { get; set; }
 
-        [QuerySqlField]
         public long OrderID { get; set; }
     }
 }

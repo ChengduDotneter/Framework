@@ -14,11 +14,9 @@ namespace Common.MessageQueueClient.Kafka
     /// </summary>
     public class KafkaConsumer<T> : IMQConsumer<T>, IMQBatchConsumer<T> where T : class, IMQData, new()
     {
-        private static ILog m_log;
-        private static readonly object m_lockObj = new object();
+        private readonly static ILog m_log;
         private readonly IConsumer<string, string> m_consumer;
-        private readonly bool m_enableAutoOffsetStore;
-        private string m_subscribeMessageQueueName;
+        private readonly KafkaConfig m_kafkaConfig;
 
         private class BatchData
         {
@@ -32,36 +30,42 @@ namespace Common.MessageQueueClient.Kafka
             }
         }
 
+        static KafkaConsumer()
+        {
+            m_log = Log4netCreater.CreateLog("KafkaConsumer");
+        }
+
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="groupId"></param>
-        /// <param name="enableAutoOffsetStore"></param>
-        public KafkaConsumer(string groupId, bool enableAutoOffsetStore = true)
+        public KafkaConsumer(KafkaConfig kafkaConfig)
         {
-            m_enableAutoOffsetStore = enableAutoOffsetStore;
-            m_consumer = new ConsumerBuilder<string, string>(KafkaConfigBuilder.GetConsumerConfig(groupId, m_enableAutoOffsetStore)).Build();
+            m_kafkaConfig = kafkaConfig;
 
-            KafkaConsumerInit();
-        }
-
-        private void KafkaConsumerInit()
-        {
-            lock (m_lockObj)
+            ConsumerConfig consumerConfig = new ConsumerConfig
             {
-                if (m_log == null)
-                    m_log = Log4netCreater.CreateLog("KafkaConsumer");
-            }
+                //Kafka的服务地址，多个用逗号隔开
+                BootstrapServers = m_kafkaConfig.HostName,
+                //消费者组ID
+                GroupId = m_kafkaConfig.GroupId,
+                //消费者对Offset消费数据的决策 此为若没有Offset 则从最开始消费数据
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+                StatisticsIntervalMs = 60000,
+                SessionTimeoutMs = 6000,
+                //是否自动提交offset
+                EnableAutoOffsetStore = m_kafkaConfig.EnableAutoOffsetStore,
+                AllowAutoCreateTopics = true
+            };
+
+            m_consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
         }
 
         /// <summary>
         /// 订阅
         /// </summary>
-        /// <param name="mQContext">消息队列上下文</param>
-        public void Subscribe(MQContext mQContext)
+        public void Subscribe()
         {
-            m_subscribeMessageQueueName = mQContext.MessageQueueName;
-            m_consumer.Subscribe(mQContext.MessageQueueName);
+            m_consumer.Subscribe(m_kafkaConfig.QueueName);
         }
 
         /// <summary>
@@ -69,25 +73,20 @@ namespace Common.MessageQueueClient.Kafka
         /// </summary>
         public void DeSubscribe()
         {
-            m_subscribeMessageQueueName = string.Empty;
             m_consumer.Unsubscribe();
         }
 
         /// <summary>
         /// 消费
         /// </summary>
-        /// <param name="mQContext">消息队列上下文</param>
         /// <param name="callback">回调</param>
-        public void Consume(MQContext mQContext, Func<T, bool> callback)
+        public void Consume(Func<T, bool> callback)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
-                    throw new Exception("该消费者未订阅任何队列，请先订阅队列");
-
                 ConsumeResult<string, string> consumeResult = m_consumer.Consume();
 
-                if ((callback?.Invoke(ConvertMessageToData(consumeResult.Message)) ?? false) && !m_enableAutoOffsetStore)
+                if ((callback?.Invoke(ConvertMessageToData(consumeResult.Message)) ?? false) && !m_kafkaConfig.EnableAutoOffsetStore)
                     m_consumer.Commit(new[] { consumeResult.TopicPartitionOffset });
             }
             catch (Exception ex)
@@ -99,15 +98,11 @@ namespace Common.MessageQueueClient.Kafka
         /// <summary>
         /// 异步消费
         /// </summary>
-        /// <param name="mQContext">消息队列上下文</param>
         /// <param name="callback">回调</param>
-        public async Task ConsumeAsync(MQContext mQContext, Func<T, Task<bool>> callback)
+        public async Task ConsumeAsync(Func<T, Task<bool>> callback)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
-                    throw new Exception("该消费者未订阅任何队列，请先订阅队列");
-
                 ConsumeResult<string, string> consumeResult = m_consumer.Consume();
 
                 bool success;
@@ -117,7 +112,7 @@ namespace Common.MessageQueueClient.Kafka
                 else
                     success = await callback.Invoke(ConvertMessageToData(consumeResult.Message));
 
-                if (success && !m_enableAutoOffsetStore)
+                if (success && !m_kafkaConfig.EnableAutoOffsetStore)
                     m_consumer.Commit(new[] { consumeResult.TopicPartitionOffset });
             }
             catch (Exception ex)
@@ -126,11 +121,8 @@ namespace Common.MessageQueueClient.Kafka
             }
         }
 
-        public void Consume(MQContext mQContext, Func<IEnumerable<T>, bool> callback, TimeSpan pullingTimeSpan, int pullingCount)
+        public void Consume(Func<IEnumerable<T>, bool> callback, TimeSpan pullingTimeSpan, int pullingCount)
         {
-            if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
-                throw new Exception("该消费者未订阅任何队列，请先订阅队列");
-
             IList<BatchData> batchDatas = new List<BatchData>();
 
             while (true)
@@ -172,11 +164,8 @@ namespace Common.MessageQueueClient.Kafka
             }
         }
 
-        public async Task ConsumeAsync(MQContext mQContext, Func<IEnumerable<T>, Task<bool>> callback, TimeSpan pullingTimeSpan, int pullingCount)
+        public async Task ConsumeAsync(Func<IEnumerable<T>, Task<bool>> callback, TimeSpan pullingTimeSpan, int pullingCount)
         {
-            if (string.IsNullOrWhiteSpace(m_subscribeMessageQueueName))
-                throw new Exception("该消费者未订阅任何队列，请先订阅队列");
-
             IList<BatchData> batchDatas = new List<BatchData>();
 
             while (true)

@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Common.MessageQueueClient;
-using Common.MessageQueueClient.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -57,11 +56,10 @@ namespace TestWebAPI.Controllers
 
             Task.Factory.StartNew(() =>
             {
-                MQContext mqContext = new MQContext(mqName, new RabbitMqContent() { RoutingKey = mqName });
-                IMQConsumer<TestMQData> mqConsumer = MessageQueueFactory.GetRabbitMQConsumer<TestMQData>(ExChangeTypeEnum.Direct);
-                mqConsumer.Subscribe(mqContext);
+                IMQConsumer<TestMQData> mqConsumer = MessageQueueFactory.GetRabbitMQConsumer<TestMQData>(mqName, mqName);
+                mqConsumer.Subscribe();
 
-                mqConsumer.Consume(mqContext, (testData) =>
+                mqConsumer.Consume((testData) =>
                 {
                     Console.WriteLine(testData.Data);
                     return true;
@@ -70,8 +68,7 @@ namespace TestWebAPI.Controllers
 
             Task.Factory.StartNew(async () =>
             {
-                MQContext mQContext = new MQContext(mqName, new RabbitMqContent() { RoutingKey = mqName });
-                IMQProducer<TestMQData> mQProducer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>(ExChangeTypeEnum.Direct);
+                IMQProducer<TestMQData> mQProducer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>(mqName, mqName);
 
                 while (true)
                 {
@@ -81,7 +78,7 @@ namespace TestWebAPI.Controllers
                         CreateTime = DateTime.Now
                     };
 
-                    await mQProducer.ProduceAsync(mQContext, mqData);
+                    await mQProducer.ProduceAsync(mqData);
                     await Task.Delay(100);
                 }
             });
@@ -474,23 +471,21 @@ namespace TestWebAPI.Controllers
         [HttpGet("produce")]
         public async Task Produce()
         {
-            MQContext mQContext = new MQContext("testmq", new RabbitMqContent() { RoutingKey = "testmq" });
-            using IMQProducer<TestMQData> producer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>(ExChangeTypeEnum.Direct);
+            using IMQProducer<TestMQData> producer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>("testmq", "testmq");
 
             for (int i = 0; i < 10; i++)
             {
-                await producer.ProduceAsync(mQContext, new TestMQData { Data = (i + 1).ToString(), CreateTime = DateTime.Now });
+                await producer.ProduceAsync(new TestMQData { Data = (i + 1).ToString(), CreateTime = DateTime.Now });
             }
         }
 
         [HttpGet("consume")]
         public async Task Consume()
         {
-            MQContext mQContext = new MQContext("testmq", new RabbitMqContent() { RoutingKey = "testmq" });
-            using IMQBatchConsumer<TestMQData> consumer = MessageQueueFactory.GetRabbitMQBatchConsumer<TestMQData>(ExChangeTypeEnum.Direct);
-            consumer.Subscribe(mQContext);
+            using IMQBatchConsumer<TestMQData> consumer = MessageQueueFactory.GetRabbitMQBatchConsumer<TestMQData>("testmq", "testmq");
+            consumer.Subscribe();
 
-            consumer.Consume(mQContext, (datas) =>
+            consumer.Consume((datas) =>
             {
                 foreach (var data in datas)
                 {
