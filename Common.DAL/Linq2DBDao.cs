@@ -69,14 +69,14 @@ namespace Common.DAL
 
             masterLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
             {
-                if (traceInfo.TraceInfoStep == TraceInfoStep.AfterExecute || traceInfo.TraceInfoStep == TraceInfoStep.Error)
-                    DaoFactory.LogHelper.Info("linq2DB_master", traceInfo.SqlText);
+                if (traceInfo.TraceInfoStep == TraceInfoStep.Error)
+                    DaoFactory.LogHelper.Error("linq2DB_master", traceInfo.SqlText);
             });
 
             slaveLinqToDbConnectionOptionsBuilder.WithTracing(traceInfo =>
             {
-                if (traceInfo.TraceInfoStep == TraceInfoStep.AfterExecute || traceInfo.TraceInfoStep == TraceInfoStep.Error)
-                    DaoFactory.LogHelper.Info("linq2DB_slave", traceInfo.SqlText);
+                if (traceInfo.TraceInfoStep == TraceInfoStep.Error)
+                    DaoFactory.LogHelper.Error("linq2DB_slave", traceInfo.SqlText);
             });
 
             m_masterlinqToDbConnectionOptions = masterLinqToDbConnectionOptionsBuilder.Build();
