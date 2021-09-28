@@ -186,7 +186,8 @@ namespace Common.MessageQueueClient.RabbitMQ
                             m_channel.BasicReject(basicGetResult.DeliveryTag, false);
                         }
 
-                        batchDatas.Add(new BatchData(basicGetResult.DeliveryTag, data));
+                        if (data != null)
+                            batchDatas.Add(new BatchData(basicGetResult.DeliveryTag, data));
 
                         if (batchDatas.Count >= pullingCount)
                             break;
