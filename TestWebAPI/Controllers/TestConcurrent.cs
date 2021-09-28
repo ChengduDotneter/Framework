@@ -14,6 +14,7 @@ using Common.MessageQueueClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using Common.MessageQueueClient.RabbitMQ;
 
 // ReSharper disable UnusedVariable
 // ReSharper disable HeuristicUnreachableCode
@@ -539,6 +540,56 @@ namespace TestWebAPI.Controllers
             {
                 return JsonConvert.SerializeObject(exception);
             }
+        }
+    }
+
+    internal class MessageData : IMQData
+    {
+        public string MessageType { get; set; }
+        public string data { get; set; }
+        public DateTime CreateTime { get; set; }
+    }
+
+    [Route("RabbitTest")]
+    public class RabbitTestController : ControllerBase
+    {
+        private readonly ILogHelper m_logHelper;
+
+        public RabbitTestController(ILogHelper logHelper)
+        {
+            m_logHelper = logHelper;
+        }
+
+        [HttpGet]
+        public async Task DownLoadData(long wareHouseID)
+        {
+            try
+            {
+                IMQBatchConsumer<MessageData> batchConsumer = MessageQueueFactory.GetRabbitMQBatchConsumer<MessageData>(new RabbitMQConfig
+                {
+                    QueueName = "MBHGL_SupplierCommodityStopSale",
+                    HostName = "172.24.19.120",
+                    Port = 5672,
+                    UserName = "admin",
+                    Password = "123456",
+                    RequestedHeartbeat = 60,
+                    RoutingKey = "MBHGL_SupplierCommodityStopSale",
+                    ExChangeType = ExChangeTypeEnum.Direct
+                });
+
+                await batchConsumer.ConsumeAsync(Consume, pullingTimeSpan: TimeSpan.FromSeconds(60), pullingCount: 2);
+                batchConsumer.Subscribe();
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+        }
+
+        private async Task<bool> Consume(IEnumerable<MessageData> arg)
+        {
+            return false;
         }
     }
 }
