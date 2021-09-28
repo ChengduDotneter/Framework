@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using Nito.AsyncEx;
 
 namespace Common.DAL.Cache
 {
@@ -19,6 +20,7 @@ namespace Common.DAL.Cache
             m_keyCacheInstance = new MemoryCacheInstance();
             m_conditionCacheInstance = new MemoryCacheInstance();
         }
+
         /// <summary>
         /// 选择用KeyCache实现
         /// </summary>
@@ -28,6 +30,7 @@ namespace Common.DAL.Cache
         {
             return new KeyCache<T>(searchQuery, m_keyCacheInstance);
         }
+
         /// <summary>
         /// 选择用条件缓存实现
         /// </summary>
@@ -37,6 +40,7 @@ namespace Common.DAL.Cache
         {
             return new ConditionCache<T>(searchQuery, m_conditionCacheInstance);
         }
+
         /// <summary>
         /// 选择用修改代理实现
         /// </summary>
@@ -56,11 +60,14 @@ namespace Common.DAL.Cache
         private const int CACHE_EXPIRATION = 60 * 2;
         private const int CACHE_SIZE = 1;
         private MemoryCache m_cache;
+        private AsyncLock m_mutex;
 
         public MemoryCacheInstance()
         {
+            m_mutex = new AsyncLock();
             m_cache = CreateCache();
         }
+
         /// <summary>
         /// 创建缓存
         /// </summary>
@@ -79,6 +86,7 @@ namespace Common.DAL.Cache
 
             return new MemoryCache(cacheOps);
         }
+
         /// <summary>
         /// 通过key获取缓存值
         /// </summary>
@@ -89,6 +97,7 @@ namespace Common.DAL.Cache
         {
             return Tuple.Create(m_cache.TryGetValue(key, out T value), value);
         }
+
         /// <summary>
         /// key异步获取缓存值
         /// </summary>
@@ -99,6 +108,7 @@ namespace Common.DAL.Cache
         {
             return Task.FromResult(Tuple.Create(m_cache.TryGetValue(key, out T value), value));
         }
+
         /// <summary>
         /// 设置缓存 通过key设置value
         /// </summary>
@@ -114,6 +124,7 @@ namespace Common.DAL.Cache
                 Size = CACHE_SIZE
             });
         }
+
         /// <summary>
         /// 异步设置缓存 通过key设置value
         /// </summary>
@@ -129,6 +140,7 @@ namespace Common.DAL.Cache
                 Size = CACHE_SIZE
             }));
         }
+
         /// <summary>
         /// 通过key删除缓存 
         /// </summary>
@@ -137,6 +149,7 @@ namespace Common.DAL.Cache
         {
             m_cache.Remove(key);
         }
+
         /// <summary>
         /// 通过key异步删除缓存
         /// </summary>
@@ -147,12 +160,13 @@ namespace Common.DAL.Cache
             m_cache.Remove(key);
             return Task.CompletedTask;
         }
+
         /// <summary>
         /// 缓存清空
         /// </summary>
         public void Clear()
         {
-            lock (this)
+            using (m_mutex.Lock())
             {
                 if (m_cache == null || m_cache.Count == 0)
                     return;
@@ -162,13 +176,14 @@ namespace Common.DAL.Cache
                 m_cache = CreateCache();
             }
         }
+
         /// <summary>
         /// 异步清空缓存
         /// </summary>
         /// <returns></returns>
-        public Task ClearAsync()
+        public async Task ClearAsync()
         {
-            lock (this)
+            using (await m_mutex.LockAsync())
             {
                 if (m_cache != null && m_cache.Count > 0)
                 {
@@ -177,8 +192,6 @@ namespace Common.DAL.Cache
                     m_cache = CreateCache();
                 }
             }
-
-            return Task.CompletedTask;
         }
     }
 }
