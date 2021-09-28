@@ -23,7 +23,7 @@ namespace Common.MessageQueueClient
         {
             return new RabbitmqProducer<T>(rabbitMqConfig);
         }
-        
+
         /// <summary>
         /// 获取RabbitMQ生产者
         /// </summary>
@@ -35,7 +35,7 @@ namespace Common.MessageQueueClient
             ConfigManager.Configuration.Bind("RabbitMQService", rabbitMqConfig);
             rabbitMqConfig.QueueName = queueName;
             rabbitMqConfig.RoutingKey = routeKey;
-            
+
             return GetRabbitMQProducer<T>(rabbitMqConfig);
         }
 
@@ -48,7 +48,7 @@ namespace Common.MessageQueueClient
         {
             return new RabbitmqConsumer<T>(rabbitMqConfig);
         }
-        
+
         /// <summary>
         /// 获取RabbitMQ消费者
         /// </summary>
@@ -73,7 +73,7 @@ namespace Common.MessageQueueClient
         {
             return new RabbitmqConsumer<T>(rabbitMqConfig);
         }
-        
+
         /// <summary>
         /// 获取RabbitMQ批量消费者
         /// </summary>
@@ -98,7 +98,7 @@ namespace Common.MessageQueueClient
         {
             return new KafkaProducer<T>(kafkaConfig);
         }
-        
+
         /// <summary>
         /// 获取Kafka生产者
         /// </summary>
@@ -147,7 +147,7 @@ namespace Common.MessageQueueClient
         {
             return new KafkaConsumer<T>(kafkaConfig);
         }
-        
+
         /// <summary>
         /// 获取Kafka批量消费者
         /// </summary>
