@@ -561,19 +561,19 @@ namespace TestWebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task DownLoadData(long wareHouseID)
+        public async Task RabbitTest(long wareHouseID)
         {
             try
             {
                 IMQBatchConsumer<MessageData> batchConsumer = MessageQueueFactory.GetRabbitMQBatchConsumer<MessageData>(new RabbitMQConfig
                 {
-                    QueueName = "MBHGL_SupplierCommodityStopSale",
-                    HostName = "172.24.19.120",
-                    Port = 5672,
+                    QueueName = "YC_CHANNEL_GOODS_SYNC_SHOPHGLYC",
+                    HostName = "192.168.10.211",
+                    Port = 15672,
                     UserName = "admin",
                     Password = "123456",
                     RequestedHeartbeat = 60,
-                    RoutingKey = "MBHGL_SupplierCommodityStopSale",
+                    RoutingKey = "YC_CHANNEL_GOODS_SYNC_SHOPHGLYC",
                     ExChangeType = ExChangeTypeEnum.Direct
                 });
 
