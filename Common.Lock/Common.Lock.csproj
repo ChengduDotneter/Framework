@@ -12,6 +12,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Consul" Version="1.6.1.1" />
+    <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
     <PackageReference Include="StackExchange.Redis" Version="2.1.58" />
   </ItemGroup>
   <ItemGroup>

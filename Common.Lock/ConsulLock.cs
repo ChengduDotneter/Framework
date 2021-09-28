@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 
 namespace Common.Lock
 {
@@ -37,8 +38,11 @@ namespace Common.Lock
             /// </summary>
             public CancellationTokenSource CancellationTokenSource { get; }
 
+            public AsyncLock Lock { get; }
+
             public LockInstance(IConsulClient consulClient)
             {
+                Lock = new AsyncLock();
                 m_instanceConsulClient = consulClient;
                 Locks = new ConcurrentDictionary<string, IDistributedLock>();
                 WriteResult<string> sessionRequest = m_instanceConsulClient.Session.Create(new SessionEntry() { TTL = TTL, LockDelay = TimeSpan.FromMilliseconds(1) }).Result;
@@ -75,17 +79,19 @@ namespace Common.Lock
         /// </summary>
         private readonly static IConsulClient m_consulClient;
 
+
         static ConsulLock()
         {
             m_lockInstances = new ConcurrentDictionary<string, LockInstance>();
-            ConsulServiceEntity serviceEntity = new ConsulServiceEntity();//consul服务实体
-            ConfigManager.Configuration.Bind("ConsulService", serviceEntity);//绑定
+            ConsulServiceEntity serviceEntity = new ConsulServiceEntity(); //consul服务实体
+            ConfigManager.Configuration.Bind("ConsulService", serviceEntity); //绑定
 
             if (string.IsNullOrWhiteSpace(serviceEntity.ConsulIP) || serviceEntity.ConsulPort == 0)
                 throw new Exception("ConsulIP和ConsulPort不能为空。");
 
-            m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}"));//consul客户端
+            m_consulClient = new ConsulClient(x => x.Address = new Uri($"http://{serviceEntity.ConsulIP}:{serviceEntity.ConsulPort}")); //consul客户端
         }
+
         /// <summary>
         /// 互斥锁同步申请资源
         /// </summary>
@@ -114,13 +120,13 @@ namespace Common.Lock
                     SessionTTL = TTL
                 };
 
-                IDistributedLock distributedLock = m_consulClient.CreateLock(lockOptions);//服务发现加锁
+                IDistributedLock distributedLock = m_consulClient.CreateLock(lockOptions); //服务发现加锁
 
                 try
                 {
                     distributedLock.Acquire(CancellationToken.None).Wait();
 
-                    lock (lockInstance.Locks)
+                    using (lockInstance.Lock.Lock())
                         m_lockInstances[identity].Locks.TryAdd(lockKey, distributedLock);
 
                     return true;
@@ -135,6 +141,7 @@ namespace Common.Lock
                 return m_lockInstances[identity].Locks[lockKey].IsHeld;
             }
         }
+
         /// <summary>
         /// 互斥锁异步申请
         /// </summary>
@@ -169,7 +176,7 @@ namespace Common.Lock
                 {
                     await distributedLock.Acquire(CancellationToken.None);
 
-                    lock (lockInstance.Locks)
+                    using (await lockInstance.Lock.LockAsync())
                         m_lockInstances[identity].Locks.TryAdd(lockKey, distributedLock);
 
                     return true;
@@ -184,6 +191,7 @@ namespace Common.Lock
                 return m_lockInstances[identity].Locks[lockKey].IsHeld;
             }
         }
+
         /// <summary>
         /// 同步释放锁资源
         /// </summary>
@@ -195,15 +203,16 @@ namespace Common.Lock
 
             IDistributedLock[] distributedLocks;
 
-            lock (lockInstance.Locks)
+            using (lockInstance.Lock.Lock())
                 distributedLocks = lockInstance.Locks.Values.ToArray();
 
             for (int i = 0; i < distributedLocks.Length; i++)
                 distributedLocks[i].Release().Wait();
 
-            lock (lockInstance)
+            using (lockInstance.Lock.Lock())
                 lockInstance.Dispose();
         }
+
         /// <summary>
         /// 异步释放锁资源
         /// </summary>
@@ -216,7 +225,7 @@ namespace Common.Lock
 
             IDistributedLock[] distributedLocks;
 
-            lock (lockInstance.Locks)
+            using (await lockInstance.Lock.LockAsync())
                 distributedLocks = lockInstance.Locks.Values.ToArray();
 
             IList<Task> tasks = new List<Task>();
@@ -226,7 +235,7 @@ namespace Common.Lock
 
             await Task.WhenAll(tasks);
 
-            lock (lockInstance)
+            using (await lockInstance.Lock.LockAsync())
                 lockInstance.Dispose();
         }
 
