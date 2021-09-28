@@ -16,6 +16,8 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Common.MessageQueueClient.RabbitMQ;
 
+// ReSharper disable NotAccessedField.Local
+
 // ReSharper disable UnusedVariable
 // ReSharper disable HeuristicUnreachableCode
 // ReSharper disable UnusedMember.Local
@@ -184,7 +186,7 @@ namespace TestWebAPI.Controllers
 
         private async Task Test2(ITransaction transaction)
         {
-            Random random = new Random();
+            //Random random = new Random();
 
             StockInfo stockInfo_2 = (await m_searchQuery.FilterIsDeleted().SearchAsync(transaction, item => item.CommodityID == 2, forUpdate: true)).FirstOrDefault();
             OrderInfo order_2 = new OrderInfo()
@@ -580,16 +582,15 @@ namespace TestWebAPI.Controllers
                 await batchConsumer.ConsumeAsync(Consume, pullingTimeSpan: TimeSpan.FromSeconds(60), pullingCount: 2);
                 batchConsumer.Subscribe();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-
+                // ignored
             }
-
         }
 
-        private async Task<bool> Consume(IEnumerable<MessageData> arg)
+        private Task<bool> Consume(IEnumerable<MessageData> arg)
         {
-            return false;
+            return Task.FromResult(false);
         }
     }
 }
