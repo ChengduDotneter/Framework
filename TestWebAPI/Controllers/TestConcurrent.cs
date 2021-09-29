@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Common.MessageQueueClient.RabbitMQ;
+using Newtonsoft.Json.Linq;
 
 // ReSharper disable NotAccessedField.Local
 
@@ -548,7 +549,7 @@ namespace TestWebAPI.Controllers
     internal class MessageData : IMQData
     {
         public string MessageType { get; set; }
-        public string data { get; set; }
+        public JArray data { get; set; }
         public DateTime CreateTime { get; set; }
     }
 
@@ -579,7 +580,7 @@ namespace TestWebAPI.Controllers
                     ExChangeType = ExChangeTypeEnum.Direct
                 });
 
-                await batchConsumer.ConsumeAsync(Consume, pullingTimeSpan: TimeSpan.FromSeconds(60), pullingCount: 2);
+                await batchConsumer.ConsumeAsync(Consume, pullingTimeSpan: TimeSpan.FromSeconds(30), pullingCount: 2);
                 batchConsumer.Subscribe();
             }
             catch (Exception)
