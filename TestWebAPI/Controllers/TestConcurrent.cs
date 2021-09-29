@@ -593,4 +593,56 @@ namespace TestWebAPI.Controllers
             return Task.FromResult(false);
         }
     }
+
+    [Route("backgroundworker")]
+    public class BackgroundWorkerTest : ControllerBase
+    {
+        private readonly ISearchQuery<CommodityArchives> m_searchQuery;
+        private readonly IEditQuery<CommodityArchives> m_editQuery;
+        private readonly ICreateTableQuery m_createTableQuery;
+        private readonly IDBResourceContent m_dbResourceContent;
+        private readonly IBackgroundWorkerService m_backgroundWorkerService;
+
+        public BackgroundWorkerTest(ISearchQuery<CommodityArchives> searchQuery,
+                                    IEditQuery<CommodityArchives> editQuery,
+                                    IDBResourceContent dbResourceContent,
+                                    IBackgroundWorkerService backgroundWorkerService,
+                                    ICreateTableQuery createTableQuery)
+        {
+            m_searchQuery = searchQuery;
+            m_editQuery = editQuery;
+            m_dbResourceContent = dbResourceContent;
+            m_backgroundWorkerService = backgroundWorkerService;
+            m_createTableQuery = createTableQuery;
+        }
+
+        [HttpGet("{id}")]
+        public async Task Get(long id)
+        {
+            DateTime createTime = DateTime.Now;
+
+            await m_backgroundWorkerService.AddWork<long, DateTime, ISearchQuery<CommodityArchives>, IEditQuery<CommodityArchives>, IDBResourceContent>(async (id, createTime, searchQuery, editQuery, dbResourceContent) =>
+            {
+                await Task.Delay(10000);
+                
+                using (ITransaction transaction = await editQuery.SplitBySystemID("s2b").BeginTransactionAsync())
+                {
+                    try
+                    {
+                        await m_editQuery.SplitBySystemID("s2b").InsertAsync(datas: new CommodityArchives { ID = id, CreateTime = createTime });
+                        await transaction.SubmitAsync();
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
+
+                    Console.WriteLine(await searchQuery.SplitBySystemID("s2b").CountAsync(transaction: transaction));
+                }
+
+                Console.WriteLine(await searchQuery.SplitBySystemID("s2b").CountAsync(dbResourceContent: dbResourceContent));
+            }, new { id, createTime });
+        }
+    }
 }

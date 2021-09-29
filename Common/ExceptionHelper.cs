@@ -30,5 +30,14 @@ namespace Common
             else
                 return exception.StackTrace;
         }
+
+        /// <summary>
+        /// 获取异常信息及调用堆栈
+        /// </summary>
+        /// <param name="exception">异常信实例</param>
+        public static string GetMessageAndStackTrace(Exception exception)
+        {
+            return $"{GetMessage(exception)}{Environment.NewLine}{GetStackTrace(exception)}";
+        }
     }
 }

@@ -131,6 +131,7 @@ namespace Common.ServiceCommon
             serviceCollection.AddScoped<ISSOUserService, SSOUserService>();//用户认证依赖注入
             serviceCollection.AddSingleton<ITccNotifyFactory, TccNotifyFactory>();//tcc通知注入
             serviceCollection.AddSingleton<ITccTransactionManager, TccTransactionManager>();//tcc事务管理注入
+            serviceCollection.AddSingleton<IBackgroundWorkerService, BackgroundWorkerService>();//注入后台任务执行服务
 
             return mvcBuilder;
         }
