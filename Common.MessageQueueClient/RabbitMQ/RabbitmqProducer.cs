@@ -46,7 +46,7 @@ namespace Common.MessageQueueClient.RabbitMQ
             m_channel.ExchangeDeclare(m_rabbitMqConfig.QueueName, type: m_rabbitMqConfig.ExChangeType.ToString().ToLower(), durable: true, autoDelete: false, null); //设置交换器类型
             m_channel.QueueDeclare(m_rabbitMqConfig.QueueName, true, false, false, null);
             m_channel.QueueBind(m_rabbitMqConfig.QueueName, m_rabbitMqConfig.QueueName, m_rabbitMqConfig.RoutingKey); // 设置路由关键字即为队列的名称
-            m_channel.ConfirmSelect();
+            // m_channel.ConfirmSelect();
         }
 
         /// <summary>
@@ -69,21 +69,21 @@ namespace Common.MessageQueueClient.RabbitMQ
             {
                 try
                 {
-                    int retryCount = 0;
+                    // int retryCount = 0;
 
-                    while (true)
-                    {
+                    // while (true)
+                    // {
                         m_channel.BasicPublish(exchange: m_rabbitMqConfig.QueueName, routingKey: m_rabbitMqConfig.RoutingKey, mandatory: false, basicProperties: m_properties,
                                                body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
 
-                        if (m_channel.WaitForConfirms())
-                            break;
+                        // if (m_channel.WaitForConfirms())
+                        //     break;
 
-                        retryCount++;
+                        // retryCount++;
 
-                        if (retryCount >= MAX_RETRY_COUNT)
-                            throw new DealException($"RabbitMq推送数据发生错误");
-                    }
+                        // if (retryCount >= MAX_RETRY_COUNT)
+                        //     throw new DealException($"RabbitMq推送数据发生错误");
+                    // }
                 }
                 catch (Exception ex)
                 {
