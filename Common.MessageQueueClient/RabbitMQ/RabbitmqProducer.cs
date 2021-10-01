@@ -76,8 +76,8 @@ namespace Common.MessageQueueClient.RabbitMQ
                         m_channel.BasicPublish(exchange: m_rabbitMqConfig.QueueName, routingKey: m_rabbitMqConfig.RoutingKey, mandatory: false, basicProperties: m_properties,
                                                body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
 
-                        // if (m_channel.WaitForConfirms())
-                        //     break;
+                        if (m_channel.WaitForConfirms())
+                            break;
 
                         retryCount++;
 
