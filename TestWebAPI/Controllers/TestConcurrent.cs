@@ -475,12 +475,22 @@ namespace TestWebAPI.Controllers
         [HttpGet("produce")]
         public async Task Produce()
         {
-            using IMQProducer<TestMQData> producer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>("testmq", "testmq");
+            IList<Task> tasks = new List<Task>();
 
-            for (int i = 0; i < 10; i++)
+            for (int j = 0; j < 100; j++)
             {
-                await producer.ProduceAsync(new TestMQData { Data = (i + 1).ToString(), CreateTime = DateTime.Now });
+                tasks.Add(Task.Factory.StartNew(async () =>
+                {
+                    using IMQProducer<TestMQData> producer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>("testmq", "testmq");
+
+                    for (int i = 0; i < 100; i++)
+                    {
+                        await producer.ProduceAsync(new TestMQData { Data = $"{j}_{(i + 1)}", CreateTime = DateTime.Now });
+                    }
+                }, TaskCreationOptions.LongRunning));
             }
+
+            await Task.WhenAll();
         }
 
         [HttpGet("consume")]
@@ -625,7 +635,7 @@ namespace TestWebAPI.Controllers
             await m_backgroundWorkerService.AddWork<long, DateTime, ISearchQuery<CommodityArchives>, IEditQuery<CommodityArchives>, IDBResourceContent>(async (id, createTime, searchQuery, editQuery, dbResourceContent) =>
             {
                 await Task.Delay(10000);
-                
+
                 using (ITransaction transaction = await editQuery.SplitBySystemID("s2b").BeginTransactionAsync())
                 {
                     try
