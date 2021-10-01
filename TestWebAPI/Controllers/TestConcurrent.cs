@@ -479,18 +479,19 @@ namespace TestWebAPI.Controllers
 
             for (int j = 0; j < 100; j++)
             {
+                var j1 = j;
                 tasks.Add(Task.Factory.StartNew(async () =>
                 {
                     using IMQProducer<TestMQData> producer = MessageQueueFactory.GetRabbitMQProducer<TestMQData>("testmq", "testmq");
 
                     for (int i = 0; i < 100; i++)
                     {
-                        await producer.ProduceAsync(new TestMQData { Data = $"{j}_{(i + 1)}", CreateTime = DateTime.Now });
+                        await producer.ProduceAsync(new TestMQData { Data = $"{j1}_{(i + 1)}", CreateTime = DateTime.Now });
                     }
                 }, TaskCreationOptions.LongRunning));
             }
 
-            await Task.WhenAll();
+            await Task.WhenAll(tasks);
         }
 
         [HttpGet("consume")]
