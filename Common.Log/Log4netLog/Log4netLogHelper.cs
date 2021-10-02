@@ -46,7 +46,7 @@ namespace Common.Log.Log4netLog
         public Task Info(string customCode, string message)
         {
             return Task.Factory.StartNew(() =>
-                Log4netCreater.CreateLog("Custom", "info", customCode).Info(message)
+                Log4netCreater.CreateLog("Custom", "Info", customCode).Info(message)
             );
         }
 
