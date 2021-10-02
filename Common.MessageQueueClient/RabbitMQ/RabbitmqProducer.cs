@@ -3,7 +3,6 @@ using RabbitMQ.Client;
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using Nito.AsyncEx;
 
 namespace Common.MessageQueueClient.RabbitMQ
 {
@@ -17,8 +16,6 @@ namespace Common.MessageQueueClient.RabbitMQ
         private readonly IModel m_channel;
         private readonly IBasicProperties m_properties;
         private readonly RabbitMQConfig m_rabbitMqConfig;
-        private readonly AsyncLock m_mutex;
-        private const int MAX_RETRY_COUNT = 10;
 
         /// <summary>
         /// 构造函数
@@ -26,7 +23,6 @@ namespace Common.MessageQueueClient.RabbitMQ
         public RabbitmqProducer(RabbitMQConfig rabbitMqConfig)
         {
             m_rabbitMqConfig = rabbitMqConfig;
-            m_mutex = new AsyncLock();
 
             ConnectionFactory connectionFactory = new ConnectionFactory()
             {
@@ -46,7 +42,6 @@ namespace Common.MessageQueueClient.RabbitMQ
             m_channel.ExchangeDeclare(m_rabbitMqConfig.QueueName, type: m_rabbitMqConfig.ExChangeType.ToString().ToLower(), durable: true, autoDelete: false, null); //设置交换器类型
             m_channel.QueueDeclare(m_rabbitMqConfig.QueueName, true, false, false, null);
             m_channel.QueueBind(m_rabbitMqConfig.QueueName, m_rabbitMqConfig.QueueName, m_rabbitMqConfig.RoutingKey); // 设置路由关键字即为队列的名称
-            // m_channel.ConfirmSelect();
         }
 
         /// <summary>
@@ -63,33 +58,19 @@ namespace Common.MessageQueueClient.RabbitMQ
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public async Task ProduceAsync(T message)
+        public Task ProduceAsync(T message)
         {
-            using (await m_mutex.LockAsync())
+            try
             {
-                try
-                {
-                    // int retryCount = 0;
-
-                    // while (true)
-                    // {
-                        m_channel.BasicPublish(exchange: m_rabbitMqConfig.QueueName, routingKey: m_rabbitMqConfig.RoutingKey, mandatory: false, basicProperties: m_properties,
-                                               body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
-
-                        // if (m_channel.WaitForConfirms())
-                        //     break;
-
-                        // retryCount++;
-
-                        // if (retryCount >= MAX_RETRY_COUNT)
-                        //     throw new DealException($"RabbitMq推送数据发生错误");
-                    // }
-                }
-                catch (Exception ex)
-                {
-                    throw new DealException($"RabbitMq推送数据发生错误：{ex.Message}");
-                }
+                m_channel.BasicPublish(exchange: m_rabbitMqConfig.QueueName, routingKey: m_rabbitMqConfig.RoutingKey, mandatory: false, basicProperties: m_properties,
+                                       body: Encoding.UTF8.GetBytes(ConvertDataToMessage(message)));
             }
+            catch (Exception ex)
+            {
+                throw new DealException($"RabbitMq推送数据发生错误：{ex.Message}");
+            }
+            
+            return Task.CompletedTask;
         }
 
         /// <summary>
