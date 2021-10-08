@@ -19,11 +19,10 @@ namespace Common.Log.Log4netLog
         /// <param name="controllerName">接口组名称</param>
         /// <param name="errorMessage">接口报错信息</param>
         /// <param name="statusCode">接口状态编码</param>
-        public Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "")
+        public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "")
         {
-            return Task.Factory.StartNew(() =>
-                Log4netCreater.CreateLog("Controller", controllerName, methed).Error($" Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{stackTrace}")
-            );
+            (await Log4netCreater.CreateLog("Controller", controllerName, methed)).
+                Error($" Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{stackTrace}");
         }
 
         /// <summary>
@@ -31,11 +30,9 @@ namespace Common.Log.Log4netLog
         /// </summary>
         /// <param name="customCode">自定义编码</param>
         /// <param name="message">需要写入的日志信息</param>
-        public Task Error(string customCode, string message)
+        public async Task Error(string customCode, string message)
         {
-            return Task.Factory.StartNew(() =>
-               Log4netCreater.CreateLog("Custom", "Error", customCode).Info(message)
-           );
+            (await Log4netCreater.CreateLog("Custom", "Error", customCode)).Info(message);
         }
 
         /// <summary>
@@ -43,11 +40,9 @@ namespace Common.Log.Log4netLog
         /// </summary>
         /// <param name="customCode">自定义编码</param>
         /// <param name="message">需要写入的日志信息</param>
-        public Task Info(string customCode, string message)
+        public async Task Info(string customCode, string message)
         {
-            return Task.Factory.StartNew(() =>
-                Log4netCreater.CreateLog("Custom", "Info", customCode).Info(message)
-            );
+            (await Log4netCreater.CreateLog("Custom", "Info", customCode)).Info(message);
         }
 
         /// <summary>
@@ -57,11 +52,9 @@ namespace Common.Log.Log4netLog
         /// <param name="methed">请求方法</param>
         /// <param name="parameters">请求参数</param>
         /// <param name="controllerName">接口组名称</param>
-        public Task Info(string controllerName, string methed, string path, string parameters)
+        public async Task Info(string controllerName, string methed, string path, string parameters)
         {
-            return Task.Factory.StartNew(() =>
-                Log4netCreater.CreateLog("Controller", controllerName, methed).Info($" path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}")
-            );
+            (await Log4netCreater.CreateLog("Controller", controllerName, methed)).Info($" path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
         }
 
         /// <summary>
@@ -70,15 +63,14 @@ namespace Common.Log.Log4netLog
         /// <param name="transcationID">TCC事务ID</param>
         /// <param name="isError">是否报错</param>
         /// <param name="message">TCC节点接口调用日志</param>
-        public Task TCCNode(long transcationID, bool? isError, string message)
+        public async Task TCCNode(long transcationID, bool? isError, string message)
         {
-            return Task.Factory.StartNew(() =>
-            {
-                ILog log = Log4netCreater.CreateLog("TCC", "TCC", "TCCDetails");
-                if (isError ?? false)
-                    log.Error($" transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine} stack_trace: {Environment.StackTrace}");
-                else log.Info($" transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine}");
-            });
+            ILog log = await Log4netCreater.CreateLog("TCC", "TCC", "TCCDetails");
+
+            if (isError ?? false)
+                log.Error($" transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine} stack_trace: {Environment.StackTrace}");
+            else
+                log.Info($" transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine}");
         }
 
         /// <summary>
@@ -86,11 +78,9 @@ namespace Common.Log.Log4netLog
         /// </summary>
         /// <param name="transcationID">TCC事务ID</param>
         /// <param name="message">TCC服务端相关日志</param>
-        public Task TCCServer(long transcationID, string message)
+        public async Task TCCServer(long transcationID, string message)
         {
-            return Task.Factory.StartNew(() =>
-                Log4netCreater.CreateLog("TCC", "TCC", "TCCTransactions").Info($" transcationID: {transcationID}{Environment.NewLine} message:{message}")
-            );
-        } 
+            (await Log4netCreater.CreateLog("TCC", "TCC", "TCCTransactions")).Info($" transcationID: {transcationID}{Environment.NewLine} message:{message}");
+        }
     }
 }

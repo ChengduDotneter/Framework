@@ -36,7 +36,7 @@ namespace Common.MessageQueueClient.RabbitMQ
 
         static RabbitmqConsumer()
         {
-            m_log = Log4netCreater.CreateLog("RabbitmqConsumer");
+            m_log = Log4netCreater.CreateLog("RabbitmqConsumer").Result;
         }
 
         /// <summary>

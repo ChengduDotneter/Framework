@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
+using Nito.AsyncEx;
 
 namespace Common
 {
@@ -19,6 +21,8 @@ namespace Common
     {
         private readonly static IDictionary<string, ILoggerRepository> m_loggerRepositorys;
         private readonly static IDictionary<string, ILog> m_logs;
+        private readonly static AsyncLock m_loggerRepositorMutex;
+        private readonly static AsyncLock m_logMutex;
         private readonly static string m_assemblyName;
 
         static Log4netCreater()
@@ -26,6 +30,8 @@ namespace Common
             m_assemblyName = Assembly.GetEntryAssembly().GetName().Name;
             m_loggerRepositorys = new Dictionary<string, ILoggerRepository>();
             m_logs = new Dictionary<string, ILog>();
+            m_loggerRepositorMutex = new AsyncLock();
+            m_logMutex = new AsyncLock();
         }
 
         /// <summary>
@@ -34,20 +40,20 @@ namespace Common
         /// <param name="repositoryName"></param>
         /// <param name="names">参数组</param>
         /// <returns></returns>
-        public static ILog CreateLog(string repositoryName, params string[] names)
+        public static async Task<ILog> CreateLog(string repositoryName, params string[] names)
         {
             ILoggerRepository loggerRepository;
 
             string repositoryKey = $"{repositoryName}-{string.Join("-", names)}";
 
-            if (!m_loggerRepositorys.ContainsKey(repositoryKey))//不存在时去创建
+            if (!m_loggerRepositorys.ContainsKey(repositoryKey)) //不存在时去创建
             {
-                lock (m_loggerRepositorys)//加锁
+                using (await m_loggerRepositorMutex.LockAsync()) //加锁
                 {
-                    if (!m_loggerRepositorys.ContainsKey(repositoryKey))//再次验证
+                    if (!m_loggerRepositorys.ContainsKey(repositoryKey)) //再次验证
                     {
-                        loggerRepository = LogManager.CreateRepository(repositoryKey);//创建日志操作
-                        m_loggerRepositorys.Add(repositoryKey, loggerRepository);//添加日志操作对象
+                        loggerRepository = LogManager.CreateRepository(repositoryKey); //创建日志操作
+                        m_loggerRepositorys.Add(repositoryKey, loggerRepository); //添加日志操作对象
                     }
                     else
                     {
@@ -60,21 +66,22 @@ namespace Common
                 loggerRepository = m_loggerRepositorys[repositoryKey];
             }
 
-            return DoCreateLog(loggerRepository, names.Length > 0 ? names : new string[] { repositoryName });
+            return await DoCreateLog(loggerRepository, names.Length > 0 ? names : new string[] { repositoryName });
         }
+
         /// <summary>
         /// 创建日志
         /// </summary>
         /// <param name="loggerRepository">日志操作对象</param>
         /// <param name="names">参数</param>
         /// <returns></returns>
-        private static ILog DoCreateLog(ILoggerRepository loggerRepository, params string[] names)
+        private static async Task<ILog> DoCreateLog(ILoggerRepository loggerRepository, params string[] names)
         {
             string logKey = loggerRepository.Name + names[0];
 
             if (!m_logs.ContainsKey(logKey))
             {
-                lock (m_logs)
+                using (await m_logMutex.LockAsync())
                 {
                     if (!m_logs.ContainsKey(logKey))
                     {
