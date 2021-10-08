@@ -32,7 +32,7 @@ namespace Common.MessageQueueClient.Kafka
 
         static KafkaConsumer()
         {
-            m_log = Log4netCreater.CreateLog("KafkaConsumer");
+            m_log = Log4netCreater.CreateLog("KafkaConsumer").Result;
         }
 
         /// <summary>
