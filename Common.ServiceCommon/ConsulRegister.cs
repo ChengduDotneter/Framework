@@ -14,6 +14,7 @@ namespace Common.ServiceCommon
     public static class ConsulRegister
     {
         private const int MONITOR_SPAN = 1000 * 10;
+        public static readonly string RegistrationID = IDGenerator.NextID().ToString();
 
         /// <summary>
         /// 初始化服务发现
@@ -48,7 +49,7 @@ namespace Common.ServiceCommon
                     }
                 },
                 //节点ID
-                ID = IDGenerator.NextID().ToString(),
+                ID = RegistrationID,
                 //节点服务名
                 Name = serviceEntity.ServiceName,
                 //节点地址
@@ -86,7 +87,7 @@ namespace Common.ServiceCommon
 
                         if (queryResult == null || queryResult.Response == null || queryResult.Response.Length == 0 || queryResult.Response.Count(item => item.ServiceID == registration.ID) == 0)
                         {
-                            Log.LogHelperFactory.GetDefaultLogHelper().Error(nameof(RegisterConsul),"Consul上未发现本服务，服务自动关闭。");
+                            Log.LogHelperFactory.GetDefaultLogHelper().Error(nameof(RegisterConsul), "Consul上未发现本服务，服务自动关闭。");
                             consulClient.Agent.ServiceDeregister(registration.ID).Wait();
                             Environment.Exit(0);
                         }
