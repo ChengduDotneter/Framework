@@ -96,7 +96,7 @@ namespace Common.ServiceCommon
         ///</summary>
         ///<param name="enumType">Type,该参数的格式为typeof(需要读的枚举类型)</param>
         ///<returns>键值对</returns>
-        private static IEnumerable<EnumValues> GetEnumItemValuesByEnumType(Type enumType)
+        public static IEnumerable<EnumValues> GetEnumItemValuesByEnumType(Type enumType)
         {
             if (enumType.IsGenericType && enumType.GetGenericTypeDefinition() == typeof(Nullable<>))//判断当前type是不是泛型并且是不是可控
             {
