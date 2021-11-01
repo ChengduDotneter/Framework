@@ -43,7 +43,7 @@ namespace Common.ServiceCommon
                         //健康检查时间间隔，或者称为心跳间隔
                         Interval = TimeSpan.FromSeconds(serviceEntity.Interval),
                         //健康检查地址
-                        HTTP = $"http://{serviceEntity.IP}:{serviceEntity.Port}/{serviceEntity.HealthPath}",
+                        HTTP = $"http://{serviceEntity.IP}:{serviceEntity.Port}/{serviceEntity.HealthPath}/{RegistrationID}",
                         //Consul超时时间
                         Timeout = TimeSpan.FromSeconds(serviceEntity.Timeout)
                     }
