@@ -1,5 +1,4 @@
-﻿using Common.Const;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
 
 namespace Common.ServiceCommon
