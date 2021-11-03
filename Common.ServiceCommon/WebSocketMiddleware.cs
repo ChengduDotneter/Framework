@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Common.Log;
 
 namespace Common.ServiceCommon
 {
@@ -17,6 +18,7 @@ namespace Common.ServiceCommon
     public class WebSocketMiddleware
     {
         private readonly RequestDelegate m_requestDelegate;
+        private readonly ILogHelper m_logHelper;
         private static readonly IDictionary<string, Type> m_processorTypes;
 
         static WebSocketMiddleware()
@@ -45,9 +47,11 @@ namespace Common.ServiceCommon
         /// WebSocket中间件构造函数
         /// </summary>
         /// <param name="requestDelegate"></param>
-        public WebSocketMiddleware(RequestDelegate requestDelegate)
+        /// <param name="logHelper"></param>
+        public WebSocketMiddleware(RequestDelegate requestDelegate, ILogHelper logHelper)
         {
             m_requestDelegate = requestDelegate;
+            m_logHelper = logHelper;
         }
 
         /// <summary>
@@ -63,7 +67,7 @@ namespace Common.ServiceCommon
                 return;
             }
 
-            string identity = context.Request.Query["identity"].FirstOrDefault();//需要传identity身份 乱写都行
+            string identity = context.Request.Query["identity"].FirstOrDefault(); //需要传identity身份 乱写都行
 
             if (string.IsNullOrWhiteSpace(identity))
             {
@@ -127,7 +131,35 @@ namespace Common.ServiceCommon
                         (bool success, string data) = await ReceiveStringAsync(webSocket);
 
                         if (success)
-                            _ = messageProcessor.RecieveMessage(data, cancellationTokenSource.Token);
+                        {
+                            _ = Task.Factory.StartNew(async (state) =>
+                            {
+                                try
+                                {
+                                    await messageProcessor.RecieveMessage(data, ((CancellationTokenSource)state).Token);
+                                    await m_logHelper.Info(m_processorTypes[context.Request.Path].Name, nameof(MessageProcessor.RecieveMessage), nameof(MessageProcessor.RecieveMessage), data);
+                                }
+                                catch (Exception exception)
+                                {
+                                    int httpStatusCode = StatusCodes.Status500InternalServerError;
+
+                                    if (exception is DealException || exception is ResourceException)
+                                        httpStatusCode = StatusCodes.Status402PaymentRequired;
+                                    
+                                    string errorMessage = ExceptionHelper.GetMessage(exception);
+
+                                    await m_logHelper.Error(m_processorTypes[context.Request.Path].Name,
+                                                            nameof(MessageProcessor.RecieveMessage),
+                                                            httpStatusCode,
+                                                            errorMessage,
+                                                            nameof(MessageProcessor.RecieveMessage),
+                                                            data,
+                                                            exception.StackTrace);
+                                    
+                                    messageProcessor.SendDatas.Add(errorMessage);
+                                }
+                            }, cancellationTokenSource);
+                        }
 
                         await Task.Delay(10);
                     }
@@ -137,13 +169,13 @@ namespace Common.ServiceCommon
             }
         }
 
-        private static Task SendStringAsync(WebSocket socket, string data)//发送数据
+        private static Task SendStringAsync(WebSocket socket, string data) //发送数据
         {
             var segment = new ArraySegment<byte>(Encoding.UTF8.GetBytes(data));
             return socket.SendAsync(segment, WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
-        private static async Task<Tuple<bool, string>> ReceiveStringAsync(WebSocket socket)//接收数据
+        private static async Task<Tuple<bool, string>> ReceiveStringAsync(WebSocket socket) //接收数据
         {
             ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[8192]);
             using (MemoryStream memoryStream = new MemoryStream())

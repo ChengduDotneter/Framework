@@ -386,28 +386,35 @@ namespace TestWebAPI.Controllers
         }
     }
 
+    public class TestData
+    {
+        public string Parameter { get; set; }
+    }
+
 
     [MessageProcessorRoute("abcds")]
-    public class ABCD : MessageProcessor<string>
+    public class ABCD : MessageProcessor<TestData>
     {
-        private readonly ITest m_test;
         private readonly ISSOUserService m_ssoUserService;
 
-        public override async Task RecieveMessage(string parameter, CancellationToken cancellationToken)
+        public override async Task RecieveMessage(TestData testData, CancellationToken cancellationToken)
         {
             SSOUserInfo ssoUserInfo = m_ssoUserService.GetUser();
-            m_test.Test();
+            int i = 0;
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                SendMessage($"{Environment.TickCount}_{parameter}");
+                SendMessage($"{Environment.TickCount}_{testData.Parameter}");
                 await Task.Delay(1000);
+                i++;
+
+                if (i > 5)
+                    throw new DealException("测试异常");
             }
         }
 
-        public ABCD(string identity, ITest test, ILogHelper logHelper, ISSOUserService ssoUserService) : base(identity, logHelper)
+        public ABCD(string identity, ISSOUserService ssoUserService) : base(identity)
         {
-            m_test = test;
             m_ssoUserService = ssoUserService;
         }
     }

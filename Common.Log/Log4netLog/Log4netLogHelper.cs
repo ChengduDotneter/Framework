@@ -22,7 +22,7 @@ namespace Common.Log.Log4netLog
         public async Task Error(string controllerName, string methed, int statusCode, string errorMessage, string path, string parameters, string stackTrace = "")
         {
             (await Log4netCreater.CreateLog("Controller", controllerName, methed)).
-                Error($" Error {Environment.NewLine} path: {path}{Environment.NewLine} parameters: {Environment.NewLine}{parameters} http_status_code {statusCode}{Environment.NewLine} error_message: {Environment.NewLine}{errorMessage} stack_trace:{Environment.NewLine}{stackTrace}");
+                Error($"path: {path}{Environment.NewLine}parameters: {Environment.NewLine}{parameters}{Environment.NewLine}http_status_code {statusCode}{Environment.NewLine}error_message: {Environment.NewLine}{errorMessage}{Environment.NewLine}stack_trace:{Environment.NewLine}{stackTrace}");
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Common.Log.Log4netLog
         /// <param name="controllerName">接口组名称</param>
         public async Task Info(string controllerName, string methed, string path, string parameters)
         {
-            (await Log4netCreater.CreateLog("Controller", controllerName, methed)).Info($" path: {path}{Environment.NewLine}{Environment.NewLine} parameters: {Environment.NewLine}{parameters}");
+            (await Log4netCreater.CreateLog("Controller", controllerName, methed)).Info($"path: {path}{Environment.NewLine}{Environment.NewLine}parameters: {Environment.NewLine}{parameters}");
         }
 
         /// <summary>
@@ -68,9 +68,9 @@ namespace Common.Log.Log4netLog
             ILog log = await Log4netCreater.CreateLog("TCC", "TCC", "TCCDetails");
 
             if (isError ?? false)
-                log.Error($" transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine} stack_trace: {Environment.StackTrace}");
+                log.Error($"transcationID: {transcationID}{Environment.NewLine}is_error:{isError}{Environment.NewLine}message:{message}{Environment.NewLine}stack_trace: {Environment.StackTrace}");
             else
-                log.Info($" transcationID: {transcationID}{Environment.NewLine} is_error:{isError} {Environment.NewLine} message:{message}{Environment.NewLine}");
+                log.Info($"transcationID: {transcationID}{Environment.NewLine}is_error:{isError}{Environment.NewLine}message:{message}{Environment.NewLine}");
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Common.Log.Log4netLog
         /// <param name="message">TCC服务端相关日志</param>
         public async Task TCCServer(long transcationID, string message)
         {
-            (await Log4netCreater.CreateLog("TCC", "TCC", "TCCTransactions")).Info($" transcationID: {transcationID}{Environment.NewLine} message:{message}");
+            (await Log4netCreater.CreateLog("TCC", "TCC", "TCCTransactions")).Info($"transcationID: {transcationID}{Environment.NewLine} message:{message}");
         }
     }
 }
