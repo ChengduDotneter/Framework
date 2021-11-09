@@ -1,12 +1,14 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Common
 {
     /// <summary>
     /// JToken相关Helper类
     /// </summary>
-    public class JTokenHelper
+    public static class JTokenHelper
     {
         /// <summary>
         /// 获取整形数据
@@ -136,7 +138,10 @@ namespace Common
                 else
                     return 0;
             }
-            catch { return 0; }
+            catch
+            {
+                return 0;
+            }
         }
 
         /// <summary>
@@ -155,7 +160,10 @@ namespace Common
                 else
                     return null;
             }
-            catch { return null; }
+            catch
+            {
+                return null;
+            }
         }
 
         /// <summary>
@@ -211,6 +219,64 @@ namespace Common
             {
                 throw new DealException("不受支持的枚举类型");
             }
+        }
+
+        /// <summary>
+        /// 将JObject转化成字典
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static IDictionary<string, object> ToDictionary(this JToken json)
+        {
+            var propertyValuePairs = json.ToObject<Dictionary<string, object>>();
+            ProcessJObjectProperties(propertyValuePairs);
+            ProcessJArrayProperties(propertyValuePairs);
+            return propertyValuePairs;
+        }
+
+        private static void ProcessJObjectProperties(IDictionary<string, object> propertyValuePairs)
+        {
+            var objectPropertyNames = (from property in propertyValuePairs
+                                       let propertyName = property.Key
+                                       let value = property.Value
+                                       where value is JObject
+                                       select propertyName).ToList();
+
+            objectPropertyNames.ForEach(propertyName => propertyValuePairs[propertyName] = ToDictionary((JObject)propertyValuePairs[propertyName]));
+        }
+
+        private static void ProcessJArrayProperties(IDictionary<string, object> propertyValuePairs)
+        {
+            var arrayPropertyNames = (from property in propertyValuePairs
+                                      let propertyName = property.Key
+                                      let value = property.Value
+                                      where value is JArray
+                                      select propertyName).ToList();
+
+            arrayPropertyNames.ForEach(propertyName => propertyValuePairs[propertyName] = ToArray((JArray)propertyValuePairs[propertyName]));
+        }
+
+        /// <summary>
+        /// 将Jarray转换为object[]
+        /// </summary>
+        /// <param name="array"></param>
+        /// <returns></returns>
+        public static object[] ToArray(this JArray array)
+        {
+            return array.ToObject<object[]>().Select(ProcessArrayEntry).ToArray();
+        }
+
+        private static object ProcessArrayEntry(object value)
+        {
+            if (value is JObject)
+            {
+                return ToDictionary((JObject)value);
+            }
+            if (value is JArray)
+            {
+                return ToArray((JArray)value);
+            }
+            return value;
         }
     }
 }
