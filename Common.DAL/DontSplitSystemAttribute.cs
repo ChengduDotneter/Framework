@@ -3,7 +3,7 @@ using System;
 namespace Common.DAL
 {
     /// <summary>
-    /// ²»·ÖÇøÌØĞÔ
+    /// ä¸åˆ†åŒºç‰¹æ€§
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class DontSplitSystemAttribute : Attribute
