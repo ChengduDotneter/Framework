@@ -1711,17 +1711,7 @@ namespace Common.DAL
             {
                 return SearchAsync(string.Empty, predicate, queryOrderBies, startIndex, count, dbResourceContent);
             }
-            /// <summary>
-            /// 事务中获取数据的总条数
-            /// </summary>
-            /// <typeparam name="TResult"></typeparam>
-            /// <param name="transaction"></param>
-            /// <param name="query"></param>
-            /// <returns></returns>
-            public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
-            {
-                return query.Count();
-            }
+
             /// <summary>
             /// 获取事务的条数
             /// </summary>
@@ -1732,17 +1722,7 @@ namespace Common.DAL
             {
                 return query.Count();
             }
-            /// <summary>
-            /// 一步获取
-            /// </summary>
-            /// <typeparam name="TResult"></typeparam>
-            /// <param name="transaction"></param>
-            /// <param name="query"></param>
-            /// <returns></returns>
-            public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
-            {
-                return await query.CountAsync();
-            }
+
             /// <summary>
             /// 异步获取数据条数
             /// </summary>
@@ -1753,19 +1733,7 @@ namespace Common.DAL
             {
                 return await query.CountAsync();
             }
-            /// <summary>
-            /// 没有查询条件的查询
-            /// </summary>
-            /// <typeparam name="TResult"></typeparam>
-            /// <param name="transaction"></param>
-            /// <param name="query"></param>
-            /// <param name="startIndex"></param>
-            /// <param name="count"></param>
-            /// <returns></returns>
-            public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-            {
-                return query.Skip(startIndex).Take(count).ToList();
-            }
+
             /// <summary>
             /// 没有事务参数的查询
             /// </summary>
@@ -1778,19 +1746,7 @@ namespace Common.DAL
             {
                 return query.Skip(startIndex).Take(count).ToList();
             }
-            /// <summary>
-            /// 异步查询 没有查询条件
-            /// </summary>
-            /// <typeparam name="TResult"></typeparam>
-            /// <param name="transaction"></param>
-            /// <param name="query"></param>
-            /// <param name="startIndex"></param>
-            /// <param name="count"></param>
-            /// <returns></returns>
-            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-            {
-                return await query.Skip(startIndex).Take(count).ToListAsync();
-            }
+
             /// <summary>
             /// 没有查询条件
             /// </summary>

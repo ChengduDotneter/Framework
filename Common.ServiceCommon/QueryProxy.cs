@@ -454,11 +454,6 @@ namespace Common.ServiceCommon
             return Count(string.Empty, predicate, dbResourceContent);
         }
 
-        public virtual int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
-        {
-            return m_searchQuery.Count(transaction, query);
-        }
-
         public virtual int Count<TResult>(IQueryable<TResult> query)
         {
             return m_searchQuery.Count(query);
@@ -482,11 +477,6 @@ namespace Common.ServiceCommon
         public virtual Task<int> CountAsync(Expression<Func<T, bool>> predicate = null, IDBResourceContent dbResourceContent = null)
         {
             return CountAsync(string.Empty, predicate, dbResourceContent);
-        }
-
-        public virtual Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
-        {
-            return m_searchQuery.CountAsync(transaction, query);
         }
 
         public virtual Task<int> CountAsync<TResult>(IQueryable<TResult> query)
@@ -594,11 +584,6 @@ namespace Common.ServiceCommon
             return Search(string.Empty, predicate, queryOrderBies, startIndex, count, dbResourceContent);
         }
 
-        public virtual IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.Search(transaction, query, startIndex, count);
-        }
-
         public virtual IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
         {
             return m_searchQuery.Search(query, startIndex, count);
@@ -622,11 +607,6 @@ namespace Common.ServiceCommon
         public virtual Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate = null, IEnumerable<QueryOrderBy<T>> queryOrderBies = null, int startIndex = 0, int count = int.MaxValue, IDBResourceContent dbResourceContent = null)
         {
             return SearchAsync(string.Empty, predicate, queryOrderBies, startIndex, count, dbResourceContent);
-        }
-
-        public virtual Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-        {
-            return m_searchQuery.SearchAsync(transaction, query, startIndex, count);
         }
 
         public virtual Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)

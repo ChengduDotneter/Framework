@@ -499,14 +499,6 @@ namespace Common.DAL
                                          int count = int.MaxValue,
                                          IDBResourceContent dbResourceContent = null);
 
-        /// <summary>
-        /// 事务中根据LinqQueryable筛选条件联查条数
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="transaction"></param>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        int Count<TResult>(ITransaction transaction, IQueryable<TResult> query);
 
         /// <summary>
         /// 根据LinqQueryable筛选条件联查条数
@@ -517,32 +509,12 @@ namespace Common.DAL
         int Count<TResult>(IQueryable<TResult> query);
 
         /// <summary>
-        /// 事务中根据LinqQueryable筛选条件联查条数（异步）
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="transaction"></param>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query);
-
-        /// <summary>
         /// 根据LinqQueryable筛选条件联查条数（异步）
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
         Task<int> CountAsync<TResult>(IQueryable<TResult> query);
-
-        /// <summary>
-        /// 事务中根据LinqQueryable筛选条件联查数据
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="transaction"></param>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
 
         /// <summary>
         /// 根据LinqQueryable筛选条件联查数据
@@ -553,17 +525,6 @@ namespace Common.DAL
         /// <param name="count"></param>
         /// <returns></returns>
         IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
-
-        /// <summary>
-        /// 事务中根据LinqQueryable筛选条件联查数据（异步）
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="transaction"></param>
-        /// <param name="query"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue);
 
         /// <summary>
         /// 根据LinqQueryable筛选条件联查数据（异步）

@@ -1245,22 +1245,10 @@ namespace Common.DAL
                 return SearchAsync(string.Empty, predicate, queryOrderBies, startIndex, count, dbResourceContent);
             }
 
-            public int Count<TResult>(ITransaction transaction, IQueryable<TResult> query)
-            {
-                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
-                return queryable.Count();
-            }
-
             public int Count<TResult>(IQueryable<TResult> query)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 return queryable.Count();
-            }
-
-            public async Task<int> CountAsync<TResult>(ITransaction transaction, IQueryable<TResult> query)
-            {
-                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
-                return await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<int>(Expression.Call(m_countMethodInfo.MakeGenericMethod(typeof(TResult)), queryable.Expression));
             }
 
             public async Task<int> CountAsync<TResult>(IQueryable<TResult> query)
@@ -1269,28 +1257,10 @@ namespace Common.DAL
                 return await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<int>(Expression.Call(m_countMethodInfo.MakeGenericMethod(typeof(TResult)), queryable.Expression));
             }
 
-            public IEnumerable<TResult> Search<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-            {
-                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
-                return queryable.Skip(startIndex).Take(count).ToList();
-            }
-
             public IEnumerable<TResult> Search<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
             {
                 MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
                 return queryable.Skip(startIndex).Take(count).ToList();
-            }
-
-            public async Task<IEnumerable<TResult>> SearchAsync<TResult>(ITransaction transaction, IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
-            {
-                MongoQueryable<TResult> queryable = (MongoQueryable<TResult>)query;
-                IAsyncCursor<TResult> asyncCursor = await ((MongoQueryableProvider)queryable.Provider).ExecuteAsync<IAsyncCursor<TResult>>(queryable.Expression);
-                IList<TResult> results = new List<TResult>();
-
-                while (await asyncCursor.MoveNextAsync(CancellationToken.None))
-                    results.AddRange(asyncCursor.Current);
-
-                return results;
             }
 
             public async Task<IEnumerable<TResult>> SearchAsync<TResult>(IQueryable<TResult> query, int startIndex = 0, int count = int.MaxValue)
