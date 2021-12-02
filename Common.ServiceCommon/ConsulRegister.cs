@@ -68,7 +68,7 @@ namespace Common.ServiceCommon
             {
                 while (true)
                 {
-                    if (Convert.ToBoolean(ConfigManager.Configuration["ConsulService:IsConsulMonitor"]))
+                    if (serviceEntity.IsConsulMonitor)
                     {
                         QueryResult<CatalogService[]> queryResult = consulClient.Catalog.Service(registration.Name).Result;
 

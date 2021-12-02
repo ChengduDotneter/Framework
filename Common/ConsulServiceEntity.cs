@@ -49,5 +49,10 @@
         /// 超时
         /// </summary>
         public int Timeout { get; set; }
+        
+        /// <summary>
+        /// 是否监控Consul状态
+        /// </summary>
+        public bool IsConsulMonitor { get; set; }
     }
 }
