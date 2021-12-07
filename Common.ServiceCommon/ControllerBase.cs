@@ -16,6 +16,7 @@ namespace Common.ServiceCommon
     public static class ValidSystem
     {
         internal const string SYSTEMID = "systemID";
+
         /// <summary>
         /// 检查系统id
         /// </summary>
@@ -62,6 +63,7 @@ namespace Common.ServiceCommon
         /// <returns></returns>
         protected abstract Task<TResponse> DoPost(JObject request);
     }
+
     //因为Service中无相应的实体 所以使用FromServices 方法属性注入
     /// <summary>
     /// Service中无相应的实体接受请求参数时使用且请求参数为JArray的接口基类
@@ -153,6 +155,7 @@ namespace Common.ServiceCommon
     {
         private ISearchQuery<TResponse> m_searchQuery;
         private readonly bool m_splitSystem;
+        private readonly IDBResourceContent m_dbResourceContent;
 
         /// <summary>
         /// Get
@@ -180,9 +183,9 @@ namespace Common.ServiceCommon
         protected virtual Task<TResponse> DoGet(long id)
         {
             if (HttpContext.CheckSystem(m_splitSystem))
-                return m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().GetAsync(id);
+                return m_searchQuery.SplitBySystemID(HttpContext).FilterIsDeleted().GetAsync(id, m_dbResourceContent);
             else
-                return m_searchQuery.FilterIsDeleted().GetAsync(id);
+                return m_searchQuery.FilterIsDeleted().GetAsync(id, m_dbResourceContent);
         }
 
         /// <summary>
@@ -190,10 +193,12 @@ namespace Common.ServiceCommon
         /// </summary>
         /// <param name="searchQuery"></param>
         /// <param name="splitSystem"></param>
-        public GenericGetController(ISearchQuery<TResponse> searchQuery, bool splitSystem = true)
+        /// <param name="dbResourceContent"></param>
+        public GenericGetController(ISearchQuery<TResponse> searchQuery, bool splitSystem = true, IDBResourceContent dbResourceContent = null)
         {
             m_searchQuery = searchQuery;
             m_splitSystem = splitSystem;
+            m_dbResourceContent = dbResourceContent;
         }
     }
 
