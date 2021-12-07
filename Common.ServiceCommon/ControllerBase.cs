@@ -640,6 +640,41 @@ namespace Common.ServiceCommon
     }
 
     /// <summary>
+    /// 不需要分表的通用接口基类
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    public class DontSplitSystemGenericPostController<TRequest> : GenericPostController<TRequest> where TRequest : ViewModelBase, new()
+    {
+        public DontSplitSystemGenericPostController(IEditQuery<TRequest> editQuery, ISSOUserService ssoUserService) : base(editQuery, ssoUserService, false)
+        {
+        }
+    }
+    public class DontSplitSystemGenericPutController<TRequest> : GenericPutController<TRequest> where TRequest : ViewModelBase, new()
+    {
+        public DontSplitSystemGenericPutController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery, ISSOUserService ssoUserService) : base(editQuery, searchQuery, ssoUserService, false)
+        {
+        }
+    }
+    public class DontSplitSystemGenericSearchController<TRequest, TResponse> : GenericSearchController<TRequest, TResponse> where TRequest : ViewModelBase, new() where TResponse : ViewModelBase, new()
+    {
+        public DontSplitSystemGenericSearchController(ISearchQuery<TResponse> searchQuery, IDBResourceContent dbResourceContent = null) : base(searchQuery, false, dbResourceContent)
+        {
+        }
+    }
+    public class DontSplitSystemGenericGetController<TResponse> : GenericGetController<TResponse> where TResponse : ViewModelBase, new()
+    {
+        public DontSplitSystemGenericGetController(ISearchQuery<TResponse> searchQuery, IDBResourceContent dbResourceContent = null) : base(searchQuery, false, dbResourceContent)
+        {
+        }
+    }
+    public class DontSplitSystemGenericDeleteController<TRequest> : GenericDeleteController<TRequest> where TRequest : ViewModelBase, new()
+    {
+        public DontSplitSystemGenericDeleteController(IEditQuery<TRequest> editQuery, ISearchQuery<TRequest> searchQuery) : base(editQuery, searchQuery, false)
+        {
+        }
+    }
+
+    /// <summary>
     /// 自定义Controller接口
     /// </summary>
     public interface IDynamicController
