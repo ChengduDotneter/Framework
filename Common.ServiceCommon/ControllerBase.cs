@@ -397,7 +397,7 @@ namespace Common.ServiceCommon
             HttpContext.CheckSystem(m_splitSystem);
 
             request.ID = IDGenerator.NextID();
-            request.AddCreateUser(m_ssoUserService);
+            request.GenerateInitialization(m_ssoUserService);
             request.IsDeleted = false;
 
             await DoPost(request.ID, request);
@@ -459,7 +459,7 @@ namespace Common.ServiceCommon
 
             if (count > 0)
             {
-                request.AddUpdateUser(m_ssoUserService);
+                request.UpdateInitialization(m_ssoUserService);
                 await DoPut(request);
 
                 return Ok();
